@@ -1,0 +1,9 @@
+# .gitignore
+
+# Ignore .env files
+.env
+
+# Other ignore rules
+node_modules/
+build/
+*.log
