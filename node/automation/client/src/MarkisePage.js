@@ -16,10 +16,11 @@ const MarkisePage = () => {
     const [cookies] = useCookies(['session']);
     const [reloadTasks, setReloadTasks] = useState(false);
     const customMarkiseLabels = { '1': "Ausfahren", '2': "Einfahren" };
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
         const sessionId = cookies.session;
-        const url = sessionId ? `https://automation.charts.cx/mqtt?session=${sessionId}` : 'https://automation.charts.cx/mqtt';
+        const url = sessionId ? `${apiUrl}/mqtt?session=${sessionId}` : `${apiUrl}/mqtt`;
         const eventSource = new EventSource(url);
     
         eventSource.onmessage = (event) => {
@@ -44,10 +45,10 @@ const MarkisePage = () => {
         return () => {
             eventSource.close();
         };
-    }, [cookies]);    
+    }, [cookies, apiUrl]);    
 
     useEffect(() => {
-        axios.get('https://automation.charts.cx/scheduledTasks')
+        axios.get(`${apiUrl}/scheduledTasks`)
             .then(response => {
                 const tasksArray = Object.entries(response.data).flatMap(([key, tasks]) => tasks.map(task => ({ topic: key, ...task })));
                 const markiseTasks = tasksArray.filter(task => task.topic === 'markise/switch/haupt');
@@ -55,18 +56,17 @@ const MarkisePage = () => {
                 setTasksLoaded(true);
             })
             .catch(error => console.error('Error:', error));
-    }, [reloadTasks]);
+    }, [reloadTasks, apiUrl]);
 
     const handleSend = (value) => {
         const topic = 'markise/switch/haupt';
-        const apiUrl = 'https://automation.charts.cx/simpleapi';
 
         const data = {
             topic,
             state: value,
         };
 
-        axios.post(apiUrl, data)
+        axios.post(`${apiUrl}/simpleapi`, data)
             .then((response) => {
                 console.log('Success: ', response.data);
             })

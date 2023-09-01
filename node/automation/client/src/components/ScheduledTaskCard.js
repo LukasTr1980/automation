@@ -13,6 +13,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels }) {
   const [switchStates, setSwitchStates] = useState({
     [cleanZoneName]: false
   });
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   // Handler function for switch toggle
   const handleToggle = (zone) => () => {
@@ -23,7 +24,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels }) {
       };
 
       // Send updated switch state to the backend
-      axios.post('https://automation.charts.cx/switchTaskEnabler', { zone: cleanZoneName, state: updatedState[zone] })
+      axios.post(`${apiUrl}/switchTaskEnabler`, { zone: cleanZoneName, state: updatedState[zone] })
         .then(response => {
           // Handle response if needed
         })
@@ -40,7 +41,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels }) {
     // Define a function to fetch the initial switch state from the backend
     const fetchInitialState = async () => {
       try {
-        const response = await axios.get(`https://automation.charts.cx/getTaskEnabler?zone=${cleanZoneName}`);
+        const response = await axios.get(`${apiUrl}/getTaskEnabler?zone=${cleanZoneName}`);
         setSwitchStates(prevState => ({ ...prevState, [cleanZoneName]: response.data.state === true }));
       } catch (error) {
         console.error('Error:', error);
@@ -49,7 +50,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels }) {
 
     // Call the function
     fetchInitialState();
-  }, [cleanZoneName]); // Dependency array: only re-run if cleanZoneName changes
+  }, [cleanZoneName, apiUrl]); // Dependency array: only re-run if cleanZoneName changes
 
   return (
     <Card style={{ margin: "10px", border: "1px solid black" }}>

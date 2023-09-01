@@ -1,12 +1,14 @@
 // constants.js
+const envSwitcher = require('./envSwitcher');
 
+const baseUrl = envSwitcher.baseUrl;
 const urlMap = {
-    'bewaesserung/switch/stefanNord': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.1',
-    'bewaesserung/switch/stefanOst': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.2',
-    'bewaesserung/switch/lukasSued': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.3',
-    'bewaesserung/switch/lukasWest': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.4',
-    'bewaesserung/switch/alle': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.13',
-    'markise/switch/haupt' : 'http://10.25.159.1:8087/set/tuya.0.8407060570039f7fa6d2.1',
+    'bewaesserung/switch/stefanNord': `${baseUrl}/set/tuya.0.51050522600194fed14c.1`,
+    'bewaesserung/switch/stefanOst': `${baseUrl}/set/tuya.0.51050522600194fed14c.2`,
+    'bewaesserung/switch/lukasSued': `${baseUrl}/set/tuya.0.51050522600194fed14c.3`,
+    'bewaesserung/switch/lukasWest': `${baseUrl}/set/tuya.0.51050522600194fed14c.4`,
+    'bewaesserung/switch/alle': `${baseUrl}/set/tuya.0.51050522600194fed14c.13`,
+    'markise/switch/haupt' : `${baseUrl}/set/tuya.0.8407060570039f7fa6d2.1`,
     // add other mappings
 }
 
@@ -37,6 +39,6 @@ const topicToTaskEnablerKey = {
     'haupt' : 'Markise',
 };
 
-const mqttBrokerUrl = 'mqtt://10.25.159.1:1883';
+const mqttBrokerUrl = envSwitcher.mqttBrokerUrl;
 
 module.exports = { mqttTopics, mqttTopicsNumber, mqttBrokerUrl, urlMap, topicToTaskEnablerKey };

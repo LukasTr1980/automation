@@ -1,11 +1,12 @@
 const Redis = require('ioredis');
+const envSwitcher = require('./envSwitcher');
 
 let client;
 
 async function connectToRedis() {
   if (!client) {
     client = new Redis({
-      host: 'redis_container',
+      host: envSwitcher.redisHost,
       port: 6379,
       retryStrategy(times) {
         const delay = Math.min(times * 50, 2000);

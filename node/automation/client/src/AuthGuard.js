@@ -8,11 +8,12 @@ const AuthGuard = ({ children }) => {
   const [cookies] = useCookies(['session']);
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const navigate = useNavigate();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await axios.get('https://automation.charts.cx/session', {
+        const response = await axios.get(`${apiUrl}/session`, {
           headers: {
             'Authorization': `Bearer ${cookies.session}`
           }
@@ -28,7 +29,7 @@ const AuthGuard = ({ children }) => {
     }
 
     checkSession();
-  }, [cookies.session, navigate]);
+  }, [cookies.session, navigate, apiUrl]);
 
   if (isAuthenticated === null) {
     return (

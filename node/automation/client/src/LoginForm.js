@@ -9,12 +9,13 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [cookies, setCookie] = useCookies(['session']);
   const navigate = useNavigate(); // define navigate
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('https://automation.charts.cx/login', {
+      const response = await axios.post(`${apiUrl}/login`, {
         username,
         password,
       });

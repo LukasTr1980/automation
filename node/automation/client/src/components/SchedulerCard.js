@@ -32,6 +32,7 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
   const [selectedMinute, setSelectedMinute] = useState('');
   const [weekDaysDialogOpen, setWeekDaysDialogOpen] = useState(false);
   const [monthDialogOpen, setMonthDialogOpen] = useState(false);
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   const currentLabel = topicLabels[selectedTopic]
     ? topicLabels[selectedTopic][switchState]
@@ -50,7 +51,7 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
       ? specialSwitchValues[selectedTopic][switchState]
       : switchState;
 
-    axios.post('https://automation.charts.cx/scheduler', {
+    axios.post(`${apiUrl}/scheduler`, {
       hour: selectedHour,
       minute: selectedMinute,
       topic: selectedTopic,
@@ -59,7 +60,7 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
       months: selectedMonths
     })
       .then(response => {
-        axios.get('https://automation.charts.cx/scheduledTasks')
+        axios.get(`${apiUrl}/scheduledTasks`)
           .then(response => {
             setScheduledTasks(response.data);
             setSelectedHour('');

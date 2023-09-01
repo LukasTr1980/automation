@@ -1,10 +1,11 @@
 const axios = require('axios');
 const { isRaining, isCold, isWindy, stateChangeEmitter } = require('./mqttHandler');
-const sharedState = require('./sharedState');  // Importing the entire module
+const sharedState = require('./sharedState');
+const envSwitcher = require('./envSwitcher');
 
+const baseUrl = envSwitcher.baseUrl;
 const urlMap = {
-    //... [rest of your mappings]
-    'markise/switch/haupt': 'http://10.25.159.1:8087/set/tuya.0.8407060570039f7fa6d2.1',
+    'markise/switch/haupt': `${baseUrl}/set/tuya.0.8407060570039f7fa6d2.1`,
 };
 
 let lastExecuted = null;

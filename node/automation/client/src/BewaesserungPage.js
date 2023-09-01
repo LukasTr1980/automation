@@ -27,10 +27,11 @@ const BewaesserungPage = () => {
   const [cookies] = useCookies(['session']);
   const [orderedTasks, setOrderedTasks] = useState({});
   const [reloadTasks, setReloadTasks] = useState(false);
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const sessionId = cookies.session;
-    const url = sessionId ? `https://automation.charts.cx/mqtt?session=${sessionId}` : 'https://automation.charts.cx/mqtt';
+    const url = sessionId ? `${apiUrl}/mqtt?session=${sessionId}` : `${apiUrl}/mqtt`;
     const eventSource = new EventSource(url);
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -55,10 +56,10 @@ const BewaesserungPage = () => {
     return () => {
       eventSource.close();
     };
-  }, [cookies]);
+  }, [cookies, apiUrl]);
 
   useEffect(() => {
-    axios.get('https://automation.charts.cx/scheduledTasks')
+    axios.get(`${apiUrl}/scheduledTasks`)
       .then(response => {
         const tasksArray = Object.entries(response.data).flatMap(([key, tasks]) => tasks.map(task => ({ topic: key, ...task })));
         const bewaesserungTasks = tasksArray.filter(task => task.topic.startsWith('bewaesserung'));
@@ -90,13 +91,13 @@ const BewaesserungPage = () => {
         setTasksLoaded(true);
       })
       .catch(error => console.error('Error:', error));
-  }, [reloadTasks]);
+  }, [reloadTasks, apiUrl]);
 
   const handleToggle = (index) => {
     const newSwitchState = switches.map((val, i) => (i === index ? !val : val));
     setSwitches(newSwitchState);
 
-    axios.post('https://automation.charts.cx/simpleapi', {
+    axios.post(`${apiUrl}/simpleapi`, {
       topic: bewaesserungsTopics[index],
       state: newSwitchState[index],
     })

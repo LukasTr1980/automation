@@ -8,15 +8,17 @@ const getTaskEnabler = require('./getTaskEnabler');
 const sharedState = require('./sharedState');
 const { response } = require('express');
 const { error } = require('console');
+const envSwitcher = require('./envSwitcher');
 
 let jobs = {};
 
+const baseUrl = envSwitcher.baseUrl;
 const urlMap = {
-  'bewaesserung/switch/stefanNord': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.1',
-  'bewaesserung/switch/stefanOst': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.2',
-  'bewaesserung/switch/lukasSued': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.3',
-  'bewaesserung/switch/lukasWest': 'http://10.25.159.1:8087/set/tuya.0.51050522600194fed14c.4',
-  'markise/switch/haupt': 'http://10.25.159.1:8087/set/tuya.0.8407060570039f7fa6d2.1',
+  'bewaesserung/switch/stefanNord': `${baseUrl}/set/tuya.0.51050522600194fed14c.1`,
+  'bewaesserung/switch/stefanOst': `${baseUrl}/set/tuya.0.51050522600194fed14c.2`,
+  'bewaesserung/switch/lukasSued': `${baseUrl}/set/tuya.0.51050522600194fed14c.3`,
+  'bewaesserung/switch/lukasWest': `${baseUrl}/set/tuya.0.51050522600194fed14c.4`,
+  'markise/switch/haupt': `${baseUrl}/set/tuya.0.8407060570039f7fa6d2.1`,
   // add other mappings
 };
 
