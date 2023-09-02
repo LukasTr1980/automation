@@ -1,12 +1,12 @@
 const { flux } = require('@influxdata/influxdb-client');
 const bucket = 'iobroker';
 
-const computeDateSevenDaysAgo = () => {
+const computeDateFourDaysAgo = () => {
     // Get the current date
     const currentDate = new Date();
 
-    // Subtract 7 days
-    currentDate.setDate(currentDate.getDate() - 7);
+    // Subtract 4 days
+    currentDate.setDate(currentDate.getDate() - 4);
 
     currentDate.setHours(0, 0, 0, 0);
 
@@ -14,7 +14,7 @@ const computeDateSevenDaysAgo = () => {
     return currentDate.toISOString();
 }
 
-const startDate = computeDateSevenDaysAgo();
+const startDate = computeDateFourDaysAgo();
 
 function constructRainSumQuery(startDate) {
     return `

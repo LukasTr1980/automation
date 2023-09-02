@@ -16,11 +16,11 @@ async function createChatCompletion() {
         { "role": "system", "content": "You are a helpful assistant." },
         {
           "role": "user", content: ` Check the following conditions:
-          ${results.outTemp} > 10,
-          ${results.humidity} < 80,
-          ${results.rainSum} < 25,
-          ${results.rainToday} < 3,
-          ${results.rainRate} =< 0,
+          ${results.outTemp}°C > 10°C,
+          ${results.humidity}% < 80%,
+          ${results.rainSum}mm < 25mm,
+          ${results.rainToday}mm < 3mm,
+          ${results.rainRate}mm/h =< 0mm/h,
           Sum all conditions, if one condition is false, answer with the sentence result is false, else answer with the sentence result is true.` }
       ],
       max_tokens: 1000,
