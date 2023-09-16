@@ -1,1 +1,12 @@
+## Current Version: 1.2.0
+
+## Changelog
+
+### 1.2.0 (16.09.2023)
+- Made the GPT Response visible to Frontend
+- Changes Loading behaviour of BewaesserungsPage
+- Changed gpt Response with Values
+- Removed some console.logs
+
+
 First install npm modules of ai, then of automation and then in the client folder the react npm modules

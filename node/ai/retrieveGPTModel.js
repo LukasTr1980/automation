@@ -1,4 +1,4 @@
-const openai = require('./configs');
+const { openai } = require('./configs');
 require('dotenv').config();
 
 

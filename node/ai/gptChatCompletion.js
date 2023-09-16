@@ -16,11 +16,11 @@ async function createChatCompletion() {
         { "role": "system", "content": "You are a helpful assistant." },
         {
           "role": "user", content: ` Check the following conditions:
-          ${results.outTemp}°C > 10°C,
-          ${results.humidity}% < 80%,
-          ${results.rainSum}mm < 25mm,
-          ${results.rainToday}mm < 3mm,
-          ${results.rainRate}mm/h =< 0mm/h,
+          T avg 7d ${results.outTemp}°C > 10°C,
+          H avg 7d ${results.humidity}% < 80%,
+          Rain tot 4d ${results.rainSum}mm < 25mm,
+          Rain today ${results.rainToday}mm < 3mm,
+          Rain now ${results.rainRate}mm/h =< 0mm/h,
           Sum all conditions, if one condition is false, answer with the sentence result is false, else answer with the sentence result is true.` }
       ],
       max_tokens: 1000,
@@ -32,12 +32,10 @@ async function createChatCompletion() {
     }
 
     const response = completion.data.choices[0].message.content.toLowerCase();
-    console.log("Received response from GPT:", response);
-
     if (response.includes('result is true')) {
-      return true;
+      return { result: true, response };
     } else if (response.includes('result is false')) {
-      return false;
+      return { result: false, response };
     } else {
       throw new Error('Unexpected response from GPT: ' + response);
     }

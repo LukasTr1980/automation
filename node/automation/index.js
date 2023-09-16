@@ -42,11 +42,12 @@ app.get('/mqtt', authMiddleware, async (req, res) => {
   res.write(`data: ${JSON.stringify({type: 'switchState', latestStates})}\n\n`);
 
   // Get and send the irrigation state
-  const irrigationNeeded = await isIrrigationNeeded();
+  const { result: irrigationNeeded, response: gptResponse } = await isIrrigationNeeded();
   if (irrigationNeeded !== null) {
     const irrigationNeededData = {
         type: 'irrigationNeeded',
-        state: irrigationNeeded
+        state: irrigationNeeded,
+        gptResponse: gptResponse,
     };
     res.write(`data: ${JSON.stringify(irrigationNeededData)}\n\n`);
   }

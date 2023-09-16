@@ -14,13 +14,14 @@ import {
   CardContent,
   CardHeader,
   Container,
-  CircularProgress
+  CircularProgress,
+  TextField
 } from '@mui/material';
 
 const BewaesserungPage = () => {
-  const [switchesLoaded, setSwitchesLoaded] = useState(false);
-  const [tasksLoaded, setTasksLoaded] = useState(false);
-  const isLoading = !(switchesLoaded && tasksLoaded);
+  const [aiLoading, setAiLoading] = useState(true);
+  const [switchesLoading, setSwitchesLoading] = useState(true);
+  const [tasksLoading, setTasksLoading] = useState(true);
   const [switches, setSwitches] = useState([false, false, false, false, false]);
   const [irrigationNeededSwitch, setirrigationNeededSwitch] = useState(false);
   const [scheduledTasks, setScheduledTasks] = useState([]);
@@ -28,6 +29,7 @@ const BewaesserungPage = () => {
   const [orderedTasks, setOrderedTasks] = useState({});
   const [reloadTasks, setReloadTasks] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL;
+  const [gptResponse, setGptResponse] = useState("");
 
   useEffect(() => {
     const sessionId = cookies.session;
@@ -35,21 +37,23 @@ const BewaesserungPage = () => {
     const eventSource = new EventSource(url);
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log(data);
 
       if (data.latestStates) { // Initial state
         console.log("Setting initial states:", data.latestStates);
         const initialSwitchStates = bewaesserungsTopics.map((topic) => data.latestStates[topic] === 'true');
         setSwitches(initialSwitchStates);
-    }
-     else if (data.type === 'switchState') { // Updates
+        setSwitchesLoading(false);
+      }
+      else if (data.type === 'switchState') { // Updates
         const index = bewaesserungsTopics.indexOf(data.topic);
         if (index !== -1) {
           setSwitches(switches => switches.map((val, i) => (i === index ? data.state === 'true' : val)));
         }
       } else if (data.type === 'irrigationNeeded') { // Irrigation needed state updates
+        console.log(data.gptResponse);
         setirrigationNeededSwitch(data.state);
-        setSwitchesLoaded(true);
+        setGptResponse(data.gptResponse);
+        setAiLoading(false);
       }
     };
 
@@ -88,7 +92,7 @@ const BewaesserungPage = () => {
 
         // Set the orderedTasks to the state
         setOrderedTasks(orderedTasksLocal);
-        setTasksLoaded(true);
+        setTasksLoading(false);
       })
       .catch(error => console.error('Error:', error));
   }, [reloadTasks, apiUrl]);
@@ -108,26 +112,26 @@ const BewaesserungPage = () => {
 
   return (
     <Container>
-      {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <CircularProgress size={50} />
-        </Box>
-      ) : (
-        <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto' }}>
-          <Grid container spacing={3} justify="center" alignItems="center">
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Box sx={{ alignSelf: 'flex-start' }}>
-                  <BackButton />
-                </Box>
-                <Typography variant="h3" align="center">Bewässerung</Typography>
+      <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto' }}>
+        <Grid container spacing={3} justify="center" alignItems="center">
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Box sx={{ alignSelf: 'flex-start' }}>
+                <BackButton />
               </Box>
-            </Grid>
+              <Typography variant="h3" align="center">Bewässerung</Typography>
+            </Box>
+          </Grid>
 
-            <Grid item xs={12}>
-              <Card>
-                <CardHeader title="Schalter" />
-                <CardContent>
+          <Grid item xs={12}>
+            <Card>
+              <CardHeader title="Schalter" />
+              <CardContent>
+                {switchesLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <CircularProgress size={50} />
+                  </Box>
+                ) : (
                   <Grid container spacing={2} justify="space-between">
                     {switches.map((val, i) => (
                       <Grid item key={i}>
@@ -138,39 +142,76 @@ const BewaesserungPage = () => {
                         />
                       </Grid>
                     ))}
-                    <Grid item>
+                  </Grid>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
 
-                      <SwitchComponent
-                        checked={!irrigationNeededSwitch}
-                        label='Ai block:'
-                        disabled={true}
+          <Grid item xs={12}>
+            <Card>
+              <CardHeader title="AI Entscheidung" />
+              <CardContent>
+                {aiLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <CircularProgress size={50} />
+                  </Box>
+                ) : (
+                  <Grid container spacing={2} justify="space-between">
+                    <Grid item xs={12}>
+                      <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
+                        <SwitchComponent
+                          checked={!irrigationNeededSwitch}
+                          label='Ai block:'
+                          disabled={true}
+                        />
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="AI Antwort"
+                        variant="outlined"
+                        fullWidth
+                        multiline
+                        rows={10}
+                        value={gptResponse}
+                        InputProps={{
+                          readOnly: true,
+                        }}
                       />
-
                     </Grid>
                   </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Use the SchedulerCard component */}
-            <Grid item xs={12}>
-              <SchedulerCard setReloadTasks={setReloadTasks} scheduledTasks={scheduledTasks} setScheduledTasks={setScheduledTasks} />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Card>
-                <CardHeader title="Eingestelle Zeitpläne" />
-                <CardContent>
-                  {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
-                  {Object.entries(orderedTasks).map(([zoneName, tasks], index) => {
-                    return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} />
-                  })}
-                </CardContent>
-              </Card>
-            </Grid>
+                )}
+              </CardContent>
+            </Card>
           </Grid>
-        </Box>
-      )}
+
+          {/* Use the SchedulerCard component */}
+          <Grid item xs={12}>
+            <SchedulerCard setReloadTasks={setReloadTasks} scheduledTasks={scheduledTasks} setScheduledTasks={setScheduledTasks} />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardHeader title="Eingestelle Zeitpläne" />
+              <CardContent>
+                {tasksLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <CircularProgress size={50} />
+                  </Box>
+                ) : (
+                  <>
+                    {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
+                    {Object.entries(orderedTasks).map(([zoneName, tasks], index) => {
+                      return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} />
+                    })}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
     </Container>
   );
 };

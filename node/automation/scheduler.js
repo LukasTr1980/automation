@@ -83,7 +83,7 @@ function createTask(topic, state) {
             });
         } else {
           // Check if isIrrigationNeeded is true for original logic
-          const irrigationNeeded = await isIrrigationNeeded();
+          const { result: irrigationNeeded, response: gptResponse } = await isIrrigationNeeded();
           if (irrigationNeeded) {
             // Original logic for other topics
             apiUrl.searchParams.append('value', state);
