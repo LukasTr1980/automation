@@ -1,8 +1,8 @@
-## Current Version: 2.0.0
+## Current Version: 2.0.1
 
 ## Changelog
 
-### 2.0.0
+### 2.0.0 (23.09.2023)
 - Migration to GPT 4 and OpenAi API v4
 - Removed to case lower in gptChatCompletion
 - Updated Mui, testing-library, axios, joi, mqtt and express-rate-limit
