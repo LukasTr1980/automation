@@ -1,13 +1,12 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', 'ai', '.env') });
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai');
 const { InfluxDB } = require('@influxdata/influxdb-client');
 const envSwitcher = require('./envSwitcher');
 
-const openaiConfiguration = new Configuration({
+const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(openaiConfiguration);
 
 const influxDbConfig = {
     url: envSwitcher.influxDbUrl, // Added the URL here

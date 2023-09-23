@@ -1,12 +1,16 @@
-## Current Version: 1.2.0
+## Current Version: 2.0.0
 
 ## Changelog
+
+### 2.0.0
+- Migration to GPT 4 and OpenAi API v4
+- Removed to case lower in gptChatCompletion
+- Updated Mui, testing-library, axios, joi, mqtt and express-rate-limit
+- New function that AI checks also weekday and month
+- New file currentDate.js
 
 ### 1.2.0 (16.09.2023)
 - Made the GPT Response visible to Frontend
 - Changes Loading behaviour of BewaesserungsPage
 - Changed gpt Response with Values
 - Removed some console.logs
-
-
-First install npm modules of ai, then of automation and then in the client folder the react npm modules
