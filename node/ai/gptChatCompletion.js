@@ -19,13 +19,13 @@ async function createChatCompletion() {
         { "role": "system", "content": "You are a helpful assistant." },
         {
           "role": "user", "content": ` Check the following conditions:
-          T avg 7d ${results.outTemp}°C > 10°C,
-          H avg 7d ${results.humidity}% < 80%,
-          Rain tot 4d ${results.rainSum}mm < 25mm,
-          Rain today ${results.rainToday}mm < 3mm,
-          Rain now ${results.rainRate}mm/h =< 0mm/h.
-          Current month: ${month} = March or April or May or June or July or August or September or October
-          if ((Current month: ${month} = March or April or September or October) AND (Current day: ${weekday} = Monday or Wednesday or Friday or Sunday))
+          1. T avg 7d ${results.outTemp}°C > 10°C,
+          2. H avg 7d ${results.humidity}% < 80%,
+          3. Rain tot 4d ${results.rainSum}mm < 25mm,
+          4. Rain today ${results.rainToday}mm < 3mm,
+          5. Rain now ${results.rainRate}mm/h =< 0mm/h.
+          6. Current month ${month} == March or April or May or June or July or August or September or October
+          7. if ((Current month ${month} == March or April or September or October) AND (Current weekday ${weekday} == Monday or Wednesday or Friday or Sunday))
 
           Sum all conditions, if one condition is false, answer with the sentence result is false, else answer with the sentence result is true.` }
       ],
