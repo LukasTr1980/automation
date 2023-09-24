@@ -1,6 +1,13 @@
-## Current Version: 2.0.1
-
 ## Changelog
+
+### 2.1.2 (24.09.2023)
+- Switched to GPT 3.5 turbo
+- Changed denomintation Zeitplänte to tasks
+- Fixed getCurrentDate() call
+- Changed request text to gpt
+
+### 2.0.1 (23.09.2023)
+- Changed Readme
 
 ### 2.0.0 (23.09.2023)
 - Migration to GPT 4 and OpenAi API v4

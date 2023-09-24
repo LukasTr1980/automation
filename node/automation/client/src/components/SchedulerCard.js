@@ -78,7 +78,7 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
 
   return (
     <Card>
-      <CardHeader title="Zeitpläne" />
+      <CardHeader title="Tasks erstellen" />
       <CardContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -118,7 +118,7 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
 
           <Grid item xs={12}>
             <Button variant="contained" color="secondary" fullWidth onClick={() => setWeekDaysDialogOpen(true)}>
-              Wiederholung
+              Wochentage
             </Button>
             <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)}>
               <Grid item xs={12}>

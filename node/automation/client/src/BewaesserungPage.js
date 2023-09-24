@@ -193,7 +193,7 @@ const BewaesserungPage = () => {
 
           <Grid item xs={12}>
             <Card>
-              <CardHeader title="Eingestelle Zeitpläne" />
+              <CardHeader title="System Aktiv" />
               <CardContent>
                 {tasksLoading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -201,7 +201,7 @@ const BewaesserungPage = () => {
                   </Box>
                 ) : (
                   <>
-                    {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
+                    {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Tasks.</Typography>}
                     {Object.entries(orderedTasks).map(([zoneName, tasks], index) => {
                       return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} />
                     })}
