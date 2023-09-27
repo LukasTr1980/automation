@@ -6,6 +6,7 @@ import LoginForm from './LoginForm';
 import HomePage from './HomePage';
 import BewaesserungPage from './BewaesserungPage';
 import MarkisePage from './MarkisePage';
+import SettingsPage from './SettingsPage';
 import AuthGuard from './AuthGuard';
 import axios from 'axios';
 import NotFoundPage from './404Page';
@@ -37,6 +38,7 @@ function App() {
             <Route path="/home" element={<AuthGuard><HomePage /></AuthGuard>} />
             <Route path='/bewaesserung' element={<AuthGuard><BewaesserungPage /></AuthGuard>} />
             <Route path='/markise' element={<AuthGuard><MarkisePage /></AuthGuard>} />
+            <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
             <Route path='*' element={<NotFoundPage />} />
           </Routes>
         </header>

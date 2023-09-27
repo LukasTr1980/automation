@@ -173,7 +173,7 @@ const BewaesserungPage = () => {
                         variant="outlined"
                         fullWidth
                         multiline
-                        rows={18}
+                        rows={10}
                         value={gptResponse}
                         InputProps={{
                           readOnly: true,

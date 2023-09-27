@@ -11,14 +11,17 @@ if (isDev) {
 
 const devConfig = {
     influxDbUrl: 'http://10.25.159.4:8086',
+    redisHost: '10.25.159.4'
 }
 
 const prodConfig = {
     influxDbUrl: 'http://influxdb_container:8086',
+    redisHost: 'redis_container'
 }
 
 const selectedConfig = isDev ? devConfig : prodConfig;
 
 module.exports = {
-    influxDbUrl: selectedConfig.influxDbUrl
+    influxDbUrl: selectedConfig.influxDbUrl,
+    redisHost: selectedConfig.redisHost
 };

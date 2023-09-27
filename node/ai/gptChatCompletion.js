@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', 'ai', '.env') });
 const { openai } = require('./configs');
 const queryAllData = require('./influxdb-client');
 const getCurrentDate = require('./currentDate');
+const connectToRedis = require('./redisClient');
 
 async function createChatCompletion() {
   try {
@@ -13,21 +14,21 @@ async function createChatCompletion() {
     const results = await queryAllData();
     console.log("Received data from InfluxDB:", results);
 
+    const client = await connectToRedis();
+    const gptRequest = await client.get("gptRequestKey");
+
+    const formattedGptRequest = gptRequest.replace(/\$\{results\.([a-zA-Z]+)\}/g, (_, key) => results[key])
+                                          .replace(/\$\{month\}/g, month)
+                                          .replace(/\$\{weekday\}/g, weekday);
+
+    console.log("Formatted GPT Request:", formattedGptRequest);
+
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         { "role": "system", "content": "You are a helpful assistant." },
         {
-          "role": "user", "content": ` Check the following conditions:
-          1. T avg 7d ${results.outTemp}°C > 10°C,
-          2. H avg 7d ${results.humidity}% < 80%,
-          3. Rain tot 4d ${results.rainSum}mm < 25mm,
-          4. Rain today ${results.rainToday}mm < 3mm,
-          5. Rain now ${results.rainRate}mm/h =< 0mm/h.
-          6. Current month ${month} == March or April or May or June or July or August or September or October
-          7. if ((Current month ${month} == March or April or September or October) AND (Current weekday ${weekday} == Monday or Wednesday or Friday or Sunday))
-
-          Sum all conditions, if one condition is false, answer with the sentence result is false, else answer with the sentence result is true.` }
+          "role": "user", "content": formattedGptRequest}
       ],
       max_tokens: 1000,
       temperature: 0.0,

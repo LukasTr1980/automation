@@ -19,23 +19,32 @@ const HomePage = () => {
                   p: 4,
                 }}
               >
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  component={RouterLink} 
+                <Button
+                  variant="contained"
+                  color="primary"
+                  component={RouterLink}
                   to="/bewaesserung"
                   sx={{ my: 2, width: '200px' }} // set a width
                 >
                   Bewässerung
                 </Button>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  component={RouterLink} 
+                <Button
+                  variant="contained"
+                  color="primary"
+                  component={RouterLink}
                   to="/markise"
-                  sx={{ width: '200px' }} // set the same width
+                  sx={{ my: 2, width: '200px' }} // set the same width
                 >
                   Markise
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  component={RouterLink}
+                  to="/settings"
+                  sx={{ my: 2, width: '200px' }}
+                >
+                  Settings
                 </Button>
               </Box>
             </Box>

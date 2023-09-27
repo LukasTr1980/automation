@@ -194,6 +194,29 @@ app.get('/getTaskEnabler', authMiddleware, async (req, res) => {
   }
 });
 
+app.get('/getGptRequest', authMiddleware, async (req, res) => {
+  try {
+    const client = await connectToRedis();
+    const gptRequest = await client.get("gptRequestKey");
+    res.status(200).json({ gptRequest });
+  } catch (error) {
+    console.error('Error while fetching GPT request:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.post('/updateGptRequest', authMiddleware, async (req, res) => {
+  try {
+    const { newGptRequest } = req.body;
+    const client = await connectToRedis();
+    await client.set("gptRequestKey", newGptRequest);
+    res.status(200).send('GPT request updated successfully');
+  } catch (error) {
+    console.error('Error while updating GPT request:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
 //app.use(express.static(path.join('/home/smarthome/node/automation/client/build/')));
 
 app.use(express.static(path.join('/usr/src/automation/client/build/'))); //For Docker Build
