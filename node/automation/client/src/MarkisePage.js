@@ -77,6 +77,11 @@ const MarkisePage = () => {
 
     const sortedTasks = Array.isArray(scheduledTasks) ? [...scheduledTasks].sort((a, b) => a.state - b.state) : [];
 
+    const handleDeleteTask = (taskId) => {
+        setScheduledTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+        setReloadTasks(prevState => !prevState);  // Toggle to force re-fetch
+      };  
+
     return (
         <Container>
             {isLoading ? (
@@ -120,7 +125,7 @@ const MarkisePage = () => {
                                 <CardHeader title="Eingestellte Zeitpläne" />
                                 <CardContent>
                                     {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
-                                    <ScheduledTaskCard zoneName="Markise" tasks={sortedTasks} customLabels={customMarkiseLabels} />
+                                    <ScheduledTaskCard zoneName="Markise" tasks={sortedTasks} customLabels={customMarkiseLabels} onDelete={handleDeleteTask} redisKey="markise/switch/haupt" />
                                 </CardContent>
                             </Card>
                         </Grid>

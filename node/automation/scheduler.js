@@ -9,6 +9,7 @@ const sharedState = require('./sharedState');
 const { response } = require('express');
 const { error } = require('console');
 const envSwitcher = require('./envSwitcher');
+const generateUniqueId = require('./generateUniqueId');
 
 let jobs = {};
 
@@ -110,7 +111,9 @@ async function scheduleTask(topic, state, recurrenceRule) {
     throw new Error('Missing required parameters: topic, state, recurrenceRule');
   }
 
-  const jobKey = `${topic}_${state}`;
+  const uniqueID = generateUniqueId();
+
+  const jobKey = `${topic}_${uniqueID}`;
 
   if (jobs[jobKey]) {
     jobs[jobKey].cancel();
@@ -121,7 +124,7 @@ async function scheduleTask(topic, state, recurrenceRule) {
 
   const client = await connectToRedis();
   const setAsync = promisify(client.set).bind(client);
-  await setAsync(jobKey, JSON.stringify({ state, recurrenceRule }));
+  await setAsync(jobKey, JSON.stringify({ id: uniqueID, state, recurrenceRule }));
 }
 
 async function loadScheduledTasks() {
@@ -160,7 +163,7 @@ async function getScheduledTasks() {
 
     for (const jobKey of jobKeys) {
       const data = await getAsync(jobKey);
-      const { state, recurrenceRule } = JSON.parse(data);
+      const {id, state, recurrenceRule } = JSON.parse(data);
 
       // Extract topic from jobKey
       const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
@@ -171,7 +174,7 @@ async function getScheduledTasks() {
       }
 
       // Push the task to the appropriate topic array
-      tasksByTopic[topic].push({ state, recurrenceRule });
+      tasksByTopic[topic].push({taskId: id, state, recurrenceRule });
     }
   }
   return tasksByTopic;

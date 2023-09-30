@@ -153,6 +153,7 @@ app.get('/scheduledTasks', authMiddleware, async (req, res) => {
   try {
     const tasks = await getScheduledTasks();
     res.json(tasks);
+    console.log(tasks);
   } catch (err) {
     console.error(err);
     res.status(500).send('Error fetching scheduled tasks');
@@ -215,6 +216,37 @@ app.post('/updateGptRequest', authMiddleware, async (req, res) => {
     console.error('Error while updating GPT request:', error);
     res.status(500).send('Internal server error');
   }
+});
+
+app.delete('/deleteTask', authMiddleware, async (req, res) => {
+  console.log("Received body:", req.body);  
+  const { taskId, zone } = req.body;
+
+  if (!taskId || !zone) {
+    return res.status(400).send('Missing required parameters: taskId, zone');
+  }
+
+  // Construct the Redis key
+  const redisKey = `${zone}_${taskId}`;
+
+  // Get the Redis client
+  const redis = await connectToRedis();
+
+  // Delete the task from Redis
+  redis.del(redisKey, function(err, reply) {
+    if (err) {
+      console.error('Error while deleting task:', err);
+      return res.status(500).send('Internal server error');
+    }
+
+    if (reply === 1) {
+      console.log(`Task ${redisKey} deleted successfully`);
+      return res.status(200).send('Task deleted successfully');
+    } else {
+      console.log(`Task ${redisKey} not found`);
+      return res.status(404).send('Task not found');
+    }
+  });
 });
 
 //app.use(express.static(path.join('/home/smarthome/node/automation/client/build/')));

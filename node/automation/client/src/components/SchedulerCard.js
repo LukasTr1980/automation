@@ -78,7 +78,7 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
 
   return (
     <Card>
-      <CardHeader title="Tasks erstellen" />
+      <CardHeader title="Zeiplan erstellen" />
       <CardContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>

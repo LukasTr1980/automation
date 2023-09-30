@@ -15,6 +15,7 @@ import {
   CardHeader,
   Container,
   CircularProgress,
+  TextareaAutosize,
   TextField
 } from '@mui/material';
 
@@ -110,6 +111,11 @@ const BewaesserungPage = () => {
       .catch(error => console.error('Error:', error));
   };
 
+  const handleDeleteTask = (taskId) => {
+    setScheduledTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+    setReloadTasks(prevState => !prevState);  // Toggle to force re-fetch
+  };  
+
   return (
     <Container>
       <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto' }}>
@@ -173,10 +179,13 @@ const BewaesserungPage = () => {
                         variant="outlined"
                         fullWidth
                         multiline
-                        rows={10}
-                        value={gptResponse}
                         InputProps={{
-                          readOnly: true,
+                          inputComponent: TextareaAutosize,
+                          inputProps: {
+                            minRows: 3,
+                            value: gptResponse,
+                            spellCheck: false
+                          }
                         }}
                       />
                     </Grid>
@@ -193,7 +202,7 @@ const BewaesserungPage = () => {
 
           <Grid item xs={12}>
             <Card>
-              <CardHeader title="System Aktiv" />
+              <CardHeader title="Eingestellte Zeipläne" />
               <CardContent>
                 {tasksLoading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -203,7 +212,7 @@ const BewaesserungPage = () => {
                   <>
                     {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Tasks.</Typography>}
                     {Object.entries(orderedTasks).map(([zoneName, tasks], index) => {
-                      return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} />
+                      return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} onDelete={handleDeleteTask} redisKey={bewaesserungsTopics[index]} />
                     })}
                   </>
                 )}

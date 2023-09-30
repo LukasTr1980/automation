@@ -3,10 +3,14 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import SwitchComponent from './switchComponent';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { daysOfWeek, months } from './constants';
 import axios from 'axios';
 
-export default function ScheduledTaskCard({ zoneName, tasks, customLabels }) {
+export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey }) {
+  const currentMonth = new Date().getMonth();
+
   const cleanZoneName = zoneName
                           .replace(/\s+/g, '_')
                           .replace(/ü/g, 'ue');
@@ -52,6 +56,19 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels }) {
     fetchInitialState();
   }, [cleanZoneName, apiUrl]); // Dependency array: only re-run if cleanZoneName changes
 
+  const handleDelete = (taskId) => {
+    axios.delete(`${apiUrl}/deleteTask`, { data: { taskId: taskId, zone: redisKey } })
+      .then(response => {
+        // Notify parent component to remove the deleted task
+        if (onDelete) {
+          onDelete(taskId);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  };  
+
   return (
     <Card style={{ margin: "10px", border: "1px solid black" }}>
       <CardContent style={{ display: 'flex', flexDirection: 'column' }}>
@@ -65,15 +82,18 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels }) {
         {tasks.map((task, i) => {
           const parsedTask = task;
 
+          const isActive = parsedTask.recurrenceRule.month.includes(currentMonth) && switchStates[cleanZoneName];
+
           const status = customLabels && customLabels[parsedTask.state]
             ? customLabels[parsedTask.state]
             : (parsedTask.state ? "Ein" : "Aus");
 
           const allDays = parsedTask.recurrenceRule.dayOfWeek.length === 7;
-          const days = allDays ? "Täglich" : parsedTask.recurrenceRule.dayOfWeek.map(day => daysOfWeek[day]).join(", ");
+          const days = allDays ? "Täglich" : parsedTask.recurrenceRule.dayOfWeek.map(day => daysOfWeek[day].substring(0, 3)).join(", ");
 
           return (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: isActive ? '#DFF0D8' : 'transparent' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
               <div>
                 <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
                   {status}
@@ -82,13 +102,20 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels }) {
                   {`${parsedTask.recurrenceRule.hour.toString().padStart(2, '0')}:${parsedTask.recurrenceRule.minute.toString().padStart(2, '0')}`}
                 </Typography>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <Typography variant="body2">
+              {isActive && <span style={{ fontWeight: 'bold', fontSize: '12px', marginLeft: '10px' }}>Aktiv</span>}
+              </div>
+              <div style={{ flex: 1, textAlign: 'right' }}>
+                <Typography variant="body2" style={{ color: isActive ? 'bold' : 'normal' }}>
                   {days}
                   <br />
                   {parsedTask.recurrenceRule.month.map(month => months[month].substring(0, 3)).join(", ")}
                 </Typography>
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: '50px' }}>
+              <IconButton aria-label='delete' onClick={() => handleDelete(task.taskId)}>
+                <DeleteIcon />
+              </IconButton>
+            </div>
             </div>
           );
         })}

@@ -1,5 +1,13 @@
 ## Changelog
 
+### 4.1.0 (30.09.2023)
+- Added new functionality to delete scheduled tasks
+- Add uuid 4 to generate unique ids
+- Added to each task a unique id
+- Added better styling to scheduled tasks for better distinction
+- Changed some naming
+- Autosizing of textarea in GPT Response
+
 ### 3.0.0 (27.09.2023)
 - Add redisclient also to ai project
 - Edited envswitcher to include redis client addresses
