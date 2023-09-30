@@ -1,4 +1,8 @@
 ## Changelog
+### 4.2.1 (30.09.2023)
+- Added new component Loadingspinner
+- Added better User Feedback by applying error colors to fields of scheduling
+- Added Alert and Snackbar for better User Feedback
 
 ### 4.1.0 (30.09.2023)
 - Added new functionality to delete scheduled tasks

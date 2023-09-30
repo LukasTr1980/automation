@@ -19,8 +19,8 @@ function DialogFullScreen({ open, onClose, children }) {
         >
           {children}
           <Grid item xs={12}>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               color="secondary"
               onClick={onClose}
             >

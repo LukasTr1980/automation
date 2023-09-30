@@ -13,15 +13,15 @@ import NotFoundPage from './404Page';
 
 function App() {
   const [cookies] = useCookies(['session']);
-  
+
   useEffect(() => {
     axios.interceptors.request.use((config) => {
       const sessionId = cookies.session;
-  
+
       if (sessionId && !config.headers['Authorization']) {
         config.headers['Authorization'] = `Bearer ${sessionId}`;
       }
-      
+
       return config;
     }, (error) => {
       return Promise.reject(error);

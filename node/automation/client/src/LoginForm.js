@@ -22,7 +22,7 @@ const LoginForm = () => {
 
       if (response.data.status === 'success') {
         setCookie('session', response.data.session, { path: '/' });
-        setCookie('username', username, { path: '/'});
+        setCookie('username', username, { path: '/' });
         navigate('/home'); // add this line to navigate to the home page
       } else {
         alert(response.data.message);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextField } from '@mui/material';
 
-const MinuteField = ({ selectedMinute, setSelectedMinute }) => {
+const MinuteField = ({ selectedMinute, setSelectedMinute, error }) => {
 
   const handleMinuteChange = (event) => {
     const value = event.target.value;
@@ -19,6 +19,7 @@ const MinuteField = ({ selectedMinute, setSelectedMinute }) => {
       onChange={handleMinuteChange}
       variant="outlined"
       fullWidth
+      error={error}
     />
   );
 }

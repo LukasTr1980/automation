@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Container, Typography, Grid, Card, CardHeader, CardContent, CircularProgress } from '@mui/material';
+import { Box, Container, Typography, Grid, Card, CardHeader, CardContent } from '@mui/material';
 import BackButton from './components/BackButton';
 import OnPressSwitchComponent from './components/OnPressSwitchComponent';
 import SchedulerCard from './components/SchedulerCard';
 import ScheduledTaskCard from './components/ScheduledTaskCard'; // Assuming you use this, as in the other page
 import { useCookies } from 'react-cookie';
 import axios from 'axios';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const MarkisePage = () => {
     const [switchesLoaded, setSwitchesLoaded] = useState(false);
@@ -22,18 +23,18 @@ const MarkisePage = () => {
         const sessionId = cookies.session;
         const url = sessionId ? `${apiUrl}/mqtt?session=${sessionId}` : `${apiUrl}/mqtt`;
         const eventSource = new EventSource(url);
-    
+
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log(data);
-    
+
             if (data.type === 'switchState') {
                 // Handle the individual switch update
                 if (data.topic && data.topic === 'markise/switch/haupt') {
                     setMarkiseState(data.state);
                     setSwitchesLoaded(true);
                 }
-                
+
                 // Handle the initial state for all switches
                 else if (data.latestStates && data.latestStates['markise/switch/haupt'] !== undefined) {
                     setMarkiseState(data.latestStates['markise/switch/haupt']);
@@ -41,11 +42,11 @@ const MarkisePage = () => {
                 }
             }
         };
-    
+
         return () => {
             eventSource.close();
         };
-    }, [cookies, apiUrl]);    
+    }, [cookies, apiUrl]);
 
     useEffect(() => {
         axios.get(`${apiUrl}/scheduledTasks`)
@@ -80,14 +81,12 @@ const MarkisePage = () => {
     const handleDeleteTask = (taskId) => {
         setScheduledTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
         setReloadTasks(prevState => !prevState);  // Toggle to force re-fetch
-      };  
+    };
 
     return (
         <Container>
             {isLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                    <CircularProgress size={50} />
-                </Box>
+                <LoadingSpinner />
 
             ) : (
                 <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto' }}>

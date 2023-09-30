@@ -6,7 +6,7 @@ const BackButton = () => {
   let location = useLocation();
 
   return (
-    <Button variant="text" style={{color: 'white'}} startIcon={<ArrowBackIcon />} onClick={() => window.history.back()}>
+    <Button variant="text" style={{ color: 'white' }} startIcon={<ArrowBackIcon />} onClick={() => window.history.back()}>
       Back
     </Button>
   );

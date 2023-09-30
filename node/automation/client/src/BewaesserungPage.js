@@ -14,10 +14,10 @@ import {
   CardContent,
   CardHeader,
   Container,
-  CircularProgress,
   TextareaAutosize,
   TextField
 } from '@mui/material';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);
@@ -114,7 +114,7 @@ const BewaesserungPage = () => {
   const handleDeleteTask = (taskId) => {
     setScheduledTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
     setReloadTasks(prevState => !prevState);  // Toggle to force re-fetch
-  };  
+  };
 
   return (
     <Container>
@@ -134,9 +134,7 @@ const BewaesserungPage = () => {
               <CardHeader title="Schalter" />
               <CardContent>
                 {switchesLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress size={50} />
-                  </Box>
+                  <LoadingSpinner />
                 ) : (
                   <Grid container spacing={2} justify="space-between">
                     {switches.map((val, i) => (
@@ -159,9 +157,7 @@ const BewaesserungPage = () => {
               <CardHeader title="AI Entscheidung" />
               <CardContent>
                 {aiLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress size={50} />
-                  </Box>
+                  <LoadingSpinner />
                 ) : (
                   <Grid container spacing={2} justify="space-between">
                     <Grid item xs={12}>
@@ -205,9 +201,7 @@ const BewaesserungPage = () => {
               <CardHeader title="Eingestellte Zeipläne" />
               <CardContent>
                 {tasksLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress size={50} />
-                  </Box>
+                  <LoadingSpinner />
                 ) : (
                   <>
                     {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Tasks.</Typography>}

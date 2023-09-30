@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { bewaesserungsTopics, switchDescriptions } from './constants';
+import { bewaesserungsTopics, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
 import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
 import SwitchComponent from './switchComponent';
 import DialogFullScreen from './DialogFullScreen';
@@ -15,9 +15,12 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Snackbar,
+  Alert
 } from '@mui/material';
 
 const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, initialTopic, mqttTopics = bewaesserungsTopics, topicDescriptions = switchDescriptions }) => {
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(initialTopic || mqttTopics[0]);
   const specialSwitchValues = {
     'markise/switch/haupt': { true: 1, false: 2 }
@@ -34,6 +37,22 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
   const [monthDialogOpen, setMonthDialogOpen] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL;
 
+  const selectedDayNames = selectedDays.map(num => {
+    return Object.keys(daysOfWeekNumbers).find(key => daysOfWeekNumbers[key] === num)
+  })
+
+  const selectedMonthNames = selectedMonths.map(num => {
+    return Object.keys(monthsNumbers).find(key => monthsNumbers[key] === num)
+  })
+
+  const weekDaysButtonText = selectedDayNames.length
+    ? selectedDayNames.map(day => day.substring(0, 3)).join(', ')
+    : "Wochentage";
+
+  const monthButtonText = selectedMonthNames.length
+    ? selectedMonthNames.map(month => month.substring(0, 3)).join(', ')
+    : "Monate";
+
   const currentLabel = topicLabels[selectedTopic]
     ? topicLabels[selectedTopic][switchState]
     : switchState ? "Ein" : "Aus";
@@ -46,34 +65,60 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
     setSwitchState(event.target.checked);
   };
 
-  const handleSchedule = () => {
-    const stateValue = specialSwitchValues[selectedTopic]
-      ? specialSwitchValues[selectedTopic][switchState]
-      : switchState;
+  const [fieldValidity, setFieldValidity] = useState({
+    month: true,
+    day: true,
+    hour: true,
+    minute: true
+  });
 
-    axios.post(`${apiUrl}/scheduler`, {
-      hour: selectedHour,
-      minute: selectedMinute,
-      topic: selectedTopic,
-      state: stateValue,
-      days: selectedDays,
-      months: selectedMonths
-    })
-      .then(response => {
-        axios.get(`${apiUrl}/scheduledTasks`)
-          .then(response => {
-            setScheduledTasks(response.data);
-            setSelectedHour('');
-            setSelectedMinute('');
-            setSelectedDays([]);
-            setSelectedMonths([]);
-            setSelectedTopic(mqttTopics[0]);
-            setSwitchState(false);
-            setReloadTasks(prevState => !prevState);
-          })
-          .catch(error => console.error('Error:', error));
+  const handleSchedule = () => {
+    const isValid = {
+      month: selectedMonths.length > 0,
+      day: selectedDays.length > 0,
+      hour: selectedHour !== '',
+      minute: selectedMinute !== '',
+    };
+
+    setFieldValidity(isValid);
+
+    if (Object.values(isValid).every(Boolean)) {
+      const stateValue = specialSwitchValues[selectedTopic]
+        ? specialSwitchValues[selectedTopic][switchState]
+        : switchState;
+
+      axios.post(`${apiUrl}/scheduler`, {
+        hour: selectedHour,
+        minute: selectedMinute,
+        topic: selectedTopic,
+        state: stateValue,
+        days: selectedDays,
+        months: selectedMonths
       })
-      .catch(error => console.error('Error:', error));
+        .then(response => {
+          axios.get(`${apiUrl}/scheduledTasks`)
+            .then(response => {
+              setScheduledTasks(response.data);
+              setSelectedHour('');
+              setSelectedMinute('');
+              setSelectedDays([]);
+              setSelectedMonths([]);
+              setSelectedTopic(mqttTopics[0]);
+              setSwitchState(false);
+              setReloadTasks(prevState => !prevState);
+              setOpenSnackbar(true);
+            })
+            .catch(error => console.error('Error:', error));
+        })
+        .catch(error => console.error('Error:', error));
+    }
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
   };
 
   return (
@@ -110,15 +155,20 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
             />
           </Grid>
           <Grid item xs={6}>
-            <HourField selectedHour={selectedHour} setSelectedHour={setSelectedHour} />
+            <HourField selectedHour={selectedHour} setSelectedHour={setSelectedHour} error={!fieldValidity.hour} />
           </Grid>
           <Grid item xs={6}>
-            <MinuteField selectedMinute={selectedMinute} setSelectedMinute={setSelectedMinute} />
+            <MinuteField selectedMinute={selectedMinute} setSelectedMinute={setSelectedMinute} error={!fieldValidity.minute} />
           </Grid>
 
           <Grid item xs={12}>
-            <Button variant="contained" color="secondary" fullWidth onClick={() => setWeekDaysDialogOpen(true)}>
-              Wochentage
+            <Button variant="contained"
+              color={fieldValidity.day ? (selectedDays.length ? "primary" : "secondary") : "error"}
+              fullWidth
+              onClick={() => setWeekDaysDialogOpen(true)}
+              aria-pressed={selectedDays.length ? 'true' : 'false'}
+            >
+              {weekDaysButtonText}
             </Button>
             <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)}>
               <Grid item xs={12}>
@@ -127,8 +177,13 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
             </DialogFullScreen>
           </Grid>
           <Grid item xs={12}>
-            <Button variant="contained" color="secondary" fullWidth onClick={() => setMonthDialogOpen(true)}>
-              Monate
+            <Button variant="contained"
+              color={fieldValidity.month ? (selectedMonths.length ? "primary" : "secondary") : "error"}
+              fullWidth
+              onClick={() => setMonthDialogOpen(true)}
+              aria-pressed={selectedMonths.length ? 'true' : 'false'}
+            >
+              {monthButtonText}
             </Button>
             <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)}>
               <Grid item xs={12}>
@@ -143,6 +198,11 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
           </Grid>
         </Grid>
       </CardContent>
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity='success'>
+          Zeiplan erstellt!
+        </Alert>
+      </Snackbar>
     </Card>
   );
 };

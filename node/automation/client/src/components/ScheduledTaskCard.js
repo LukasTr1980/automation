@@ -7,13 +7,17 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { daysOfWeek, months } from './constants';
 import axios from 'axios';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+
 
 export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey }) {
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const currentMonth = new Date().getMonth();
 
   const cleanZoneName = zoneName
-                          .replace(/\s+/g, '_')
-                          .replace(/ü/g, 'ue');
+    .replace(/\s+/g, '_')
+    .replace(/ü/g, 'ue');
   const [switchStates, setSwitchStates] = useState({
     [cleanZoneName]: false
   });
@@ -63,11 +67,19 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
         if (onDelete) {
           onDelete(taskId);
         }
+        setOpenSnackbar(true);
       })
       .catch(error => {
         console.error('Error:', error);
       });
-  };  
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
+  }
 
   return (
     <Card style={{ margin: "10px", border: "1px solid black" }}>
@@ -94,15 +106,15 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
           return (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: isActive ? '#DFF0D8' : 'transparent' }}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div>
-                <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                  {status}
-                </Typography>
-                <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                  {`${parsedTask.recurrenceRule.hour.toString().padStart(2, '0')}:${parsedTask.recurrenceRule.minute.toString().padStart(2, '0')}`}
-                </Typography>
-              </div>
-              {isActive && <span style={{ fontWeight: 'bold', fontSize: '12px', marginLeft: '10px' }}>Aktiv</span>}
+                <div>
+                  <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                    {status}
+                  </Typography>
+                  <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                    {`${parsedTask.recurrenceRule.hour.toString().padStart(2, '0')}:${parsedTask.recurrenceRule.minute.toString().padStart(2, '0')}`}
+                  </Typography>
+                </div>
+                {isActive && <span style={{ fontWeight: 'bold', fontSize: '12px', marginLeft: '10px' }}>Aktiv</span>}
               </div>
               <div style={{ flex: 1, textAlign: 'right' }}>
                 <Typography variant="body2" style={{ color: isActive ? 'bold' : 'normal' }}>
@@ -112,14 +124,19 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                 </Typography>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', minWidth: '50px' }}>
-              <IconButton aria-label='delete' onClick={() => handleDelete(task.taskId)}>
-                <DeleteIcon />
-              </IconButton>
-            </div>
+                <IconButton aria-label='delete' onClick={() => handleDelete(task.taskId)}>
+                  <DeleteIcon />
+                </IconButton>
+              </div>
             </div>
           );
         })}
       </CardContent>
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity="success">
+          Zeitplan gelöscht!
+        </Alert>
+      </Snackbar>
     </Card>
   );
 }

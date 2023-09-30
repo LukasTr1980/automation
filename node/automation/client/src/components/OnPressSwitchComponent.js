@@ -7,10 +7,10 @@ const OnPressSwitchComponent = ({ markiseState, onSend }) => {
 
   useEffect(() => {
     if (markiseState !== null) {
-        const button = markiseState === '1' ? 'up' : markiseState === '2' ? 'down' : markiseState === '3' ? 'pause' : null;
-        setPressedButton(button);
-        console.log(button);
-        console.log(markiseState);
+      const button = markiseState === '1' ? 'up' : markiseState === '2' ? 'down' : markiseState === '3' ? 'pause' : null;
+      setPressedButton(button);
+      console.log(button);
+      console.log(markiseState);
     }
   }, [markiseState]);
 
