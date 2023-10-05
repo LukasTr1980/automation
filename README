@@ -1,5 +1,8 @@
 ## Changelog
 
+### 5.0.1 (05.10.2023)
+- Updated node packages to latest versions
+
 ### 5.0.0 (05.10.2023)
 - Moved secrets to Redis storage
 - Added update fields for secrets to settings page
