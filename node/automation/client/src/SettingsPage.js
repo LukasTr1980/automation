@@ -158,6 +158,7 @@ const SettingsPage = () => {
                                     label="InfluxDB AI Token"
                                     variant="outlined"
                                     fullWidth
+                                    autoComplete='off'
                                     value={isFocused.influxDbAiToken ? influxDbAiToken : ''}
                                     placeholder={influxDbAiTokenExists && !isFocused.influxDbAiToken ? "••••••••••••••••••" : ""}
                                     onFocus={() => handleFocus('influxDbAiToken')}
@@ -179,6 +180,7 @@ const SettingsPage = () => {
                                     label="InfluxDB Automation Token"
                                     variant="outlined"
                                     fullWidth
+                                    autoComplete='off'
                                     value={isFocused.influxDbAutomationToken ? influxDbAutomationToken : ''}
                                     placeholder={influxDbAutomationTokenExists && !isFocused.influxDbAutomationToken ? "••••••••••••••••••" : ""}
                                     onFocus={() => handleFocus('influxDbAutomationToken')}
@@ -200,6 +202,7 @@ const SettingsPage = () => {
                                     label="OpenAI API Token"
                                     variant="outlined"
                                     fullWidth
+                                    autoComplete='off'
                                     value={isFocused.openAiApiToken ? openAiApiToken : ''}
                                     placeholder={openAiApiTokenExists && !isFocused.openAiApiToken ? "••••••••••••••••••" : ""}
                                     onFocus={() => handleFocus('openAiApiToken')}
@@ -222,6 +225,7 @@ const SettingsPage = () => {
                                     variant="outlined"
                                     fullWidth
                                     type="password"
+                                    autoComplete='new-password'
                                     value={isFocused.newPassword ? newPassword : ''}
                                     placeholder={passwordExists && !isFocused.newPassword ? "••••••••••••••••••" : ""}
                                     onFocus={() => handleFocus('newPassword')}

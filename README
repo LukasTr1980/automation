@@ -1,5 +1,8 @@
 ## Changelog
 
+### 5.0.2 (05.10.2023)
+- Autocomplete deny for secret settings fields
+
 ### 5.0.1 (05.10.2023)
 - Updated node packages to latest versions
 
