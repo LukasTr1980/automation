@@ -1,6 +1,5 @@
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', 'ai', '.env') });
-const { openai } = require('./configs');
+const config = require('./configs');
 const queryAllData = require('./influxdb-client');
 const getCurrentDate = require('./currentDate');
 const connectToRedis = require('./redisClient');
@@ -23,6 +22,8 @@ async function createChatCompletion() {
 
     console.log("Formatted GPT Request:", formattedGptRequest);
 
+    const openai = await config.getOpenAI();
+
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
@@ -44,7 +45,9 @@ async function createChatCompletion() {
     } else if (/result is false/i.test(response)) {
       return { result: false, response };
     } else {
-      throw new Error('Unexpected response from GPT: ' + response);
+      console.warn('Unexpected response from GPT:', response);
+
+      return { result: true, response: 'GPT-3 gibt keine klare Antwort. Standard result is true.' }
     }
 
   } catch (error) {

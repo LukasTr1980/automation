@@ -1,14 +1,29 @@
-const path = require('path');
-require('dotenv').config(); // This will use the .env file in the root of the automation project
 const { InfluxDB } = require('@influxdata/influxdb-client');
 const envSwitcher = require ('./envSwitcher');
+const connectToRedis = require('./redisClient');
 
-const influxDbConfig = {
-    url: envSwitcher.influxDbUrl,
-    token: process.env.INFLUXDB_AUTOMATION_TOKEN  // Use a distinct name for clarity and to avoid potential conflicts
-};
-const influxDbClient = new InfluxDB(influxDbConfig);
+let influxDbConfig;
+let influxDbClient;
+
+async function initializeInfluxDbConfig() {
+    const redis = await connectToRedis();
+
+    const influxDbToken = await redis.get('influxdb_automation:token');
+
+    influxDbConfig = {
+        url: envSwitcher.influxDbUrl,
+        token: influxDbToken
+    };
+    influxDbClient = new InfluxDB(influxDbConfig);
+}
+
+async function getInfluxDbClient() {
+    if (!influxDbClient) {
+        await initializeInfluxDbConfig();
+    }
+    return influxDbClient;
+}
 
 module.exports = {
-    influxDbClient
+    getInfluxDbClient
 };

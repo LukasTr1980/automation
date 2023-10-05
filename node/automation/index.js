@@ -2,16 +2,15 @@ const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const fs = require('fs');
 const crypto = require('crypto');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const path = require('path');
-require ('./markiseBlock');
+require('./markiseBlock');
 
 const authMiddleware = require('./authMiddleware');
 const connectToRedis = require('./redisClient')
-const { latestStates, addSseClient } = require('./mqttHandler'); 
+const { latestStates, addSseClient } = require('./mqttHandler');
 const { scheduleTask } = require('./scheduler');
 const { loadScheduledTasks } = require('./scheduler');
 const { getScheduledTasks } = require('./scheduler');
@@ -19,7 +18,7 @@ const isIrrigationNeeded = require('ai');
 const { loginValidation } = require('./inputValidation.js');
 const setTaskEnabler = require('./switchTaskEnabler');
 const getTaskEnabler = require('./getTaskEnabler');
-const { urlMap } = require ('./constants');
+const { urlMap } = require('./constants');
 const loginLimiter = require('./rateLimiter');
 
 const app = express();
@@ -39,21 +38,21 @@ app.get('/mqtt', authMiddleware, async (req, res) => {
   addSseClient(res);
 
   // Send the latest switch states for all MQTT topics to the connected client immediately
-  res.write(`data: ${JSON.stringify({type: 'switchState', latestStates})}\n\n`);
+  res.write(`data: ${JSON.stringify({ type: 'switchState', latestStates })}\n\n`);
 
   // Get and send the irrigation state
   const { result: irrigationNeeded, response: gptResponse } = await isIrrigationNeeded();
   if (irrigationNeeded !== null) {
     const irrigationNeededData = {
-        type: 'irrigationNeeded',
-        state: irrigationNeeded,
-        gptResponse: gptResponse,
+      type: 'irrigationNeeded',
+      state: irrigationNeeded,
+      gptResponse: gptResponse,
     };
     res.write(`data: ${JSON.stringify(irrigationNeededData)}\n\n`);
   }
 });
 
-app.post('/simpleapi', authMiddleware, async function(req, res) {
+app.post('/simpleapi', authMiddleware, async function (req, res) {
   const { topic, state } = req.body;
   const url = urlMap[topic];
 
@@ -62,11 +61,11 @@ app.post('/simpleapi', authMiddleware, async function(req, res) {
   apiUrl.searchParams.append('value', state);
 
   try {
-      const response = await axios.get(apiUrl.toString());
-      res.send(response.data);
+    const response = await axios.get(apiUrl.toString());
+    res.send(response.data);
   } catch (error) {
-      console.error('Error while sending request:', error);
-      res.status(500).send('Error while sending request to the API.');
+    console.error('Error while sending request:', error);
+    res.status(500).send('Error while sending request to the API.');
   }
 });
 
@@ -76,16 +75,17 @@ app.post('/login', loginLimiter, async (req, res) => {
 
   const { username, password } = req.body;
 
-  // Read your JSON file
-  const userData = JSON.parse(fs.readFileSync('pwd.json', 'utf-8'));
+  const redis = await connectToRedis();
+
+  const storedHashedPassword = await redis.get(`user:${username}`);
 
   // Check if the username exists
-  if (username !== userData.username) {
+  if (!storedHashedPassword) {
     return res.status(401).json({ status: 'error', message: 'Invalid username or password.' });
   }
 
   // Compare input password with stored hashed password
-  bcrypt.compare(password, userData.password, async function(err, result) {
+  bcrypt.compare(password, storedHashedPassword, async function (err, result) {
     if (result) {
       // If the password is correct, generate a session ID
       const sessionId = crypto.randomBytes(16).toString('hex');
@@ -109,14 +109,14 @@ app.get('/session', authMiddleware, async (req, res) => {
   console.log(authHeader);
   const sessionId = authHeader && authHeader.split(' ')[1];
   console.log('Received session ID:', sessionId); // Add this line
-  
+
   // Get the Redis client
   const redis = await connectToRedis();
 
   // Check if sessionId exists in Redis
   const session = await redis.get(`session:${sessionId}`);
   console.log('Redis session:', session);
-  
+
   if (session) {
     res.status(200).send();
   } else {
@@ -219,7 +219,7 @@ app.post('/updateGptRequest', authMiddleware, async (req, res) => {
 });
 
 app.delete('/deleteTask', authMiddleware, async (req, res) => {
-  console.log("Received body:", req.body);  
+  console.log("Received body:", req.body);
   const { taskId, zone } = req.body;
 
   if (!taskId || !zone) {
@@ -233,7 +233,7 @@ app.delete('/deleteTask', authMiddleware, async (req, res) => {
   const redis = await connectToRedis();
 
   // Delete the task from Redis
-  redis.del(redisKey, function(err, reply) {
+  redis.del(redisKey, function (err, reply) {
     if (err) {
       console.error('Error while deleting task:', err);
       return res.status(500).send('Internal server error');
@@ -249,6 +249,65 @@ app.delete('/deleteTask', authMiddleware, async (req, res) => {
   });
 });
 
+app.get('/getSecrets', authMiddleware, async (req, res) => {
+  try {
+    const client = await connectToRedis();
+    const influxDbAiTokenExists = Boolean(await client.get("influxdb_ai:token"));
+    const influxDbAutomationTokenExists = Boolean(await client.get("influxdb_automation:token"));
+    const openAiApiTokenExists = Boolean(await client.get("openaiapi:token"));
+    const passwordExists = Boolean(await client.get("user:automation"))
+    res.status(200).json({
+      influxDbAiTokenExists,
+      influxDbAutomationTokenExists,
+      openAiApiTokenExists,
+      passwordExists
+    });
+  } catch (error) {
+    console.error('Error while fetching secrets:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+app.post('/updateSecrets', authMiddleware, async (req, res) => {
+  try {
+    const { influxDbAiToken, influxDbAutomationToken, openAiApiToken, newPassword } = req.body;
+    const client = await connectToRedis();
+    let updatedFields = [];
+
+    if (influxDbAiToken) {
+      await client.set('influxdb_ai:token', influxDbAiToken);
+      updatedFields.push('InfluxDB AI Token');
+    }
+
+    if (influxDbAutomationToken) {
+      await client.set('influxdb_automation:token', influxDbAutomationToken);
+      updatedFields.push('InfluxDB Automation Token');
+    }
+
+    if (openAiApiToken) {
+      await client.set('openaiapi:token', openAiApiToken);
+      updatedFields.push('OpenAI API Token');
+    }
+
+    if (newPassword) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      await client.set('user:automation', hashedPassword);
+      updatedFields.push('Password');
+    }
+
+    if (updatedFields.length === 0) {
+      res.status(400).send('No fields to update.');
+      return;
+    }
+
+    res.status(200).send(`Successfully updated: ${updatedFields.join(', ')}`);
+  } catch (error) {
+    console.error('Error while updating secrets', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
 //app.use(express.static(path.join('/home/smarthome/node/automation/client/build/')));
 
 app.use(express.static(path.join('/usr/src/automation/client/build/'))); //For Docker Build
@@ -257,7 +316,7 @@ app.use(express.static(path.join('/usr/src/automation/client/build/'))); //For D
 //  res.sendFile(path.join('/home/smarthome/node/automation/client/build/', 'index.html'));
 //});
 
-app.get('*', function(req, res) {
+app.get('*', function (req, res) {
   res.sendFile(path.join('/usr/src/automation/client/build/', 'index.html')); //For Docker Build
 });
 

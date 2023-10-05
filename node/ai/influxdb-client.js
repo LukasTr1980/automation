@@ -1,4 +1,4 @@
-const { influxDbClient } = require('./configs');
+const config = require('./configs');
 const {
     outTempQuery,
     windQuery,
@@ -9,10 +9,9 @@ const {
 } = require('./fluxQueries');
 
 const org = 'villaanna';
-const client = influxDbClient;
 
 async function querySingleData(fluxQuery) {
-  const queryApi = client.getQueryApi(org);
+  const queryApi = (await config.getInfluxDbClient()).getQueryApi(org);
   const result = [];
   return new Promise((resolve, reject) => {
     queryApi.queryRows(fluxQuery, {

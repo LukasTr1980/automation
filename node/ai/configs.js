@@ -1,20 +1,45 @@
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', 'ai', '.env') });
 const OpenAI = require('openai');
 const { InfluxDB } = require('@influxdata/influxdb-client');
 const envSwitcher = require('./envSwitcher');
+const connectToRedis = require('./redisClient');
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+let openai;
+let influxDbClient;
 
-const influxDbConfig = {
-    url: envSwitcher.influxDbUrl, // Added the URL here
-    token: process.env.INFLUXDB_TOKEN
+async function initializeConfig() {
+    const redis = await connectToRedis();
+
+    const openaiApiKey = await redis.get('openaiapi:token');
+
+    openai = new OpenAI({
+        apiKey: openaiApiKey,
+    });
+
+    const influxDbToken = await redis.get('influxdb_ai:token');
+
+    const influxDbConfig = {
+        url: envSwitcher.influxDbUrl,
+        token: influxDbToken
+    };
+    influxDbClient = new  InfluxDB(influxDbConfig);
 }
-const influxDbClient = new InfluxDB(influxDbConfig);
+
+async function getOpenAI() {
+    if (!openai) {
+        await initializeConfig();
+    }
+    return openai;
+}
+
+async function getInfluxDbClient() {
+    if(!influxDbClient) {
+        await initializeConfig();
+    }
+    return influxDbClient;
+}
 
 module.exports = {
-    openai,
-    influxDbClient
+    getOpenAI,
+    getInfluxDbClient
 };

@@ -1,11 +1,12 @@
-const { openai } = require('./configs');
+const config = require('./configs');
 require('dotenv').config();
 
 
 async function retrieveModel () {
 
-      const response = await openai.models.retrieve("gpt-4");
-      return response;
+    const openai = await config.getOpenAI();
+    const response = await openai.models.retrieve("gpt-4");
+    return response;
 }
 
 retrieveModel().then(response => {

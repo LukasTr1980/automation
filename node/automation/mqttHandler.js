@@ -23,7 +23,7 @@ mqttClient.on('connect', () => {
     });
 });
 
-mqttClient.on('message', (topic, message) => {
+mqttClient.on('message', async (topic, message) => {
     const msg = message.toString();
     console.log(`Message received from topic: ${topic}, Message: ${msg}`);
 
@@ -35,7 +35,7 @@ mqttClient.on('message', (topic, message) => {
 
     // Only write to Influx for specific topics
     if (mqttTopics.includes(topic)) {
-        writeToInflux(topic, msg);
+        await writeToInflux(topic, msg);
     }
     if (['wetter/number/weathercloud_regenrate', 'wetter/number/aussentemperatur', 'wetter/number/wind'].includes(topic)) {
         stateChangeEmitter.emit('stateChanged');

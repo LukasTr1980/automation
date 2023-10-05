@@ -1,4 +1,11 @@
 ## Changelog
+
+### 5.0.0 (05.10.2023)
+- Moved secrets to Redis storage
+- Added update fields for secrets to settings page
+- Added that if GPT response is unclear, it defaults to result is true
+- Removed pwd.json file, changed default password
+
 ### 4.2.1 (30.09.2023)
 - Added new component Loadingspinner
 - Added better User Feedback by applying error colors to fields of scheduling
