@@ -1,35 +1,50 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect } from 'react';
+import { useCookies } from 'react-cookie';
+import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginForm from './LoginForm';
+import HomePage from './HomePage';
+import BewaesserungPage from './BewaesserungPage';
+import MarkisePage from './MarkisePage';
+import SettingsPage from './SettingsPage';
+import AuthGuard from './AuthGuard';
+import axios from 'axios';
+import NotFoundPage from './404Page';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [cookies] = useCookies(['session']);
+
+  useEffect(() => {
+    axios.interceptors.request.use((config) => {
+      const sessionId = cookies.session;
+
+      if (sessionId && !config.headers['Authorization']) {
+        config.headers['Authorization'] = `Bearer ${sessionId}`;
+      }
+
+      return config;
+    }, (error) => {
+      return Promise.reject(error);
+    });
+  }, [cookies]);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Router>
+      <div className="App">
+        <header className="App-header">
+          <Routes>
+            <Route path='/' element={<LoginForm />} />
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/home" element={<AuthGuard><HomePage /></AuthGuard>} />
+            <Route path='/bewaesserung' element={<AuthGuard><BewaesserungPage /></AuthGuard>} />
+            <Route path='/markise' element={<AuthGuard><MarkisePage /></AuthGuard>} />
+            <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
+            <Route path='*' element={<NotFoundPage />} />
+          </Routes>
+        </header>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </Router>
+  );
 }
 
-export default App
+export default App;
