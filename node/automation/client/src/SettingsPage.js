@@ -15,6 +15,7 @@ import {
     Alert,
     TextareaAutosize
 } from '@mui/material';
+import SecretField from './components/SecretField';
 
 const SettingsPage = () => {
     const [gptRequest, setGptRequest] = useState('');
@@ -154,94 +155,51 @@ const SettingsPage = () => {
                         <Card>
                             <CardHeader title="Edit Secrets" />
                             <CardContent>
-                                <TextField
+                                <SecretField
                                     label="InfluxDB AI Token"
-                                    variant="outlined"
-                                    fullWidth
-                                    autoComplete='off'
-                                    value={isFocused.influxDbAiToken ? influxDbAiToken : ''}
-                                    placeholder={influxDbAiTokenExists && !isFocused.influxDbAiToken ? "••••••••••••••••••" : ""}
+                                    secretValue={influxDbAiToken}
+                                    placeholder={influxDbAiTokenExists}
+                                    isFocused={isFocused.influxDbAiToken}
+                                    isValid={fieldValidity.influxDbAiToken}
                                     onFocus={() => handleFocus('influxDbAiToken')}
                                     onBlur={() => handleBlur('influxDbAiToken')}
-                                    onChange={(e) => setInfluxDbAiToken(e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
-                                    error={!fieldValidity.influxDbAiToken}
+                                    onChange={(value) => setInfluxDbAiToken(value)}
+                                    onUpdate={() => handleUpdateSecret('influxDbAiToken', influxDbAiToken)}
                                 />
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => handleUpdateSecret('influxDbAiToken', influxDbAiToken)}
-                                    sx={{ mt: 2, mb: 2 }}
-                                >
-                                    Update InfluxDB AI Token
-                                </Button>
-
-                                <TextField
+                                <SecretField
                                     label="InfluxDB Automation Token"
-                                    variant="outlined"
-                                    fullWidth
-                                    autoComplete='off'
-                                    value={isFocused.influxDbAutomationToken ? influxDbAutomationToken : ''}
-                                    placeholder={influxDbAutomationTokenExists && !isFocused.influxDbAutomationToken ? "••••••••••••••••••" : ""}
+                                    secretValue={influxDbAutomationToken}
+                                    placeholder={influxDbAutomationTokenExists}
+                                    isFocused={isFocused.influxDbAutomationToken}
+                                    isValid={fieldValidity.influxDbAutomationToken}
                                     onFocus={() => handleFocus('influxDbAutomationToken')}
                                     onBlur={() => handleBlur('influxDbAutomationToken')}
-                                    onChange={(e) => setInfluxDbAutomationToken(e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
-                                    error={!fieldValidity.influxDbAutomationToken}
+                                    onChange={(value) => setInfluxDbAutomationToken(value)}
+                                    onUpdate={() => handleUpdateSecret('influxDbAutomationToken', influxDbAutomationToken)}
                                 />
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => handleUpdateSecret('influxDbAutomationToken', influxDbAutomationToken)}
-                                    sx={{ mt: 2, mb: 2 }}
-                                >
-                                    Update InfluxDB Automation Token
-                                </Button>
-
-                                <TextField
+                                <SecretField
                                     label="OpenAI API Token"
-                                    variant="outlined"
-                                    fullWidth
-                                    autoComplete='off'
-                                    value={isFocused.openAiApiToken ? openAiApiToken : ''}
-                                    placeholder={openAiApiTokenExists && !isFocused.openAiApiToken ? "••••••••••••••••••" : ""}
+                                    secretValue={openAiApiToken}
+                                    placeholder={openAiApiTokenExists}
+                                    isFocused={isFocused.openAiApiToken}
+                                    isValid={fieldValidity.openAiApiToken}
                                     onFocus={() => handleFocus('openAiApiToken')}
                                     onBlur={() => handleBlur('openAiApiToken')}
-                                    onChange={(e) => setOpenAiApiToken(e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
-                                    error={!fieldValidity.openAiApiToken}
+                                    onChange={(value) => setOpenAiApiToken(value)}
+                                    onUpdate={() => handleUpdateSecret('openAiApiToken', openAiApiToken)}
                                 />
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => handleUpdateSecret('openAiApiToken', openAiApiToken)}
-                                    sx={{ mt: 2, mb: 2 }}
-                                >
-                                    Update OpenAI API Token
-                                </Button>
-
-                                <TextField
+                                <SecretField
                                     label="New Password"
-                                    variant="outlined"
-                                    fullWidth
-                                    type="password"
-                                    autoComplete='new-password'
-                                    value={isFocused.newPassword ? newPassword : ''}
-                                    placeholder={passwordExists && !isFocused.newPassword ? "••••••••••••••••••" : ""}
+                                    type='password'
+                                    secretValue={newPassword}
+                                    placeholder={passwordExists}
+                                    isFocused={isFocused.newPassword}
+                                    isValid={fieldValidity.newPassword}
                                     onFocus={() => handleFocus('newPassword')}
                                     onBlur={() => handleBlur('newPassword')}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    InputLabelProps={{ shrink: true }}
-                                    error={!fieldValidity.newPassword}
+                                    onChange={(value) => setNewPassword(value)}
+                                    onUpdate={() => handleUpdateSecret('newPassword', newPassword)}
                                 />
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => handleUpdateSecret('newPassword', newPassword)}
-                                    sx={{ mt: 2, mb: 2 }}
-                                >
-                                    Update Password
-                                </Button>
                             </CardContent>
                         </Card>
                     </Grid>

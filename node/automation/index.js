@@ -71,7 +71,7 @@ app.post('/simpleapi', authMiddleware, async function (req, res) {
 
 app.post('/login', loginLimiter, async (req, res) => {
   const { error } = loginValidation(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  if (error) return res.status(400).json({ status: 'error', message: error.details[0].message });
 
   const { username, password } = req.body;
 
@@ -81,7 +81,7 @@ app.post('/login', loginLimiter, async (req, res) => {
 
   // Check if the username exists
   if (!storedHashedPassword) {
-    return res.status(401).json({ status: 'error', message: 'Invalid username or password.' });
+    return res.status(401).json({ status: 'error', message: 'Falscher Benutzername oder Password.' });
   }
 
   // Compare input password with stored hashed password
@@ -99,7 +99,7 @@ app.post('/login', loginLimiter, async (req, res) => {
       // Send it back to the client
       res.status(200).json({ status: 'success', session: sessionId });
     } else {
-      res.status(401).json({ status: 'error', message: 'Invalid username or password.' });
+      res.status(401).json({ status: 'error', message: 'Falscher Benutzername oder Password.' });
     }
   });
 });

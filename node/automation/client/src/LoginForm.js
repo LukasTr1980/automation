@@ -2,17 +2,19 @@ import React, { useState } from 'react';
 import { TextField, Button, Typography, Box } from '@mui/material';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
-import { useNavigate } from 'react-router-dom'; // import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const [cookies, setCookie] = useCookies(['session']);
-  const navigate = useNavigate(); // define navigate
+  const navigate = useNavigate();
   const apiUrl = process.env.REACT_APP_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg(''); // Clear any existing errors
 
     try {
       const response = await axios.post(`${apiUrl}/login`, {
@@ -23,16 +25,16 @@ const LoginForm = () => {
       if (response.data.status === 'success') {
         setCookie('session', response.data.session, { path: '/' });
         setCookie('username', username, { path: '/' });
-        navigate('/home'); // add this line to navigate to the home page
+        navigate('/home');
       } else {
-        alert(response.data.message);
+        setErrorMsg(response.data.message);
       }
     } catch (error) {
-      if (error.response && error.response.status === 401) {
-        alert('Wrong username or password.');
+      if (error.response && (error.response.status === 400 || error.response.status === 401)) {
+        setErrorMsg(error.response.data.message);
       } else {
         console.error('Error:', error);
-        alert('An error occurred while trying to log in.');
+        setErrorMsg('An unexpected error occurred.');
       }
     }
   };
@@ -54,6 +56,7 @@ const LoginForm = () => {
       autoComplete="off"
     >
       <Typography variant="h5" color="black">Login Villa Anna Automation</Typography>
+      {errorMsg && <Typography color="error">{errorMsg}</Typography>}
       <TextField
         label="Username"
         variant="outlined"

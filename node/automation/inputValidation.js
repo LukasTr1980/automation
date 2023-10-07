@@ -4,19 +4,19 @@ const loginValidation = (data) => {
     const schema = Joi.object({
         username: Joi.string().alphanum().min(1).max(30).required()
             .messages({
-                'string.empty': 'Username cannot be an empty field',
-                'string.alphanum': 'Username must only contain alpha-numeric characters',
-                'string.min': 'Username should have a minimum length of 1',
-                'string.max': 'Username should have a maximum length of 30',
-                'any.required': 'Username is a required field'
+                'string.empty': 'Benutzername darf nicht leer sein',
+                'string.alphanum': 'Benutzername darf nur alphanumerische Zeichen enthalten',
+                'string.min': 'Benutzername muss eine Mindestlänge von 1 haben',
+                'string.max': 'Benutzername darf maximal 30 Zeichen lang sein',
+                'any.required': 'Benutzername ist ein Pflichtfeld'
             }),
         password: Joi.string().alphanum().min(1).max(30).required()
             .messages({
-                'string.empty': 'Password cannot be an empty field',
-                'string.alphanum': 'Password must only contain alpha-numeric characters',
-                'string.min': 'Password should have a minimum length of 1',
-                'string.max': 'Password should have a maximum length of 30',
-                'any.required': 'Password is a required field'
+                'string.empty': 'Passwort darf nicht leer sein',
+                'string.alphanum': 'Passwort darf nur alphanumerische Zeichen enthalten',
+                'string.min': 'Passwort muss eine Mindestlänge von 1 haben',
+                'string.max': 'Passwort darf maximal 30 Zeichen lang sein',
+                'any.required': 'Passwort ist ein Pflichtfeld'
             }),
     });
     return schema.validate(data);
