@@ -2,7 +2,7 @@
 
 # Build the React app
 FROM node:18-slim AS client-build
-WORKDIR /usr/src/client
+WORKDIR /usr/src/viteclient
 COPY ./viteclient/package*.json ./
 RUN npm install
 COPY ./viteclient .
@@ -21,7 +21,7 @@ WORKDIR /usr/src/nodeserver
 COPY ./nodeserver/package*.json ./
 RUN npm install
 # Copy built React app
-COPY --from=client-build /usr/src/client/build ./viteclient/build
+COPY --from=client-build /usr/src/viteclient/build ./viteclient/build
 # Copy AI app as a sibling
 COPY --from=ai-build /usr/src/ai ../ai
 COPY ./nodeserver .
