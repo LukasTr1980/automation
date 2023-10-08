@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';

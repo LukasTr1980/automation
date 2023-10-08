@@ -1,4 +1,5 @@
 import { TextField, Button } from '@mui/material';
+import PropTypes from 'prop-types';
 
 const SecretField = ({ 
     label, 
@@ -38,6 +39,19 @@ const SecretField = ({
       </Button>
     </>
   );
+};
+
+SecretField.propTypes = {
+  label: PropTypes.string.isRequired,
+  secretValue: PropTypes.string.isRequired,
+  placeholder: PropTypes.bool,
+  isFocused: PropTypes.bool.isRequired,
+  isValid: PropTypes.bool.isRequired,
+  onFocus: PropTypes.func.isRequired,
+  onBlur: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onUpdate: PropTypes.func.isRequired,
+  type: PropTypes.string,
 };
 
 export default SecretField;

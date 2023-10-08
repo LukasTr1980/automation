@@ -1,5 +1,5 @@
-import React from 'react';
 import { Dialog, Box, Grid, Button } from '@mui/material';
+import PropTypes from 'prop-types';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 
@@ -32,5 +32,11 @@ function DialogFullScreen({ open, onClose, children }) {
     </Dialog>
   );
 }
+
+DialogFullScreen.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  children: PropTypes.node,
+};
 
 export default DialogFullScreen;

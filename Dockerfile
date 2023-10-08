@@ -3,9 +3,9 @@
 # Build the React app
 FROM node:18-slim AS client-build
 WORKDIR /usr/src/client
-COPY ./automation/client/package*.json ./
+COPY ./viteclient/package*.json ./
 RUN npm install
-COPY ./automation/client .
+COPY ./viteclient .
 RUN npm run build
 
 # Build the AI app
@@ -17,13 +17,13 @@ COPY ./ai .
 
 # Build the Node.js app
 FROM node:18-slim
-WORKDIR /usr/src/automation
-COPY ./automation/package*.json ./
+WORKDIR /usr/src/nodeserver
+COPY ./nodeserver/package*.json ./
 RUN npm install
 # Copy built React app
-COPY --from=client-build /usr/src/client/build ./client/build
+COPY --from=client-build /usr/src/client/build ./viteclient/build
 # Copy AI app as a sibling
 COPY --from=ai-build /usr/src/ai ../ai
-COPY ./automation .
+COPY ./nodeserver .
 EXPOSE 8523
 CMD [ "node", "index.js" ]

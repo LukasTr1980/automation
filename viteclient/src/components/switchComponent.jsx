@@ -1,5 +1,6 @@
 import Typography from '@mui/material/Typography';
 import Switch from '@mui/material/Switch';
+import PropTypes from 'prop-types';
 
 const SwitchComponent = ({ checked, label, handleToggle, disabled = false }) => (
   <div>
@@ -12,5 +13,13 @@ const SwitchComponent = ({ checked, label, handleToggle, disabled = false }) => 
     />
   </div>
 );
+
+SwitchComponent.propTypes = {
+  checked: PropTypes.bool.isRequired,
+  label: PropTypes.string,
+  handleToggle: PropTypes.func,
+  disabled: PropTypes.bool,
+};
+
 
 export default SwitchComponent;

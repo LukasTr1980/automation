@@ -1,5 +1,6 @@
 import { Checkbox, FormControl, FormControlLabel, FormGroup } from '@mui/material';
 import { daysOfWeek, daysOfWeekNumbers } from './constants';
+import PropTypes from 'prop-types';
 
 const WeekdaysSelect = ({ selectedDays, setSelectedDays }) => {
   const allDays = ['Täglich', ...daysOfWeek]; // 'Täglich' is now the first item
@@ -39,6 +40,11 @@ const WeekdaysSelect = ({ selectedDays, setSelectedDays }) => {
       </FormGroup>
     </FormControl>
   );
+};
+
+WeekdaysSelect.propTypes = {
+  selectedDays: PropTypes.arrayOf(PropTypes.number).isRequired,
+  setSelectedDays: PropTypes.func.isRequired,
 };
 
 export default WeekdaysSelect;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import SwitchComponent from './switchComponent';
@@ -9,6 +9,7 @@ import { daysOfWeek, months } from './constants';
 import axios from 'axios';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import PropTypes from 'prop-types';
 
 
 export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey }) {
@@ -21,7 +22,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
   const [switchStates, setSwitchStates] = useState({
     [cleanZoneName]: false
   });
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   // Handler function for switch toggle
   const handleToggle = (zone) => () => {
@@ -34,6 +35,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
       // Send updated switch state to the backend
       axios.post(`${apiUrl}/switchTaskEnabler`, { zone: cleanZoneName, state: updatedState[zone] })
         .then(response => {
+          console.log(response.data);
           // Handle response if needed
         })
         .catch(error => {
@@ -63,6 +65,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
   const handleDelete = (taskId) => {
     axios.delete(`${apiUrl}/deleteTask`, { data: { taskId: taskId, zone: redisKey } })
       .then(response => {
+        console.log(response.data);
         // Notify parent component to remove the deleted task
         if (onDelete) {
           onDelete(taskId);
@@ -140,3 +143,11 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
     </Card>
   );
 }
+
+ScheduledTaskCard.propTypes = {
+  zoneName: PropTypes.string.isRequired,
+  tasks: PropTypes.array.isRequired,
+  customLabels: PropTypes.object,
+  onDelete: PropTypes.func,
+  redisKey: PropTypes.string,
+};

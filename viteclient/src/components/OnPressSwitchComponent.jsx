@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Box } from '@mui/material';
+import PropTypes from 'prop-types';
 
 const OnPressSwitchComponent = ({ markiseState, onSend }) => {
   const [timeoutId, setTimeoutId] = useState(null);
@@ -64,6 +65,11 @@ const OnPressSwitchComponent = ({ markiseState, onSend }) => {
       </Box>
     </Box>
   );
+};
+
+OnPressSwitchComponent.propTypes = {
+  markiseState: PropTypes.string,
+  onSend: PropTypes.func.isRequired,
 };
 
 export default OnPressSwitchComponent;

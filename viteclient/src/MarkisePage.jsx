@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Container, Typography, Grid, Card, CardHeader, CardContent } from '@mui/material';
 import BackButton from './components/BackButton';
 import OnPressSwitchComponent from './components/OnPressSwitchComponent';
@@ -17,7 +17,7 @@ const MarkisePage = () => {
     const [cookies] = useCookies(['session']);
     const [reloadTasks, setReloadTasks] = useState(false);
     const customMarkiseLabels = { '1': "Ausfahren", '2': "Einfahren" };
-    const apiUrl = process.env.REACT_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         const sessionId = cookies.session;

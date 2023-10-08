@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { bewaesserungsTopics, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
 import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
@@ -18,6 +18,7 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
+import PropTypes from 'prop-types';
 
 const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, initialTopic, mqttTopics = bewaesserungsTopics, topicDescriptions = switchDescriptions }) => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -35,7 +36,7 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
   const [selectedMinute, setSelectedMinute] = useState('');
   const [weekDaysDialogOpen, setWeekDaysDialogOpen] = useState(false);
   const [monthDialogOpen, setMonthDialogOpen] = useState(false);
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const selectedDayNames = selectedDays.map(num => {
     return Object.keys(daysOfWeekNumbers).find(key => daysOfWeekNumbers[key] === num)
@@ -96,6 +97,7 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
         months: selectedMonths
       })
         .then(response => {
+          console.log(response.data);
           axios.get(`${apiUrl}/scheduledTasks`)
             .then(response => {
               setScheduledTasks(response.data);
@@ -205,6 +207,15 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
       </Snackbar>
     </Card>
   );
+};
+
+SchedulerCard.propTypes = {
+  setReloadTasks: PropTypes.func.isRequired, 
+  scheduledTasks: PropTypes.any,  
+  setScheduledTasks: PropTypes.func.isRequired,  
+  initialTopic: PropTypes.string, 
+  mqttTopics: PropTypes.array,
+  topicDescriptions: PropTypes.array,
 };
 
 export default SchedulerCard;

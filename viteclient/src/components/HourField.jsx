@@ -1,5 +1,5 @@
-import React from 'react';
 import { TextField } from '@mui/material';
+import PropTypes from 'prop-types';
 
 const HourField = ({ selectedHour, setSelectedHour, error }) => {
 
@@ -23,5 +23,14 @@ const HourField = ({ selectedHour, setSelectedHour, error }) => {
     />
   );
 }
+
+HourField.propTypes = {
+  selectedHour: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.string,
+  ]).isRequired,
+  setSelectedHour: PropTypes.func.isRequired,
+  error: PropTypes.bool,
+};
 
 export default HourField;

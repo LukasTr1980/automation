@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { TextField, Button, Typography, Box } from '@mui/material';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
@@ -8,7 +8,7 @@ const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [cookies, setCookie] = useCookies(['session']);
+  const [, setCookie] = useCookies(['session']);
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
 

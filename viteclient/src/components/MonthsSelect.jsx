@@ -1,5 +1,6 @@
 import { Checkbox, FormControl, FormControlLabel, FormGroup } from '@mui/material';
 import { months as initialMonths, monthsNumbers } from './constants';
+import PropTypes from 'prop-types';
 
 const MonthsSelect = ({ selectedMonths, setSelectedMonths }) => {
   const months = ['Jeden Monat', ...initialMonths];
@@ -39,6 +40,11 @@ const MonthsSelect = ({ selectedMonths, setSelectedMonths }) => {
       </FormGroup>
     </FormControl>
   );
+};
+
+MonthsSelect.propTypes = {
+  selectedMonths: PropTypes.arrayOf(PropTypes.number).isRequired,
+  setSelectedMonths: PropTypes.func.isRequired,
 };
 
 export default MonthsSelect;

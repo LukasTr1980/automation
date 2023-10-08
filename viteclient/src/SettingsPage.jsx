@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import BackButton from './components/BackButton';
 import axios from 'axios';
 import {
@@ -41,7 +41,7 @@ const SettingsPage = () => {
         openAiApiToken: true,
         newPassword: true
     })
-    const apiUrl = process.env.REACT_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         axios.get(`${apiUrl}/getGptRequest`)

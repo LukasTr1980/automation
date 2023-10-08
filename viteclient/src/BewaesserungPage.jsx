@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import SwitchComponent from './components/switchComponent';
@@ -29,7 +29,7 @@ const BewaesserungPage = () => {
   const [cookies] = useCookies(['session']);
   const [orderedTasks, setOrderedTasks] = useState({});
   const [reloadTasks, setReloadTasks] = useState(false);
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [gptResponse, setGptResponse] = useState("");
 
   useEffect(() => {
@@ -107,6 +107,7 @@ const BewaesserungPage = () => {
       state: newSwitchState[index],
     })
       .then(response => {
+        console.log(response.data);
       })
       .catch(error => console.error('Error:', error));
   };

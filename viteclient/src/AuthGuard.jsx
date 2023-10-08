@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import { Box, CircularProgress } from '@mui/material';
+import PropTypes from 'prop-types';
 
 const AuthGuard = ({ children }) => {
   const [cookies] = useCookies(['session']);
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const navigate = useNavigate();
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const checkSession = async () => {
@@ -42,6 +43,10 @@ const AuthGuard = ({ children }) => {
   } else {
     return null;  // You can return null or a redirect to the login page or any other placeholder
   }
+};
+
+AuthGuard.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 export default AuthGuard;
