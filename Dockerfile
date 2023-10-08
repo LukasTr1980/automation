@@ -1,7 +1,7 @@
 # APPLY IN FOLDER FOR EXAMPLE /node for node/automation and node/ai and node/automation/client
 
 # Build the React app
-FROM node:18-slim AS client-build
+FROM node:18-slim AS client-dist
 WORKDIR /usr/src/viteclient
 COPY ./viteclient/package*.json ./
 RUN npm install
@@ -21,7 +21,7 @@ WORKDIR /usr/src/nodeserver
 COPY ./nodeserver/package*.json ./
 RUN npm install
 # Copy built React app
-COPY --from=client-build /usr/src/viteclient/build ./viteclient/build
+COPY --from=client-dist /usr/src/viteclient/dist ./viteclient/dist
 # Copy AI app as a sibling
 COPY --from=ai-build /usr/src/ai ../ai
 COPY ./nodeserver .
