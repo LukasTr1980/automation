@@ -308,16 +308,10 @@ app.post('/updateSecrets', authMiddleware, async (req, res) => {
   }
 });
 
-//app.use(express.static(path.join('/home/smarthome/node/automation/client/build/')));
-
-app.use(express.static(path.join('/usr/src/automation/client/build/'))); //For Docker Build
-
-//app.get('*', function(req, res) {
-//  res.sendFile(path.join('/home/smarthome/node/automation/client/build/', 'index.html'));
-//});
+app.use(express.static(path.join('/usr/src/viteclient/dist/'))); //For Docker Build
 
 app.get('*', function (req, res) {
-  res.sendFile(path.join('/usr/src/automation/client/build/', 'index.html')); //For Docker Build
+  res.sendFile(path.join('/usr/src/viteclient/dist/', 'index.html')); //For Docker Build
 });
 
 
