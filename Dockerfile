@@ -20,6 +20,10 @@ FROM node:18-slim
 WORKDIR /usr/src/nodeserver
 COPY ./nodeserver/package*.json ./
 RUN npm install
+# Copy built React app as a silbling
+COPY --from=client-build /usr/src/viteclient/dist ../viteclient/dist
+# Copy AI app as a sibling
+COPY --from=ai-build /usr/src/ai ../ai
 COPY ./nodeserver .
 EXPOSE 8523
 CMD [ "node", "index.js" ]
