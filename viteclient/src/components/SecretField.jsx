@@ -11,7 +11,8 @@ const SecretField = ({
     onBlur,
     onChange,
     onUpdate,
-    type = 'text'
+    type = 'text',
+    autoComplete = 'off'
 }) => {
   return (
     <>
@@ -20,7 +21,7 @@ const SecretField = ({
         type={type}
         variant="outlined"
         fullWidth
-        autoComplete='off'
+        autoComplete={autoComplete}
         value={isFocused ? secretValue : ''}
         placeholder={placeholder && !isFocused ? "••••••••••••••••••" : ""}
         onFocus={() => onFocus()}
@@ -52,6 +53,7 @@ SecretField.propTypes = {
   onChange: PropTypes.func.isRequired,
   onUpdate: PropTypes.func.isRequired,
   type: PropTypes.string,
+  autoComplete: PropTypes.string,
 };
 
 export default SecretField;

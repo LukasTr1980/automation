@@ -165,6 +165,7 @@ const SettingsPage = () => {
                                     onBlur={() => handleBlur('influxDbAiToken')}
                                     onChange={(value) => setInfluxDbAiToken(value)}
                                     onUpdate={() => handleUpdateSecret('influxDbAiToken', influxDbAiToken)}
+                                    autoComplete='off'
                                 />
                                 <SecretField
                                     label="InfluxDB Automation Token"
@@ -176,6 +177,7 @@ const SettingsPage = () => {
                                     onBlur={() => handleBlur('influxDbAutomationToken')}
                                     onChange={(value) => setInfluxDbAutomationToken(value)}
                                     onUpdate={() => handleUpdateSecret('influxDbAutomationToken', influxDbAutomationToken)}
+                                    autoComplete='off'
                                 />
                                 <SecretField
                                     label="OpenAI API Token"
@@ -187,6 +189,7 @@ const SettingsPage = () => {
                                     onBlur={() => handleBlur('openAiApiToken')}
                                     onChange={(value) => setOpenAiApiToken(value)}
                                     onUpdate={() => handleUpdateSecret('openAiApiToken', openAiApiToken)}
+                                    autoComplete='off'
                                 />
                                 <SecretField
                                     label="New Password"
@@ -199,6 +202,7 @@ const SettingsPage = () => {
                                     onBlur={() => handleBlur('newPassword')}
                                     onChange={(value) => setNewPassword(value)}
                                     onUpdate={() => handleUpdateSecret('newPassword', newPassword)}
+                                    autoComplete='new-password'
                                 />
                             </CardContent>
                         </Card>
