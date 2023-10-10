@@ -30,7 +30,8 @@ const BewaesserungPage = () => {
   const [orderedTasks, setOrderedTasks] = useState({});
   const [reloadTasks, setReloadTasks] = useState(false);
   const apiUrl = import.meta.env.VITE_API_URL;
-  const [gptResponse, setGptResponse] = useState("");
+  const [response, setResponse] = useState("");
+  const [formattedEvaluation, setFormattedEvaluation] = useState("");
 
   useEffect(() => {
     const sessionId = cookies.session;
@@ -40,7 +41,6 @@ const BewaesserungPage = () => {
       const data = JSON.parse(event.data);
 
       if (data.latestStates) { // Initial state
-        console.log("Setting initial states:", data.latestStates);
         const initialSwitchStates = bewaesserungsTopics.map((topic) => data.latestStates[topic] === 'true');
         setSwitches(initialSwitchStates);
         setSwitchesLoading(false);
@@ -51,9 +51,9 @@ const BewaesserungPage = () => {
           setSwitches(switches => switches.map((val, i) => (i === index ? data.state === 'true' : val)));
         }
       } else if (data.type === 'irrigationNeeded') { // Irrigation needed state updates
-        console.log(data.gptResponse);
         setirrigationNeededSwitch(data.state);
-        setGptResponse(data.gptResponse);
+        setResponse(data.response);
+        setFormattedEvaluation(data.formattedEvaluation);
         setAiLoading(false);
       }
     };
@@ -180,7 +180,8 @@ const BewaesserungPage = () => {
                           inputComponent: TextareaAutosize,
                           inputProps: {
                             minRows: 3,
-                            value: gptResponse,
+                            value: `${response}` + 
+                                  `${formattedEvaluation ? `\n\n${formattedEvaluation}` : ''}`,
                             spellCheck: false
                           }
                         }}

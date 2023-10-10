@@ -41,12 +41,13 @@ app.get('/mqtt', authMiddleware, async (req, res) => {
   res.write(`data: ${JSON.stringify({ type: 'switchState', latestStates })}\n\n`);
 
   // Get and send the irrigation state
-  const { result: irrigationNeeded, response: gptResponse } = await isIrrigationNeeded();
-  if (irrigationNeeded !== null) {
+  const data = await isIrrigationNeeded();
+  if (data.result !== null) {
     const irrigationNeededData = {
       type: 'irrigationNeeded',
-      state: irrigationNeeded,
-      gptResponse: gptResponse,
+      state: data.result,
+      response: data.response,
+      formattedEvaluation: data.formattedEvaluation
     };
     res.write(`data: ${JSON.stringify(irrigationNeededData)}\n\n`);
   }
@@ -106,16 +107,13 @@ app.post('/login', loginLimiter, async (req, res) => {
 
 app.get('/session', authMiddleware, async (req, res) => {
   const authHeader = req.headers['authorization'];
-  console.log(authHeader);
   const sessionId = authHeader && authHeader.split(' ')[1];
-  console.log('Received session ID:', sessionId); // Add this line
 
   // Get the Redis client
   const redis = await connectToRedis();
 
   // Check if sessionId exists in Redis
   const session = await redis.get(`session:${sessionId}`);
-  console.log('Redis session:', session);
 
   if (session) {
     res.status(200).send();
@@ -153,7 +151,6 @@ app.get('/scheduledTasks', authMiddleware, async (req, res) => {
   try {
     const tasks = await getScheduledTasks();
     res.json(tasks);
-    console.log(tasks);
   } catch (err) {
     console.error(err);
     res.status(500).send('Error fetching scheduled tasks');

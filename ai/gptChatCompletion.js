@@ -3,6 +3,7 @@ const config = require('./configs');
 const queryAllData = require('./influxdb-client');
 const getCurrentDate = require('./currentDate');
 const connectToRedis = require('./redisClient');
+const traditionalCheck = require('./traditionalCheck');
 
 async function createChatCompletion() {
   try {
@@ -41,13 +42,32 @@ async function createChatCompletion() {
 
     const response = completion.choices[0].message.content;
     if (/result is true/i.test(response)) {
-      return { result: true, response };
+      return { 
+        result: true, 
+        response: response,
+        formattedEvaluation: null
+      };
     } else if (/result is false/i.test(response)) {
-      return { result: false, response };
+      return { 
+        result: false, 
+        response: response ,
+        formattedEvaluation: null
+      };
     } else {
       console.warn('Unexpected response from GPT:', response);
 
-      return { result: true, response: 'GPT-3 gibt keine klare Antwort. Standard result is true.' }
+      const traditionalEvaluation = traditionalCheck.evaluateConditions(results);
+      const allConditionsMet = Object.values(traditionalEvaluation.evaluations).every(condition => condition);
+      const traditionalResponse = allConditionsMet ? 
+      'GPT-3 gibt keine klare Antwort, überprüfe traditionell...' 
+      : 'GPT-3 gibt keine klare Antwort, überprüfe traditionell...';
+      const formattedEvaluation = traditionalCheck.generateEvaluationSentences(results);
+
+      return { 
+        result: allConditionsMet, 
+        response: traditionalResponse,
+        formattedEvaluation: formattedEvaluation
+      };
     }
 
   } catch (error) {

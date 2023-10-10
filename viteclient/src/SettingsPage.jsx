@@ -55,7 +55,8 @@ const SettingsPage = () => {
 
     const handleUpdate = () => {
         axios.post(`${apiUrl}/updateGptRequest`, { newGptRequest: gptRequest })
-            .then(() => {
+            .then((response) => {
+                setSuccessMessage(response.data);
                 setOpenSnackbar(true);
             })
             .catch(error => {

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## ToDo
+- Navigation Bar with new layout structure and new folder structure
+
+## [6.2.0] - 2023-10-10
+### Added
+- When GPT response is unclear, it will check traditionally whether to irrigate or not
+- Traditional response is visible on frontend
+
+### Fixed
+- Settingspage success snackbar message for GPT Request
+
+### Removed
+- Removed some console logs
+
 ## [6.1.6] - 2023-10-09
 ### Fixed
 - Autocomplete off for Settingspage
