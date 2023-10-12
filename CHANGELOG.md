@@ -6,8 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## ToDo
-- Version Display on homepage
+- Version Display on homepage with env.version file?
 - Navigation Bar with new layout structure and new folder structure
+
+## [7.0.0-alpha.1] - 2023-10-12
+### Added
+- Layout.jsx for centralized layout
+- Creation of new NavMenu
+- Creation of new Folder Structure
 
 ## [6.2.0] - 2023-10-10
 ### Added
