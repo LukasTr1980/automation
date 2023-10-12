@@ -1,4 +1,4 @@
-name: TruffleHog Scan
+name: TruffleHog Secrets Scan
 
 on:
   push:
@@ -8,12 +8,17 @@ on:
   pull_request:
 
 jobs:
-  trufflehog_scan:
+  TruffleHog:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-      - name: Run TruffleHog
-        uses: edplato/trufflehog@master
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
