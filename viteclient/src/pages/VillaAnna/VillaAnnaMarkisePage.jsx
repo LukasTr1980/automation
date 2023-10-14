@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Box, Container, Typography, Grid, Card, CardHeader, CardContent } from '@mui/material';
-import BackButton from '../../components/BackButton';
+import { Typography, Grid, Card, CardHeader, CardContent } from '@mui/material';
 import OnPressSwitchComponent from '../../components/OnPressSwitchComponent';
 import SchedulerCard from '../../components/SchedulerCard';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard'; // Assuming you use this, as in the other page
 import { useCookies } from 'react-cookie';
 import axios from 'axios';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import Layout from '../../Layout'
 
 const MarkisePage = () => {
     const [switchesLoaded, setSwitchesLoaded] = useState(false);
@@ -84,54 +83,39 @@ const MarkisePage = () => {
     };
 
     return (
-        <Container>
-            {isLoading ? (
-                <LoadingSpinner />
-
-            ) : (
-                <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto' }}>
-                    <Grid container spacing={3} justify="center" alignItems="center">
-                        <Grid item xs={12}>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <Box sx={{ alignSelf: 'flex-start' }}>
-                                    <BackButton />
-                                </Box>
-                                <Typography variant="h3" align="center">Markise</Typography>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Card>
-                                <CardHeader title="Markise Steuern" />
-                                <CardContent>
-                                    <Grid container spacing={2} justify="center">
-                                        <OnPressSwitchComponent markiseState={markiseState} onSend={handleSend} />
-                                    </Grid>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <SchedulerCard
-                                initialTopic="markise/switch/haupt"
-                                mqttTopics={["markise/switch/haupt"]}
-                                topicDescriptions={["Markise"]}
-                                scheduledTasks={scheduledTasks}
-                                setScheduledTasks={setScheduledTasks}
-                                setReloadTasks={setReloadTasks}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Card>
-                                <CardHeader title="Eingestellte Zeitpläne" />
-                                <CardContent>
-                                    {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
-                                    <ScheduledTaskCard zoneName="Markise" tasks={sortedTasks} customLabels={customMarkiseLabels} onDelete={handleDeleteTask} redisKey="markise/switch/haupt" />
-                                </CardContent>
-                            </Card>
-                        </Grid>
+        <Layout title='Markise' loading={isLoading}>
+                <>
+                    <Grid item xs={12}>
+                        <Card>
+                            <CardHeader title="Markise Steuern" />
+                            <CardContent>
+                                <Grid container spacing={2} justify="center">
+                                    <OnPressSwitchComponent markiseState={markiseState} onSend={handleSend} />
+                                </Grid>
+                            </CardContent>
+                        </Card>
                     </Grid>
-                </Box>
-            )}
-        </Container>
+                    <Grid item xs={12}>
+                        <SchedulerCard
+                            initialTopic="markise/switch/haupt"
+                            mqttTopics={["markise/switch/haupt"]}
+                            topicDescriptions={["Markise"]}
+                            scheduledTasks={scheduledTasks}
+                            setScheduledTasks={setScheduledTasks}
+                            setReloadTasks={setReloadTasks}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Card>
+                            <CardHeader title="Eingestellte Zeitpläne" />
+                            <CardContent>
+                                {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
+                                <ScheduledTaskCard zoneName="Markise" tasks={sortedTasks} customLabels={customMarkiseLabels} onDelete={handleDeleteTask} redisKey="markise/switch/haupt" />
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </>
+        </Layout>
     );
 };
 

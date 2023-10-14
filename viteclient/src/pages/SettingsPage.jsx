@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
-import BackButton from '../components/BackButton';
+import Layout from '../Layout';
 import axios from 'axios';
 import {
-    Box,
-    Typography,
     Grid,
     Card,
     CardContent,
     CardHeader,
-    Container,
     TextField,
     Button,
     Snackbar,
@@ -102,120 +99,107 @@ const SettingsPage = () => {
 
     const handleFocus = (field) => {
         setIsFocused({ ...isFocused, [field]: true });
-      };
-      
-      const handleBlur = (field) => {
+    };
+
+    const handleBlur = (field) => {
         setIsFocused({ ...isFocused, [field]: false });
-      };
+    };
 
     return (
-        <Container>
-            <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto' }}>
-                <Grid container spacing={3} justify="center" alignItems="center">
-                    <Grid item xs={12}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <Box sx={{ alignSelf: 'flex-start' }}>
-                                <BackButton />
-                            </Box>
-                            <Typography variant="h3" align="center">Settings</Typography>
-                        </Box>
-                    </Grid>
+        <Layout title='Settings'>
+            <Grid item xs={12}>
+                <Card>
+                    <CardHeader title="Edit GPT Request" />
+                    <CardContent>
+                        <TextField
+                            label="GPT Request"
+                            variant="outlined"
+                            fullWidth
+                            multiline
+                            InputProps={{
+                                inputComponent: TextareaAutosize,
+                                inputProps: {
+                                    minRows: 3,
+                                    value: gptRequest,
+                                    onChange: (e) => setGptRequest(e.target.value),
+                                    spellCheck: false
+                                }
+                            }}
+                        />
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleUpdate}
+                            sx={{ mt: 2 }}
+                        >
+                            Update GPT Request
+                        </Button>
+                    </CardContent>
+                </Card>
+            </Grid>
 
-                    <Grid item xs={12}>
-                        <Card>
-                            <CardHeader title="Edit GPT Request" />
-                            <CardContent>
-                                <TextField
-                                    label="GPT Request"
-                                    variant="outlined"
-                                    fullWidth
-                                    multiline
-                                    InputProps={{
-                                        inputComponent: TextareaAutosize,
-                                        inputProps: {
-                                            minRows: 3,
-                                            value: gptRequest,
-                                            onChange: (e) => setGptRequest(e.target.value),
-                                            spellCheck: false
-                                        }
-                                    }}
-                                />
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleUpdate}
-                                    sx={{ mt: 2 }}
-                                >
-                                    Update GPT Request
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-
-                    <Grid item xs={12}>
-                        <Card>
-                            <CardHeader title="Edit Secrets" />
-                            <CardContent>
-                                <SecretField
-                                    label="InfluxDB AI Token"
-                                    secretValue={influxDbAiToken}
-                                    placeholder={influxDbAiTokenExists}
-                                    isFocused={isFocused.influxDbAiToken}
-                                    isValid={fieldValidity.influxDbAiToken}
-                                    onFocus={() => handleFocus('influxDbAiToken')}
-                                    onBlur={() => handleBlur('influxDbAiToken')}
-                                    onChange={(value) => setInfluxDbAiToken(value)}
-                                    onUpdate={() => handleUpdateSecret('influxDbAiToken', influxDbAiToken)}
-                                    autoComplete='off'
-                                />
-                                <SecretField
-                                    label="InfluxDB Automation Token"
-                                    secretValue={influxDbAutomationToken}
-                                    placeholder={influxDbAutomationTokenExists}
-                                    isFocused={isFocused.influxDbAutomationToken}
-                                    isValid={fieldValidity.influxDbAutomationToken}
-                                    onFocus={() => handleFocus('influxDbAutomationToken')}
-                                    onBlur={() => handleBlur('influxDbAutomationToken')}
-                                    onChange={(value) => setInfluxDbAutomationToken(value)}
-                                    onUpdate={() => handleUpdateSecret('influxDbAutomationToken', influxDbAutomationToken)}
-                                    autoComplete='off'
-                                />
-                                <SecretField
-                                    label="OpenAI API Token"
-                                    secretValue={openAiApiToken}
-                                    placeholder={openAiApiTokenExists}
-                                    isFocused={isFocused.openAiApiToken}
-                                    isValid={fieldValidity.openAiApiToken}
-                                    onFocus={() => handleFocus('openAiApiToken')}
-                                    onBlur={() => handleBlur('openAiApiToken')}
-                                    onChange={(value) => setOpenAiApiToken(value)}
-                                    onUpdate={() => handleUpdateSecret('openAiApiToken', openAiApiToken)}
-                                    autoComplete='off'
-                                />
-                                <SecretField
-                                    label="New Password"
-                                    type='password'
-                                    secretValue={newPassword}
-                                    placeholder={passwordExists}
-                                    isFocused={isFocused.newPassword}
-                                    isValid={fieldValidity.newPassword}
-                                    onFocus={() => handleFocus('newPassword')}
-                                    onBlur={() => handleBlur('newPassword')}
-                                    onChange={(value) => setNewPassword(value)}
-                                    onUpdate={() => handleUpdateSecret('newPassword', newPassword)}
-                                    autoComplete='new-password'
-                                />
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                </Grid>
-            </Box>
+            <Grid item xs={12}>
+                <Card>
+                    <CardHeader title="Edit Secrets" />
+                    <CardContent>
+                        <SecretField
+                            label="InfluxDB AI Token"
+                            secretValue={influxDbAiToken}
+                            placeholder={influxDbAiTokenExists}
+                            isFocused={isFocused.influxDbAiToken}
+                            isValid={fieldValidity.influxDbAiToken}
+                            onFocus={() => handleFocus('influxDbAiToken')}
+                            onBlur={() => handleBlur('influxDbAiToken')}
+                            onChange={(value) => setInfluxDbAiToken(value)}
+                            onUpdate={() => handleUpdateSecret('influxDbAiToken', influxDbAiToken)}
+                            autoComplete='off'
+                        />
+                        <SecretField
+                            label="InfluxDB Automation Token"
+                            secretValue={influxDbAutomationToken}
+                            placeholder={influxDbAutomationTokenExists}
+                            isFocused={isFocused.influxDbAutomationToken}
+                            isValid={fieldValidity.influxDbAutomationToken}
+                            onFocus={() => handleFocus('influxDbAutomationToken')}
+                            onBlur={() => handleBlur('influxDbAutomationToken')}
+                            onChange={(value) => setInfluxDbAutomationToken(value)}
+                            onUpdate={() => handleUpdateSecret('influxDbAutomationToken', influxDbAutomationToken)}
+                            autoComplete='off'
+                        />
+                        <SecretField
+                            label="OpenAI API Token"
+                            secretValue={openAiApiToken}
+                            placeholder={openAiApiTokenExists}
+                            isFocused={isFocused.openAiApiToken}
+                            isValid={fieldValidity.openAiApiToken}
+                            onFocus={() => handleFocus('openAiApiToken')}
+                            onBlur={() => handleBlur('openAiApiToken')}
+                            onChange={(value) => setOpenAiApiToken(value)}
+                            onUpdate={() => handleUpdateSecret('openAiApiToken', openAiApiToken)}
+                            autoComplete='off'
+                        />
+                        <SecretField
+                            label="New Password"
+                            type='password'
+                            secretValue={newPassword}
+                            placeholder={passwordExists}
+                            isFocused={isFocused.newPassword}
+                            isValid={fieldValidity.newPassword}
+                            onFocus={() => handleFocus('newPassword')}
+                            onBlur={() => handleBlur('newPassword')}
+                            onChange={(value) => setNewPassword(value)}
+                            onUpdate={() => handleUpdateSecret('newPassword', newPassword)}
+                            autoComplete='new-password'
+                        />
+                    </CardContent>
+                </Card>
+            </Grid>
             <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
                 <Alert onClose={handleCloseSnackbar} severity="success">
                     {successMessage}
                 </Alert>
             </Snackbar>
-        </Container>
+        </Layout>
     );
 };
 

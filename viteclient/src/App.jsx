@@ -6,7 +6,7 @@ import LoginPage from './pages/LoginPage'
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
 import VillaAnnaRoutes from './routes/VillaAnnaRoutes';
-import AuthGuard from './AuthGuard';
+import AuthGuard from './components/AuthGuard';
 import axios from 'axios';
 import NotFoundPage from './pages/404Page';
 

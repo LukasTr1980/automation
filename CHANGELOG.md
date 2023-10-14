@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version Display on homepage with env.version file?
 - Navigation Bar with new layout structure and new folder structure
 
+## [7.0.0-alpha.3] - 2023-10-14
+### Added
+- .env file with Version Information
+
+### Changed
+- Folder structure and .gitignore to include env files
+
 ## [7.0.0-alpha.2] - 2023-10-14
 ### Added
 - Main homepage with picture

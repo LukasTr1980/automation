@@ -7,42 +7,54 @@ import {
 import PropTypes from 'prop-types';
 import BackButton from './components/BackButton';
 import NavMenu from './components/menu/NavMenu';
+import LoadingSpinner from './components/LoadingSpinner';
 
-const Layout = ({ title, children, showBackButton }) => {
+const Layout = ({ title, children, showBackButton, loading }) => {
   return (
     <>
-    <NavMenu />
-    <Container>
-      <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto' }}>
-        <Grid container spacing={3} justify="center" alignItems="center">
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              {showBackButton && (
-                <Box sx={{ alignSelf: 'flex-start' }}>
-                  <BackButton />
-                </Box>
-              )}
-              <Typography variant="h3" align="center">{title}</Typography>
-            </Box>
+      <NavMenu />
+      <Container>
+        <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto', mt: 8 }}>
+          <Grid container spacing={3} justify="center" alignItems="center">
+
+            {loading ? (
+              <Grid item xs={12}>
+                <LoadingSpinner />
+              </Grid>
+            ) : (
+              <>
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {showBackButton && (
+                      <Box sx={{ alignSelf: 'flex-start' }}>
+                        <BackButton />
+                      </Box>
+                    )}
+                    <Typography variant="h3" align="center">{title}</Typography>
+                  </Box>
+                </Grid>
+
+                {children}
+              </>
+            )}
+
           </Grid>
-
-          {children}
-
-        </Grid>
-      </Box>
-    </Container>
+        </Box>
+      </Container>
     </>
   );
 };
 
 Layout.defaultProps = {
   showBackButton: true,
+  loading: false,
 };
 
 Layout.propTypes = {
-    title: PropTypes.string.isRequired,
-    children: PropTypes.node.isRequired,
-    showBackButton: PropTypes.bool,
+  title: PropTypes.string.isRequired,
+  children: PropTypes.node.isRequired,
+  showBackButton: PropTypes.bool,
+  loading: PropTypes.bool,
 };
 
 export default Layout;

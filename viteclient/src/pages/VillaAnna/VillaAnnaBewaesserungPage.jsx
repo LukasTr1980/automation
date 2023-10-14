@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import SwitchComponent from '../../components/switchComponent';
 import { switchDescriptions, bewaesserungsTopics, zoneOrder } from '../../components/constants';
-import BackButton from '../../components/BackButton';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
 import SchedulerCard from '../../components/SchedulerCard'; // Import the SchedulerCard component
 import {
@@ -13,10 +12,10 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Container,
   TextareaAutosize,
   TextField
 } from '@mui/material';
+import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 const BewaesserungPage = () => {
@@ -118,106 +117,93 @@ const BewaesserungPage = () => {
   };
 
   return (
-    <Container>
-      <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto' }}>
-        <Grid container spacing={3} justify="center" alignItems="center">
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Box sx={{ alignSelf: 'flex-start' }}>
-                <BackButton />
-              </Box>
-              <Typography variant="h3" align="center">Bewässerung</Typography>
-            </Box>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Card>
-              <CardHeader title="Schalter" />
-              <CardContent>
-                {switchesLoading ? (
-                  <LoadingSpinner />
-                ) : (
-                  <Grid container spacing={2} justify="space-between">
-                    {switches.map((val, i) => (
-                      <Grid item key={i}>
-                        <SwitchComponent
-                          checked={val}
-                          label={switchDescriptions[i]}
-                          handleToggle={() => handleToggle(i)}
-                        />
-                      </Grid>
-                    ))}
+    <Layout title='Bewässerung'>
+      <Grid item xs={12}>
+        <Card>
+          <CardHeader title="Schalter" />
+          <CardContent>
+            {switchesLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <Grid container spacing={2} justify="space-between">
+                {switches.map((val, i) => (
+                  <Grid item key={i}>
+                    <SwitchComponent
+                      checked={val}
+                      label={switchDescriptions[i]}
+                      handleToggle={() => handleToggle(i)}
+                    />
                   </Grid>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+                ))}
+              </Grid>
+            )}
+          </CardContent>
+        </Card>
+      </Grid>
 
-          <Grid item xs={12}>
-            <Card>
-              <CardHeader title="AI Entscheidung" />
-              <CardContent>
-                {aiLoading ? (
-                  <LoadingSpinner />
-                ) : (
-                  <Grid container spacing={2} justify="space-between">
-                    <Grid item xs={12}>
-                      <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
-                        <SwitchComponent
-                          checked={!irrigationNeededSwitch}
-                          label='Ai block:'
-                          disabled={true}
-                        />
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        label="AI Antwort"
-                        variant="outlined"
-                        fullWidth
-                        multiline
-                        InputProps={{
-                          inputComponent: TextareaAutosize,
-                          inputProps: {
-                            minRows: 3,
-                            value: `${response}` + 
-                                  `${formattedEvaluation ? `\n\n${formattedEvaluation}` : ''}`,
-                            spellCheck: false
-                          }
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+      <Grid item xs={12}>
+        <Card>
+          <CardHeader title="AI Entscheidung" />
+          <CardContent>
+            {aiLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <Grid container spacing={2} justify="space-between">
+                <Grid item xs={12}>
+                  <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
+                    <SwitchComponent
+                      checked={!irrigationNeededSwitch}
+                      label='Ai block:'
+                      disabled={true}
+                    />
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="AI Antwort"
+                    variant="outlined"
+                    fullWidth
+                    multiline
+                    InputProps={{
+                      inputComponent: TextareaAutosize,
+                      inputProps: {
+                        minRows: 3,
+                        value: `${response}` +
+                          `${formattedEvaluation ? `\n\n${formattedEvaluation}` : ''}`,
+                        spellCheck: false
+                      }
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            )}
+          </CardContent>
+        </Card>
+      </Grid>
 
-          {/* Use the SchedulerCard component */}
-          <Grid item xs={12}>
-            <SchedulerCard setReloadTasks={setReloadTasks} scheduledTasks={scheduledTasks} setScheduledTasks={setScheduledTasks} />
-          </Grid>
+      {/* Use the SchedulerCard component */}
+      <Grid item xs={12}>
+        <SchedulerCard setReloadTasks={setReloadTasks} scheduledTasks={scheduledTasks} setScheduledTasks={setScheduledTasks} />
+      </Grid>
 
-          <Grid item xs={12}>
-            <Card>
-              <CardHeader title="Eingestellte Zeipläne" />
-              <CardContent>
-                {tasksLoading ? (
-                  <LoadingSpinner />
-                ) : (
-                  <>
-                    {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Tasks.</Typography>}
-                    {Object.entries(orderedTasks).map(([zoneName, tasks], index) => {
-                      return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} onDelete={handleDeleteTask} redisKey={bewaesserungsTopics[index]} />
-                    })}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
-    </Container>
+      <Grid item xs={12}>
+        <Card>
+          <CardHeader title="Eingestellte Zeipläne" />
+          <CardContent>
+            {tasksLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Tasks.</Typography>}
+                {Object.entries(orderedTasks).map(([zoneName, tasks], index) => {
+                  return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} onDelete={handleDeleteTask} redisKey={bewaesserungsTopics[index]} />
+                })}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </Grid>
+    </Layout>
   );
 };
 
