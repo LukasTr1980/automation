@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Version Display on homepage with env.version file?
 - Navigation Bar with new layout structure and new folder structure
 
+## [7.0.0-alpha.2] - 2023-10-14
+### Added
+- Main homepage with picture
+
+### Changed
+- Folder structure
+- Trufflehog to actions v3
+
 ## [7.0.0-alpha.1] - 2023-10-12
 ### Added
 - Layout.jsx for centralized layout

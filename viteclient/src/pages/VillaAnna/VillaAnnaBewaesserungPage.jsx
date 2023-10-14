@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
-import SwitchComponent from './components/switchComponent';
-import { switchDescriptions, bewaesserungsTopics, zoneOrder } from './components/constants';
-import BackButton from './components/BackButton';
-import ScheduledTaskCard from './components/ScheduledTaskCard';
-import SchedulerCard from './components/SchedulerCard'; // Import the SchedulerCard component
+import SwitchComponent from '../../components/switchComponent';
+import { switchDescriptions, bewaesserungsTopics, zoneOrder } from '../../components/constants';
+import BackButton from '../../components/BackButton';
+import ScheduledTaskCard from '../../components/ScheduledTaskCard';
+import SchedulerCard from '../../components/SchedulerCard'; // Import the SchedulerCard component
 import {
   Box,
   Typography,
@@ -17,7 +17,7 @@ import {
   TextareaAutosize,
   TextField
 } from '@mui/material';
-import LoadingSpinner from './components/LoadingSpinner';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);

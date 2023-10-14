@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Box, Container, Typography, Grid, Card, CardHeader, CardContent } from '@mui/material';
-import BackButton from './components/BackButton';
-import OnPressSwitchComponent from './components/OnPressSwitchComponent';
-import SchedulerCard from './components/SchedulerCard';
-import ScheduledTaskCard from './components/ScheduledTaskCard'; // Assuming you use this, as in the other page
+import BackButton from '../../components/BackButton';
+import OnPressSwitchComponent from '../../components/OnPressSwitchComponent';
+import SchedulerCard from '../../components/SchedulerCard';
+import ScheduledTaskCard from '../../components/ScheduledTaskCard'; // Assuming you use this, as in the other page
 import { useCookies } from 'react-cookie';
 import axios from 'axios';
-import LoadingSpinner from './components/LoadingSpinner';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 const MarkisePage = () => {
     const [switchesLoaded, setSwitchesLoaded] = useState(false);

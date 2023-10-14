@@ -5,7 +5,7 @@ import Layout from '../../Layout';
 
 const HomePage = () => {
   return (
-    <Layout title='Automation' showBackButton={false}>
+    <Layout title='Villa Anna Automation' showBackButton={false}>
       <Grid item xs={12}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Box
@@ -21,7 +21,7 @@ const HomePage = () => {
               variant="contained"
               color="primary"
               component={RouterLink}
-              to="/bewaesserung"
+              to="/villa-anna/bewaesserung"
               sx={{ my: 2, width: '200px' }} // set a width
             >
               Bewässerung
@@ -30,19 +30,10 @@ const HomePage = () => {
               variant="contained"
               color="primary"
               component={RouterLink}
-              to="/markise"
+              to="/villa-anna/markise"
               sx={{ my: 2, width: '200px' }} // set the same width
             >
               Markise
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              component={RouterLink}
-              to="/settings"
-              sx={{ my: 2, width: '200px' }}
-            >
-              Settings
             </Button>
           </Box>
         </Box>

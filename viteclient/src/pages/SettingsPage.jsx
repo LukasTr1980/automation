@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import BackButton from './components/BackButton';
+import BackButton from '../components/BackButton';
 import axios from 'axios';
 import {
     Box,
@@ -15,7 +15,7 @@ import {
     Alert,
     TextareaAutosize
 } from '@mui/material';
-import SecretField from './components/SecretField';
+import SecretField from '../components/SecretField';
 
 const SettingsPage = () => {
     const [gptRequest, setGptRequest] = useState('');

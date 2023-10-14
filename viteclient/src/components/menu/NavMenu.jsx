@@ -1,4 +1,3 @@
-// NavMenu.jsx
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Button, AppBar, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme } from '@mui/material';
@@ -15,11 +14,16 @@ const NavMenu = () => {
 
   const drawer = (
     <List>
-      {['Villa Anna', 'Tisens Julia', 'Tisens Simone', 'Settings'].map((text, index) => (
-        <ListItemButton key={text} component={RouterLink} to={index === 0 ? '/' : `/${text.toLowerCase()}`}>
+      {[
+        { text: 'Villa Anna', path: '/villa-anna/home' },
+        { text: 'Tisens Julia', path: '/tisens-julia/home' },
+        { text: 'Tisens Simone', path: '/tisens-simone/home'  },
+        { text: 'Settings', path: '/settings' }
+      ].map(({ text, path }) => (
+        <ListItemButton key={text} component={RouterLink} to={path}>
           {text}
         </ListItemButton>
-      ))}
+      )) }
     </List>
   );
 
@@ -38,9 +42,9 @@ const NavMenu = () => {
             </>
           ) : (
             <>
-              <Button color="inherit" component={RouterLink} to="/home">Home</Button>
-              <Button color="inherit" component={RouterLink} to="/bewaesserung">Bewässerung</Button>
-              <Button color="inherit" component={RouterLink} to="/markise">Markise</Button>
+              <Button color="inherit" component={RouterLink} to="/villa-anna/home">Villa Anna</Button>
+              <Button color="inherit" component={RouterLink} to="/tisens-julia/home">Tisens Julia</Button>
+              <Button color="inherit" component={RouterLink} to="/tisens-simone/home">Tisens Simone</Button>
               <Button color="inherit" component={RouterLink} to="/settings">Settings</Button>
             </>
           )}
