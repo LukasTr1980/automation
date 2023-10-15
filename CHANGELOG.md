@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add countdown page for countdowns on irrigation or in general
 - Automate version adoption in viteclient env file
 
+## [7.2.1] - 2023-10-15
+### Added
+- Prop for setting navmenu to invisible
+
+### Removed
+- At the moment dead links
+
 ## [7.2.0] - 2023-10-15
 ### Added
 - New logo

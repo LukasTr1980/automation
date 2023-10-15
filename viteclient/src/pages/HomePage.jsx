@@ -29,24 +29,6 @@ const HomePage = () => {
           variant="contained"
           color="primary"
           component={RouterLink}
-          to="/tisens-julia/home"
-          sx={{ my: 2, width: '200px' }}  // Set the same width and margin
-        >
-          Tisens Julia
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          component={RouterLink}
-          to="/tisens-simone/home"
-          sx={{ my: 2, width: '200px' }}  // Set the same width and margin
-        >
-          Tisens Simone
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          component={RouterLink}
           to="/settings"
           sx={{ my: 2, width: '200px' }}  // Set the same width and margin
         >

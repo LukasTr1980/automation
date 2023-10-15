@@ -9,10 +9,10 @@ import BackButton from './components/BackButton';
 import NavMenu from './components/menu/NavMenu';
 import LoadingSpinner from './components/LoadingSpinner';
 
-const Layout = ({ title, children, showBackButton, loading }) => {
+const Layout = ({ title, children, showBackButton, loading, showNavMenu }) => {
   return (
     <>
-      <NavMenu />
+      {showNavMenu && <NavMenu />}
       <Container>
         <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto', mt: 8 }}>
           <Grid container spacing={3} justify="center" alignItems="center">
@@ -48,6 +48,7 @@ const Layout = ({ title, children, showBackButton, loading }) => {
 Layout.defaultProps = {
   showBackButton: true,
   loading: false,
+  showNavMenu: true,
 };
 
 Layout.propTypes = {
@@ -55,6 +56,7 @@ Layout.propTypes = {
   children: PropTypes.node.isRequired,
   showBackButton: PropTypes.bool,
   loading: PropTypes.bool,
+  showNavMenu: PropTypes.bool,
 };
 
 export default Layout;

@@ -34,8 +34,6 @@ const NavMenu = () => {
         {[
           { text: 'Home', path: '/home' },
           { text: 'Villa Anna', path: '/villa-anna/home' },
-          { text: 'Tisens Julia', path: '/tisens-julia/home' },
-          { text: 'Tisens Simone', path: '/tisens-simone/home' },
           { text: 'Settings', path: '/settings' }
         ].map(({ text, path }) => {
           const basePath = path.split('/')[1];  // Extracts 'villa-anna' from '/villa-anna/home'
@@ -93,24 +91,6 @@ const NavMenu = () => {
                 variant={window.location.pathname === "/villa-anna/home" ? "contained" : "text"}
               >
                 Villa Anna
-              </Button>
-              <Button
-                color='inherit'
-                component={NavLink}
-                to="/tisens-julia/home"
-                style={window.location.pathname.includes('/tisens-julia') ? { backgroundColor: 'darkblue' } : {}}
-                variant={window.location.pathname === "/tisens-julia/home" ? "contained" : "text"}
-              >
-                Tisens Julia
-              </Button>
-              <Button
-                color='inherit'
-                component={NavLink}
-                to="/tisens-simone/home"
-                style={window.location.pathname.includes('/tisens-simone') ? { backgroundColor: 'darkblue' } : {}}
-                variant={window.location.pathname === "/tisens-simone/home" ? "contained" : "text"}
-              >
-                Tisens Simone
               </Button>
               <Button
                 color='inherit'
