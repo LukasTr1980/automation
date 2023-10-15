@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add countdown page for countdowns on irrigation or in general
 - Automate version adoption in viteclient env file
 
+## [7.2.0] - 2023-10-15
+### Added
+- New logo
+- Title and close buttons for Dialogfullscreen and navmenu
+
+### Changed
+- Font size of headline
+
 ## [7.1.1] - 2023-10-15
 ### Fixed
 - Active links also in submenues and on mobile

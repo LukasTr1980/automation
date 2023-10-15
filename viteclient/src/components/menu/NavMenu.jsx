@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Button, AppBar, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { NavLink } from 'react-router-dom';
+import logo from '../../images/logo-192x192.png';
 
 const NavMenu = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -13,27 +15,47 @@ const NavMenu = () => {
   };
 
   const drawer = (
-    <List>
-      {[
-        { text: 'Home', path: '/home' },
-        { text: 'Villa Anna', path: '/villa-anna/home' },
-        { text: 'Tisens Julia', path: '/tisens-julia/home' },
-        { text: 'Tisens Simone', path: '/tisens-simone/home' },
-        { text: 'Settings', path: '/settings' }
-      ].map(({ text, path }) => {
-        const basePath = path.split('/')[1];  // Extracts 'villa-anna' from '/villa-anna/home'
-        return (
-          <ListItemButton
-            key={text}
-            component={NavLink}
-            to={path}
-            style={window.location.pathname.split('/')[1] === basePath ? { backgroundColor: 'lightgrey' } : {}}
-          >
-            {text}
-          </ListItemButton>
-        )
-      })}
-    </List>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '8px',
+        borderBottom: '1px solid lightgrey'
+      }}>
+        <NavLink to='/home'>
+          <img src={logo} alt='Logo' style={{ height: '40px' }} />
+        </NavLink>
+        <IconButton edge='end' color='inherit' aria-label='close' onClick={handleDrawerToggle}>
+          <CloseIcon />
+        </IconButton>
+      </div>
+      <List>
+        {[
+          { text: 'Home', path: '/home' },
+          { text: 'Villa Anna', path: '/villa-anna/home' },
+          { text: 'Tisens Julia', path: '/tisens-julia/home' },
+          { text: 'Tisens Simone', path: '/tisens-simone/home' },
+          { text: 'Settings', path: '/settings' }
+        ].map(({ text, path }) => {
+          const basePath = path.split('/')[1];  // Extracts 'villa-anna' from '/villa-anna/home'
+          return (
+            <ListItemButton
+              key={text}
+              component={NavLink}
+              to={path}
+              style={{
+                ...window.location.pathname.split('/')[1] === basePath ? { backgroundColor: 'lightgrey' } : {},
+                fontSize: '1.1rem',
+                padding: '10px 16px'
+              }}
+            >
+              {text}
+            </ListItemButton>
+          )
+        })}
+      </List>
+    </div>
   );
 
   return (
@@ -51,6 +73,9 @@ const NavMenu = () => {
             </>
           ) : (
             <>
+              <NavLink to='/home' style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                <img src={logo} alt='Logo' style={{ height: '40px', marginRight: '8px' }} />
+              </NavLink>
               <Button
                 color='inherit'
                 component={NavLink}

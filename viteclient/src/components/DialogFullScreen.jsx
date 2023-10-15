@@ -1,15 +1,20 @@
-import { Dialog, Box, Grid, Button } from '@mui/material';
+import { Dialog, Box, Grid, Button, IconButton, DialogTitle } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import PropTypes from 'prop-types';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 
 function DialogFullScreen({ open, onClose, children }) {
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
-    <Dialog fullScreen={fullScreen} open={open} onClose={onClose}>
-      <Box sx={{ flexGrow: 1, padding: theme.spacing(2) }}>
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        Auswählen
+        <IconButton edge="end" color='inherit' onClick={onClose} aria-label='close'>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <Box sx={{ flexGrow: 1, padding: theme.spacing(1), border: '1px solid #ccc' }}>
         <Grid
           container
           direction="column"

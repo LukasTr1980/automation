@@ -30,7 +30,7 @@ const Layout = ({ title, children, showBackButton, loading }) => {
                         <BackButton />
                       </Box>
                     )}
-                    <Typography variant="h3" align="center">{title}</Typography>
+                    <Typography variant="h4" align="center">{title}</Typography>
                   </Box>
                 </Grid>
 
