@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Improvements / Issues
 - Success Message needs to be centralized, maybe with redux?
 - Add countdown page for countdowns on irrigation or in general
+- Automate version adoption in viteclient env file
+
+## [7.1.1] - 2023-10-15
+### Fixed
+- Active links also in submenues and on mobile
 
 ## [7.1.0] - 2023-10-15
 ### Added

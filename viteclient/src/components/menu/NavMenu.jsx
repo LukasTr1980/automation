@@ -20,11 +20,19 @@ const NavMenu = () => {
         { text: 'Tisens Julia', path: '/tisens-julia/home' },
         { text: 'Tisens Simone', path: '/tisens-simone/home' },
         { text: 'Settings', path: '/settings' }
-      ].map(({ text, path }) => (
-        <ListItemButton key={text} component={NavLink} to={path} selected={window.location.pathname === path}>
-          {text}
-        </ListItemButton>
-      ))}
+      ].map(({ text, path }) => {
+        const basePath = path.split('/')[1];  // Extracts 'villa-anna' from '/villa-anna/home'
+        return (
+          <ListItemButton
+            key={text}
+            component={NavLink}
+            to={path}
+            style={window.location.pathname.split('/')[1] === basePath ? { backgroundColor: 'lightgrey' } : {}}
+          >
+            {text}
+          </ListItemButton>
+        )
+      })}
     </List>
   );
 
@@ -56,7 +64,7 @@ const NavMenu = () => {
                 color='inherit'
                 component={NavLink}
                 to="/villa-anna/home"
-                style={window.location.pathname === "/villa-anna/home" ? { backgroundColor: 'darkblue' } : {}}
+                style={window.location.pathname.includes('/villa-anna') ? { backgroundColor: 'darkblue' } : {}}
                 variant={window.location.pathname === "/villa-anna/home" ? "contained" : "text"}
               >
                 Villa Anna
@@ -65,7 +73,7 @@ const NavMenu = () => {
                 color='inherit'
                 component={NavLink}
                 to="/tisens-julia/home"
-                style={window.location.pathname === "/tisens-julia/home" ? { backgroundColor: 'darkblue' } : {}}
+                style={window.location.pathname.includes('/tisens-julia') ? { backgroundColor: 'darkblue' } : {}}
                 variant={window.location.pathname === "/tisens-julia/home" ? "contained" : "text"}
               >
                 Tisens Julia
@@ -74,7 +82,7 @@ const NavMenu = () => {
                 color='inherit'
                 component={NavLink}
                 to="/tisens-simone/home"
-                style={window.location.pathname === "/tisens-simone/home" ? { backgroundColor: 'darkblue' } : {}}
+                style={window.location.pathname.includes('/tisens-simone') ? { backgroundColor: 'darkblue' } : {}}
                 variant={window.location.pathname === "/tisens-simone/home" ? "contained" : "text"}
               >
                 Tisens Simone
