@@ -7,7 +7,6 @@ const HomePage = () => {
   return (
     <Layout title='Villa Anna Automation' showBackButton={false}>
       <Grid item xs={12}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Box
             sx={{
               display: 'flex',
@@ -36,7 +35,6 @@ const HomePage = () => {
               Markise
             </Button>
           </Box>
-        </Box>
       </Grid>
     </Layout>
   );

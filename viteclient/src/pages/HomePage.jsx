@@ -1,25 +1,59 @@
 import Layout from '../Layout';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Button, Grid } from '@mui/material';  // Import Button
+import { Link as RouterLink } from 'react-router-dom';  // Import RouterLink
 
 const HomePage = () => {
   const appVersion = import.meta.env.VITE_APP_VERSION;
   return (
     <Layout title="Automation" showBackButton={false}>
+      <Grid item xs={12}>
       <Box
         sx={{
-          position: 'fixed',  // Fixed position
-          top: 0,  // Starts at the top
-          left: 0,  // Starts on the left
-          width: '100%',  // Full width
-          height: '100%',  // Full height
-          backgroundImage: 'url(/images/background.png)',
-          backgroundPosition: 'center',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.2,  // Adjust transparency here (0 for fully transparent, 1 for opaque)
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          p: 4,
         }}
       >
+        <Button
+          variant="contained"
+          color="primary"
+          component={RouterLink}
+          to="/villa-anna/home"
+          sx={{ my: 2, width: '200px' }}  // Set a width and margin
+        >
+          Villa Anna
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          component={RouterLink}
+          to="/tisens-julia/home"
+          sx={{ my: 2, width: '200px' }}  // Set the same width and margin
+        >
+          Tisens Julia
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          component={RouterLink}
+          to="/tisens-simone/home"
+          sx={{ my: 2, width: '200px' }}  // Set the same width and margin
+        >
+          Tisens Simone
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          component={RouterLink}
+          to="/settings"
+          sx={{ my: 2, width: '200px' }}  // Set the same width and margin
+        >
+          Settings
+        </Button>
       </Box>
+      </Grid>
       <Box
         sx={{
           position: 'fixed',

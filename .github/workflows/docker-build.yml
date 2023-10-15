@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
 
 jobs:
   docker:
@@ -27,4 +29,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: mustaman/automation:latest
+        tags: mustaman/automation:${{ github.ref_name }}

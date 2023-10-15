@@ -44,7 +44,7 @@ async function queryAllData() {
       humidity: humidityResults.length > 0 ? +humidityResults[0]._value.toFixed(2) : null,
       rainSum: rainsumResults.length > 0 ? +rainsumResults[0]._value.toFixed(2) : null,
       rainToday: rainTodayResults.length > 0 ? +rainTodayResults[0]._value.toFixed(2) : null,
-      rainRate: rainrateResults.length > 0 ? +rainrateResults[0]._value.toFixed(2) : null
+      rainRate: rainrateResults.length > 0 ? +(rainrateResults[0]._value / 10).toFixed(2) : null
     };
   } catch (error) {
     console.error('Error querying data from InfluxDB', error);
