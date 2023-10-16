@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automate version adoption in viteclient env file
 - Implement worflow for acquasec trivy security scanner
 - Integrage MongoDB for constants and other
+- Add Irrigation for Simone and Julia
 
 ## [7.3.1] - 2023-10-15
 ### Added
