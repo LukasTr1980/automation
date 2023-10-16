@@ -83,7 +83,7 @@ const MarkisePage = () => {
     };
 
     return (
-        <Layout title='Markise' loading={isLoading}>
+        <Layout title='Villa Anna Markise' loading={isLoading}>
                 <>
                     <Grid item xs={12}>
                         <Card>

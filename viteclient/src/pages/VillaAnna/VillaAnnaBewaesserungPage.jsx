@@ -117,7 +117,7 @@ const BewaesserungPage = () => {
   };
 
   return (
-    <Layout title='Bewässerung'>
+    <Layout title='Villa Anna Bewässerung'>
       <Grid item xs={12}>
         <Card>
           <CardHeader title="Schalter" />

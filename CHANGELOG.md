@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Success Message needs to be centralized, maybe with redux?
 - Add countdown page for countdowns on irrigation or in general
 - Automate version adoption in viteclient env file
+- Implement worflow for acquasec trivy security scanner
+- Integrage MongoDB for constants and other
+
+## [7.3.1] - 2023-10-15
+### Added
+- Logo to Homepage
+
+### Changed
+- 404 only visible if logged in
 
 ## [7.2.1] - 2023-10-15
 ### Added

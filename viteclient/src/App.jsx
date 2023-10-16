@@ -37,7 +37,7 @@ function App() {
             <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
             <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
             <Route path='/villa-anna/*' element={<AuthGuard><VillaAnnaRoutes /></AuthGuard>} />
-            <Route path='*' element={<NotFoundPage />} />
+            <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
           </Routes>
         </header>
       </div>
