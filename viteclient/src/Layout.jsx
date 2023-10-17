@@ -8,8 +8,9 @@ import PropTypes from 'prop-types';
 import BackButton from './components/BackButton';
 import NavMenu from './components/menu/NavMenu';
 import LoadingSpinner from './components/LoadingSpinner';
+import logo from './images/logo-512x512.png';
 
-const Layout = ({ title, children, showBackButton, loading, showNavMenu, logo }) => {
+const Layout = ({ title, children, showBackButton, loading, showNavMenu, showLogo }) => {
   return (
     <>
       {showNavMenu && <NavMenu />}
@@ -25,7 +26,7 @@ const Layout = ({ title, children, showBackButton, loading, showNavMenu, logo })
               <>
                 <Grid item xs={12}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    {logo && (
+                    {showLogo && (
                       <img
                         src={logo}
                         alt='Logo'
@@ -60,6 +61,7 @@ Layout.defaultProps = {
   showBackButton: true,
   loading: false,
   showNavMenu: true,
+  showLogo: false,
 };
 
 Layout.propTypes = {
@@ -68,7 +70,7 @@ Layout.propTypes = {
   showBackButton: PropTypes.bool,
   loading: PropTypes.bool,
   showNavMenu: PropTypes.bool,
-  logo: PropTypes.string,
+  showLogo: PropTypes.bool,
 };
 
 export default Layout;

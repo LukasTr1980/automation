@@ -5,7 +5,7 @@ import Layout from '../../Layout';
 
 const HomePage = () => {
   return (
-    <Layout title='Villa Anna Automation' showBackButton={false}>
+    <Layout title='Villa Anna Automation' showBackButton={false} showLogo={true}>
       <Grid item xs={12}>
           <Box
             sx={{

@@ -1,12 +1,11 @@
 import Layout from '../Layout';
-import { Box, Typography, Button, Grid } from '@mui/material';  // Import Button
-import { Link as RouterLink } from 'react-router-dom';  // Import RouterLink
-import logo from '../images/logo-512x512.png';
+import { Box, Typography, Button, Grid } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 
 const HomePage = () => {
   const appVersion = import.meta.env.VITE_APP_VERSION;
   return (
-    <Layout title="Automation" showBackButton={false} logo={logo}>
+    <Layout title="Automation" showBackButton={false} showLogo={true}>
       <Grid item xs={12}>
         <Box
           sx={{
