@@ -12,24 +12,6 @@ const urlMap = {
     // add other mappings
 }
 
-// Topics for MQTT
-const mqttTopics = [
-    'bewaesserung/switch/stefanNord',
-    'bewaesserung/switch/stefanOst',
-    'bewaesserung/switch/lukasSued',
-    'bewaesserung/switch/lukasWest',
-    'bewaesserung/switch/alle',
-    'markise/switch/haupt',
-];
-
-const mqttTopicsNumber = [
-    'bewaesserung/number/regenTag',
-    'bewaesserung/number/regenGestern',
-    'wetter/number/weathercloud_regenrate',
-    'wetter/number/aussentemperatur',
-    'wetter/number/wind'
-];
-
 // Define a mapping of topics to task enabler keys
 const topicToTaskEnablerKey = {
     'stefanNord': 'Stefan_Nord',
@@ -41,4 +23,4 @@ const topicToTaskEnablerKey = {
 
 const mqttBrokerUrl = envSwitcher.mqttBrokerUrl;
 
-module.exports = { mqttTopics, mqttTopicsNumber, mqttBrokerUrl, urlMap, topicToTaskEnablerKey };
+module.exports = { mqttBrokerUrl, urlMap, topicToTaskEnablerKey };

@@ -1,26 +1,45 @@
-// mqttHandler.js
-
+const { connectToMongo } = require('./mongoClient');
 const EventEmitter = require('events');
-const { mqttTopics, mqttTopicsNumber } = require('./constants');
 const { writeToInflux } = require('./influxDbClient');
 const mqttClient = require('./mqttClient');
 const { broadcastToSseClients, addSseClient } = require('./sseHandler');
 
-class StateChangeEmitter extends EventEmitter {}
+class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();
+
+let mqttTopics = [];
+let mqttTopicsNumber = [];
+
+async function fetchMqttTopics() {
+    try {
+        const db = await connectToMongo();
+        const collection = db.collection('nodeServerConfig');
+        const doc = await collection.findOne({});
+        return doc ? { mqttTopics: doc.mqttTopics, mqttTopicsNumber: doc.mqttTopicsNumber } : null;
+    } catch (error) {
+        console.error('Could not fetch MQTT Topics', error);
+    }
+}
 
 const latestStates = {};
 
 // Subscribe to all topics and set message handlers
-mqttClient.on('connect', () => {
+mqttClient.on('connect', async () => {
     console.log('Connected to MQTT broker');
 
-    [...mqttTopics, ...mqttTopicsNumber].forEach(mqttTopic => {
-        mqttClient.subscribe(mqttTopic, (err) => {
-            if (err) console.error('Error subscribing to MQTT topic:', err);
-            else console.log('Subscribed to MQTT topic:', mqttTopic);
+    const topics = await fetchMqttTopics();
+    if (topics) {
+        mqttTopics = topics.mqttTopics;
+        mqttTopicsNumber = topics.mqttTopicsNumber;
+        [...mqttTopics, ...mqttTopicsNumber].forEach(mqttTopic => {
+            mqttClient.subscribe(mqttTopic, (err) => {
+                if (err) console.error('Error subscribing to MQTT topic:', err);
+                else console.log('Subscribed to MQTT topic:', mqttTopic);
+            });
         });
-    });
+    } else {
+        console.error('Failed to fetch MQTT topics from the database');
+    }
 });
 
 mqttClient.on('message', async (topic, message) => {
