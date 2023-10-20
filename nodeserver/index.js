@@ -18,7 +18,7 @@ const isIrrigationNeeded = require('ai');
 const { loginValidation } = require('./inputValidation.js');
 const setTaskEnabler = require('./switchTaskEnabler');
 const getTaskEnabler = require('./getTaskEnabler');
-const { urlMap } = require('./constants');
+const { buildUrlMap } = require('./buildUrlMap');
 const loginLimiter = require('./rateLimiter');
 
 const app = express();
@@ -55,6 +55,7 @@ app.get('/mqtt', authMiddleware, async (req, res) => {
 
 app.post('/simpleapi', authMiddleware, async function (req, res) {
   const { topic, state } = req.body;
+  const urlMap = await buildUrlMap();
   const url = urlMap[topic];
 
   // Add 'state' as a query parameter to the URL

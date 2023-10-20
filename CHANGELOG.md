@@ -10,7 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add countdown page for countdowns on irrigation or in general
 - Automate version adoption in viteclient env file
 - Add Irrigation for Simone and Julia
-- Improvent of storing variables in mongodb
+- Store more variables in mongodb
+
+## [7.4.1-beta] - 2023-10-20
+### Added
+- Building urlMap from mongodb
+
+### Changed
+- In scheduler.js check if zoneName is present
+- Moved constants to MongoDB
 
 ## [7.4.0-beta] - 2023-10-19
 ### Added

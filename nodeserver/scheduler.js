@@ -2,45 +2,38 @@ const schedule = require('node-schedule');
 const axios = require('axios');
 const { promisify } = require('util');
 const connectToRedis = require('./redisClient');
-const { topicToTaskEnablerKey } = require('./constants');
+const { buildUrlMap } = require('./buildUrlMap');
 const isIrrigationNeeded = require('ai');
 const getTaskEnabler = require('./getTaskEnabler');
 const sharedState = require('./sharedState');
 const { response } = require('express');
 const { error } = require('console');
-const envSwitcher = require('./envSwitcher');
 const generateUniqueId = require('./generateUniqueId');
+const { topicToTaskEnablerKey } = require('./constants');
 
 let jobs = {};
-
-const baseUrl = envSwitcher.baseUrl;
-const urlMap = {
-  'bewaesserung/switch/stefanNord': `${baseUrl}/set/tuya.0.51050522600194fed14c.1`,
-  'bewaesserung/switch/stefanOst': `${baseUrl}/set/tuya.0.51050522600194fed14c.2`,
-  'bewaesserung/switch/lukasSued': `${baseUrl}/set/tuya.0.51050522600194fed14c.3`,
-  'bewaesserung/switch/lukasWest': `${baseUrl}/set/tuya.0.51050522600194fed14c.4`,
-  'markise/switch/haupt': `${baseUrl}/set/tuya.0.8407060570039f7fa6d2.1`,
-  // add other mappings
-};
 
 function createTask(topic, state) {
   return async function () {
     try {
-      // Extract the zone name from the topic
+
       const zoneName = topic.split('/')[2];
 
-      // Get the corresponding task enabler key
-      const taskEnablerKey = topicToTaskEnablerKey[zoneName];
+      if (topicToTaskEnablerKey.hasOwnProperty(zoneName)) {
 
-      // Get the state of the task enabler for the given key
-      const taskEnablerState = await getTaskEnabler(taskEnablerKey);
+        const taskEnablerKey = topicToTaskEnablerKey[zoneName];
 
-      // If the state is false, return without executing the task
-      if (!taskEnablerState) {
-        console.log(`Task enabler status for key "${taskEnablerKey}" is false. Skipping task execution.`);
-        return;
+        const taskEnablerState = await getTaskEnabler(taskEnablerKey);
+
+        if (!taskEnablerState) {
+          console.log(`Task enabler status for key "${taskEnablerKey}" is false. Skipping task execution.`);
+          return;
+        }
+      } else {
+        console.log(`No task enabler key found for "${zoneName}". Proceeding without checking task enabler state.`)
       }
 
+      const urlMap = await buildUrlMap();
       const url = urlMap[topic];
       const apiUrl = new URL(url);
 
@@ -163,7 +156,7 @@ async function getScheduledTasks() {
 
     for (const jobKey of jobKeys) {
       const data = await getAsync(jobKey);
-      const {id, state, recurrenceRule } = JSON.parse(data);
+      const { id, state, recurrenceRule } = JSON.parse(data);
 
       // Extract topic from jobKey
       const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
@@ -174,7 +167,7 @@ async function getScheduledTasks() {
       }
 
       // Push the task to the appropriate topic array
-      tasksByTopic[topic].push({taskId: id, state, recurrenceRule });
+      tasksByTopic[topic].push({ taskId: id, state, recurrenceRule });
     }
   }
   return tasksByTopic;
