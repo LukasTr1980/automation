@@ -34,6 +34,15 @@ const HomePage = () => {
             >
               Markise
             </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              component={RouterLink}
+              to="/villa-anna/countdown"
+              sx={{ my: 2, width: '200px' }} // set the same width
+            >
+              Countdown
+            </Button>
           </Box>
       </Grid>
     </Layout>

@@ -1,7 +1,7 @@
 // countdownRoutes.js
 const express = require('express');
-const authMiddleware = require('./authMiddleware');
-const { initiateCountdown, updateCountdowns } = require('./countdown');
+const authMiddleware = require('../authMiddleware');
+const { initiateCountdown, updateCountdowns } = require('../countdown');
 const connectToRedis = require('../redisClient');
 
 module.exports = (app) => {
