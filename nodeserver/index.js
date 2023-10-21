@@ -20,6 +20,7 @@ const setTaskEnabler = require('./switchTaskEnabler');
 const getTaskEnabler = require('./getTaskEnabler');
 const { buildUrlMap } = require('./buildUrlMap');
 const loginLimiter = require('./rateLimiter');
+const setupCountdownRoutes = require('./routes/countdownRoutes');
 
 const app = express();
 const port = 8523;
@@ -305,6 +306,8 @@ app.post('/updateSecrets', authMiddleware, async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
+setupCountdownRoutes(app);
 
 app.use(express.static(path.join('/usr/src/viteclient/dist/'))); //For Docker Build
 

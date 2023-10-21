@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
 
+## [8.0.0-beta] - 2023-10-21
+### Added
+- Nodejs Backend to handle new Countdown functionality for every topic
+
 ## [7.4.1-beta] - 2023-10-20
 ### Added
 - Building urlMap from mongodb
