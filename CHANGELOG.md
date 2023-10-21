@@ -5,12 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Improvements / Issues
+## Improvements
 - Success Message needs to be centralized, maybe with redux?
 - Add countdown page for countdowns on irrigation or in general
 - Automate version adoption in viteclient env file
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
+
+## [8.2.0-beta] - 2023-10-21
+### Issues
+- Stop and Reset countdown does not work. Functionality must be implemented in backend.
+
+### Added
+- Start, Stop and Reset button on frontend
+
+### Fixed
+- Prefix of redis values to avoid break of application
 
 ## [8.1.0-beta] - 2023-10-21
 ### Added

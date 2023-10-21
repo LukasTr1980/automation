@@ -14,10 +14,11 @@ module.exports = (app) => {
             return res.status(400).send('Invalid parameters: topic and action are required, action must be start, stop, or reset');
         }
 
+        const countdownPrefix = 'countdown:';
         const client = await connectToRedis();
-        const controlKey = topic + ':countdownControl';
-        const hoursKey = topic + ':countdownHours';
-        const minutesKey = topic + ':countdownMinutes';
+        const controlKey = countdownPrefix + topic + ':countdownControl';
+        const hoursKey = countdownPrefix + topic + ':countdownHours';
+        const minutesKey = countdownPrefix + topic + ':countdownMinutes';
 
         // Set the hours and minutes values in Redis
         if (hours !== undefined) await client.set(hoursKey, hours.toString());

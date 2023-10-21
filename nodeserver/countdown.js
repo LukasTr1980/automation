@@ -2,16 +2,18 @@ const connectToRedis = require('./redisClient');
 const { buildUrlMap } = require('./buildUrlMap');
 const axios = require('axios');
 
-const controlKeySuffix = ':countdownControl';
-const hoursKeySuffix = ':countdownHours';
-const minutesKeySuffix = ':countdownMinutes';
-const countdownKeySuffix = ':countdownValue';
+const countdownPrefix = 'countdown:';
+
+const controlKeySuffix = ':control';
+const hoursKeySuffix = ':hours';
+const minutesKeySuffix = ':minutes';
+const countdownKeySuffix = ':value';
 
 async function initiateCountdown(topic, hours, minutes) {
     const client = await connectToRedis();
     const countdownValue = (hours * 3600) + (minutes * 60);
-    const controlKey = topic + controlKeySuffix;
-    const countdownKey = topic + countdownKeySuffix;
+    const controlKey = countdownPrefix + topic + controlKeySuffix;
+    const countdownKey = countdownPrefix + topic + countdownKeySuffix;
     await Promise.all([
         client.set(countdownKey, countdownValue.toString()),
         client.set(controlKey, 'start')
@@ -25,10 +27,10 @@ async function updateCountdowns() {
     const topics = Object.keys(urlMap);
 
     for (const topic of topics) {
-        const controlKey = topic + controlKeySuffix;
-        const countdownKey = topic + countdownKeySuffix;
-        const hoursKey = topic + hoursKeySuffix;
-        const minutesKey = topic + minutesKeySuffix;
+        const controlKey = countdownPrefix + topic + controlKeySuffix;
+        const countdownKey = countdownPrefix + topic + countdownKeySuffix;
+        const hoursKey = countdownPrefix + topic + hoursKeySuffix;
+        const minutesKey = countdownPrefix + topic + minutesKeySuffix;
 
         const controlSignal = await client.get(controlKey);
         let countdownValue;
