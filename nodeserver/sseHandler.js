@@ -1,4 +1,4 @@
-// Initialize an array to store all active SSE clients
+//sseHandler.js
 const sseClients = [];
 
 // Broadcast a message to all active SSE clients

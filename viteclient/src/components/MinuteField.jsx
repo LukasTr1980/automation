@@ -1,11 +1,12 @@
+//Minutefield.jsx
 import { TextField } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const MinuteField = ({ selectedMinute, setSelectedMinute, error }) => {
+const MinuteField = ({ selectedMinute, setSelectedMinute, error, min = 0, max = 59 }) => {
 
   const handleMinuteChange = (event) => {
     const value = event.target.value;
-    if (value >= 0 && value <= 59) {
+    if (value >= min && value <= max) {
       setSelectedMinute(value);
     }
   };
@@ -14,7 +15,7 @@ const MinuteField = ({ selectedMinute, setSelectedMinute, error }) => {
     <TextField
       label="Minute"
       type="number"
-      InputProps={{ inputProps: { min: 0, max: 59 } }}
+      InputProps={{ inputProps: { min, max } }}
       value={selectedMinute}
       onChange={handleMinuteChange}
       variant="outlined"
@@ -31,6 +32,8 @@ MinuteField.propTypes = {
   ]).isRequired,
   setSelectedMinute: PropTypes.func.isRequired,
   error: PropTypes.bool,
+  min: PropTypes.number,
+  max: PropTypes.number,
 };
 
 export default MinuteField;

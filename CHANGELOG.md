@@ -5,12 +5,89 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Improvements / Issues
-- Success Message needs to be centralized, maybe with redux?
-- Add countdown page for countdowns on irrigation or in general
+## Improvements
 - Automate version adoption in viteclient env file
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
+- Add isRunning for better Display of running Countdowns
+
+## [8.5.0] - 2023-10-22
+### Added
+- SnackbarProvider to App.jsx
+- Central handling of Snackbar
+
+### Changed
+- English messages to german
+
+### Removed
+- SnackbarProvider from Layout.jsx
+
+## [8.4.2.beta] - 2023-10-22
+### Issues
+- Centralized Snackbar not working
+- Still rerendering of entire layout
+
+### Changed
+- Created a countdowncard to export relative part
+
+## [8.4.0.beta] - 2023-10-22
+### Issues
+- Centralized Snackbar not working
+- Countdown Page not updating if buttons are pressed
+
+### Added
+- Messages for Display on frontend when countdown changes
+- Implemented centralized Snackbar in Layout jsx
+- Updated Hourfield and Minutefield compontent to acceppt min max parameters
+- Field Validity check and inpute range for countdown fields
+
+### Removed
+- Removed some console.logs
+
+## [8.3.1.beta] - 2023-10-22
+### Issues
+- Snackbar must be implemented
+- Field check must be implemented for error checking and value checking
+- Response from backend if error or success
+- Start button does not resume countdown
+
+### Fixed
+- On press stop button, values do not get reset in redis
+
+### Removed
+- Some console.logs 
+
+## [8.3.0] - 2023-10-22
+### Issues
+- Not possible to stop the countdown and go on with it after pressing start for the same topic
+- Snackbar must be implemented
+- Field check must be implemented for error checking and value checking
+- Response from backend if error or success
+
+### Added
+- Countdown functionality ready to go for prodcution
+
+## [8.2.1-beta] - 2023-10-22
+### Fixed
+- Countdown responds now correctly to signals, stop, start and reset from frontend
+
+## [8.2.0-beta] - 2023-10-21
+### Issues
+- Stop and Reset countdown does not work. Functionality must be implemented in backend.
+
+### Added
+- Start, Stop and Reset button on frontend
+
+### Fixed
+- Prefix of redis values to avoid break of application
+
+## [8.1.0-beta] - 2023-10-21
+### Added
+- Frontend new countdown page and new links
+
+## [8.0.0-beta] - 2023-10-21
+### Added
+- Nodejs Backend to handle new Countdown functionality for every topic
 
 ## [7.4.1-beta] - 2023-10-20
 ### Added

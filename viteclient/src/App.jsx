@@ -1,3 +1,4 @@
+//App.jsx
 import { useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import './App.css';
@@ -9,6 +10,8 @@ import VillaAnnaRoutes from './routes/VillaAnnaRoutes';
 import AuthGuard from './components/AuthGuard';
 import axios from 'axios';
 import NotFoundPage from './pages/404Page';
+import { SnackbarProvider } from './components/snackbar/SnackbarContext';
+import CentralizedSnackbar from './components/snackbar/CentralizedSnackbar';
 
 function App() {
   const [cookies] = useCookies(['session']);
@@ -28,20 +31,23 @@ function App() {
   }, [cookies]);
 
   return (
-    <Router>
-      <div className="App">
-        <header className="App-header">
-          <Routes>
-            <Route path='/' element={<LoginPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
-            <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
-            <Route path='/villa-anna/*' element={<AuthGuard><VillaAnnaRoutes /></AuthGuard>} />
-            <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
-          </Routes>
-        </header>
-      </div>
-    </Router>
+    <SnackbarProvider>
+      <Router>
+        <div className="App">
+          <header className="App-header">
+            <Routes>
+              <Route path='/' element={<LoginPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
+              <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
+              <Route path='/villa-anna/*' element={<AuthGuard><VillaAnnaRoutes /></AuthGuard>} />
+              <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
+            </Routes>
+          </header>
+          <CentralizedSnackbar />
+        </div>
+      </Router>
+    </SnackbarProvider>
   );
 }
 
