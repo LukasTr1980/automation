@@ -28,11 +28,10 @@ module.exports = (app) => {
         await client.set(controlKey, action);
 
         if (action === 'start' || action === 'reset') {
-            initiateCountdown(topic, hours, minutes);
+            initiateCountdown(topic, hours, minutes, action);
         }
 
-        // Optionally, you may want to trigger an update of all countdowns
-        // updateCountdowns();
+        await updateCountdowns(topic);
 
         res.status(200).send('Countdown updated successfully');
     });

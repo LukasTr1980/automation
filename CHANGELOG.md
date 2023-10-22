@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
 
+## [8.2.1-beta] - 2023-10-22
+### Fixed
+- Countdown responds now correctly to signals, stop, start and reset from frontend
+
 ## [8.2.0-beta] - 2023-10-21
 ### Issues
 - Stop and Reset countdown does not work. Functionality must be implemented in backend.

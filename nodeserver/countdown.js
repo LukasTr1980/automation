@@ -1,60 +1,107 @@
+// countdown.js
 const connectToRedis = require('./redisClient');
 const { buildUrlMap } = require('./buildUrlMap');
 const axios = require('axios');
 
 const countdownPrefix = 'countdown:';
 
-const controlKeySuffix = ':control';
-const hoursKeySuffix = ':hours';
-const minutesKeySuffix = ':minutes';
+const controlKeySuffix = ':countdownControl';
+const hoursKeySuffix = ':countdownHours';
+const minutesKeySuffix = ':countdownMinutes';
 const countdownKeySuffix = ':value';
 
-async function initiateCountdown(topic, hours, minutes) {
+let countdownIntervals = {};
+
+async function initiateCountdown(topic, hours, minutes, action) {
     const client = await connectToRedis();
-    const countdownValue = (hours * 3600) + (minutes * 60);
+    let countdownValue = (hours * 3600) + (minutes * 60);  // Moved out of setInterval
     const controlKey = countdownPrefix + topic + controlKeySuffix;
     const countdownKey = countdownPrefix + topic + countdownKeySuffix;
+
+    // Initially set Redis keys
     await Promise.all([
         client.set(countdownKey, countdownValue.toString()),
-        client.set(controlKey, 'start')
+        client.set(controlKey, action)
     ]);
-    sendSignal(topic, true);
-}
 
-async function updateCountdowns() {
-    const client = await connectToRedis();
-    const urlMap = await buildUrlMap();
-    const topics = Object.keys(urlMap);
+    if (action === 'reset') {
+        sendSignal(topic, false);
+        return;
+    } else if (action === 'start') {
+        sendSignal(topic, true);
+    }
 
-    for (const topic of topics) {
-        const controlKey = countdownPrefix + topic + controlKeySuffix;
-        const countdownKey = countdownPrefix + topic + countdownKeySuffix;
-        const hoursKey = countdownPrefix + topic + hoursKeySuffix;
-        const minutesKey = countdownPrefix + topic + minutesKeySuffix;
+    if (countdownIntervals[topic]) {
+        clearInterval(countdownIntervals[topic]);
+        delete countdownIntervals[topic];
+    }
 
+    // Update Redis key every second
+    const intervalId = setInterval(async () => {
         const controlSignal = await client.get(controlKey);
-        let countdownValue;
-
-        if (controlSignal === 'reset') {
-            const hoursStr = await client.get(hoursKey);
-            const minutesStr = await client.get(minutesKey);
-            const hours = hoursStr ? parseInt(hoursStr) : 0;
-            const minutes = minutesStr ? parseInt(minutesStr) : 0;
-            countdownValue = (hours * 3600) + (minutes * 60);
-            await client.set(countdownKey, countdownValue.toString());
-        } else {
-            const countdownValueStr = await client.get(countdownKey);
-            countdownValue = countdownValueStr ? parseInt(countdownValueStr) : 0;
-        }
-
         if (controlSignal === 'start' && countdownValue > 0) {
             countdownValue--;
             await client.set(countdownKey, countdownValue.toString());
-        } else if (countdownValue === 0) {
+        } else if (countdownValue === 0 || controlSignal === 'stop') {
+            clearInterval(intervalId);
+            if (countdownValue === 0 || controlSignal === 'stop') {
+                sendSignal(topic, false);
+                await client.set(controlKey, 'stop');  // Automatically stop when countdown reaches 0
+            }
+        }
+    }, 1000);
+    countdownIntervals[topic] = intervalId;
+}
+
+async function updateCountdowns(topic) {
+    const client = await connectToRedis();
+    const urlMap = await buildUrlMap();
+
+    const controlKey = countdownPrefix + topic + controlKeySuffix;
+    const countdownKey = countdownPrefix + topic + countdownKeySuffix;
+    const hoursKey = countdownPrefix + topic + hoursKeySuffix;
+    const minutesKey = countdownPrefix + topic + minutesKeySuffix;
+
+    const controlSignal = await client.get(controlKey);
+
+    if (controlSignal === 'reset') {
+
+        await Promise.all([
+            client.set(countdownKey, '0'),
+            client.set(hoursKey, '0'),
+            client.set(minutesKey, '0')
+        ]);
+        sendSignal(topic, false);
+    } 
+
+    if (countdownIntervals[topic]) {
+        clearInterval(countdownIntervals[topic]);
+        delete countdownIntervals[topic];
+    }
+
+    if (controlSignal === 'start') {
+        if (!countdownIntervals[topic]) {
+            countdownIntervals[topic] = setInterval(async () => {
+                const countdownValueStr = await client.get(countdownKey);
+                let countdownValue = countdownValueStr ? parseInt(countdownValueStr) : 0;
+                if (countdownValue > 0) {
+                    countdownValue--;
+                    await client.set(countdownKey, countdownValue.toString());
+                } else {
+                    clearInterval(countdownIntervals[topic]);
+                    delete countdownIntervals[topic];
+                    sendSignal(topic, false);
+                    await client.set(controlKey, 'stop');
+                }
+            }, 1000);
+        }
+    } else if (controlSignal === 'stop' || controlSignal === 'reset') {
+        if (countdownIntervals[topic]) {
+            clearInterval(countdownIntervals[topic]);
+            delete countdownIntervals[topic];
+        }
+        if (controlSignal === 'stop') {
             sendSignal(topic, false);
-            await client.set(controlKey, 'stop');  // Automatically stop when countdown reaches 0
-        } else if (controlSignal === 'stop') {
-            // Optionally, you could clear interval here if you have one
         }
     }
 }
