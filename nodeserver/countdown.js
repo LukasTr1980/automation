@@ -27,9 +27,6 @@ async function updateHoursAndMinutes(topic) {
     countdownValue %= 3600;  // Update countdownValue to the remainder after extracting hours
     const currentMinutes = Math.floor(countdownValue / 60);
 
-    console.log('Updating hours and minutes for topic:', topic);
-    console.log('Countdown Value:', countdownValue, 'Current Hours:', currentHours, 'Current Minutes:', currentMinutes);
-
     await Promise.all([
         client.set(hoursKey, currentHours.toString()),
         client.set(minutesKey, currentMinutes.toString())
@@ -38,7 +35,6 @@ async function updateHoursAndMinutes(topic) {
     // Additional logging to confirm Redis values after updating
     const updatedHours = await client.get(hoursKey);
     const updatedMinutes = await client.get(minutesKey);
-    console.log('Updated Hours in Redis:', updatedHours, 'Updated Minutes in Redis:', updatedMinutes);
 }
 
 async function initiateCountdown(topic, hours, minutes, action) {

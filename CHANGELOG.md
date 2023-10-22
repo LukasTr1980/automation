@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
 
+## [8.4.0.beta] - 2023-10-22
+### Issues
+- Centralized Snackbar not working
+- Countdown Page not updating if buttons are pressed
+
+### Added
+- Messages for Display on frontend when countdown changes
+- Implemented centralized Snackbar in Layout jsx
+- Updated Hourfield and Minutefield compontent to acceppt min max parameters
+- Field Validity check and inpute range for countdown fields
+
+### Removed
+- Removed some console.logs
+
 ## [8.3.1.beta] - 2023-10-22
 ### Issues
 - Snackbar must be implemented

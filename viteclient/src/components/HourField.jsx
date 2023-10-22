@@ -1,11 +1,11 @@
 import { TextField } from '@mui/material';
 import PropTypes from 'prop-types';
 
-const HourField = ({ selectedHour, setSelectedHour, error }) => {
+const HourField = ({ selectedHour, setSelectedHour, error, min = 0, max = 23 }) => {
 
   const handleHourChange = (event) => {
     const value = event.target.value;
-    if (value >= 0 && value <= 23) {
+    if (value >= min && value <= max) {
       setSelectedHour(value);
     }
   };
@@ -14,7 +14,7 @@ const HourField = ({ selectedHour, setSelectedHour, error }) => {
     <TextField
       label="Stunde"
       type="number"
-      InputProps={{ inputProps: { min: 0, max: 23 } }}
+      InputProps={{ inputProps: { min, max } }}
       value={selectedHour}
       onChange={handleHourChange}
       variant="outlined"
@@ -31,6 +31,8 @@ HourField.propTypes = {
   ]).isRequired,
   setSelectedHour: PropTypes.func.isRequired,
   error: PropTypes.bool,
+  min: PropTypes.number,
+  max: PropTypes.number,
 };
 
 export default HourField;

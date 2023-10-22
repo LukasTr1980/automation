@@ -63,7 +63,23 @@ module.exports = (app) => {
 
         await updateCountdowns(topic);
 
-        res.status(200).send('Countdown updated successfully');
+        let responseMessage;
+        switch(action) {
+            case 'start':
+                responseMessage = 'Countdown gestartet';
+                break;
+            case 'stop':
+                responseMessage = 'Countdown gestoppt';
+                break;
+            case 'reset':
+                responseMessage = 'Countdown resettet';
+                break;
+            default:
+                responseMessage = 'Aktion ausgeführt';
+                break;
+        }
+
+        res.status(200).send(responseMessage);
     });
 
     app.use('/countdown', router);
