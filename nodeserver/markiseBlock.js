@@ -46,7 +46,6 @@ async function sendValue(value) {
 
     try {
         const response = await axios.get(apiUrl.toString());
-        console.log(`Sent value: ${value}, Response:`, response.data);
     } catch (error) {
         console.error(`Failed to send value: ${value}`, error);
     }

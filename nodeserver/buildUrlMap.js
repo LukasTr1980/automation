@@ -24,8 +24,6 @@ async function buildUrlMap() {
             const url = doc.vAtuyaUrl[i];
             urlMap[topic]  = `${baseUrl}/set/${url}`;
         }
-
-        console.log(urlMap);
         return urlMap;
     } catch (error) {
         console.error('Could not build urlMap object:', error);

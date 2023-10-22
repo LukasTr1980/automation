@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
 
+## [8.3.1.beta] - 2023-10-22
+### Issues
+- Snackbar must be implemented
+- Field check must be implemented for error checking and value checking
+- Response from backend if error or success
+- Start button does not resume countdown
+
+### Fixed
+- On press stop button, values do not get reset in redis
+
+### Removed
+- Some console.logs 
+
 ## [8.3.0] - 2023-10-22
 ### Issues
 - Not possible to stop the countdown and go on with it after pressing start for the same topic

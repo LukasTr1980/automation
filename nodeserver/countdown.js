@@ -13,6 +13,34 @@ const countdownKeySuffix = ':value';
 
 let countdownIntervals = {};
 
+async function updateHoursAndMinutes(topic) {
+    const client = await connectToRedis();
+    const countdownKey = countdownPrefix + topic + countdownKeySuffix;
+    const hoursKey = countdownPrefix + topic + hoursKeySuffix;
+    const minutesKey = countdownPrefix + topic + minutesKeySuffix;
+
+    const countdownValueStr = await client.get(countdownKey);
+    let countdownValue = countdownValueStr ? parseInt(countdownValueStr) : 0;
+
+    // Corrected the calculations for hours and minutes
+    const currentHours = Math.floor(countdownValue / 3600);
+    countdownValue %= 3600;  // Update countdownValue to the remainder after extracting hours
+    const currentMinutes = Math.floor(countdownValue / 60);
+
+    console.log('Updating hours and minutes for topic:', topic);
+    console.log('Countdown Value:', countdownValue, 'Current Hours:', currentHours, 'Current Minutes:', currentMinutes);
+
+    await Promise.all([
+        client.set(hoursKey, currentHours.toString()),
+        client.set(minutesKey, currentMinutes.toString())
+    ]);
+
+    // Additional logging to confirm Redis values after updating
+    const updatedHours = await client.get(hoursKey);
+    const updatedMinutes = await client.get(minutesKey);
+    console.log('Updated Hours in Redis:', updatedHours, 'Updated Minutes in Redis:', updatedMinutes);
+}
+
 async function initiateCountdown(topic, hours, minutes, action) {
     const client = await connectToRedis();
     let countdownValue = (hours * 3600) + (minutes * 60);  // Moved out of setInterval
@@ -24,6 +52,15 @@ async function initiateCountdown(topic, hours, minutes, action) {
         client.set(countdownKey, countdownValue.toString()),
         client.set(controlKey, action)
     ]);
+
+    if (action === 'stop') {
+        sendSignal(topic, false);
+        if (countdownIntervals[topic]) {
+            clearInterval(countdownIntervals[topic]);
+            delete countdownIntervals[topic];
+        }
+        return;
+    }
 
     if (action === 'reset') {
         sendSignal(topic, false);
@@ -104,8 +141,10 @@ async function updateCountdowns(topic) {
             delete countdownIntervals[topic];
         }
         if (controlSignal === 'stop') {
+            await updateHoursAndMinutes(topic);
             sendSignal(topic, false);
         }
+        return;
     }
 }
 
