@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
 
+## [8.4.2.beta] - 2023-10-22
+### Issues
+- Centralized Snackbar not working
+- Still rerendering of entire layout
+
+### Changed
+- Created a countdowncard to export relative part
+
 ## [8.4.0.beta] - 2023-10-22
 ### Issues
 - Centralized Snackbar not working

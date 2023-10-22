@@ -13,10 +13,10 @@ import {
     CardHeader,
     Button,
     Typography,
-    Box,
 } from '@mui/material';
 import { zoneOrder, bewaesserungsTopics } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
+import CountdownCard from '../../components/CountdownCard';
 
 const VillaAnnacountdownPage = () => {
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
@@ -60,18 +60,22 @@ const VillaAnnacountdownPage = () => {
     };
 
     useEffect(() => {
-        async function fetchInitialData() {
+        const fetchCurrentCountdowns = async () => {
             try {
                 const response = await axios.get(`${apiUrl}/countdown/currentCountdowns`);
                 setCountdowns(response.data);
             } catch (error) {
                 console.error('Error fetching current countdowns', error);
             }
-        }
+        };
+        
+        const timerID = setInterval(() => {
+            fetchCurrentCountdowns();
+        }, 500);
     
-        fetchInitialData();
-    }, []);
-
+        return () => clearInterval(timerID);
+    }, []); 
+    
     return (
         <Layout title="Villa Anna Countdown">
             <Grid item xs={12}>
@@ -141,25 +145,7 @@ const VillaAnnacountdownPage = () => {
                             const countdown = countdowns[topic];
                             if (!countdown) return null;  // Skip rendering if there's no countdown data for this topic
                             return (
-                                <Box key={topic} sx={{ p: 2, mb: 2, margin: "10px", border: "1px solid black", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }}>  {/* Encapsulated in a Box component */}
-                                    <Typography variant="h6" align="left" sx={{ mb: 2 }}>{`${zoneName}`}</Typography>  {/* Adjusted variant */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>  {/* Added marginTop */}
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary" component="span">{`Verbleibende Zeit:`}</Typography>
-                                        <Typography sx={{ mb: 1.5 }} component="span">{`${countdown.value} s`}</Typography>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary" component="span">{`Engestellte Stunden:`}</Typography>
-                                        <Typography sx={{ mb: 1.5 }} component="span">{`${countdown.hours} h`}</Typography>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary" component="span">{`Eingestellte Minuten:`}</Typography>
-                                        <Typography sx={{ mb: 1.5 }} component="span">{`${countdown.minutes} m`}</Typography>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary" component="span">{`Status:`}</Typography>
-                                        <Typography sx={{ mb: 1.5 }} component="span">{countdown.controlStatus}</Typography>
-                                    </div>
-                                </Box>
+                                <CountdownCard key={topic} zoneName={zoneName} countdown={countdown} />
                             );
                         })}
                     </CardContent>
