@@ -6,10 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Improvements
-- Success Message needs to be centralized, maybe with redux?
 - Automate version adoption in viteclient env file
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
+- Add isRunning for better Display of running Countdowns
+
+## [8.5.0] - 2023-10-22
+### Added
+- SnackbarProvider to App.jsx
+- Central handling of Snackbar
+
+### Changed
+- English messages to german
+
+### Removed
+- SnackbarProvider from Layout.jsx
 
 ## [8.4.2.beta] - 2023-10-22
 ### Issues

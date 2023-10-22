@@ -142,7 +142,7 @@ app.post('/scheduler', authMiddleware, async (req, res) => {
 
   try {
     await scheduleTask(topic, state, recurrenceRule);
-    res.status(200).send('Task scheduled successfully');
+    res.status(200).send('Zeitplan erstellt');
   } catch (error) {
     console.error('Error while scheduling task:', error);
     res.status(500).send('Internal server error');
@@ -240,7 +240,7 @@ app.delete('/deleteTask', authMiddleware, async (req, res) => {
 
     if (reply === 1) {
       console.log(`Task ${redisKey} deleted successfully`);
-      return res.status(200).send('Task deleted successfully');
+      return res.status(200).send('Zeitplan gelöscht');
     } else {
       console.log(`Task ${redisKey} not found`);
       return res.status(404).send('Task not found');

@@ -1,5 +1,5 @@
 //VillaAnnaCountdownPage.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import Layout from '../../Layout';
 import {
@@ -17,8 +17,10 @@ import {
 import { zoneOrder, bewaesserungsTopics } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
+import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 
 const VillaAnnacountdownPage = () => {
+    const { showSnackbar } = useContext(SnackbarContext);
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
     const [selectedHour, setSelectedHour] = useState(0);
     const [selectedMinute, setSelectedMinute] = useState(10);
@@ -52,6 +54,7 @@ const VillaAnnacountdownPage = () => {
             })
                 .then(response => {
                     console.log('Response:', response.data);
+                    showSnackbar(response.data);
                 })
                 .catch(error => {
                     console.error('Error', error);

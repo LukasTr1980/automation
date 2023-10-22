@@ -8,7 +8,7 @@ const CountdownCard = ({ zoneName, countdown }) => {
             <Typography variant="h6" align="left" sx={{ mb: 2 }}>{`${zoneName}`}</Typography>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
                 <Typography sx={{ mb: 1.5 }} color="text.secondary" component="span">{`Verbleibende Zeit:`}</Typography>
-                <Typography sx={{ mb: 1.5 }} component="span">{`${countdown.value} s`}</Typography>
+                <Typography sx={{ mb: 1.8 }} component="span" style={{ fontWeight: 'bold', color: 'green' }}>{`${countdown.value} s`}</Typography>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography sx={{ mb: 1.5 }} color="text.secondary" component="span">{`Engestellte Stunden:`}</Typography>

@@ -1,5 +1,5 @@
 //SchedulerCard.jsx
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import axios from 'axios';
 import { bewaesserungsTopics, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
 import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
@@ -16,13 +16,12 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Snackbar,
-  Alert
 } from '@mui/material';
 import PropTypes from 'prop-types';
+import { SnackbarContext } from './snackbar/SnackbarContext';
 
 const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, initialTopic, mqttTopics = bewaesserungsTopics, topicDescriptions = switchDescriptions }) => {
-  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const { showSnackbar } = useContext(SnackbarContext);
   const [selectedTopic, setSelectedTopic] = useState(initialTopic || mqttTopics[0]);
   const specialSwitchValues = {
     'markise/switch/haupt': { true: 1, false: 2 }
@@ -98,7 +97,8 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
         months: selectedMonths
       })
         .then(response => {
-          console.log(response.data);
+          const successMessage = response.data;
+          console.log(successMessage);
           axios.get(`${apiUrl}/scheduledTasks`)
             .then(response => {
               setScheduledTasks(response.data);
@@ -109,19 +109,12 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
               setSelectedTopic(mqttTopics[0]);
               setSwitchState(false);
               setReloadTasks(prevState => !prevState);
-              setOpenSnackbar(true);
+              showSnackbar(successMessage);
             })
             .catch(error => console.error('Error:', error));
         })
         .catch(error => console.error('Error:', error));
     }
-  };
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackbar(false);
   };
 
   return (
@@ -201,11 +194,6 @@ const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, init
           </Grid>
         </Grid>
       </CardContent>
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity='success'>
-          Zeiplan erstellt!
-        </Alert>
-      </Snackbar>
     </Card>
   );
 };

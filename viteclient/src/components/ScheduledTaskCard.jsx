@@ -1,5 +1,5 @@
 //ScheduledTaskCard.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import SwitchComponent from './switchComponent';
@@ -8,13 +8,12 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { daysOfWeek, months } from './constants';
 import axios from 'axios';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import PropTypes from 'prop-types';
+import { SnackbarContext } from './snackbar/SnackbarContext';
 
 
 export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey }) {
-  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const { showSnackbar } = useContext(SnackbarContext);
   const currentMonth = new Date().getMonth();
 
   const cleanZoneName = zoneName
@@ -71,19 +70,12 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
         if (onDelete) {
           onDelete(taskId);
         }
-        setOpenSnackbar(true);
+        showSnackbar(response.data);
       })
       .catch(error => {
         console.error('Error:', error);
       });
   };
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpenSnackbar(false);
-  }
 
   return (
     <Card style={{ margin: "10px", border: "1px solid black" }}>
@@ -136,11 +128,6 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
           );
         })}
       </CardContent>
-      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-        <Alert onClose={handleCloseSnackbar} severity="success">
-          Zeitplan gelöscht!
-        </Alert>
-      </Snackbar>
     </Card>
   );
 }

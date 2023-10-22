@@ -1,3 +1,4 @@
+//Layout.jsx
 import {
   Container,
   Grid,
@@ -9,13 +10,11 @@ import BackButton from './components/BackButton';
 import NavMenu from './components/menu/NavMenu';
 import LoadingSpinner from './components/LoadingSpinner';
 import logo from './images/logo-512x512.png';
-import { SnackbarProvider } from './components/snackbar/SnackbarContext';
-import CentralizedSnackbar from './components/snackbar/CentralizedSnackbar';
 
 const Layout = ({ title, children, showBackButton, loading, showNavMenu, showLogo }) => {
   console.log('Rendering Layout');
   return (
-    <SnackbarProvider>
+    <>
       {showNavMenu && <NavMenu />}
       <Container>
         <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto', mt: 8 }}>
@@ -55,9 +54,8 @@ const Layout = ({ title, children, showBackButton, loading, showNavMenu, showLog
 
           </Grid>
         </Box>
-        <CentralizedSnackbar />
       </Container>
-    </SnackbarProvider>
+    </>
   );
 };
 

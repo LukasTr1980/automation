@@ -1,5 +1,5 @@
 //SettingsPage.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import Layout from '../Layout';
 import axios from 'axios';
 import {
@@ -9,13 +9,13 @@ import {
     CardHeader,
     TextField,
     Button,
-    Snackbar,
-    Alert,
     TextareaAutosize
 } from '@mui/material';
 import SecretField from '../components/SecretField';
+import { SnackbarContext } from '../components/snackbar/SnackbarContext';
 
 const SettingsPage = () => {
+    const { showSnackbar } = useContext(SnackbarContext);
     const [gptRequest, setGptRequest] = useState('');
     const [influxDbAiToken, setInfluxDbAiToken] = useState('');
     const [influxDbAutomationToken, setInfluxDbAutomationToken] = useState('');
@@ -25,8 +25,6 @@ const SettingsPage = () => {
     const [influxDbAutomationTokenExists, setInfluxDbAutomationTokenExists] = useState(false);
     const [openAiApiTokenExists, setOpenAiApiTokenExists] = useState(false);
     const [passwordExists, setPasswordExists] = useState(false);
-    const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
     const [isFocused, setIsFocused] = useState({
         influxDbAiToken: false,
         influxDbAutomationToken: false,
@@ -54,8 +52,7 @@ const SettingsPage = () => {
     const handleUpdate = () => {
         axios.post(`${apiUrl}/updateGptRequest`, { newGptRequest: gptRequest })
             .then((response) => {
-                setSuccessMessage(response.data);
-                setOpenSnackbar(true);
+                showSnackbar(response.data);
             })
             .catch(error => {
                 console.error('Error updating GPT request:', error);
@@ -83,19 +80,11 @@ const SettingsPage = () => {
 
         axios.post(`${apiUrl}/updateSecrets`, payload)
             .then((response) => {
-                setSuccessMessage(response.data);
-                setOpenSnackbar(true);
+                showSnackbar(response.data);
             })
             .catch(error => {
                 console.error(`Error updating ${secretType}:`, error);
             });
-    };
-
-    const handleCloseSnackbar = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setOpenSnackbar(false);
     };
 
     const handleFocus = (field) => {
@@ -195,11 +184,6 @@ const SettingsPage = () => {
                     </CardContent>
                 </Card>
             </Grid>
-            <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                <Alert onClose={handleCloseSnackbar} severity="success">
-                    {successMessage}
-                </Alert>
-            </Snackbar>
         </Layout>
     );
 };
