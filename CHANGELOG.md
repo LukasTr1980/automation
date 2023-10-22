@@ -7,10 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Improvements
 - Success Message needs to be centralized, maybe with redux?
-- Add countdown page for countdowns on irrigation or in general
 - Automate version adoption in viteclient env file
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
+
+## [8.3.0] - 2023-10-22
+### Issues
+- Not possible to stop the countdown and go on with it after pressing start for the same topic
+- Snackbar must be implemented
+- Field check must be implemented for error checking and value checking
+- Response from backend if error or success
+
+### Added
+- Countdown functionality ready to go for prodcution
 
 ## [8.2.1-beta] - 2023-10-22
 ### Fixed

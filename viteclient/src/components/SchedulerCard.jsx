@@ -1,3 +1,4 @@
+//SchedulerCard.jsx
 import { useState } from 'react';
 import axios from 'axios';
 import { bewaesserungsTopics, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';

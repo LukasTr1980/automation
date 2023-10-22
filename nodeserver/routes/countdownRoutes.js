@@ -7,6 +7,36 @@ const connectToRedis = require('../redisClient');
 module.exports = (app) => {
     const router = express.Router();
 
+    router.get('/currentCountdowns', authMiddleware, async (req, res) => {
+        const client = await connectToRedis();
+        const keys = await client.keys('countdown:*:value');  // Get keys for all countdown values
+        const countdowns = {};
+        for (let key of keys) {
+            const topic = key.split(':')[1];
+            const valueKey = `countdown:${topic}:value`;
+            const hoursKey = `countdown:${topic}:countdownHours`;
+            const minutesKey = `countdown:${topic}:countdownMinutes`;
+            const controlKey = `countdown:${topic}:countdownControl`;
+            
+            // Fetch all relevant values from Redis
+            const [value, hours, minutes, controlStatus] = await Promise.all([
+                client.get(valueKey),
+                client.get(hoursKey),
+                client.get(minutesKey),
+                client.get(controlKey)
+            ]);
+            
+            // Construct a countdown object for each topic
+            countdowns[topic] = {
+                value,
+                hours,
+                minutes,
+                controlStatus
+            };
+        }
+        res.json(countdowns);  // Send the countdowns as a JSON object
+    });
+
     router.post('/setCountdown', authMiddleware, async (req, res) => {
         const { topic, hours, minutes, action } = req.body;
 
