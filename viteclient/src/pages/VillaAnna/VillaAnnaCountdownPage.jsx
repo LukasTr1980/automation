@@ -1,5 +1,5 @@
 //VillaAnnaCountdownPage.jsx
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
 import Layout from '../../Layout';
 import {
@@ -18,6 +18,7 @@ import { zoneOrder, bewaesserungsTopics } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
+import { io } from 'socket.io-client';
 
 const VillaAnnacountdownPage = () => {
     const { showSnackbar } = useContext(SnackbarContext);
@@ -62,23 +63,32 @@ const VillaAnnacountdownPage = () => {
         }
     };
 
+    // Define your fetching function
+    const fetchCurrentCountdowns = useCallback(async () => {
+        try {
+            const response = await axios.get(`${apiUrl}/countdown/currentCountdowns`);
+            setCountdowns(response.data);
+        } catch (error) {
+            console.error('Error fetching current countdowns', error);
+        }
+    }, [apiUrl]);  // dependencies for useCallback
+
     useEffect(() => {
-        const fetchCurrentCountdowns = async () => {
-            try {
-                const response = await axios.get(`${apiUrl}/countdown/currentCountdowns`);
-                setCountdowns(response.data);
-            } catch (error) {
-                console.error('Error fetching current countdowns', error);
-            }
-        };
-        
-        const timerID = setInterval(() => {
+        // Fetch on mount
+        fetchCurrentCountdowns();
+    }, [fetchCurrentCountdowns]);  // adjusted dependencies array
+
+    useEffect(() => {
+        const socket = io(apiUrl);
+
+        socket.on("redis-update", () => {
             fetchCurrentCountdowns();
-        }, 500);
-    
-        return () => clearInterval(timerID);
-    }, []); 
-    
+        });
+        return () => {
+            socket.disconnect();
+        };
+    }, [apiUrl, fetchCurrentCountdowns]);  // adjusted dependencies array
+
     return (
         <Layout title="Villa Anna Countdown">
             <Grid item xs={12}>

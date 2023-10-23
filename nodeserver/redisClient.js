@@ -43,7 +43,7 @@ async function connectToRedis() {
   return client;
 }
 
-async function subscribeToRedisKey() {
+async function subscribeToRedisKey(io) {
   if (!subscriptionClient) {
     subscriptionClient = new Redis({
       host: envSwitcher.redisHost,
@@ -56,6 +56,7 @@ async function subscribeToRedisKey() {
 
     subscriptionClient.on('pmessage', (pattern, channel, message) => {
       console.log(`Pattern: ${pattern}, Channel: ${channel}, Message: ${message}`);
+
       io.emit('redis-update', { pattern, channel, message });
     });
 

@@ -11,7 +11,7 @@ const socketIo = require('socket.io');
 require('./markiseBlock');
 
 const authMiddleware = require('./authMiddleware');
-const { connectToRedis } = require('./redisClient')
+const { connectToRedis, subscribeToRedisKey } = require('./redisClient')
 const { latestStates, addSseClient } = require('./mqttHandler');
 const { scheduleTask } = require('./scheduler');
 const { loadScheduledTasks } = require('./scheduler');
@@ -33,7 +33,12 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const httpServer = http.createServer(app);
-const io = socketIo(httpServer);
+const io = socketIo(httpServer, {
+  cors: {
+    origin: true,
+    methods: ['GET', 'POST']
+  }
+});
 
 app.get('/mqtt', authMiddleware, async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
@@ -325,4 +330,6 @@ app.get('*', function (req, res) {
 httpServer.listen(port, async () => {
   console.log(`APIs are listening on port ${port}`);
   loadScheduledTasks().catch(console.error);
+
+  await subscribeToRedisKey(io);
 });

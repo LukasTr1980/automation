@@ -12,7 +12,6 @@ import LoadingSpinner from './components/LoadingSpinner';
 import logo from './images/logo-512x512.png';
 
 const Layout = ({ title, children, showBackButton, loading, showNavMenu, showLogo }) => {
-  console.log('Rendering Layout');
   return (
     <>
       {showNavMenu && <NavMenu />}
