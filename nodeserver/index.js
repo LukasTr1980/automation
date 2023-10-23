@@ -6,10 +6,12 @@ const crypto = require('crypto');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const path = require('path');
+const http = require('http');
+const socketIo = require('socket.io');
 require('./markiseBlock');
 
 const authMiddleware = require('./authMiddleware');
-const connectToRedis = require('./redisClient')
+const { connectToRedis } = require('./redisClient')
 const { latestStates, addSseClient } = require('./mqttHandler');
 const { scheduleTask } = require('./scheduler');
 const { loadScheduledTasks } = require('./scheduler');
@@ -29,6 +31,9 @@ app.set('trust proxy', 1);
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(cors());
+
+const httpServer = http.createServer(app);
+const io = socketIo(httpServer);
 
 app.get('/mqtt', authMiddleware, async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
@@ -317,7 +322,7 @@ app.get('*', function (req, res) {
 
 
 //Start server and start functions needed on systemstartup
-app.listen(port, async () => {
+httpServer.listen(port, async () => {
   console.log(`APIs are listening on port ${port}`);
   loadScheduledTasks().catch(console.error);
 });

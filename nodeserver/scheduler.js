@@ -1,7 +1,7 @@
 const schedule = require('node-schedule');
 const axios = require('axios');
 const { promisify } = require('util');
-const connectToRedis = require('./redisClient');
+const { connectToRedis } = require('./redisClient');
 const { buildUrlMap } = require('./buildUrlMap');
 const isIrrigationNeeded = require('ai');
 const getTaskEnabler = require('./getTaskEnabler');

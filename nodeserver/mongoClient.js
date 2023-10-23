@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 const envSwitcher = require('./envSwitcher');
-const connectToRedis = require('./redisClient');
+const { connectToRedis } = require('./redisClient');
 
 let isConnected = false;
 let client;

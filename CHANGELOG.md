@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Add isRunning for better Display of running Countdowns
 
+## [8.6.0.beta] - 2023-10-23
+### Added
+- Implementation of Socket IO to handle redis key changes and the possibility to subscribe
+- Integration of subscriber in Redis Client file
+
 ## [8.5.0] - 2023-10-22
 ### Added
 - SnackbarProvider to App.jsx

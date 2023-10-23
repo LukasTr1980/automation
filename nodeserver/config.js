@@ -1,6 +1,6 @@
 const { InfluxDB } = require('@influxdata/influxdb-client');
 const envSwitcher = require ('./envSwitcher');
-const connectToRedis = require('./redisClient');
+const {connectToRedis } = require('./redisClient');
 
 let influxDbConfig;
 let influxDbClient;

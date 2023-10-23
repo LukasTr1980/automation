@@ -1,4 +1,4 @@
-const connectToRedis = require('./redisClient')
+const { connectToRedis } = require('./redisClient')
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization'];

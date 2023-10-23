@@ -1,8 +1,7 @@
 // countdown.js
-const connectToRedis = require('./redisClient');
+const { connectToRedis } = require('./redisClient');
 const { buildUrlMap } = require('./buildUrlMap');
 const axios = require('axios');
-const { broadcastToSseClients } = require('./sseHandler');
 
 const countdownPrefix = 'countdown:';
 
@@ -76,13 +75,11 @@ async function initiateCountdown(topic, hours, minutes, action) {
         if (controlSignal === 'start' && countdownValue > 0) {
             countdownValue--;
             await client.set(countdownKey, countdownValue.toString());
-            broadcastToSseClients(topic, countdownValue.toString());
         } else if (countdownValue === 0 || controlSignal === 'stop') {
             clearInterval(intervalId);
             if (countdownValue === 0 || controlSignal === 'stop') {
                 sendSignal(topic, false);
                 await client.set(controlKey, 'stop');  // Automatically stop when countdown reaches 0
-                broadcastToSseClients(topic, 0);
             }
         }
     }, 1000);

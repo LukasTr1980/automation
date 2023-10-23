@@ -2,7 +2,7 @@
 const express = require('express');
 const authMiddleware = require('../authMiddleware');
 const { initiateCountdown, updateCountdowns } = require('../countdown');
-const connectToRedis = require('../redisClient');
+const { connectToRedis } = require('../redisClient');
 
 module.exports = (app) => {
     const router = express.Router();

@@ -2,6 +2,7 @@ const Redis = require('ioredis');
 const envSwitcher = require('./envSwitcher');
 
 let client;
+let subscriptionClient;
 
 async function connectToRedis() {
   if (!client) {
@@ -42,4 +43,36 @@ async function connectToRedis() {
   return client;
 }
 
-module.exports = connectToRedis;
+async function subscribeToRedisKey() {
+  if (!subscriptionClient) {
+    subscriptionClient = new Redis({
+      host: envSwitcher.redisHost,
+      port: 6379,
+      retryStrategy(times) {
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+    });
+
+    subscriptionClient.on('pmessage', (pattern, channel, message) => {
+      console.log(`Pattern: ${pattern}, Channel: ${channel}, Message: ${message}`);
+      io.emit('redis-update', { pattern, channel, message });
+    });
+
+    try {
+      await subscriptionClient.psubscribe('__keyspace@0__:countdown:*');
+      console.log('Subscribed to all keys starting with countdown:');
+    } catch (err) {
+      console.error('Failed to subscribe:', err);
+    }
+
+    subscriptionClient.on('error', (err) => {
+      console.error('Subscription client error:', err);
+    });
+  }
+}
+
+module.exports = {
+  connectToRedis,
+  subscribeToRedisKey
+};

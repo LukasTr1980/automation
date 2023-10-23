@@ -1,4 +1,4 @@
-const connectToRedis = require('./redisClient');
+const { connectToRedis } = require('./redisClient');
 
 async function getTaskEnabler(zone) {
   try {
