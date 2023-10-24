@@ -25,10 +25,12 @@ module.exports = (app) => {
                 client.get(minutesKey),
                 client.get(controlKey)
             ]);
+
+            const numericValue = parseInt(value, 10);
             
             // Construct a countdown object for each topic
             countdowns[topic] = {
-                value,
+                value: numericValue,
                 hours,
                 minutes,
                 controlStatus

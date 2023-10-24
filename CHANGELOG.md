@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Add isRunning for better Display of running Countdowns
 
+## [8.9.0] - 2023-10-24
+### Changed
+- Styling of countdown times
+
 ## [8.8.1] - 2023-10-24
 ### Changed
 - Dockerfile to create a .env file with version from git push tag
