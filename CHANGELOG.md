@@ -11,7 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Add isRunning for better Display of running Countdowns
 
+## [8.8.0] - 2023-10-23
+### Added
+- Authentication for socket.io
+
 ## [8.7.0] - 2023-10-23
+### Issues
+- Set Credentials and origin in socket io
+
 ### Added
 - On Redis sub / pub message Frontend gets updated in countdownpage
 

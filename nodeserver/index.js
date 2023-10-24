@@ -7,10 +7,11 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const http = require('http');
-const socketIo = require('socket.io');
+const configureSocket = require('./socketConfig');
 require('./markiseBlock');
 
 const authMiddleware = require('./authMiddleware');
+const authMiddlewareSocket = require('./authMiddlewareSocket');
 const { connectToRedis, subscribeToRedisKey } = require('./redisClient')
 const { latestStates, addSseClient } = require('./mqttHandler');
 const { scheduleTask } = require('./scheduler');
@@ -33,12 +34,8 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const httpServer = http.createServer(app);
-const io = socketIo(httpServer, {
-  cors: {
-    origin: true,
-    methods: ['GET', 'POST']
-  }
-});
+const io = configureSocket(httpServer);
+io.use(authMiddlewareSocket);
 
 app.get('/mqtt', authMiddleware, async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');

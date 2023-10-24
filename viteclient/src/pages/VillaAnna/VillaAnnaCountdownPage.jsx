@@ -19,8 +19,11 @@ import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 import { io } from 'socket.io-client';
+import { useCookies } from 'react-cookie';
 
 const VillaAnnacountdownPage = () => {
+    const [cookies] = useCookies(['session']);
+    const sessionId = cookies.session;
     const { showSnackbar } = useContext(SnackbarContext);
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
     const [selectedHour, setSelectedHour] = useState(0);
@@ -76,10 +79,14 @@ const VillaAnnacountdownPage = () => {
     useEffect(() => {
         // Fetch on mount
         fetchCurrentCountdowns();
-    }, [fetchCurrentCountdowns]);  // adjusted dependencies array
+    }, [fetchCurrentCountdowns]);
 
     useEffect(() => {
-        const socket = io(apiUrl);
+        const socket = io(apiUrl, {
+            query: {
+                session: sessionId
+            }
+        });
 
         socket.on("redis-update", () => {
             fetchCurrentCountdowns();
@@ -87,7 +94,7 @@ const VillaAnnacountdownPage = () => {
         return () => {
             socket.disconnect();
         };
-    }, [apiUrl, fetchCurrentCountdowns]);  // adjusted dependencies array
+    }, [apiUrl, fetchCurrentCountdowns, sessionId]);
 
     return (
         <Layout title="Villa Anna Countdown">
