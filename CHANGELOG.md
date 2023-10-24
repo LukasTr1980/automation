@@ -6,12 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Improvements
-- Automate version adoption in viteclient env file
 - Add Irrigation for Simone and Julia
 - Store more variables in mongodb
 - Add isRunning for better Display of running Countdowns
 
-## [8.8.0] - 2023-10-23
+## [8.8.1] - 2023-10-24
+### Changed
+- Dockerfile to create a .env file with version from git push tag
+- Workflow to include version
+
+## [8.8.0] - 2023-10-24
 ### Added
 - Authentication for socket.io
 

@@ -1,11 +1,11 @@
-# APPLY IN FOLDER FOR EXAMPLE /node for node/automation and node/ai and node/automation/client
-
 # Build the React app
 FROM node:18-slim AS client-build
 WORKDIR /usr/src/viteclient
 COPY ./viteclient/package*.json ./
 RUN npm install
 COPY ./viteclient .
+ARG VERSION
+RUN echo "VITE_APP_VERSION=${VERSION}" > .env
 RUN npm run build
 
 # Build the AI app

@@ -28,3 +28,4 @@ jobs:
         context: .
         push: true
         tags: mustaman/automation:${{ github.ref_name }}
+        build-args: VERSION=${{ github.ref_name }}
