@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Add isRunning for better Display of running Countdowns
 
+## [8.10.0] - 2023-10-25
+### Changed
+- Different logo
+- Set logo in layout to display it on every page in a footer
+
 ## [8.9.0] - 2023-10-24
 ### Changed
 - Styling of countdown times

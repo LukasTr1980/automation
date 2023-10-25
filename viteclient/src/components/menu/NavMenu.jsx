@@ -65,6 +65,9 @@ const NavMenu = () => {
               <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDrawerToggle}>
                 <MenuIcon />
               </IconButton>
+              <NavLink to='/home'>
+                <img src={logo} alt='Logo' style={{ height: '40px' }} />
+              </NavLink>
               <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle}>
                 {drawer}
               </Drawer>

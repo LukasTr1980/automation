@@ -1,9 +1,8 @@
 import Layout from '../Layout';
-import { Box, Typography, Button, Grid } from '@mui/material';
+import { Box, Button, Grid } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
 const HomePage = () => {
-  const appVersion = import.meta.env.VITE_APP_VERSION;
   return (
     <Layout title="Automation" showBackButton={false} showLogo={true}>
       <Grid item xs={12}>
@@ -36,18 +35,6 @@ const HomePage = () => {
           </Button>
         </Box>
       </Grid>
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 16,
-          left: '50%',
-          transform: 'translateX(-50%)',
-        }}
-      >
-        <Typography variant='body2' gutterBottom>
-          Version: {appVersion}
-        </Typography>
-      </Box>
     </Layout>
   );
 };

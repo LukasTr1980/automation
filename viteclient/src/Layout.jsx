@@ -11,12 +11,19 @@ import NavMenu from './components/menu/NavMenu';
 import LoadingSpinner from './components/LoadingSpinner';
 import logo from './images/logo-512x512.png';
 
+const appVersion = import.meta.env.VITE_APP_VERSION;
+
 const Layout = ({ title, children, showBackButton, loading, showNavMenu, showLogo }) => {
   return (
     <>
       {showNavMenu && <NavMenu />}
       <Container>
-        <Box sx={{ width: { xs: '100%', md: '60%' }, mx: 'auto', mt: 8 }}>
+        <Box sx={{ 
+          width: { xs: '100%', md: '60%' }, 
+          mx: 'auto', 
+          mt: 8,
+          mb: '48px'
+          }}>
           <Grid container spacing={3} justify="center" alignItems="center">
 
             {loading ? (
@@ -54,6 +61,20 @@ const Layout = ({ title, children, showBackButton, loading, showNavMenu, showLog
           </Grid>
         </Box>
       </Container>
+      <footer
+        style={{
+          width: '100%',
+          position: 'fixed',
+          bottom: 0,
+          backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: Background color with some transparency
+          padding: '8px 0', // Optional: Some padding to create space around the text
+          textAlign: 'center',
+        }}
+      >
+        <Typography variant='body2' color={'black'} fontWeight={'bold'}>
+          Version: {appVersion}
+        </Typography>
+      </footer>
     </>
   );
 };
