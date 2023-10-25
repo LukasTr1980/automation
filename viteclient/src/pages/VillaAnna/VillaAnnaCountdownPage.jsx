@@ -18,12 +18,10 @@ import { zoneOrder, bewaesserungsTopics } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
-import { io } from 'socket.io-client';
-import { useCookies } from 'react-cookie';
+import { SocketContext } from '../../components/socketio/SocketContext';
 
 const VillaAnnacountdownPage = () => {
-    const [cookies] = useCookies(['session']);
-    const sessionId = cookies.session;
+    const { socket, connected } = useContext(SocketContext);
     const { showSnackbar } = useContext(SnackbarContext);
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
     const [selectedHour, setSelectedHour] = useState(0);
@@ -57,7 +55,6 @@ const VillaAnnacountdownPage = () => {
                 action: action
             })
                 .then(response => {
-                    console.log('Response:', response.data);
                     showSnackbar(response.data);
                 })
                 .catch(error => {
@@ -82,19 +79,17 @@ const VillaAnnacountdownPage = () => {
     }, [fetchCurrentCountdowns]);
 
     useEffect(() => {
-        const socket = io(apiUrl, {
-            query: {
-                session: sessionId
-            }
-        });
-
-        socket.on("redis-update", () => {
-            fetchCurrentCountdowns();
-        });
+        if (socket && connected) {  // Check connected status
+            socket.on("redis-update", () => {
+                fetchCurrentCountdowns();
+            });
+        }
         return () => {
-            socket.disconnect();
+            if (socket) {
+                socket.off("redis-update");  // Clean up event listener
+            }
         };
-    }, [apiUrl, fetchCurrentCountdowns, sessionId]);
+    }, [socket, fetchCurrentCountdowns, connected]);  // Include connected in dependencies    
 
     return (
         <Layout title="Villa Anna Countdown">
