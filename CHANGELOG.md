@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Add isRunning for better Display of running Countdowns
 
+## [v8.12.0] - 2023-10-26
+### Changed
+- Added password authentication to redis
+
 ## [v8.11.0] - 2023-10-25
 ### Changed
 - Centralized Socket Provider

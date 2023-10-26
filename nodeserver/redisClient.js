@@ -1,5 +1,6 @@
 const Redis = require('ioredis');
 const envSwitcher = require('./envSwitcher');
+require('dotenv').config();
 
 let client;
 let subscriptionClient;
@@ -9,6 +10,7 @@ async function connectToRedis() {
     client = new Redis({
       host: envSwitcher.redisHost,
       port: 6379,
+      password: process.env.REDIS_PASSWORD,
       retryStrategy(times) {
         const delay = Math.min(times * 50, 2000);
         return delay;
@@ -48,6 +50,7 @@ async function subscribeToRedisKey(io) {
     subscriptionClient = new Redis({
       host: envSwitcher.redisHost,
       port: 6379,
+      password: process.env.REDIS_PASSWORD,
       retryStrategy(times) {
         const delay = Math.min(times * 50, 2000);
         return delay;

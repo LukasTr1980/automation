@@ -22,7 +22,7 @@ const { loginValidation } = require('./inputValidation.js');
 const setTaskEnabler = require('./switchTaskEnabler');
 const getTaskEnabler = require('./getTaskEnabler');
 const { buildUrlMap } = require('./buildUrlMap');
-const loginLimiter = require('./rateLimiter');
+const ratelimiter = require('./rateLimiter');
 const setupCountdownRoutes = require('./routes/countdownRoutes');
 
 const app = express();
@@ -79,7 +79,7 @@ app.post('/simpleapi', authMiddleware, async function (req, res) {
   }
 });
 
-app.post('/login', loginLimiter, async (req, res) => {
+app.post('/login', ratelimiter, async (req, res) => {
   const { error } = loginValidation(req.body);
   if (error) return res.status(400).json({ status: 'error', message: error.details[0].message });
 
