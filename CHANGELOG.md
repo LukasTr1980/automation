@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Add isRunning for better Display of running Countdowns
 
+## [v8.12.2] - 2023-10-26
+### Fixed
+- Socket connection only established if cookie is set
+
 ## [v8.12.1] - 2023-10-26
 ### Fixed
 - Redis client of ai project to use password
