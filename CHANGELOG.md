@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Improvements
 - Store more variables in mongodb
 
+## [v9.0.1] - 28-10-28 
+### Fixed
+- Throttling time in markiseblock.js
+
 ## [v9.0.0] - 28-10-28 
 ### Added
 - Display Weather blocking conditions on Markisepage

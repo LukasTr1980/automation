@@ -19,7 +19,7 @@ async function checkConditionsAndSendValues() {
         const now = Date.now();
         const timeSinceLastExecution = now - (lastExecutionTimestamp || 0);
 
-        if (timeSinceLastExecution < 2 * 60 * 1000) { 
+        if (timeSinceLastExecution < 15 * 60 * 1000) { 
             return;
         }
 
@@ -38,7 +38,7 @@ async function checkConditionsAndSendValues() {
             setTimeout(async () => {
                 await redisClient.set(`${markiseStatusNamespace}:markise:throttling_active`, 'false');
                 sharedState.timeoutOngoing = false;  // Use sharedState to update the flag
-            }, 2 * 60 * 1000);  // Reset the throttling after 15 minutes
+            }, 15 * 60 * 1000);  // Reset the throttling after 15 minutes
         }
     } catch (error) {
         console.error('Error in checkConditionsAndSendValues:', error);
