@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Make more variables configurable from frontend settingspage
 
+## [v9.1.0] - 28-10-28 
+### Added
+- Ratelimiting for every api endpoint
+
+### Changed
+- Redis pub / sub provide value to improve performance
+
 ## [v9.0.2] - 28-10-28 
 ### Fixed
 - Value of windhandler set to 20

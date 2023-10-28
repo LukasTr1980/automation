@@ -37,12 +37,12 @@ const CountdownCard = ({ zoneName, countdown }) => {
                 <Typography
                     variant="caption"
                     sx={{
-                        backgroundColor: getStatusBackgroundColor(countdown.controlStatus),
+                        backgroundColor: getStatusBackgroundColor(countdown.control),
                         padding: '0.2em 0.4em',
                         borderRadius: '4px'
                     }}
                 >
-                    {countdown.controlStatus.toUpperCase()}
+                    {countdown.control.toUpperCase()}
                 </Typography>
             </Box>
             <CardContent sx={{ pt: 1 }}>
@@ -72,7 +72,7 @@ CountdownCard.propTypes = {
     countdown: PropTypes.shape({
         topic: PropTypes.string,
         value: PropTypes.number.isRequired,
-        controlStatus: PropTypes.string.isRequired,
+        control: PropTypes.string.isRequired,
     }).isRequired,
 };
 

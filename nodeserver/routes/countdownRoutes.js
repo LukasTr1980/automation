@@ -3,11 +3,12 @@ const express = require('express');
 const authMiddleware = require('../authMiddleware');
 const { initiateCountdown, updateCountdowns } = require('../countdown');
 const { connectToRedis } = require('../redisClient');
+const { apiLimiter } = require('../rateLimiter');
 
 module.exports = (app) => {
     const router = express.Router();
 
-    router.get('/currentCountdowns', authMiddleware, async (req, res) => {
+    router.get('/currentCountdowns', apiLimiter, authMiddleware, async (req, res) => {
         const client = await connectToRedis();
         const keys = await client.keys('countdown:*:value');  // Get keys for all countdown values
         const countdowns = {};
@@ -19,7 +20,7 @@ module.exports = (app) => {
             const controlKey = `countdown:${topic}:countdownControl`;
             
             // Fetch all relevant values from Redis
-            const [value, hours, minutes, controlStatus] = await Promise.all([
+            const [value, hours, minutes, control] = await Promise.all([
                 client.get(valueKey),
                 client.get(hoursKey),
                 client.get(minutesKey),
@@ -33,13 +34,13 @@ module.exports = (app) => {
                 value: numericValue,
                 hours,
                 minutes,
-                controlStatus
+                control
             };
         }
         res.json(countdowns);  // Send the countdowns as a JSON object
     });
 
-    router.post('/setCountdown', authMiddleware, async (req, res) => {
+    router.post('/setCountdown', apiLimiter, authMiddleware, async (req, res) => {
         const { topic, hours, minutes, action } = req.body;
 
         if (!topic || (action !== 'start' && action !== 'stop' && action !== 'reset')) {

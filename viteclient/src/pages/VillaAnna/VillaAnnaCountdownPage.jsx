@@ -80,8 +80,17 @@ const VillaAnnacountdownPage = () => {
 
     useEffect(() => {
         if (socket && connected) {  // Check connected status
-            socket.on("redis-countdown-update", () => {
-                fetchCurrentCountdowns();
+            socket.on("redis-countdown-update", (data) => {
+                console.log(data);
+                setCountdowns(prevCountdowns => ({
+                    ...prevCountdowns,
+                    [data.topic]: {
+                        hours: data.countdownHours,
+                        minutes: data.countdownMinutes,
+                        control: data.countdownControl,
+                        value: data.countdownValue,
+                    }
+                }));
             });
         }
         return () => {
@@ -89,7 +98,7 @@ const VillaAnnacountdownPage = () => {
                 socket.off("redis-countdown-update");  // Clean up event listener
             }
         };
-    }, [socket, fetchCurrentCountdowns, connected]);  // Include connected in dependencies    
+    }, [socket, connected]);  
 
     return (
         <Layout title="Villa Anna Countdown">

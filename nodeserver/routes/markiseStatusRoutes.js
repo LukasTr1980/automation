@@ -2,12 +2,13 @@ const express = require('express');
 const authMiddleware = require('../authMiddleware');
 const { connectToRedis } = require('../redisClient');
 const namespaces = require('../namespace');
+const { apiLimiter } = require('../rateLimiter');
 
 module.exports = (app) => {
     const router = express.Router();
     const markiseStatusNamespace = namespaces.markiseStatus;
 
-    router.get('/currentMarkiseStatus', authMiddleware, async (req, res) => {
+    router.get('/currentMarkiseStatus', apiLimiter, authMiddleware, async (req, res) => {
         const client = await connectToRedis();
 
         const keys = await client.keys(`${markiseStatusNamespace}:markise:*`);

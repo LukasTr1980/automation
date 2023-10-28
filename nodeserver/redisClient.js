@@ -49,7 +49,6 @@ async function connectToRedis() {
 async function subscribeToRedisKey(io) {
   if (!subscriptionClient) {
     try {
-      // Retrieve or create the 'markise' namespace
       const markiseStatusNamespace = namespaces.markiseStatus;
 
       subscriptionClient = new Redis({
@@ -62,23 +61,44 @@ async function subscribeToRedisKey(io) {
         },
       });
 
-      subscriptionClient.on('pmessage', (pattern, channel, message) => {
-        console.log(`Pattern: ${pattern}, Channel: ${channel}, Message: ${message}`);
+      subscriptionClient.on('pmessage', async (pattern, channel, message) => {
+        const baseKey = channel.substring(15, channel.lastIndexOf(":"));
+        if (baseKey.startsWith('countdown:')) {
+          try {
+            const countdownHoursKey = `${baseKey}:countdownHours`;
+            const countdownMinutesKey = `${baseKey}:countdownMinutes`;
+            const countdownControlKey = `${baseKey}:countdownControl`;
+            const countdownValueKey = `${baseKey}:value`;
 
-        const key = channel.substring(15);
+            const countdownHours = await client.get(countdownHoursKey);
+            const countdownMinutes = await client.get(countdownMinutesKey);
+            const countdownControl = await client.get(countdownControlKey);
+            const countdownValue = await client.get(countdownValueKey);
+            console.log(countdownControl);
 
-        if (key.startsWith('countdown:')) {
-          io.emit('redis-countdown-update', { pattern, channel, message });
-        } else if (key.startsWith(`${markiseStatusNamespace}`)) {
+            const topic = baseKey.split(':')[1];
+
+            const numericValue = parseInt(countdownValue, 10);
+
+            io.emit('redis-countdown-update', {
+              baseKey,
+              topic,
+              countdownHours,
+              countdownMinutes,
+              countdownControl,
+              countdownValue: numericValue
+            });
+          } catch (error) {
+            console.error('Error fetching countdown values from Redis:', error);
+          }
+        } else if (baseKey.startsWith(`${markiseStatusNamespace}`)) {
           io.emit('redis-markise-update', { pattern, channel, message });
         }
       });
 
-      // Existing subscription
       await subscriptionClient.psubscribe('__keyspace@0__:countdown:*');
       console.log('Subscribed to all keys starting with countdown:');
 
-      // New subscriptions for markise status and throttling
       await subscriptionClient.psubscribe(`__keyspace@0__:${markiseStatusNamespace}:markise:throttling_active`);
       console.log('Subscribed to markise:throttling_active key');
 

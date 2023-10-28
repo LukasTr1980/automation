@@ -22,7 +22,7 @@ const { loginValidation } = require('./inputValidation.js');
 const setTaskEnabler = require('./switchTaskEnabler');
 const getTaskEnabler = require('./getTaskEnabler');
 const { buildUrlMap } = require('./buildUrlMap');
-const ratelimiter = require('./rateLimiter');
+const { loginLimiter, apiLimiter } = require('./rateLimiter');
 const setupCountdownRoutes = require('./routes/countdownRoutes');
 const setupMarkiseStatusRoutes = require('./routes/markiseStatusRoutes');
 
@@ -38,7 +38,7 @@ const httpServer = http.createServer(app);
 const io = configureSocket(httpServer);
 io.use(authMiddlewareSocket);
 
-app.get('/mqtt', authMiddleware, async (req, res) => {
+app.get('/mqtt', apiLimiter, authMiddleware, async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');  // This ensures the connection stays open
@@ -62,7 +62,7 @@ app.get('/mqtt', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/simpleapi', authMiddleware, async function (req, res) {
+app.post('/simpleapi', apiLimiter, authMiddleware, async function (req, res) {
   const { topic, state } = req.body;
   const urlMap = await buildUrlMap();
   const url = urlMap[topic];
@@ -80,7 +80,7 @@ app.post('/simpleapi', authMiddleware, async function (req, res) {
   }
 });
 
-app.post('/login', ratelimiter, async (req, res) => {
+app.post('/login', loginLimiter, async (req, res) => {
   const { error } = loginValidation(req.body);
   if (error) return res.status(400).json({ status: 'error', message: error.details[0].message });
 
@@ -115,7 +115,7 @@ app.post('/login', ratelimiter, async (req, res) => {
   });
 });
 
-app.get('/session', authMiddleware, async (req, res) => {
+app.get('/session', apiLimiter, authMiddleware, async (req, res) => {
   const authHeader = req.headers['authorization'];
   const sessionId = authHeader && authHeader.split(' ')[1];
 
@@ -132,7 +132,7 @@ app.get('/session', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/scheduler', authMiddleware, async (req, res) => {
+app.post('/scheduler', apiLimiter, authMiddleware, async (req, res) => {
   const { topic, state, days, months, hour, minute } = req.body;
 
   if (!topic || state === undefined || !days || !months || !hour || !minute) {
@@ -157,7 +157,7 @@ app.post('/scheduler', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/scheduledTasks', authMiddleware, async (req, res) => {
+app.get('/scheduledTasks', apiLimiter, authMiddleware, async (req, res) => {
   try {
     const tasks = await getScheduledTasks();
     res.json(tasks);
@@ -167,7 +167,7 @@ app.get('/scheduledTasks', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/switchTaskEnabler', authMiddleware, async (req, res) => {
+app.post('/switchTaskEnabler', apiLimiter, authMiddleware, async (req, res) => {
   const { zone, state } = req.body;
 
   if (!zone || state === undefined) {
@@ -184,7 +184,7 @@ app.post('/switchTaskEnabler', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/getTaskEnabler', authMiddleware, async (req, res) => {
+app.get('/getTaskEnabler', apiLimiter, authMiddleware, async (req, res) => {
   const { zone } = req.query;
 
   if (!zone) {
@@ -202,7 +202,7 @@ app.get('/getTaskEnabler', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/getGptRequest', authMiddleware, async (req, res) => {
+app.get('/getGptRequest', apiLimiter, authMiddleware, async (req, res) => {
   try {
     const client = await connectToRedis();
     const gptRequest = await client.get("gptRequestKey");
@@ -213,7 +213,7 @@ app.get('/getGptRequest', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/updateGptRequest', authMiddleware, async (req, res) => {
+app.post('/updateGptRequest', apiLimiter, authMiddleware, async (req, res) => {
   try {
     const { newGptRequest } = req.body;
     const client = await connectToRedis();
@@ -225,7 +225,7 @@ app.post('/updateGptRequest', authMiddleware, async (req, res) => {
   }
 });
 
-app.delete('/deleteTask', authMiddleware, async (req, res) => {
+app.delete('/deleteTask', apiLimiter, authMiddleware, async (req, res) => {
   console.log("Received body:", req.body);
   const { taskId, zone } = req.body;
 
@@ -256,7 +256,7 @@ app.delete('/deleteTask', authMiddleware, async (req, res) => {
   });
 });
 
-app.get('/getSecrets', authMiddleware, async (req, res) => {
+app.get('/getSecrets', apiLimiter, authMiddleware, async (req, res) => {
   try {
     const client = await connectToRedis();
     const influxDbAiTokenExists = Boolean(await client.get("influxdb_ai:token"));
@@ -275,7 +275,7 @@ app.get('/getSecrets', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/updateSecrets', authMiddleware, async (req, res) => {
+app.post('/updateSecrets', apiLimiter, authMiddleware, async (req, res) => {
   try {
     const { influxDbAiToken, influxDbAutomationToken, openAiApiToken, newPassword } = req.body;
     const client = await connectToRedis();
@@ -318,9 +318,9 @@ app.post('/updateSecrets', authMiddleware, async (req, res) => {
 setupCountdownRoutes(app);
 setupMarkiseStatusRoutes(app);
 
-app.use(express.static(path.join('/usr/src/viteclient/dist/'))); //For Docker Build
+app.use(apiLimiter, express.static(path.join('/usr/src/viteclient/dist/'))); //For Docker Build
 
-app.get('*', function (req, res) {
+app.get('*', apiLimiter, function (req, res) {
   res.sendFile(path.join('/usr/src/viteclient/dist/', 'index.html')); //For Docker Build
 });
 
