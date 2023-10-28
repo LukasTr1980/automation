@@ -82,7 +82,7 @@ const createTopicHandler = (topic, checkFunction) => {
 };
 
 const rainRateHandler = createTopicHandler('wetter/number/weathercloud_regenrate', (message) => Number(message) > 0);
-const windHandler = createTopicHandler('wetter/number/wind', (message) => Number(message) >= 0);
+const windHandler = createTopicHandler('wetter/number/wind', (message) => Number(message) >= 20);
 
 module.exports = {
     latestStates,

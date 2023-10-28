@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Improvements
 - Store more variables in mongodb
+- Make more variables configurable from frontend settingspage
+
+## [v9.0.2] - 28-10-28 
+### Fixed
+- Value of windhandler set to 20
 
 ## [v9.0.1] - 28-10-28 
 ### Fixed
