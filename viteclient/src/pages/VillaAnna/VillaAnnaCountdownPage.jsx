@@ -80,13 +80,13 @@ const VillaAnnacountdownPage = () => {
 
     useEffect(() => {
         if (socket && connected) {  // Check connected status
-            socket.on("redis-update", () => {
+            socket.on("redis-countdown-update", () => {
                 fetchCurrentCountdowns();
             });
         }
         return () => {
             if (socket) {
-                socket.off("redis-update");  // Clean up event listener
+                socket.off("redis-countdown-update");  // Clean up event listener
             }
         };
     }, [socket, fetchCurrentCountdowns, connected]);  // Include connected in dependencies    

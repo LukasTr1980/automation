@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 const envSwitcher = require('./envSwitcher');
-const { connectToRedis } = require('./redisClient');
+require('dotenv').config();
 
 let isConnected = false;
 let client;
@@ -10,16 +10,12 @@ async function connectToDatabase() {
     
     if (!isConnected) {
         try {
-            // Get the Redis client
-            const redis = await connectToRedis();
+            const username = process.env.MONGO_USERNAME;
+            const password = process.env.MONGO_PASSWORD;
 
-            // Retrieve MongoDB credentials from Redis
-            const username = await redis.get('mongo:username');
-            const password = await redis.get('mongo:password');
-
-            // Check if both username and password are retrieved
+            // Check if both username and password are present
             if (!username || !password) {
-                throw new Error('MongoDB credentials not found in Redis.');
+                throw new Error('MongoDB credentials not found in environment variables.');
             }
 
             const host = envSwitcher.mongoDbHost;

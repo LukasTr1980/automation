@@ -10,8 +10,6 @@ const OnPressSwitchComponent = ({ markiseState, onSend }) => {
     if (markiseState !== null) {
       const button = markiseState === '1' ? 'up' : markiseState === '2' ? 'down' : markiseState === '3' ? 'pause' : null;
       setPressedButton(button);
-      console.log(button);
-      console.log(markiseState);
     }
   }, [markiseState]);
 

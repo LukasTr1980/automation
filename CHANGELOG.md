@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Improvements
-- Add Irrigation for Simone and Julia
 - Store more variables in mongodb
-- Add isRunning for better Display of running Countdowns
+
+## [v9.0.0] - 28-10-28 
+### Added
+- Display Weather blocking conditions on Markisepage
+- New route handler for markisestatus
+- New namespace.js file to handle rediskeys to not get namingconflicts
+- New prop color for switchcomponent
+
+### Changed
+- mongo user and pass stored in env variable to avoid conflicts
 
 ## [v8.12.2] - 2023-10-26
 ### Fixed

@@ -56,7 +56,7 @@ mqttClient.on('message', async (topic, message) => {
     if (mqttTopics.includes(topic)) {
         await writeToInflux(topic, msg);
     }
-    if (['wetter/number/weathercloud_regenrate', 'wetter/number/aussentemperatur', 'wetter/number/wind'].includes(topic)) {
+    if (['wetter/number/weathercloud_regenrate', 'wetter/number/wind'].includes(topic)) {
         stateChangeEmitter.emit('stateChanged');
     }
 });
@@ -82,14 +82,12 @@ const createTopicHandler = (topic, checkFunction) => {
 };
 
 const rainRateHandler = createTopicHandler('wetter/number/weathercloud_regenrate', (message) => Number(message) > 0);
-const temperatureHandler = createTopicHandler('wetter/number/aussentemperatur', (message) => Number(message) < 15);
-const windHandler = createTopicHandler('wetter/number/wind', (message) => Number(message) >= 20);
+const windHandler = createTopicHandler('wetter/number/wind', (message) => Number(message) >= 0);
 
 module.exports = {
     latestStates,
     addSseClient,
     isRaining: rainRateHandler.getStatus,
-    isCold: temperatureHandler.getStatus,
     isWindy: windHandler.getStatus,
     stateChangeEmitter
 };

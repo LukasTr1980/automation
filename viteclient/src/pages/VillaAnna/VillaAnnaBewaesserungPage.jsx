@@ -155,6 +155,7 @@ const BewaesserungPage = () => {
                       checked={!irrigationNeededSwitch}
                       label='Ai block:'
                       disabled={true}
+                      color='warning'
                     />
                   </Box>
                 </Grid>

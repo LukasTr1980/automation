@@ -24,6 +24,7 @@ const getTaskEnabler = require('./getTaskEnabler');
 const { buildUrlMap } = require('./buildUrlMap');
 const ratelimiter = require('./rateLimiter');
 const setupCountdownRoutes = require('./routes/countdownRoutes');
+const setupMarkiseStatusRoutes = require('./routes/markiseStatusRoutes');
 
 const app = express();
 const port = 8523;
@@ -315,6 +316,7 @@ app.post('/updateSecrets', authMiddleware, async (req, res) => {
 });
 
 setupCountdownRoutes(app);
+setupMarkiseStatusRoutes(app);
 
 app.use(express.static(path.join('/usr/src/viteclient/dist/'))); //For Docker Build
 
