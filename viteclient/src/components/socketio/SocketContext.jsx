@@ -10,7 +10,7 @@ export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
     const [connected, setConnected] = useState(false);
 
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL.replace('/api', '');
 
     useEffect(() => {
         if (cookies.session) {  // Only establish a connection if session cookie is defined
