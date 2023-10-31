@@ -14,7 +14,7 @@ router.post('/', async function (req, res) {
 
     try {
         const response = await axios.get(apiUrl.toString());
-        res.send(response.data);
+        res.send(response.data.id);
     } catch (error) {
         console.error('Error while sending request:', error);
         res.status(500).send('Error while sending request to the API.');

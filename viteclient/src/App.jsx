@@ -13,6 +13,7 @@ import NotFoundPage from './pages/404Page';
 import { SnackbarProvider } from './components/snackbar/SnackbarContext';
 import CentralizedSnackbar from './components/snackbar/CentralizedSnackbar';
 import { SocketProvider } from './components/socketio/SocketContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const [cookies] = useCookies(['session']);
@@ -34,21 +35,23 @@ function App() {
   return (
     <SocketProvider>
       <SnackbarProvider>
-        <Router>
-          <div className="App">
-            <header className="App-header">
-              <Routes>
-                <Route path='/' element={<LoginPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
-                <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
-                <Route path='/villa-anna/*' element={<AuthGuard><VillaAnnaRoutes /></AuthGuard>} />
-                <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
-              </Routes>
-            </header>
-            <CentralizedSnackbar />
-          </div>
-        </Router>
+        <ErrorBoundary>
+          <Router>
+            <div className="App">
+              <header className="App-header">
+                <Routes>
+                  <Route path='/' element={<LoginPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
+                  <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
+                  <Route path='/villa-anna/*' element={<AuthGuard><VillaAnnaRoutes /></AuthGuard>} />
+                  <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
+                </Routes>
+              </header>
+              <CentralizedSnackbar />
+            </div>
+          </Router>
+        </ErrorBoundary>
       </SnackbarProvider>
     </SocketProvider>
   );

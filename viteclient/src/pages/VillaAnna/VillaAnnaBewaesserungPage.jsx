@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import SwitchComponent from '../../components/switchComponent';
@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);
@@ -31,6 +32,7 @@ const BewaesserungPage = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [response, setResponse] = useState("");
   const [formattedEvaluation, setFormattedEvaluation] = useState("");
+  const { showSnackbar } = useContext(SnackbarContext);
 
   useEffect(() => {
     const sessionId = cookies.session;
@@ -106,7 +108,7 @@ const BewaesserungPage = () => {
       state: newSwitchState[index],
     })
       .then(response => {
-        console.log(response.data);
+        showSnackbar(response.data);
       })
       .catch(error => console.error('Error:', error));
   };

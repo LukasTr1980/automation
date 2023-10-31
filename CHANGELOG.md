@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Make more variables configurable from frontend settingspage
 
+## [v10.1.0] - 28-10-31
+### Added
+- ErrorBoundary to frontend to catch render errors
+- Severity prop for Snackbar
+- Dependencies updates
+
 ## [v10.0.0] - 28-10-29
 ### Changed
 - Api endpoints, creating separat files for endpoints
