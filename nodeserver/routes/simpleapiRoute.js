@@ -1,23 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
-const { buildUrlMap } = require('../buildUrlMap');
+const MqttPublisher = require('../mqtt/mqttPublisher');
+
+const publisher = new MqttPublisher();
 
 router.post('/', async function (req, res) {
     const { topic, state } = req.body;
-    const urlMap = await buildUrlMap();
-    const url = urlMap[topic];
-
-    // Add 'state' as a query parameter to the URL
-    const apiUrl = new URL(url);
-    apiUrl.searchParams.append('value', state);
 
     try {
-        const response = await axios.get(apiUrl.toString());
-        res.send(response.data.id);
+        publisher.publish(topic, state.toString(), {}, (err) => {
+            if (err) {
+                console.error('Error while publishing message:', err);
+                res.status(500).send('Error while publishing message to MQTT broker.');
+            } else {
+                res.send('Message published successfully.');
+            }
+        });
     } catch (error) {
-        console.error('Error while sending request:', error);
-        res.status(500).send('Error while sending request to the API.');
+        console.error('Error:', error);
+        res.status(500).send('An error occurred.');
     }
 });
 

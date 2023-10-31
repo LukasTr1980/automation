@@ -14,7 +14,8 @@ const devConfig = {
     mqttBrokerUrl: 'mqtt://192.168.1.2:1883',
     baseUrl: 'http://192.168.1.2:8087',
     redisHost: '10.25.159.4',
-    mongoDbHost: '10.25.159.4:27017'
+    mongoDbHost: '10.25.159.4:27017',
+    mosquittoUrl: 'mqtt://10.25.159.4:1883'
 }
 
 const prodConfig = {
@@ -22,7 +23,8 @@ const prodConfig = {
     mqttBrokerUrl: 'mqtt://10.25.159.1:1883',
     baseUrl: 'http://10.25.159.1:8087',
     redisHost: 'redis_container',
-    mongoDbHost: 'mongo_container:27017'
+    mongoDbHost: 'mongo_container:27017',
+    mosquittoUrl: 'mqtt://mosquitto_container:1883'
 }
 
 const selectedConfig = isDev ? devConfig : prodConfig;
@@ -32,5 +34,6 @@ module.exports = {
     mqttBrokerUrl: selectedConfig.mqttBrokerUrl,
     baseUrl: selectedConfig.baseUrl,
     redisHost: selectedConfig.redisHost,
-    mongoDbHost: selectedConfig.mongoDbHost
+    mongoDbHost: selectedConfig.mongoDbHost,
+    mosquittoUrl: selectedConfig.mosquittoUrl
 };

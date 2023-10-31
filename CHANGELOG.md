@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Make more variables configurable from frontend settingspage
 
+## [v11.0.0.beta] - 28-10-31
+### Issues
+- Naming of topics, what is the mqtt strategy
+
+### Added
+- Implementation of mosquitto to handle network errors
+
 ## [v10.1.0] - 28-10-31
 ### Added
 - ErrorBoundary to frontend to catch render errors
