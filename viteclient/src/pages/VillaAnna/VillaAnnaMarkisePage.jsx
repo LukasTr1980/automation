@@ -54,7 +54,7 @@ const MarkisePage = () => {
         axios.get(`${apiUrl}/scheduledTasks`)
             .then(response => {
                 const tasksArray = Object.entries(response.data).flatMap(([key, tasks]) => tasks.map(task => ({ topic: key, ...task })));
-                const markiseTasks = tasksArray.filter(task => task.topic === 'markise/switch/haupt');
+                const markiseTasks = tasksArray.filter(task => task.topic === 'markise/switch/haupt/set');
                 setScheduledTasks(markiseTasks);
                 setTasksLoaded(true);
             })
@@ -62,7 +62,7 @@ const MarkisePage = () => {
     }, [reloadTasks, apiUrl]);
 
     const handleSend = (value) => {
-        const topic = 'markise/switch/haupt';
+        const topic = 'markise/switch/haupt/set';
 
         const data = {
             topic,
@@ -156,8 +156,8 @@ const MarkisePage = () => {
                 </Grid>
                 <Grid item xs={12}>
                     <SchedulerCard
-                        initialTopic="markise/switch/haupt"
-                        mqttTopics={["markise/switch/haupt"]}
+                        initialTopic="markise/switch/haupt/set"
+                        mqttTopics={["markise/switch/haupt/set"]}
                         topicDescriptions={["Markise"]}
                         scheduledTasks={scheduledTasks}
                         setScheduledTasks={setScheduledTasks}
@@ -169,7 +169,7 @@ const MarkisePage = () => {
                         <CardHeader title="Eingestellte Zeitpläne" />
                         <CardContent>
                             {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
-                            <ScheduledTaskCard zoneName="Markise" tasks={sortedTasks} customLabels={customMarkiseLabels} onDelete={handleDeleteTask} redisKey="markise/switch/haupt" />
+                            <ScheduledTaskCard zoneName="Markise" tasks={sortedTasks} customLabels={customMarkiseLabels} onDelete={handleDeleteTask} redisKey="markise/switch/haupt/set" />
                         </CardContent>
                     </Card>
                 </Grid>

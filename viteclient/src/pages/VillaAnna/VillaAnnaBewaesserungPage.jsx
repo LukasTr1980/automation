@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import SwitchComponent from '../../components/switchComponent';
-import { switchDescriptions, bewaesserungsTopics, zoneOrder } from '../../components/constants';
+import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
 import SchedulerCard from '../../components/SchedulerCard'; // Import the SchedulerCard component
 import {
@@ -72,7 +72,7 @@ const BewaesserungPage = () => {
         setScheduledTasks(bewaesserungTasks);
 
         const groupedTasksLocal = bewaesserungTasks.reduce((groups, task) => {
-          const topicIndex = bewaesserungsTopics.indexOf(task.topic);
+          const topicIndex = bewaesserungsTopicsSet.indexOf(task.topic);
           const zoneName = switchDescriptions[topicIndex];
 
           if (!groups[zoneName]) {
@@ -104,7 +104,7 @@ const BewaesserungPage = () => {
     setSwitches(newSwitchState);
 
     axios.post(`${apiUrl}/simpleapi`, {
-      topic: bewaesserungsTopics[index],
+      topic: bewaesserungsTopicsSet[index],
       state: newSwitchState[index],
     })
       .then(response => {
@@ -197,9 +197,9 @@ const BewaesserungPage = () => {
               <LoadingSpinner />
             ) : (
               <>
-                {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Tasks.</Typography>}
+                {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
                 {Object.entries(orderedTasks).map(([zoneName, tasks], index) => {
-                  return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} onDelete={handleDeleteTask} redisKey={bewaesserungsTopics[index]} />
+                  return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} onDelete={handleDeleteTask} redisKey={bewaesserungsTopicsSet[index]} />
                 })}
               </>
             )}

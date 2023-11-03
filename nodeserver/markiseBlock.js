@@ -1,14 +1,10 @@
-const axios = require('axios');
 const { isRaining, isWindy, stateChangeEmitter } = require('./mqttHandler');
 const sharedState = require('./sharedState');
-const envSwitcher = require('./envSwitcher');
 const { connectToRedis } = require('./redisClient');
 const namespaces = require('./namespace');
+const MqttPublisher = require('./mqtt/mqttPublisher');
 
-const baseUrl = envSwitcher.baseUrl;
-const urlMap = {
-    'markise/switch/haupt': `${baseUrl}/set/tuya.0.8407060570039f7fa6d2.1`,
-};
+const publisher = new MqttPublisher();
 
 async function checkConditionsAndSendValues() {
     try {
@@ -46,15 +42,14 @@ async function checkConditionsAndSendValues() {
 }
 
 async function sendValue(value, markiseStatusNamespace) {
-    const topic = 'markise/switch/haupt';
-    const url = urlMap[topic];
-
-    // Add 'state' as a query parameter to the URL
-    const apiUrl = new URL(url);
-    apiUrl.searchParams.append('value', value);
+    const topic = 'markise/switch/haupt/set';
 
     try {
-        const response = await axios.get(apiUrl.toString());
+        publisher.publish(topic, value.toString(), (err) => {
+            if (err) {
+                console.error(`Failed to send value: ${value}`, err);
+            }
+        });
 
         const redisClient = await connectToRedis();
 
@@ -80,6 +75,7 @@ async function sendValue(value, markiseStatusNamespace) {
         console.error(`Failed to send value: ${value}`, error);
     }
 }
+
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

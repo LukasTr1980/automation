@@ -33,3 +33,11 @@ export const bewaesserungsTopics = [
   'bewaesserung/switch/alle',
 ];
 export const zoneOrder = ["Stefan Nord", "Stefan Ost", "Lukas Süd", "Lukas West"];
+
+export const bewaesserungsTopicsSet = [
+  'bewaesserung/switch/stefanNord/set',
+  'bewaesserung/switch/stefanOst/set',
+  'bewaesserung/switch/lukasSued/set',
+  'bewaesserung/switch/lukasWest/set',
+  'bewaesserung/switch/alle/set',
+]

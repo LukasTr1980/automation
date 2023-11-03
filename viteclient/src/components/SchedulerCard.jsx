@@ -1,7 +1,7 @@
 //SchedulerCard.jsx
 import { useState, useContext } from 'react';
 import axios from 'axios';
-import { bewaesserungsTopics, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
+import { bewaesserungsTopicsSet, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
 import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
 import SwitchComponent from './switchComponent';
 import DialogFullScreen from './DialogFullScreen';
@@ -20,14 +20,14 @@ import {
 import PropTypes from 'prop-types';
 import { SnackbarContext } from './snackbar/SnackbarContext';
 
-const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, initialTopic, mqttTopics = bewaesserungsTopics, topicDescriptions = switchDescriptions }) => {
+const SchedulerCard = ({ setReloadTasks, scheduledTasks, setScheduledTasks, initialTopic, mqttTopics = bewaesserungsTopicsSet, topicDescriptions = switchDescriptions }) => {
   const { showSnackbar } = useContext(SnackbarContext);
   const [selectedTopic, setSelectedTopic] = useState(initialTopic || mqttTopics[0]);
   const specialSwitchValues = {
-    'markise/switch/haupt': { true: 1, false: 2 }
+    'markise/switch/haupt/set': { true: 1, false: 2 }
   };
   const topicLabels = {
-    'markise/switch/haupt': { true: "Ausfahren", false: "Einfahren" }
+    'markise/switch/haupt/set': { true: "Ausfahren", false: "Einfahren" }
   };
   const [switchState, setSwitchState] = useState(false);
   const [selectedDays, setSelectedDays] = useState([]);

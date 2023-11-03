@@ -14,7 +14,7 @@ import {
     Button,
     Typography,
 } from '@mui/material';
-import { zoneOrder, bewaesserungsTopics } from '../../components/constants';
+import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
@@ -47,7 +47,7 @@ const VillaAnnacountdownPage = () => {
         setFieldvalidity(isValid);
 
         if (Object.values(isValid).every(Boolean)) {
-            const selectedTopic = bewaesserungsTopics[zoneOrder.indexOf(selectedZone)];
+            const selectedTopic = bewaesserungsTopicsSet[zoneOrder.indexOf(selectedZone)];
             axios.post(`${apiUrl}/countdown/setCountdown`, {
                 topic: selectedTopic,
                 hours: selectedHour,
@@ -116,7 +116,7 @@ const VillaAnnacountdownPage = () => {
                                         onChange={handleZoneChange}
                                     >
                                         {zoneOrder.map((zone, i) => (
-                                            <MenuItem value={zone} key={bewaesserungsTopics[i]}>
+                                            <MenuItem value={zone} key={bewaesserungsTopicsSet[i]}>
                                                 {zone}
                                             </MenuItem>
                                         ))}
@@ -165,7 +165,7 @@ const VillaAnnacountdownPage = () => {
                     <CardHeader title={<Typography variant="h6">Countdowns</Typography>} />  {/* Adjusted title */}
                     <CardContent>
                         {zoneOrder.map(zoneName => {
-                            const topic = bewaesserungsTopics[zoneOrder.indexOf(zoneName)];
+                            const topic = bewaesserungsTopicsSet[zoneOrder.indexOf(zoneName)];
                             const countdown = countdowns[topic];
                             if (!countdown) return null;  // Skip rendering if there's no countdown data for this topic
                             return (

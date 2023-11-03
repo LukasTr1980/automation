@@ -1,15 +1,14 @@
 const schedule = require('node-schedule');
-const axios = require('axios');
 const { promisify } = require('util');
 const { connectToRedis } = require('./redisClient');
-const { buildUrlMap } = require('./buildUrlMap');
 const isIrrigationNeeded = require('ai');
 const getTaskEnabler = require('./getTaskEnabler');
 const sharedState = require('./sharedState');
-const { response } = require('express');
-const { error } = require('console');
 const generateUniqueId = require('./generateUniqueId');
 const { topicToTaskEnablerKey } = require('./constants');
+const MqttPublisher = require('./mqtt/mqttPublisher');
+
+const publisher = new MqttPublisher();
 
 let jobs = {};
 
@@ -33,61 +32,53 @@ function createTask(topic, state) {
         console.log(`No task enabler key found for "${zoneName}". Proceeding without checking task enabler state.`)
       }
 
-      const urlMap = await buildUrlMap();
-      const url = urlMap[topic];
-      const apiUrl = new URL(url);
-
       // Special logic for markise
-      if (topic.startsWith('markise/switch/haupt')) {
+      if (topic.startsWith('markise/switch/haupt/set')) {
         if (!sharedState.timeoutOngoing) {
           // Send initial state (from Redis key)
-          apiUrl.searchParams.append('value', state);
-          axios.get(apiUrl.toString())
-            .then(response => {
-              console.log('Request sent successfully:', response.data);
+          publisher.publish(topic, state.toString(), (err) => {
+            if (err) {
+              console.error('Error while publishing message:', err);
+            } else {
+              console.log('Message published successfully.');
 
               // Send state 3 after 40 seconds
               setTimeout(() => {
-                apiUrl.searchParams.set('value', 3);
-                axios.get(apiUrl.toString())
-                  .then(response => {
-                    console.log('Second request sent successfully:', response.data);
-                  })
-                  .catch(error => {
-                    console.error('Error while sending second request:', error);
-                  });
+                publisher.publish(topic, '3', (err) => {
+                  if (err) {
+                    console.error('Error while publishing second message:', err);
+                  } else {
+                    console.log('Second message published successfully.');
+                  }
+                });
               }, 40000); // 40 seconds delay
 
-            })
-            .catch(error => {
-              console.error('Error while sending request:', error);
-            });
+            }
+          });
         } else {
           console.log("The timeout is ongoing in markiseblock, skipping tasks.");
         }
       } else {
         if (state === false) {
-          apiUrl.searchParams.append('value', state);
-          axios.get(apiUrl.toString())
-            .then(response => {
-              console.log('Request send successfully:', response.data);
-            })
-            .catch(error => {
-              console.error('Error while sending request:', error);
-            });
+          publisher.publish(topic, state.toString(), (err) => {
+            if (err) {
+              console.error('Error while publishing message:', err);
+            } else {
+              console.log('Message published successfully.');
+            }
+          });
         } else {
           // Check if isIrrigationNeeded is true for original logic
           const { result: irrigationNeeded, response: gptResponse } = await isIrrigationNeeded();
           if (irrigationNeeded) {
             // Original logic for other topics
-            apiUrl.searchParams.append('value', state);
-            axios.get(apiUrl.toString())
-              .then(response => {
-                console.log('Request sent successfully:', response.data);
-              })
-              .catch(error => {
-                console.error('Error while sending request:', error);
-              });
+            publisher.publish(topic, state.toString(), (err) => {
+              if (err) {
+                console.error('Error while publishing message:', err);
+              } else {
+                console.log('Message published successfully.');
+              }
+            });
           } else {
             console.log('Skipping task execution due to irrigationNeeded returning false');
           }

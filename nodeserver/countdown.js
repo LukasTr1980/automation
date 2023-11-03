@@ -1,7 +1,8 @@
 // countdown.js
 const { connectToRedis } = require('./redisClient');
-const { buildUrlMap } = require('./buildUrlMap');
-const axios = require('axios');
+const MqttPublisher = require('./mqtt/mqttPublisher');
+
+const publisher = new MqttPublisher();
 
 const countdownPrefix = 'countdown:';
 
@@ -30,10 +31,6 @@ async function updateHoursAndMinutes(topic) {
         client.set(hoursKey, currentHours.toString()),
         client.set(minutesKey, currentMinutes.toString())
     ]);
-
-    // Additional logging to confirm Redis values after updating
-    const updatedHours = await client.get(hoursKey);
-    const updatedMinutes = await client.get(minutesKey);
 }
 
 async function initiateCountdown(topic, hours, minutes, action) {
@@ -88,7 +85,6 @@ async function initiateCountdown(topic, hours, minutes, action) {
 
 async function updateCountdowns(topic) {
     const client = await connectToRedis();
-    const urlMap = await buildUrlMap();
 
     const controlKey = countdownPrefix + topic + controlKeySuffix;
     const countdownKey = countdownPrefix + topic + countdownKeySuffix;
@@ -142,16 +138,16 @@ async function updateCountdowns(topic) {
 }
 
 async function sendSignal(topic, state) {
-    const urlMap = await buildUrlMap();
-    const url = urlMap[topic];
-    const apiUrl = new URL(url);
-    apiUrl.searchParams.append('value', state.toString());
-
     try {
-        const response = await axios.get(apiUrl.toString());
-        console.log('API response:', response.data);
+        publisher.publish(topic, state.toString(), (err) => {
+            if (err) {
+                console.error('Error while publishing message:', err);
+            } else {
+                console.log('Message published successfully');
+            }
+        });
     } catch (error) {
-        console.error('Error while sending request:', error);
+        console.error('Error:', error);
     }
 }
 
