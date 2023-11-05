@@ -1,5 +1,5 @@
 // authMiddlewareSocket.js
-const { connectToRedis } = require('./redisClient');
+const { connectToRedis } = require('../shared/redisClient');
 
 const authMiddlewareSocket = async (socket, next) => {
   try {

@@ -15,7 +15,8 @@ const devConfig = {
     baseUrl: 'http://192.168.1.2:8087',
     redisHost: '10.25.159.4',
     mongoDbHost: '10.25.159.4:27017',
-    mosquittoUrl: 'mqtt://10.25.159.4:1883'
+    mosquittoUrl: 'mqtt://10.25.159.4:1883',
+    vaultUrl: 'http://10.25.159.4:8200'
 }
 
 const prodConfig = {
@@ -24,7 +25,8 @@ const prodConfig = {
     baseUrl: 'http://10.25.159.1:8087',
     redisHost: 'redis_container',
     mongoDbHost: 'mongo_container:27017',
-    mosquittoUrl: 'mqtt://mosquitto_container:1883'
+    mosquittoUrl: 'mqtt://mosquitto_container:1883',
+    vaultUrl: 'http://vault_container:8200'
 }
 
 const selectedConfig = isDev ? devConfig : prodConfig;
@@ -35,5 +37,6 @@ module.exports = {
     baseUrl: selectedConfig.baseUrl,
     redisHost: selectedConfig.redisHost,
     mongoDbHost: selectedConfig.mongoDbHost,
-    mosquittoUrl: selectedConfig.mosquittoUrl
+    mosquittoUrl: selectedConfig.mosquittoUrl,
+    vaultUrl: selectedConfig.vaultUrl
 };

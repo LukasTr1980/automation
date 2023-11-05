@@ -1,8 +1,8 @@
 const path = require('path');
 const OpenAI = require('openai');
 const { InfluxDB } = require('@influxdata/influxdb-client');
-const envSwitcher = require('./envSwitcher');
-const connectToRedis = require('./redisClient');
+const envSwitcher = require('../shared/envSwitcher');
+const connectToRedis = require('../shared/redisClient');
 
 let openai;
 let influxDbClient;

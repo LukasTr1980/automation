@@ -1,5 +1,5 @@
 const mqtt = require('mqtt');
-const envSwitcher = require('../envSwitcher');
+const envSwitcher = require('../../shared/envSwitcher');
 require('dotenv').config();
 
 class MqttPublisher {

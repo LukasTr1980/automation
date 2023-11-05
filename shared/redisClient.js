@@ -1,17 +1,38 @@
 const Redis = require('ioredis');
 const envSwitcher = require('./envSwitcher');
 require('dotenv').config();
-const namespaces = require('./namespace');
+const namespaces = require('../nodeserver/namespace');
+const vaultClient = require('./vaultClient');
 
 let client;
 let subscriptionClient;
+let redisPassword;
+
+async function fetchRedisPassword() {
+  if (!redisPassword) {
+    try {
+      await vaultClient.login(process.env.VAULT_ROLE_ID, process.env.VAULT_SECRET_ID);
+      const credentials = await vaultClient.getSecret('kv/data/automation');
+      redisPassword = credentials.data.REDIS_PASSWORD;
+
+      if (!redisPassword) {
+        throw new Error('Failed to retrieve Redis password from Vault.');
+      }
+    } catch (error) {
+      console.error('Could not fetch credentials from Vault', error);
+      throw error;
+    }
+  }
+}
 
 async function connectToRedis() {
+  await fetchRedisPassword();
+
   if (!client) {
     client = new Redis({
       host: envSwitcher.redisHost,
       port: 6379,
-      password: process.env.REDIS_PASSWORD,
+      password: redisPassword,
       retryStrategy(times) {
         const delay = Math.min(times * 50, 2000);
         return delay;
@@ -47,6 +68,8 @@ async function connectToRedis() {
 }
 
 async function subscribeToRedisKey(io) {
+  await fetchRedisPassword();
+
   if (!subscriptionClient) {
     try {
       const markiseStatusNamespace = namespaces.markiseStatus;
@@ -54,7 +77,7 @@ async function subscribeToRedisKey(io) {
       subscriptionClient = new Redis({
         host: envSwitcher.redisHost,
         port: 6379,
-        password: process.env.REDIS_PASSWORD,
+        password: redisPassword,
         retryStrategy(times) {
           const delay = Math.min(times * 50, 2000);
           return delay;

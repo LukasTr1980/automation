@@ -1,5 +1,6 @@
 const { MongoClient } = require('mongodb');
-const envSwitcher = require('./envSwitcher');
+const envSwitcher = require('../shared/envSwitcher');
+const vaultClient = require('../shared/vaultClient');
 require('dotenv').config();
 
 let isConnected = false;
@@ -10,14 +11,16 @@ async function connectToDatabase() {
     
     if (!isConnected) {
         try {
-            const username = process.env.MONGO_USERNAME;
-            const password = process.env.MONGO_PASSWORD;
+            await vaultClient.login(process.env.VAULT_ROLE_ID, process.env.VAULT_SECRET_ID);
 
-            // Check if both username and password are present
+            const credentials = await vaultClient.getSecret('kv/data/automation');
+            const username = credentials.data.MONGO_USERNAME;
+            const password = credentials.data.MONGO_PASSWORD;
+
             if (!username || !password) {
-                throw new Error('MongoDB credentials not found in environment variables.');
+                throw new Error('Failed to retrieve MongoDB credentials from Vault.');
             }
-
+            
             const host = envSwitcher.mongoDbHost;
 
             // Form the MongoDB connection URL

@@ -12,8 +12,6 @@
   "dependencies": {
     "@influxdata/influxdb-client": "^1.33.2",
     "ai": "file:../ai",
-    "axios": "^1.5.1",
-    "axios-retry": "^3.8.1",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
@@ -24,7 +22,6 @@
     "express-rate-limit": "^7.1.0",
     "express-session": "^1.17.3",
     "fs": "^0.0.1-security",
-    "ioredis": "^5.3.2",
     "joi": "^17.11.0",
     "mongodb": "^6.1.0",
     "mqtt": "^5.1.0",

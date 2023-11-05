@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { loginValidation } = require('../inputValidation');
-const { connectToRedis } = require('../redisClient');
+const { connectToRedis } = require('../../shared/redisClient');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 

@@ -1,6 +1,6 @@
 const { connectToMongo } = require('./mongoClient');
 const { ObjectId } = require('mongodb');  
-const envSwitcher = require('./envSwitcher');
+const envSwitcher = require('../shared/envSwitcher');
 
 const baseUrl = envSwitcher.baseUrl;
 
