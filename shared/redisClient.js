@@ -1,6 +1,5 @@
 const Redis = require('ioredis');
 const envSwitcher = require('./envSwitcher');
-require('dotenv').config();
 const namespaces = require('../nodeserver/namespace');
 const vaultClient = require('./vaultClient');
 
@@ -11,8 +10,8 @@ let redisPassword;
 async function fetchRedisPassword() {
   if (!redisPassword) {
     try {
-      await vaultClient.login(process.env.VAULT_ROLE_ID, process.env.VAULT_SECRET_ID);
-      const credentials = await vaultClient.getSecret('kv/data/automation');
+      await vaultClient.login();
+      const credentials = await vaultClient.getSecret('kv/data/redis');
       redisPassword = credentials.data.REDIS_PASSWORD;
 
       if (!redisPassword) {

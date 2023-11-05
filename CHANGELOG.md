@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Make more variables configurable from frontend settingspage
 
+## [v12.1.0.beta] - 28-11-05
+### Added
+- Vault client to handle secrets in Vault
+- Created new shared library to create only once shared code for both nodeserver and ai projects
+
 ## [v12.0.0.beta] - 28-11-05
 ### Added
 - Vault client to handle secrets in Vault

@@ -1,24 +1,41 @@
 const mqtt = require('mqtt');
 const envSwitcher = require('../../shared/envSwitcher');
-require('dotenv').config();
+const vaultClient = require('../../shared/vaultClient');  // Import the vaultClient
 
 class MqttPublisher {
   constructor() {
-    const brokerUrl = envSwitcher.mosquittoUrl;
-    const options = {
-      username: process.env.MOSQUITTO_USERNAME,
-      password: process.env.MOSQUITTO_PASSWORD
-    };
-    
-    this.client = mqtt.connect(brokerUrl, options);
-    
-    this.client.on('connect', () => {
-      console.log('Connected to MQTT Broker:', brokerUrl);
-    });
-    
-    this.client.on('error', (err) => {
-      console.error('MQTT Error:', err);
-    });
+    (async () => {  // Wrap the constructor logic in an async function
+      try {
+        await vaultClient.login();  // Login to Vault
+
+        // Fetch MQTT credentials from Vault
+        const credentials = await vaultClient.getSecret('kv/data/mosquitto');
+        const username = credentials.data.MOSQUITTO_USERNAME;
+        const password = credentials.data.MOSQUITTO_PASSWORD;
+
+        if (!username || !password) {
+          throw new Error('Failed to retrieve MQTT credentials from Vault.');
+        }
+
+        const brokerUrl = envSwitcher.mosquittoUrl;
+        const options = {
+          username: username,
+          password: password
+        };
+
+        this.client = mqtt.connect(brokerUrl, options);
+
+        this.client.on('connect', () => {
+          console.log('Connected to MQTT Broker:', brokerUrl);
+        });
+
+        this.client.on('error', (err) => {
+          console.error('MQTT Error:', err);
+        });
+      } catch (error) {
+        console.error('Error initializing MqttPublisher:', error);
+      }
+    })();
   }
 
   publish(mqttTopic, message, options = {}, callback = () => {}) {

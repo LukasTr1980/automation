@@ -1,7 +1,6 @@
 const { MongoClient } = require('mongodb');
 const envSwitcher = require('../shared/envSwitcher');
 const vaultClient = require('../shared/vaultClient');
-require('dotenv').config();
 
 let isConnected = false;
 let client;
@@ -11,9 +10,9 @@ async function connectToDatabase() {
     
     if (!isConnected) {
         try {
-            await vaultClient.login(process.env.VAULT_ROLE_ID, process.env.VAULT_SECRET_ID);
+            await vaultClient.login();
 
-            const credentials = await vaultClient.getSecret('kv/data/automation');
+            const credentials = await vaultClient.getSecret('kv/data/mongo');
             const username = credentials.data.MONGO_USERNAME;
             const password = credentials.data.MONGO_PASSWORD;
 

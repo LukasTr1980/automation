@@ -1,22 +1,44 @@
-const path = require('path');
 const OpenAI = require('openai');
 const { InfluxDB } = require('@influxdata/influxdb-client');
 const envSwitcher = require('../shared/envSwitcher');
-const connectToRedis = require('../shared/redisClient');
+const vaultClient = require('../shared/vaultClient');
 
 let openai;
 let influxDbClient;
+let openaiApiKey;
+let influxDbToken;
 
 async function initializeConfig() {
-    const redis = await connectToRedis();
+    try {
+        await vaultClient.login();
+        const credentials = await vaultClient.getSecret('kv/data/openai');
+        openaiApiKey = credentials.data.apikey;
 
-    const openaiApiKey = await redis.get('openaiapi:token');
+        if (!openaiApiKey) {
+            throw new Error('Failed to retrieve Openai Api Key from Vault.');
+        }
+    } catch (error) {
+        console.error('Could not fetch credentials from Vault', error);
+        throw error;
+    }
 
     openai = new OpenAI({
         apiKey: openaiApiKey,
     });
 
-    const influxDbToken = await redis.get('influxdb_ai:token');
+    try {
+        await
+         vaultClient.login();
+         const credentials = await vaultClient.getSecret('kv/data/influxdb');
+         influxDbToken = credentials.data.aitoken;
+
+         if (!influxDbToken) {
+            throw new Error('Failed to retrieve influxdb AI token from Vault.');
+        }
+    } catch (error) {
+        console.error('Could not fetch credentials from Vault', error);
+        throw error;
+    }
 
     const influxDbConfig = {
         url: envSwitcher.influxDbUrl,

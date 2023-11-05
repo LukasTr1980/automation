@@ -1,6 +1,5 @@
-// vaultClient.js
 const envSwitcher = require('./envSwitcher');
-require('dotenv').config();
+const { vaultRoleId, vaultSecretId } = require('./config');
 
 const vault = require('node-vault')({
     endpoint: envSwitcher.vaultUrl,
@@ -9,7 +8,15 @@ const vault = require('node-vault')({
 let clientToken;
 let tokenExpiry;
 
-async function login(roleId, secretId) {
+const roleId = vaultRoleId;
+const secretId = vaultSecretId;
+
+// Validate that role_id and secret_id are available
+if (!roleId || !secretId) {
+    throw new Error('Missing VAULT_ROLE_ID or VAULT_SECRET_ID environment variables');
+}
+
+async function login() {
     try {
         const loginResponse = await vault.approleLogin({ role_id: roleId, secret_id: secretId });
         clientToken = loginResponse.auth.client_token;
@@ -28,7 +35,7 @@ async function getSecret(path) {
 
         if (Date.now() >= tokenExpiry) {
             console.log('Token expired, refreshing...');
-            await login(process.env.VAULT_ROLE_ID, process.env.VAULT_SECRET_ID);
+            await login();
         }
 
         const secretResponse = await vault.read(path);
