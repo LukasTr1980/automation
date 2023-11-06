@@ -12,7 +12,7 @@ async function connectToDatabase() {
         try {
             await vaultClient.login();
 
-            const credentials = await vaultClient.getSecret('kv/data/mongo');
+            const credentials = await vaultClient.getSecret('kv/data/automation/mongo');
             const username = credentials.data.MONGO_USERNAME;
             const password = credentials.data.MONGO_PASSWORD;
 

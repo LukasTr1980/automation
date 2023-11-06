@@ -11,7 +11,7 @@ let influxDbToken;
 async function initializeConfig() {
     try {
         await vaultClient.login();
-        const credentials = await vaultClient.getSecret('kv/data/openai');
+        const credentials = await vaultClient.getSecret('kv/data/automation/openai');
         openaiApiKey = credentials.data.apikey;
 
         if (!openaiApiKey) {
@@ -29,7 +29,7 @@ async function initializeConfig() {
     try {
         await
          vaultClient.login();
-         const credentials = await vaultClient.getSecret('kv/data/influxdb');
+         const credentials = await vaultClient.getSecret('kv/data/automation/influxdb');
          influxDbToken = credentials.data.aitoken;
 
          if (!influxDbToken) {

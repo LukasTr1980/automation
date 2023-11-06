@@ -9,7 +9,7 @@ class MqttPublisher {
         await vaultClient.login();  // Login to Vault
 
         // Fetch MQTT credentials from Vault
-        const credentials = await vaultClient.getSecret('kv/data/mosquitto');
+        const credentials = await vaultClient.getSecret('kv/data/automation/mosquitto');
         const username = credentials.data.MOSQUITTO_USERNAME;
         const password = credentials.data.MOSQUITTO_PASSWORD;
 

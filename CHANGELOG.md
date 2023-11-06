@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Make more variables configurable from frontend settingspage
 
+## [v12.2.0.beta] - 28-11-06
+### Known Issues
+- Settings page not working with secret updates. Code needs to be refactored using Vault.
+- Dockerfile needs to be adapted to handle new shared library
+
+### Added
+- Furter improvement of storing secrets in Vault
+
 ## [v12.1.0.beta] - 28-11-05
 ### Added
 - Vault client to handle secrets in Vault

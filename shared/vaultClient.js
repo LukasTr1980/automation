@@ -41,8 +41,12 @@ async function getSecret(path) {
         const secretResponse = await vault.read(path);
         return secretResponse.data;
     } catch (error) {
-        console.error('Error fetching secret:', error);
-        throw error;
+        if (error.response && error.response.statusCode === 404) {
+            return null;
+        } else {
+            console.error('Error fetching secret:', error);
+            throw error;
+        }
     }
 }
 

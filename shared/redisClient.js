@@ -11,7 +11,7 @@ async function fetchRedisPassword() {
   if (!redisPassword) {
     try {
       await vaultClient.login();
-      const credentials = await vaultClient.getSecret('kv/data/redis');
+      const credentials = await vaultClient.getSecret('kv/data/automation/redis');
       redisPassword = credentials.data.REDIS_PASSWORD;
 
       if (!redisPassword) {
