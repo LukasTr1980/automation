@@ -1,3 +1,10 @@
+# Build the shared library
+FROM node:18-slim AS shared-build
+WORKDIR /usr/src/shared
+COPY ./shared/package*.json ./
+RUN npm install
+COPY ./shared .
+
 # Build the React app
 FROM node:18-slim AS client-build
 WORKDIR /usr/src/viteclient
@@ -16,14 +23,20 @@ RUN npm install
 COPY ./ai .
 
 # Build the Node.js app
-FROM node:18-slim
+FROM node:18-slim AS app-build
 WORKDIR /usr/src/nodeserver
 COPY ./nodeserver/package*.json ./
 RUN npm install
-# Copy built React app as a silbling
+COPY ./nodeserver .
+
+# Copy built React app as a sibling
 COPY --from=client-build /usr/src/viteclient/dist ../viteclient/dist
+
 # Copy AI app as a sibling
 COPY --from=ai-build /usr/src/ai ../ai
-COPY ./nodeserver .
+
+# Copy shared library as a sibling
+COPY --from=shared-build /usr/src/shared ../shared
+
 EXPOSE 8523
 CMD [ "node", "index.js" ]
