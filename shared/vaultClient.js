@@ -50,4 +50,22 @@ async function getSecret(path) {
     }
 }
 
-module.exports = { login, getSecret };
+async function writeSecret(path, data) {
+    try {
+        if (!clientToken) throw new Error('Not logged in to Vault')
+
+        if (Date.now() >= tokenExpiry) {
+            console.log('Token expired, refreshing...');
+            await login();
+        }
+
+        const payload = { data: data };
+
+        await vault.write(path, payload);
+    } catch (error) {
+        console.error('Error writing secret to Vault:', error);
+        throw error;
+    }
+}
+
+module.exports = { login, getSecret, writeSecret };
