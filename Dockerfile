@@ -2,7 +2,7 @@
 FROM node:18-slim AS shared-build
 WORKDIR /usr/src/shared
 COPY ./shared/package*.json ./
-RUN npm install
+RUN npm install --only=production
 COPY ./shared .
 
 # Build the React app
@@ -19,14 +19,14 @@ RUN npm run build
 FROM node:18-slim AS ai-build
 WORKDIR /usr/src/ai
 COPY ./ai/package*.json ./
-RUN npm install
+RUN npm install --only=production
 COPY ./ai .
 
 # Build the Node.js app
 FROM node:18-slim AS app-build
 WORKDIR /usr/src/nodeserver
 COPY ./nodeserver/package*.json ./
-RUN npm install
+RUN npm install --only=production
 COPY ./nodeserver .
 
 # Copy built React app as a sibling

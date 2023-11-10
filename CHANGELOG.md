@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Make more variables configurable from frontend settingspage
 
+## [v13.0.2.beta] - 28-11-10
+### Changed
+- Dockerfile to only install prod depencies
+
 ## [v13.0.1.beta] - 28-11-10
 ### Added
 - Jest and supertest to make tests available
