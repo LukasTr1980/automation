@@ -8,6 +8,7 @@ import axios from 'axios';
 import Layout from '../../Layout'
 import { SocketContext } from '../../components/socketio/SocketContext';
 import SwitchComponent from '../../components/switchComponent';
+import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 
 const MarkisePage = () => {
     const [markiseStatus, setMarkiseStatus] = useState({});
@@ -21,6 +22,7 @@ const MarkisePage = () => {
     const [reloadTasks, setReloadTasks] = useState(false);
     const customMarkiseLabels = { '1': "Ausfahren", '2': "Einfahren" };
     const apiUrl = import.meta.env.VITE_API_URL;
+    const { showSnackbar } = useContext(SnackbarContext);
 
     useEffect(() => {
         const sessionId = cookies.session;
@@ -70,7 +72,8 @@ const MarkisePage = () => {
         };
 
         axios.post(`${apiUrl}/simpleapi`, data)
-            .then(() => {
+            .then(response => {
+                showSnackbar(response.data);
             })
             .catch((error) => {
                 console.error('Error: ', error);

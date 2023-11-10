@@ -7,7 +7,12 @@ const CentralizedSnackbar = () => {
     const { openSnackbar, closeSnackbar, message, severity } = useContext(SnackbarContext);  // Updated to use severity
 
     return (
-        <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={closeSnackbar}>
+        <Snackbar
+            open={openSnackbar}
+            autoHideDuration={3000}
+            onClose={closeSnackbar}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
             <Alert onClose={closeSnackbar} severity={severity}>  {/* Updated to use severity */}
                 {message}
             </Alert>
