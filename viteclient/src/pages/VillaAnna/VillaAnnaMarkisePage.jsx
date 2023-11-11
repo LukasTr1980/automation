@@ -171,8 +171,17 @@ const MarkisePage = () => {
                     <Card>
                         <CardHeader title="Eingestellte Zeitpläne" />
                         <CardContent>
-                            {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
-                            <ScheduledTaskCard zoneName="Markise" tasks={sortedTasks} customLabels={customMarkiseLabels} onDelete={handleDeleteTask} redisKey="markise/switch/haupt/set" />
+                            {scheduledTasks.length === 0 ? (
+                                <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>
+                            ) : (
+                                <ScheduledTaskCard
+                                    zoneName="Markise"
+                                    tasks={sortedTasks}
+                                    customLabels={customMarkiseLabels}
+                                    onDelete={handleDeleteTask}
+                                    redisKey="markise/switch/haupt/set"
+                                />
+                            )}
                         </CardContent>
                     </Card>
                 </Grid>

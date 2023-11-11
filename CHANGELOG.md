@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Make more variables configurable from frontend settingspage
 
+## [v13.1.2] - 28-11-11
+### Added
+- authMiddleware jest test
+
+### Fixed
+- Loading of task boarder in Markisepage
+
 ## [v13.1.1] - 28-11-10
 ### Changed
 - Dependencies updates
