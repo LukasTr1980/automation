@@ -1,5 +1,6 @@
 const envSwitcher = require('./envSwitcher');
 const { vaultRoleId, vaultSecretId } = require('./config');
+const logger = require('./logger');
 
 const vault = require('node-vault')({
     endpoint: envSwitcher.vaultUrl,
@@ -24,7 +25,7 @@ async function login() {
 
         tokenExpiry = Date.now() + (loginResponse.auth.lease_duration - 300) * 1000;
     } catch (error) {
-        console.error('Vault login failed:', error);
+        logger.error('Vault login failed:', error);
         throw error;
     }
 }
@@ -34,7 +35,7 @@ async function getSecret(path) {
         if (!clientToken) throw new Error('Not logged in to Vault');
 
         if (Date.now() >= tokenExpiry) {
-            console.log('Token expired, refreshing...');
+            logger.info('Token expired, refreshing...');
             await login();
         }
 
@@ -44,7 +45,7 @@ async function getSecret(path) {
         if (error.response && error.response.statusCode === 404) {
             return null;
         } else {
-            console.error('Error fetching secret:', error);
+            logger.error('Error fetching secret:', error);
             throw error;
         }
     }
@@ -55,7 +56,7 @@ async function writeSecret(path, data) {
         if (!clientToken) throw new Error('Not logged in to Vault')
 
         if (Date.now() >= tokenExpiry) {
-            console.log('Token expired, refreshing...');
+            logger.info('Token expired, refreshing...');
             await login();
         }
 
@@ -63,7 +64,7 @@ async function writeSecret(path, data) {
 
         await vault.write(path, payload);
     } catch (error) {
-        console.error('Error writing secret to Vault:', error);
+        logger.error('Error writing secret to Vault:', error);
         throw error;
     }
 }

@@ -32,6 +32,7 @@ const prodConfig = {
 const selectedConfig = isDev ? devConfig : prodConfig;
 
 module.exports = {
+    isDev,
     influxDbUrl: selectedConfig.influxDbUrl,
     mqttBrokerUrl: selectedConfig.mqttBrokerUrl,
     baseUrl: selectedConfig.baseUrl,

@@ -9,22 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Store more variables in mongodb
 - Make more variables configurable from frontend settingspage
 
-## [v13.1.2] - 28-11-11
+## [v14.0.0] - 15-11-2023
+### Added
+- Winston logger
+
+## [v13.1.2] - 2023-11-11
 ### Added
 - authMiddleware jest test
 
 ### Fixed
 - Loading of task boarder in Markisepage
 
-## [v13.1.1] - 28-11-10
+## [v13.1.1] - 2023-11-10
 ### Changed
 - Dependencies updates
 
-## [v13.0.2.beta] - 28-11-10
+## [v13.0.2.beta] - 2023-11-10
 ### Changed
 - Dockerfile to only install prod Dependencies
 
-## [v13.0.1.beta] - 28-11-10
+## [v13.0.1.beta] - 2023-11-10
 ### Added
 - Jest and supertest to make tests available
 
@@ -34,18 +38,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Villa Anna Markise Page will now show snackbar
 
-## [v12.3.1] - 28-11-07
+## [v12.3.1] - 2023-11-07
 ### Changed
 - Dockerfile to meet new structure
 
-## [v12.3.0.beta] - 28-11-07
+## [v12.3.0.beta] - 2023-11-07
 ### Known Issues
 - Dockerfile needs to be adapted to handle new shared library
 
 ### Changed
 - Settings page now working with vault secretmanagement.
 
-## [v12.2.0.beta] - 28-11-06
+## [v12.2.0.beta] - 2023-11-06
 ### Known Issues
 - Settings page not working with secret updates. Code needs to be refactored using Vault.
 - Dockerfile needs to be adapted to handle new shared library
@@ -53,55 +57,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Furter improvement of storing secrets in Vault
 
-## [v12.1.0.beta] - 28-11-05
+## [v12.1.0.beta] - 2023-11-05
 ### Added
 - Vault client to handle secrets in Vault
 - Created new shared library to create only once shared code for both nodeserver and ai projects
 
-## [v12.0.0.beta] - 28-11-05
+## [v12.0.0.beta] - 2023-11-05
 ### Added
 - Vault client to handle secrets in Vault
 - Created new shared library to create only once shared code for both nodeserver and ai projects
 
-## [v11.0.0] - 28-11-03
+## [v11.0.0] - 2023-11-03
 ### Changed
 - Replaced axios with mqtt on backend
 
-## [v11.0.0.beta] - 28-10-31
+## [v11.0.0.beta] - 2023-10-31
 ### Issues
 - Naming of topics, what is the mqtt strategy
 
 ### Added
 - Implementation of mosquitto to handle network errors
 
-## [v10.1.0] - 28-10-31
+## [v10.1.0] - 2023-10-31
 ### Added
 - ErrorBoundary to frontend to catch render errors
 - Severity prop for Snackbar
 - Dependencies updates
 
-## [v10.0.0] - 28-10-29
+## [v10.0.0] - 2023-10-29
 ### Changed
 - Api endpoints, creating separat files for endpoints
 - Indroducing new api.js file with definition of all routes
 - Moved all routes from index.js to api.js
 
-## [v9.1.0] - 28-10-28 
+## [v9.1.0] - 2023-10-28 
 ### Added
 - Ratelimiting for every api endpoint
 
 ### Changed
 - Redis pub / sub provide value to improve performance
 
-## [v9.0.2] - 28-10-28 
+## [v9.0.2] - 2023-10-28 
 ### Fixed
 - Value of windhandler set to 20
 
-## [v9.0.1] - 28-10-28 
+## [v9.0.1] - 2023-10-28 
 ### Fixed
 - Throttling time in markiseblock.js
 
-## [v9.0.0] - 28-10-28 
+## [v9.0.0] - 2023-10-28 
 ### Added
 - Display Weather blocking conditions on Markisepage
 - New route handler for markisestatus
