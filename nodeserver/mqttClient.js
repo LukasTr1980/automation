@@ -1,5 +1,6 @@
 const mqtt = require('mqtt');
 const { mqttBrokerUrl } = require('./constants');
+const logger = require('../shared/logger');
 
 const MQTT_RECONNECT_INTERVAL = 5000; // 5 seconds
 
@@ -13,23 +14,23 @@ const mqttOptions = {
 const mqttClient = mqtt.connect(mqttBrokerUrl, mqttOptions);
 
 mqttClient.on('connect', () => {
-    console.log('Connected to MQTT broker');
+    logger.info('Connected to MQTT broker');
 });
 
 mqttClient.on('reconnect', () => {
-    console.log('Reconnecting to MQTT broker...');
+    logger.info('Reconnecting to MQTT broker...');
 });
 
 mqttClient.on('error', (err) => {
-    console.error('MQTT Error:', err);
+    logger.error('MQTT Error:', err);
 });
 
 mqttClient.on('offline', () => {
-    console.log('MQTT client is offline');
+    logger.info('MQTT client is offline');
 });
 
 mqttClient.on('close', () => {
-    console.log('MQTT client disconnected');
+    logger.info('MQTT client disconnected');
 });
 
 module.exports = mqttClient;

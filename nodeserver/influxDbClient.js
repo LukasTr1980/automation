@@ -1,5 +1,6 @@
 const { Point } = require('@influxdata/influxdb-client');
 const config = require('./config');
+const logger = require('../shared/logger');
 
 async function writeToInflux(topic, message) {
     const influxDbClient = await config.getInfluxDbClient();
@@ -15,7 +16,7 @@ async function writeToInflux(topic, message) {
         if (!isNaN(numValue)) {
             point.floatField('value_numeric', numValue);
         } else {
-            console.error(`Invalid data type received for message: ${message}`);
+            logger.error(`Invalid data type received for message: ${message}`);
             return; // Exit if the message data type isn't supported
         }
     }
@@ -24,10 +25,10 @@ async function writeToInflux(topic, message) {
 
     writeApi.flush()
         .then(() => {
-            console.log('Data written to InfluxDB');
+            logger.info('Data written to InfluxDB');
         })
         .catch((error) => {
-            console.error('Error writing data to InfluxDB', error);
+            logger.error('Error writing data to InfluxDB', error);
         });
 }
 

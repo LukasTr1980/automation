@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const vaultClient = require('../../shared/vaultClient'); // Ensure the path is correct
+const logger = require('../../shared/logger');
 
 router.post('/', async (req, res) => {
     try {
@@ -39,7 +40,7 @@ router.post('/', async (req, res) => {
 
         res.status(200).send(`Successfully updated: ${updatedFields.join(', ')}`);
     } catch (error) {
-        console.error('Error while updating secrets in Vault', error);
+        logger.error('Error while updating secrets in Vault', error);
         res.status(500).send('Internal server error');
     }
 });

@@ -1,4 +1,5 @@
 // countdown.js
+const logger = require('../shared/logger');
 const { connectToRedis } = require('../shared/redisClient');
 const MqttPublisher = require('./mqtt/mqttPublisher');
 
@@ -141,13 +142,13 @@ async function sendSignal(topic, state) {
     try {
         publisher.publish(topic, state.toString(), (err) => {
             if (err) {
-                console.error('Error while publishing message:', err);
+                logger.error('Error while publishing message:', err);
             } else {
-                console.log('Message published successfully');
+                logger.info('Message published successfully');
             }
         });
     } catch (error) {
-        console.error('Error:', error);
+        logger.error('Error:', error);
     }
 }
 

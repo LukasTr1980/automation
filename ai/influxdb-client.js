@@ -1,3 +1,4 @@
+const logger = require('../shared/logger');
 const config = require('./configs');
 const {
     outTempQuery,
@@ -47,7 +48,7 @@ async function queryAllData() {
       rainRate: rainrateResults.length > 0 ? +(rainrateResults[0]._value / 10).toFixed(2) : null
     };
   } catch (error) {
-    console.error('Error querying data from InfluxDB', error);
+    logger.error('Error querying data from InfluxDB', error);
     throw error;
   }
 }

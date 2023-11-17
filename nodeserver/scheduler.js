@@ -7,6 +7,7 @@ const sharedState = require('./sharedState');
 const generateUniqueId = require('./generateUniqueId');
 const { topicToTaskEnablerKey } = require('./constants');
 const MqttPublisher = require('./mqtt/mqttPublisher');
+const logger = require('../shared/logger');
 
 const publisher = new MqttPublisher();
 
@@ -25,11 +26,11 @@ function createTask(topic, state) {
         const taskEnablerState = await getTaskEnabler(taskEnablerKey);
 
         if (!taskEnablerState) {
-          console.log(`Task enabler status for key "${taskEnablerKey}" is false. Skipping task execution.`);
+          logger.info(`Task enabler status for key "${taskEnablerKey}" is false. Skipping task execution.`);
           return;
         }
       } else {
-        console.log(`No task enabler key found for "${zoneName}". Proceeding without checking task enabler state.`)
+        logger.info(`No task enabler key found for "${zoneName}". Proceeding without checking task enabler state.`)
       }
 
       // Special logic for markise
@@ -38,17 +39,17 @@ function createTask(topic, state) {
           // Send initial state (from Redis key)
           publisher.publish(topic, state.toString(), (err) => {
             if (err) {
-              console.error('Error while publishing message:', err);
+              logger.error('Error while publishing message:', err);
             } else {
-              console.log('Message published successfully.');
+              logger.info('Message published successfully.');
 
               // Send state 3 after 40 seconds
               setTimeout(() => {
                 publisher.publish(topic, '3', (err) => {
                   if (err) {
-                    console.error('Error while publishing second message:', err);
+                    logger.error('Error while publishing second message:', err);
                   } else {
-                    console.log('Second message published successfully.');
+                    logger.info('Second message published successfully.');
                   }
                 });
               }, 40000); // 40 seconds delay
@@ -56,15 +57,15 @@ function createTask(topic, state) {
             }
           });
         } else {
-          console.log("The timeout is ongoing in markiseblock, skipping tasks.");
+          logger.info("The timeout is ongoing in markiseblock, skipping tasks.");
         }
       } else {
         if (state === false) {
           publisher.publish(topic, state.toString(), (err) => {
             if (err) {
-              console.error('Error while publishing message:', err);
+              logger.error('Error while publishing message:', err);
             } else {
-              console.log('Message published successfully.');
+              logger.info('Message published successfully.');
             }
           });
         } else {
@@ -74,18 +75,18 @@ function createTask(topic, state) {
             // Original logic for other topics
             publisher.publish(topic, state.toString(), (err) => {
               if (err) {
-                console.error('Error while publishing message:', err);
+                logger.error('Error while publishing message:', err);
               } else {
-                console.log('Message published successfully.');
+                logger.info('Message published successfully.');
               }
             });
           } else {
-            console.log('Skipping task execution due to irrigationNeeded returning false');
+            logger.info('Skipping task execution due to irrigationNeeded returning false');
           }
         }
       }
     } catch (error) {
-      console.error('Error while getting task enabler status:', error);
+      logger.error('Error while getting task enabler status:', error);
     }
   };
 }

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { connectToRedis } = require('../../shared/redisClient');
+const logger = require('../../shared/logger');
 
 router.post('/', async (req, res) => {
     try {
@@ -9,7 +10,7 @@ router.post('/', async (req, res) => {
       await client.set("gptRequestKey", newGptRequest);
       res.status(200).send('GPT request updated successfully');
     } catch (error) {
-      console.error('Error while updating GPT request:', error);
+      logger.error('Error while updating GPT request:', error);
       res.status(500).send('Internal server error');
     }
   });

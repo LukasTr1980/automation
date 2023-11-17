@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { scheduleTask } = require('../scheduler');
+const logger = require('../../shared/logger');
 
 router.post('/', async (req, res) => {
     const { topic, state, days, months, hour, minute } = req.body;
@@ -22,7 +23,7 @@ router.post('/', async (req, res) => {
       await scheduleTask(topic, state, recurrenceRule);
       res.status(200).send('Zeitplan erstellt');
     } catch (error) {
-      console.error('Error while scheduling task:', error);
+      logger.error('Error while scheduling task:', error);
       res.status(500).send('Internal server error');
     }
   });

@@ -3,6 +3,7 @@ const sharedState = require('./sharedState');
 const { connectToRedis } = require('../shared/redisClient');
 const namespaces = require('./namespace');
 const MqttPublisher = require('./mqtt/mqttPublisher');
+const logger = require('../shared/logger');
 
 const publisher = new MqttPublisher();
 
@@ -20,7 +21,7 @@ async function checkConditionsAndSendValues() {
         }
 
         if (isRaining() || isWindy()) {
-            console.log('Rain or wind detected, sending values...');
+            logger.info('Rain or wind detected, sending values...');
             sendValue(2, markiseStatusNamespace);
             await delay(40000);  // Wait for 40 seconds
             sendValue(3, markiseStatusNamespace);
@@ -37,7 +38,7 @@ async function checkConditionsAndSendValues() {
             }, 15 * 60 * 1000);  // Reset the throttling after 15 minutes
         }
     } catch (error) {
-        console.error('Error in checkConditionsAndSendValues:', error);
+        logger.error('Error in checkConditionsAndSendValues:', error);
     }
 }
 
@@ -47,7 +48,7 @@ async function sendValue(value, markiseStatusNamespace) {
     try {
         publisher.publish(topic, value.toString(), (err) => {
             if (err) {
-                console.error(`Failed to send value: ${value}`, err);
+                logger.error(`Failed to send value: ${value}`, err);
             }
         });
 
@@ -72,7 +73,7 @@ async function sendValue(value, markiseStatusNamespace) {
         }
 
     } catch (error) {
-        console.error(`Failed to send value: ${value}`, error);
+        logger.error(`Failed to send value: ${value}`, error);
     }
 }
 

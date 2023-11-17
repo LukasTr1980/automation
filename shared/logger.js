@@ -11,6 +11,11 @@ if (!fs.existsSync(logDirectory)){
   fs.mkdirSync(logDirectory, { recursive: true });
 }
 
+// Custom formatting function
+const customFormat = winston.format.printf(({ level, message, timestamp }) => {
+  return `${timestamp} [${level}]: ${message}`;
+});
+
 // Create a Winston logger
 const logger = winston.createLogger({
   level: 'info', // Log only if level is less than or equal to this level
@@ -18,7 +23,7 @@ const logger = winston.createLogger({
     winston.format.timestamp({
       format: 'DD-MM-YYYY HH:mm:ss'
     }),
-    winston.format.json()
+    customFormat // use custom format here
   ),
   transports: [
     new winston.transports.File({ filename: path.join(logDirectory, 'error.log'), level: 'error' }),

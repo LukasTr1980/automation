@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { connectToRedis } = require('../../shared/redisClient');
+const logger = require('../../shared/logger');
 
 router.delete('/', async (req, res) => {
-    console.log("Received body:", req.body);
+    logger.info("Received body:", req.body);
     const { taskId, zone } = req.body;
   
     if (!taskId || !zone) {
@@ -19,15 +20,15 @@ router.delete('/', async (req, res) => {
     // Delete the task from Redis
     redis.del(redisKey, function (err, reply) {
       if (err) {
-        console.error('Error while deleting task:', err);
+        logger.error('Error while deleting task:', err);
         return res.status(500).send('Internal server error');
       }
   
       if (reply === 1) {
-        console.log(`Task ${redisKey} deleted successfully`);
+        logger.info(`Task ${redisKey} deleted successfully`);
         return res.status(200).send('Zeitplan gelöscht');
       } else {
-        console.log(`Task ${redisKey} not found`);
+        logger.info(`Task ${redisKey} not found`);
         return res.status(404).send('Task not found');
       }
     });

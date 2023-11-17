@@ -1,3 +1,4 @@
+const logger = require('../shared/logger');
 const config = require('./configs');
 require('dotenv').config();
 
@@ -8,5 +9,5 @@ async function listModels() {
 }
 
 listModels().then(response => {
-  console.log(response);
+  logger.info(response);
 });

@@ -1,6 +1,7 @@
 const { MongoClient } = require('mongodb');
 const envSwitcher = require('../shared/envSwitcher');
 const vaultClient = require('../shared/vaultClient');
+const logger = require('../shared/logger');
 
 let isConnected = false;
 let client;
@@ -28,10 +29,10 @@ async function connectToDatabase() {
             client = new MongoClient(url);
             await client.connect();
 
-            console.log('Connected to MongoDB');
+            logger.info('Connected to MongoDB');
             isConnected = true;
         } catch (error) {
-            console.error('Could not connect to MongoDB', error);
+            logger.error('Could not connect to MongoDB', error);
             throw error;  // re-throw the error after logging it
         }
     }

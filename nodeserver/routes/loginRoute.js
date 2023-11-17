@@ -4,6 +4,7 @@ const { loginValidation } = require('../inputValidation');
 const { connectToRedis } = require('../../shared/redisClient');
 const crypto = require('crypto');
 const vaultClient = require('../../shared/vaultClient'); // Import your Vault client
+const logger = require('../../shared/logger');
 
 router.post('/', async (req, res) => {
     const { error } = loginValidation(req.body);
@@ -43,7 +44,7 @@ router.post('/', async (req, res) => {
         // Send the session ID back to the client
         res.status(200).json({ status: 'success', session: sessionId });
     } catch (error) {
-        console.error('Error during user login:', error);
+        logger.error('Error during user login:', error);
         // This should be a generic error message, not revealing the nature of the error
         res.status(500).json({ status: 'error', message: 'An error occurred while processing your request.' });
     }

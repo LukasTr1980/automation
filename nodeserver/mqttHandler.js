@@ -3,6 +3,7 @@ const EventEmitter = require('events');
 const { writeToInflux } = require('./influxDbClient');
 const mqttClient = require('./mqttClient');
 const { broadcastToSseClients, addSseClient } = require('./sseHandler');
+const logger = require('../shared/logger');
 
 class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();
@@ -17,7 +18,7 @@ async function fetchMqttTopics() {
         const doc = await collection.findOne({});
         return doc ? { mqttTopics: doc.mqttTopics, mqttTopicsNumber: doc.mqttTopicsNumber } : null;
     } catch (error) {
-        console.error('Could not fetch MQTT Topics', error);
+        logger.error('Could not fetch MQTT Topics', error);
     }
 }
 
@@ -25,7 +26,7 @@ const latestStates = {};
 
 // Subscribe to all topics and set message handlers
 mqttClient.on('connect', async () => {
-    console.log('Connected to MQTT broker');
+    logger.info('Connected to MQTT broker');
 
     const topics = await fetchMqttTopics();
     if (topics) {
@@ -33,18 +34,18 @@ mqttClient.on('connect', async () => {
         mqttTopicsNumber = topics.mqttTopicsNumber;
         [...mqttTopics, ...mqttTopicsNumber].forEach(mqttTopic => {
             mqttClient.subscribe(mqttTopic, (err) => {
-                if (err) console.error('Error subscribing to MQTT topic:', err);
-                else console.log('Subscribed to MQTT topic:', mqttTopic);
+                if (err) logger.error('Error subscribing to MQTT topic:', err);
+                else logger.info('Subscribed to MQTT topic:', mqttTopic);
             });
         });
     } else {
-        console.error('Failed to fetch MQTT topics from the database');
+        logger.error('Failed to fetch MQTT topics from the database');
     }
 });
 
 mqttClient.on('message', async (topic, message) => {
     const msg = message.toString();
-    console.log(`Message received from topic: ${topic}, Message: ${msg}`);
+    logger.info(`Message received from topic: ${topic}, Message: ${msg}`);
 
     // Update the latest switch state when a message is received
     latestStates[topic] = msg;

@@ -10,6 +10,7 @@ const { subscribeToRedisKey } = require('../shared/redisClient')
 const { loadScheduledTasks } = require('./scheduler');
 const { apiLimiter } = require('./rateLimiter');
 const apiRouter = require('./routes/api');
+const logger = require('../shared/logger');
 require('./markiseBlock');
 
 const app = express();
@@ -31,8 +32,8 @@ app.get('*', apiLimiter, function (req, res) {
 });
 
 httpServer.listen(port, async () => {
-  console.log(`APIs are listening on port ${port}`);
-  loadScheduledTasks().catch(console.error);
+  logger.info(`APIs are listening on port ${port}`);
+  loadScheduledTasks().catch(logger.error);
 
   await subscribeToRedisKey(io);
 });

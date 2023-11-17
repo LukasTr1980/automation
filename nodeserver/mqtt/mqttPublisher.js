@@ -1,6 +1,7 @@
 const mqtt = require('mqtt');
 const envSwitcher = require('../../shared/envSwitcher');
 const vaultClient = require('../../shared/vaultClient');  // Import the vaultClient
+const logger = require('../../shared/logger');
 
 class MqttPublisher {
   constructor() {
@@ -26,14 +27,14 @@ class MqttPublisher {
         this.client = mqtt.connect(brokerUrl, options);
 
         this.client.on('connect', () => {
-          console.log('Connected to MQTT Broker:', brokerUrl);
+          logger.info('Connected to MQTT Broker:', brokerUrl);
         });
 
         this.client.on('error', (err) => {
-          console.error('MQTT Error:', err);
+          logger.error('MQTT Error:', err);
         });
       } catch (error) {
-        console.error('Error initializing MqttPublisher:', error);
+        logger.error('Error initializing MqttPublisher:', error);
       }
     })();
   }

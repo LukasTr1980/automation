@@ -1,6 +1,7 @@
 const { connectToMongo } = require('./mongoClient');
 const { ObjectId } = require('mongodb');  
 const envSwitcher = require('../shared/envSwitcher');
+const logger = require('../shared/logger');
 
 const baseUrl = envSwitcher.baseUrl;
 
@@ -26,7 +27,7 @@ async function buildUrlMap() {
         }
         return urlMap;
     } catch (error) {
-        console.error('Could not build urlMap object:', error);
+        logger.error('Could not build urlMap object:', error);
         throw error;
     }
 }

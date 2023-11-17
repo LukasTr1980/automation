@@ -2,6 +2,7 @@ const OpenAI = require('openai');
 const { InfluxDB } = require('@influxdata/influxdb-client');
 const envSwitcher = require('../shared/envSwitcher');
 const vaultClient = require('../shared/vaultClient');
+const logger = require('../shared/logger');
 
 let openai;
 let influxDbClient;
@@ -18,7 +19,7 @@ async function initializeConfig() {
             throw new Error('Failed to retrieve Openai Api Key from Vault.');
         }
     } catch (error) {
-        console.error('Could not fetch credentials from Vault', error);
+        logger.error('Could not fetch credentials from Vault', error);
         throw error;
     }
 
@@ -36,7 +37,7 @@ async function initializeConfig() {
             throw new Error('Failed to retrieve influxdb AI token from Vault.');
         }
     } catch (error) {
-        console.error('Could not fetch credentials from Vault', error);
+        logger.error('Could not fetch credentials from Vault', error);
         throw error;
     }
 

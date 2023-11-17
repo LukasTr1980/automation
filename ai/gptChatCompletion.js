@@ -1,18 +1,18 @@
-const path = require('path');
 const config = require('./configs');
 const queryAllData = require('./influxdb-client');
 const getCurrentDate = require('./currentDate');
 const { connectToRedis } = require('../shared/redisClient');
 const traditionalCheck = require('./traditionalCheck');
+const logger = require('../shared/logger');
 
 async function createChatCompletion() {
   try {
-    console.log("Starting chat completion...");
+    logger.info("Starting chat completion...");
 
     const { weekday, month } = getCurrentDate();
 
     const results = await queryAllData();
-    console.log("Received data from InfluxDB:", results);
+    logger.info("Received data from InfluxDB:", results);
 
     const client = await connectToRedis();
     const gptRequest = await client.get("gptRequestKey");
@@ -21,7 +21,7 @@ async function createChatCompletion() {
                                           .replace(/\$\{month\}/g, month)
                                           .replace(/\$\{weekday\}/g, weekday);
 
-    console.log("Formatted GPT Request:", formattedGptRequest);
+    logger.info(`Formatted GPT Request: ${formattedGptRequest}`);
 
     const openai = await config.getOpenAI();
 
@@ -71,7 +71,7 @@ async function createChatCompletion() {
     }
 
   } catch (error) {
-    console.error("Error in createChatCompletion:", error);
+    logger.error("Error in createChatCompletion:", error);
     throw error;
   }
 }

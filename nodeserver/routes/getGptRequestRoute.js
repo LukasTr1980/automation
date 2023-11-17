@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { connectToRedis } = require('../../shared/redisClient');
+const logger = require('../../shared/logger');
 
 router.get('/', async (req, res) => {
     try {
@@ -8,7 +9,7 @@ router.get('/', async (req, res) => {
       const gptRequest = await client.get("gptRequestKey");
       res.status(200).json({ gptRequest });
     } catch (error) {
-      console.error('Error while fetching GPT request:', error);
+      logger.error('Error while fetching GPT request:', error);
       res.status(500).send('Internal server error');
     }
   });

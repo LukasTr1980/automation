@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const vaultClient = require('../../shared/vaultClient'); // Ensure the path is correct
+const logger = require('../../shared/logger');
 
 router.get('/', async (req, res) => {
     try {
@@ -31,7 +32,7 @@ router.get('/', async (req, res) => {
             passwordExists
         });
     } catch (error) {
-        console.error('Error while fetching secrets from Vault:', error);
+        logger.error('Error while fetching secrets from Vault:', error);
         res.status(500).send('Internal server error');
     }
 });
