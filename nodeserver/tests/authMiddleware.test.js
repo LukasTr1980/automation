@@ -3,7 +3,7 @@ const express = require('express');
 const authMiddleware = require('../authMiddleware');
 
 // Mock the Redis client directly within the jest.mock call
-jest.mock('../../shared/redisClient', () => {
+jest.mock('../../shared/build/redisClient', () => {
   const mockGet = jest.fn();
   return {
     connectToRedis: jest.fn().mockResolvedValue({
@@ -26,7 +26,7 @@ describe('authMiddleware', () => {
 
     beforeEach(() => {
         // Reset the mock before each test
-        const redisClient = require('../../shared/redisClient');
+        const redisClient = require('../../shared/build/redisClient');
         mockGet = redisClient.mockGet;
         mockGet.mockClear();
     });

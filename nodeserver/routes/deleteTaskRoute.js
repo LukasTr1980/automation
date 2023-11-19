@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { connectToRedis } = require('../../shared/redisClient');
+const { connectToRedis } = require('../../shared/build/redisClient');
 const logger = require('../../shared/build/logger');
 
 router.delete('/', async (req, res) => {

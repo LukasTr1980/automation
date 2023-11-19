@@ -1,4 +1,4 @@
-const { connectToRedis } = require('../shared/redisClient');
+const { connectToRedis } = require('../shared/build/redisClient');
 const logger = require('../shared/build/logger'); // Import your logger
 
 const authMiddlewareSocket = async (socket, next) => {

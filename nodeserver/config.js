@@ -1,6 +1,6 @@
 const { InfluxDB } = require('@influxdata/influxdb-client');
 const envSwitcher = require('../shared/build/envSwitcher');
-const vaultClient = require('../shared/vaultClient'); // Make sure this path is correct
+const vaultClient = require('../shared/build/vaultClient'); // Make sure this path is correct
 
 let influxDbConfig;
 let influxDbClient;

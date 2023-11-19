@@ -1,6 +1,6 @@
 // countdown.js
 const logger = require('../shared/build/logger');
-const { connectToRedis } = require('../shared/redisClient');
+const { connectToRedis } = require('../shared/build/redisClient');
 const MqttPublisher = require('./mqtt/mqttPublisher');
 
 const publisher = new MqttPublisher();

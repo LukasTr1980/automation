@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
-const devEnvPath = path.join(__dirname, '.env.dev');
+const devEnvPath = path.join(__dirname, '..', '.env.dev');
 const isDev = fs.existsSync(devEnvPath);
 
 if (isDev) {

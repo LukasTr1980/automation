@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const vaultClient = require('../../shared/vaultClient'); // Ensure the path is correct
+const vaultClient = require('../../shared/build/vaultClient'); // Ensure the path is correct
 const logger = require('../../shared/build/logger');
 
 router.get('/', async (req, res) => {

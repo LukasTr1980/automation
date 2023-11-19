@@ -1,7 +1,7 @@
 const config = require('./configs');
 const queryAllData = require('./influxdb-client');
 const getCurrentDate = require('./currentDate');
-const { connectToRedis } = require('../shared/redisClient');
+const { connectToRedis } = require('../shared/build/redisClient');
 const traditionalCheck = require('./traditionalCheck');
 const logger = require('../shared/build/logger');
 

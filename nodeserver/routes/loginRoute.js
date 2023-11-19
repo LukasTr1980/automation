@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { loginValidation } = require('../inputValidation');
-const { connectToRedis } = require('../../shared/redisClient');
+const { connectToRedis } = require('../../shared/build/redisClient');
 const crypto = require('crypto');
-const vaultClient = require('../../shared/vaultClient'); // Import your Vault client
+const vaultClient = require('../../shared/build/vaultClient'); // Import your Vault client
 const logger = require('../../shared/build/logger');
 
 router.post('/', async (req, res) => {
