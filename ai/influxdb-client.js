@@ -1,4 +1,4 @@
-const logger = require('../shared/build/logger');
+const logger = require('../shared/build/logger').default;
 const config = require('./configs');
 const {
     outTempQuery,

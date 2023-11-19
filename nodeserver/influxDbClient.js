@@ -1,6 +1,6 @@
 const { Point } = require('@influxdata/influxdb-client');
 const config = require('./config');
-const logger = require('../shared/build/logger');
+const logger = require('../shared/build/logger').default;
 
 async function writeToInflux(topic, message) {
     const influxDbClient = await config.getInfluxDbClient();

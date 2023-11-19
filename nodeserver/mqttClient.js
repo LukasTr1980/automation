@@ -1,6 +1,6 @@
 const mqtt = require('mqtt');
 const { mqttBrokerUrl } = require('./constants');
-const logger = require('../shared/build/logger');
+const logger = require('../shared/build/logger').default;
 
 const MQTT_RECONNECT_INTERVAL = 5000; // 5 seconds
 

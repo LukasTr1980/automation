@@ -1,6 +1,6 @@
 const envSwitcher = require('./envSwitcher');
 const { vaultRoleId, vaultSecretId } = require('./config');
-const logger = require('./logger');
+const logger = require('./logger').default;
 
 const vault = require('node-vault')({
     endpoint: envSwitcher.vaultUrl,

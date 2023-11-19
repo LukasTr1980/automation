@@ -10,7 +10,7 @@ const { subscribeToRedisKey } = require('../shared/build/redisClient')
 const { loadScheduledTasks } = require('./scheduler');
 const { apiLimiter } = require('./rateLimiter');
 const apiRouter = require('./routes/api');
-const logger = require('../shared/build/logger');
+const logger = require('../shared/build/logger').default;
 require('./markiseBlock');
 
 const app = express();

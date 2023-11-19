@@ -3,7 +3,7 @@ const sharedState = require('./sharedState');
 const { connectToRedis } = require('../shared/build/redisClient');
 const namespaces = require('./namespace');
 const MqttPublisher = require('./mqtt/mqttPublisher');
-const logger = require('../shared/build/logger');
+const logger = require('../shared/build/logger').default;
 
 const publisher = new MqttPublisher();
 

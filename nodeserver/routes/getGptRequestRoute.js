@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { connectToRedis } = require('../../shared/build/redisClient');
-const logger = require('../../shared/build/logger');
+const logger = require('../../shared/build/logger').default;
 
 router.get('/', async (req, res) => {
     try {

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JS files in shared folder migration to TS
 - Import path for js files to build/ folder
 - More path changing adapting to typescript setup
+- Further path changes for default in rquire const statement
 
 ## [v14.0.0] - 2023-11-17
 ### Added

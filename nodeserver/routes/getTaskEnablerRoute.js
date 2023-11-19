@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const getTaskEnabler = require('../getTaskEnabler');
-const logger = require('../../shared/build/logger');
+const logger = require('../../shared/build/logger').default;
 
 router.get('/', async (req, res) => {
     const { zone } = req.query;

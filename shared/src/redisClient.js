@@ -2,7 +2,7 @@ const Redis = require('ioredis');
 const envSwitcher = require('./envSwitcher');
 const namespaces = require('./namespace');
 const vaultClient = require('./vaultClient');
-const logger = require('./logger');
+const logger = require('./logger').default;
 
 let client;
 let subscriptionClient;

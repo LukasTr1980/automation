@@ -1,7 +1,7 @@
 const mqtt = require('mqtt');
 const envSwitcher = require('../../shared/build/envSwitcher');
 const vaultClient = require('../../shared/build/vaultClient');  // Import the vaultClient
-const logger = require('../../shared/build/logger');
+const logger = require('../../shared/build/logger').default;
 
 class MqttPublisher {
   constructor() {

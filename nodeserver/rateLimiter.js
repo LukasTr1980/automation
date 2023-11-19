@@ -1,5 +1,5 @@
 const rateLimit = require("express-rate-limit");
-const logger = require('../shared/build/logger'); // Ensure your logger is required
+const logger = require('../shared/build/logger').default; // Ensure your logger is required
 
 function createRateLimiter(windowMs, max, message) {
     return rateLimit({

@@ -3,7 +3,7 @@ const EventEmitter = require('events');
 const { writeToInflux } = require('./influxDbClient');
 const mqttClient = require('./mqttClient');
 const { broadcastToSseClients, addSseClient } = require('./sseHandler');
-const logger = require('../shared/build/logger');
+const logger = require('../shared/build/logger').default;
 
 class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();
