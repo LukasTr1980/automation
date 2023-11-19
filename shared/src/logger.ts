@@ -1,13 +1,13 @@
-const winston = require('winston');
-const envSwitcher = require('./envSwitcher');
-const fs = require('fs');
-const path = require('path');
+import winston from 'winston';
+import * as envSwitcher from './envSwitcher';
+import fs from 'fs';
+import path from 'path';
 
 // Define the log directory
 const logDirectory = 'logs'; // Replace with your desired path
 
 // Ensure that the log directory exists
-if (!fs.existsSync(logDirectory)){
+if (!fs.existsSync(logDirectory)) {
   fs.mkdirSync(logDirectory, { recursive: true });
 }
 
@@ -44,4 +44,4 @@ if (envSwitcher.isDev) {
   }));
 }
 
-module.exports = logger;
+export default logger;

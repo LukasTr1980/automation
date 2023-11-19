@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const dotenv = require('dotenv');
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
 
 const devEnvPath = path.join(__dirname, '.env.dev');
 const isDev = fs.existsSync(devEnvPath);
@@ -9,7 +9,17 @@ if (isDev) {
     dotenv.config({ path: devEnvPath });
 }
 
-const devConfig = {
+interface Config {
+    influxDbUrl: string;
+    mqttBrokerUrl: string;
+    baseUrl: string;
+    redisHost: string;
+    mongoDbHost: string;
+    mosquittoUrl: string;
+    vaultUrl: string;
+}
+
+const devConfig: Config = {
     influxDbUrl: 'http://10.25.159.4:8086',
     mqttBrokerUrl: 'mqtt://192.168.1.2:1883',
     baseUrl: 'http://192.168.1.2:8087',
@@ -19,7 +29,7 @@ const devConfig = {
     vaultUrl: 'http://10.25.159.4:8200'
 }
 
-const prodConfig = {
+const prodConfig: Config = {
     influxDbUrl: 'http://influxdb_container:8086',
     mqttBrokerUrl: 'mqtt://10.25.159.1:1883',
     baseUrl: 'http://10.25.159.1:8087',
@@ -29,15 +39,16 @@ const prodConfig = {
     vaultUrl: 'http://vault_container:8200'
 }
 
-const selectedConfig = isDev ? devConfig : prodConfig;
+const selectedConfig: Config = isDev ? devConfig : prodConfig;
 
-module.exports = {
-    isDev,
-    influxDbUrl: selectedConfig.influxDbUrl,
-    mqttBrokerUrl: selectedConfig.mqttBrokerUrl,
-    baseUrl: selectedConfig.baseUrl,
-    redisHost: selectedConfig.redisHost,
-    mongoDbHost: selectedConfig.mongoDbHost,
-    mosquittoUrl: selectedConfig.mosquittoUrl,
-    vaultUrl: selectedConfig.vaultUrl
-};
+export const {
+    influxDbUrl,
+    mqttBrokerUrl,
+    baseUrl,
+    redisHost,
+    mongoDbHost,
+    mosquittoUrl,
+    vaultUrl
+} = selectedConfig;
+
+export { isDev };
