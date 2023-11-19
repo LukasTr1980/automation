@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - JS files in shared folder migration to TS
+- Import path for js files to build/ folder
 
 ## [v14.0.0] - 2023-11-17
 ### Added

@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
-const envSwitcher = require('../shared/envSwitcher');
+const envSwitcher = require('../shared/build/envSwitcher');
 const vaultClient = require('../shared/vaultClient');
-const logger = require('../shared/logger');
+const logger = require('../shared/build/logger');
 
 let isConnected = false;
 let client;

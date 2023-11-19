@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const MqttPublisher = require('../mqtt/mqttPublisher');
-const logger = require('../../shared/logger');
+const logger = require('../../shared/build/logger');
 
 const publisher = new MqttPublisher();
 

@@ -1,4 +1,4 @@
-const logger = require('../shared/logger');
+const logger = require('../shared/build/logger');
 const config = require('./configs');
 require('dotenv').config();
 

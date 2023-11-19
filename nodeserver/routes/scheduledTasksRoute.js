@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getScheduledTasks } = require('../scheduler');
-const logger = require('../../shared/logger');
+const logger = require('../../shared/build/logger');
 
 router.get('/', async (req, res) => {
     try {

@@ -3,7 +3,7 @@ const queryAllData = require('./influxdb-client');
 const getCurrentDate = require('./currentDate');
 const { connectToRedis } = require('../shared/redisClient');
 const traditionalCheck = require('./traditionalCheck');
-const logger = require('../shared/logger');
+const logger = require('../shared/build/logger');
 
 async function createChatCompletion() {
   try {

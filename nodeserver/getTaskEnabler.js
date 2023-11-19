@@ -1,4 +1,4 @@
-const logger = require('../shared/logger');
+const logger = require('../shared/build/logger');
 const { connectToRedis } = require('../shared/redisClient');
 
 async function getTaskEnabler(zone) {

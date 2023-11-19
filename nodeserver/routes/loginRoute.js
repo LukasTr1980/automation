@@ -4,7 +4,7 @@ const { loginValidation } = require('../inputValidation');
 const { connectToRedis } = require('../../shared/redisClient');
 const crypto = require('crypto');
 const vaultClient = require('../../shared/vaultClient'); // Import your Vault client
-const logger = require('../../shared/logger');
+const logger = require('../../shared/build/logger');
 
 router.post('/', async (req, res) => {
     const clientIp = req.ip;

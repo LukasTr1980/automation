@@ -7,7 +7,7 @@ const sharedState = require('./sharedState');
 const generateUniqueId = require('./generateUniqueId');
 const { topicToTaskEnablerKey } = require('./constants');
 const MqttPublisher = require('./mqtt/mqttPublisher');
-const logger = require('../shared/logger');
+const logger = require('../shared/build/logger');
 
 const publisher = new MqttPublisher();
 
