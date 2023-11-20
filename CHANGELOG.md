@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Import path for js files to build/ folder
 - More path changing adapting to typescript setup
 - Further path changes for default in rquire const statement
+- Migration of redisclient to typescript
+- Logger now only logs to console, removed file
 
 ## [v14.0.0] - 2023-11-17
 ### Added

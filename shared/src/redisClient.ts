@@ -1,12 +1,13 @@
-const Redis = require('ioredis');
-const envSwitcher = require('./envSwitcher');
-const namespaces = require('./namespace');
-const vaultClient = require('./vaultClient');
-const logger = require('./logger').default;
+import { Redis } from 'ioredis';
+import * as envSwitcher from './envSwitcher';
+import namespaces from './namespace';
+import * as vaultClient from './vaultClient';
+import logger from './logger';
+import { Server } from 'socket.io';
 
-let client;
-let subscriptionClient;
-let redisPassword;
+let client: Redis | undefined;
+let subscriptionClient: Redis | undefined;
+let redisPassword: string | undefined;
 
 async function fetchRedisPassword() {
   if (!redisPassword) {
@@ -67,7 +68,7 @@ async function connectToRedis() {
   return client;
 }
 
-async function subscribeToRedisKey(io) {
+async function subscribeToRedisKey(io: Server) {
   await fetchRedisPassword();
 
   if (!subscriptionClient) {
@@ -93,24 +94,26 @@ async function subscribeToRedisKey(io) {
             const countdownControlKey = `${baseKey}:countdownControl`;
             const countdownValueKey = `${baseKey}:value`;
 
-            const countdownHours = await client.get(countdownHoursKey);
-            const countdownMinutes = await client.get(countdownMinutesKey);
-            const countdownControl = await client.get(countdownControlKey);
-            const countdownValue = await client.get(countdownValueKey);
-            logger.info(countdownControl);
+            if (client) {
+              const countdownHours = await client.get(countdownHoursKey);
+              const countdownMinutes = await client.get(countdownMinutesKey);
+              const countdownControl = await client.get(countdownControlKey);
+              const countdownValue = await client.get(countdownValueKey);
+              logger.info(countdownControl);
 
-            const topic = baseKey.split(':')[1];
+              const topic = baseKey.split(':')[1];
 
-            const numericValue = parseInt(countdownValue, 10);
+              const numericValue = parseInt(countdownValue || '0', 10);
 
-            io.emit('redis-countdown-update', {
-              baseKey,
-              topic,
-              countdownHours,
-              countdownMinutes,
-              countdownControl,
-              countdownValue: numericValue
-            });
+              io.emit('redis-countdown-update', {
+                baseKey,
+                topic,
+                countdownHours,
+                countdownMinutes,
+                countdownControl,
+                countdownValue: numericValue
+              });
+            }
           } catch (error) {
             logger.error('Error fetching countdown values from Redis:', error);
           }
@@ -128,17 +131,17 @@ async function subscribeToRedisKey(io) {
       await subscriptionClient.psubscribe(`__keyspace@0__:${markiseStatusNamespace}:markise:weather:*`);
       logger.info('Subscribed to all keys starting with markise:weather');
 
+      subscriptionClient.on('error', (err) => {
+        logger.error('Subscription client error:', err);
+      });
+
     } catch (err) {
       logger.error('Failed to subscribe:', err);
     }
-
-    subscriptionClient.on('error', (err) => {
-      logger.error('Subscription client error:', err);
-    });
   }
 }
 
-module.exports = {
+export = {
   connectToRedis,
   subscribeToRedisKey
 };
