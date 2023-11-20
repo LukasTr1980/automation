@@ -1,9 +1,11 @@
 # Build the shared library
 FROM node:18-slim AS shared-build
 WORKDIR /usr/src/shared
-COPY ./shared/package*.json ./
+COPY ./shared/package*.json ./shared/tsconfig.json ./
 RUN npm install --only=production
+RUN npm install typescript
 COPY ./shared .
+RUN npm run build
 
 # Build the React app
 FROM node:18-slim AS client-build
