@@ -1,13 +1,14 @@
-const envSwitcher = require('./envSwitcher');
-const { vaultRoleId, vaultSecretId } = require('./config');
-const logger = require('./logger').default;
+import * as envSwitcher from './envSwitcher';
+import { vaultRoleId, vaultSecretId } from './config';
+import logger from './logger';
+import vault from 'node-vault';
 
-const vault = require('node-vault')({
+const vaultClient = vault({
     endpoint: envSwitcher.vaultUrl,
 });
 
-let clientToken;
-let tokenExpiry;
+let clientToken: string;
+let tokenExpiry: number;
 
 const roleId = vaultRoleId;
 const secretId = vaultSecretId;
@@ -19,9 +20,9 @@ if (!roleId || !secretId) {
 
 async function login() {
     try {
-        const loginResponse = await vault.approleLogin({ role_id: roleId, secret_id: secretId });
+        const loginResponse = await vaultClient.approleLogin({ role_id: roleId, secret_id: secretId });
         clientToken = loginResponse.auth.client_token;
-        vault.token = clientToken;
+        vaultClient.token = clientToken;
 
         tokenExpiry = Date.now() + (loginResponse.auth.lease_duration - 300) * 1000;
     } catch (error) {
@@ -30,7 +31,7 @@ async function login() {
     }
 }
 
-async function getSecret(path) {
+async function getSecret(path: string) {
     try {
         if (!clientToken) throw new Error('Not logged in to Vault');
 
@@ -39,10 +40,10 @@ async function getSecret(path) {
             await login();
         }
 
-        const secretResponse = await vault.read(path);
+        const secretResponse = await vaultClient.read(path);
         return secretResponse.data;
-    } catch (error) {
-        if (error.response && error.response.statusCode === 404) {
+    } catch (error: unknown) {
+        if (error instanceof Error && 'response' in error && typeof error.response === 'object' && error.response !== null && 'statusCode' in error.response && error.response.statusCode === 404) {
             return null;
         } else {
             logger.error('Error fetching secret:', error);
@@ -51,7 +52,7 @@ async function getSecret(path) {
     }
 }
 
-async function writeSecret(path, data) {
+async function writeSecret(path: string, data: Record<string, unknown>) {
     try {
         if (!clientToken) throw new Error('Not logged in to Vault')
 
@@ -62,11 +63,11 @@ async function writeSecret(path, data) {
 
         const payload = { data: data };
 
-        await vault.write(path, payload);
+        await vaultClient.write(path, payload);
     } catch (error) {
         logger.error('Error writing secret to Vault:', error);
         throw error;
     }
 }
 
-module.exports = { login, getSecret, writeSecret };
+export { login, getSecret, writeSecret };

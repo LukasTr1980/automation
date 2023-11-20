@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Further path changes for default in rquire const statement
 - Migration of redisclient to typescript
 - Logger now only logs to console, removed file
+- Display of snackbar to bottom left
+- Migration of shared library completed
 
 ## [v14.0.0] - 2023-11-17
 ### Added

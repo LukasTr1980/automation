@@ -11,7 +11,7 @@ const CentralizedSnackbar = () => {
             open={openSnackbar}
             autoHideDuration={3000}
             onClose={closeSnackbar}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         >
             <Alert onClose={closeSnackbar} severity={severity}>  {/* Updated to use severity */}
                 {message}
