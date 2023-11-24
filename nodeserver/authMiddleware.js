@@ -1,5 +1,5 @@
-const { connectToRedis } = require('../shared/build/redisClient');
-const logger = require('../shared/build/logger').default; // Import your logger
+const { connectToRedis } = require('../nodebackend/build/redisClient');
+const logger = require('../nodebackend/build/logger').default; // Import your logger
 
 const authMiddleware = async (req, res, next) => {
   const clientIp = req.ip; // Get client's IP address

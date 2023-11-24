@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const setTaskEnabler = require('../switchTaskEnabler');
-const logger = require('../../shared/build/logger').default;
+const logger = require('../../nodebackend/build/logger').default;
 
 router.post('/', async (req, res) => {
     const { zone, state } = req.body;

@@ -1,5 +1,5 @@
 // constants.js
-const envSwitcher = require('../shared/build/envSwitcher');
+const envSwitcher = require('../nodebackend/build/envSwitcher');
 
 // Define a mapping of topics to task enabler keys
 const topicToTaskEnablerKey = {

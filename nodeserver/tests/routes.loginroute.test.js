@@ -3,11 +3,11 @@ const express = require('express');
 const router = require('../routes/loginRoute');
 
 // Mock both vaultClient and connectToRedis
-jest.mock('../../shared/build/vaultClient', () => ({
+jest.mock('../../nodebackend/build/vaultClient', () => ({
     login: jest.fn(),
     getSecret: jest.fn()
 }));
-jest.mock('../../shared/build/redisClient', () => ({
+jest.mock('../../nodebackend/build/redisClient', () => ({
     connectToRedis: jest.fn()
 }));
 
@@ -18,9 +18,9 @@ app.use('/', router);
 describe('POST /', () => {
     it('should respond with a status code of 200 for successful requests', async () => {
         // Mock for successful scenario
-        const { getSecret } = require('../../shared/build/vaultClient');
+        const { getSecret } = require('../../nodebackend/build/vaultClient');
         getSecret.mockResolvedValue({ data: { password: 'pass' }});
-        const { connectToRedis } = require('../../shared/build/redisClient');
+        const { connectToRedis } = require('../../nodebackend/build/redisClient');
         connectToRedis.mockResolvedValue({
             set: jest.fn().mockResolvedValue(true)
         });
@@ -43,7 +43,7 @@ describe('POST /', () => {
 
     it('should respond with 500 if the Vault server is unavailable', async () => {
         // Mock Vault server unavailability
-        const { login, getSecret } = require('../../shared/build/vaultClient');
+        const { login, getSecret } = require('../../nodebackend/build/vaultClient');
         login.mockRejectedValue(new Error('Vault login failed'));
         getSecret.mockRejectedValue(new Error('Failed to fetch secret'));
 
@@ -58,7 +58,7 @@ describe('POST /', () => {
 
     it('should respond with 500 if the Redis server is unavailable', async () => {
         // Mock Redis server unavailability
-        const { connectToRedis } = require('../../shared/build/redisClient');
+        const { connectToRedis } = require('../../nodebackend/build/redisClient');
         connectToRedis.mockRejectedValue(new Error('Failed to connect to Redis'));
 
         const response = await request(app)

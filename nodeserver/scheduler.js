@@ -1,13 +1,13 @@
 const schedule = require('node-schedule');
 const { promisify } = require('util');
-const { connectToRedis } = require('../shared/build/redisClient');
+const { connectToRedis } = require('../nodebackend/build/redisClient');
 const isIrrigationNeeded = require('ai');
 const getTaskEnabler = require('./getTaskEnabler');
 const sharedState = require('./sharedState');
 const generateUniqueId = require('./generateUniqueId');
 const { topicToTaskEnablerKey } = require('./constants');
 const MqttPublisher = require('./mqtt/mqttPublisher');
-const logger = require('../shared/build/logger').default;
+const logger = require('../nodebackend/build/logger').default;
 
 const publisher = new MqttPublisher();
 

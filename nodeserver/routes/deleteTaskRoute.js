@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { connectToRedis } = require('../../shared/build/redisClient');
-const logger = require('../../shared/build/logger').default;
+const { connectToRedis } = require('../../nodebackend/build/redisClient');
+const logger = require('../../nodebackend/build/logger').default;
 
 router.delete('/', async (req, res) => {
     logger.info("Received body:", req.body);

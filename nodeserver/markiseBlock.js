@@ -1,9 +1,9 @@
 const { isRaining, isWindy, stateChangeEmitter } = require('./mqttHandler');
 const sharedState = require('./sharedState');
-const { connectToRedis } = require('../shared/build/redisClient');
+const { connectToRedis } = require('../nodebackend/build/redisClient');
 const namespaces = require('./namespace');
 const MqttPublisher = require('./mqtt/mqttPublisher');
-const logger = require('../shared/build/logger').default;
+const logger = require('../nodebackend/build/logger').default;
 
 const publisher = new MqttPublisher();
 

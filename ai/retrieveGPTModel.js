@@ -1,4 +1,4 @@
-const logger = require('../shared/build/logger').default;
+const logger = require('../nodebackend/build/logger').default;
 const config = require('./configs');
 require('dotenv').config();
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { connectToRedis } = require('../../shared/build/redisClient');
+const { connectToRedis } = require('../../nodebackend/build/redisClient');
 
 router.get('/', async (req, res) => {
     const authHeader = req.headers['authorization'];

@@ -1,8 +1,8 @@
 const OpenAI = require('openai');
 const { InfluxDB } = require('@influxdata/influxdb-client');
-const envSwitcher = require('../shared/build/envSwitcher');
-const vaultClient = require('../shared/build/vaultClient');
-const logger = require('../shared/build/logger').default;
+const envSwitcher = require('../nodebackend/build/envSwitcher');
+const vaultClient = require('../nodebackend/build/vaultClient');
+const logger = require('../nodebackend/build/logger').default;
 
 let openai;
 let influxDbClient;

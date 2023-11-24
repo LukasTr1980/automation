@@ -6,11 +6,11 @@ const path = require('path');
 const http = require('http');
 const configureSocket = require('./socketConfig');
 const authMiddlewareSocket = require('./authMiddlewareSocket');
-const { subscribeToRedisKey } = require('../shared/build/redisClient')
+const { subscribeToRedisKey } = require('../nodebackend/build/redisClient')
 const { loadScheduledTasks } = require('./scheduler');
 const { apiLimiter } = require('./rateLimiter');
 const apiRouter = require('./routes/api');
-const logger = require('../shared/build/logger').default;
+const logger = require('../nodebackend/build/logger').default;
 require('./markiseBlock');
 
 const app = express();

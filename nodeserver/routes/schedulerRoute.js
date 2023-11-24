@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { scheduleTask } = require('../scheduler');
-const logger = require('../../shared/build/logger').default;
+const logger = require('../../nodebackend/build/logger').default;
 
 router.post('/', async (req, res) => {
     const { topic, state, days, months, hour, minute } = req.body;
