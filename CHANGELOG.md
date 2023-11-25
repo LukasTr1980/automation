@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] 2023-11-25
 ### Changed
 - Moved config from ai folder to nodebackend folder converting to typescript
+- Migrated listGPTModels
 
 ## [v15.0.3] 2023-11-24
 ### Fixed
