@@ -1,5 +1,5 @@
 import * as envSwitcher from './envSwitcher';
-import { vaultRoleId, vaultSecretId } from './config';
+import { vaultRoleId, vaultSecretId } from './configs';
 import logger from './logger';
 import vault from 'node-vault';
 

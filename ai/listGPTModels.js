@@ -1,5 +1,5 @@
 const logger = require('../nodebackend/build/logger').default;
-const config = require('./configs');
+const config = require('../nodebackend/build/configs');
 require('dotenv').config();
 
 async function listModels() {

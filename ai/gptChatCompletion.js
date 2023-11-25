@@ -1,4 +1,4 @@
-const config = require('./configs');
+const config = require('../nodebackend/build/configs');
 const queryAllData = require('./influxdb-client');
 const getCurrentDate = require('./currentDate');
 const { connectToRedis } = require('../nodebackend/build/redisClient');
