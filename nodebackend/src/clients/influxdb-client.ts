@@ -1,23 +1,28 @@
-const logger = require('../nodebackend/build/logger').default;
-const config = require('../nodebackend/build/configs');
-const {
+import { ParameterizedQuery } from '@influxdata/influxdb-client';
+import logger from '../logger';
+import { getInfluxDbClient } from '../configs';
+import {
     outTempQuery,
     windQuery,
     humidityQuery,
     rainsumQuery,
     rainTodayQuery,
     rainrate
-} = require('../nodebackend/build/utils/fluxQueries');
+} from '../utils/fluxQueries';
 
-const org = 'villaanna';
+const org: string = 'villaanna';
 
-async function querySingleData(fluxQuery) {
-  const queryApi = (await config.getInfluxDbClient()).getQueryApi(org);
-  const result = [];
+interface DataRow {
+  _value: number;
+}
+
+async function querySingleData(fluxQuery: ParameterizedQuery): Promise<DataRow[]> {
+  const queryApi = (await getInfluxDbClient()).getQueryApi(org);
+  const result: DataRow[] = [];
   return new Promise((resolve, reject) => {
     queryApi.queryRows(fluxQuery, {
       next(row, tableMeta) {
-        const o = tableMeta.toObject(row);
+        const o = tableMeta.toObject(row) as DataRow;
         result.push(o);
       },
       error(error) {
@@ -30,7 +35,16 @@ async function querySingleData(fluxQuery) {
   });
 }
 
-async function queryAllData() {
+interface WeatherData {
+  outTemp: number | null;
+  wind: number | null;
+  humidity: number | null;
+  rainSum: number | null;
+  rainToday: number | null;
+  rainRate: number | null;
+}
+
+async function queryAllData(): Promise<WeatherData> {
   try {
     const outTempResults = await querySingleData(outTempQuery);
     const windResults = await querySingleData(windQuery);
@@ -53,4 +67,4 @@ async function queryAllData() {
   }
 }
 
-module.exports = queryAllData;
+export default queryAllData;
