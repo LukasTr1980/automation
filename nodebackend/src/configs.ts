@@ -1,7 +1,7 @@
 import { OpenAI } from 'openai';
 import { InfluxDB } from '@influxdata/influxdb-client';
 import * as envSwitcher from './envSwitcher';
-import * as vaultClient from './vaultClient';
+import * as vaultClient from './clients/vaultClient';
 import logger from './logger';
 import dotenv from 'dotenv';
 import path from 'path';

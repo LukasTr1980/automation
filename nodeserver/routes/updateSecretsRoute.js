@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const vaultClient = require('../../nodebackend/build/vaultClient'); // Ensure the path is correct
+const vaultClient = require('../../nodebackend/build/clients/vaultClient'); // Ensure the path is correct
 const logger = require('../../nodebackend/build/logger').default;
 
 router.post('/', async (req, res) => {

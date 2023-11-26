@@ -1,6 +1,6 @@
 const mqtt = require('mqtt');
 const envSwitcher = require('../../nodebackend/build/envSwitcher');
-const vaultClient = require('../../nodebackend/build/vaultClient');  // Import the vaultClient
+const vaultClient = require('../../nodebackend/build/clients/vaultClient');  // Import the vaultClient
 const logger = require('../../nodebackend/build/logger').default;
 
 class MqttPublisher {

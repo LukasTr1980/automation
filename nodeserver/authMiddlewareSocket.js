@@ -1,4 +1,4 @@
-const { connectToRedis } = require('../nodebackend/build/redisClient');
+const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
 const logger = require('../nodebackend/build/logger').default; // Import your logger
 
 const authMiddlewareSocket = async (socket, next) => {

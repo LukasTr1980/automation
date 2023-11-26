@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 const envSwitcher = require('../nodebackend/build/envSwitcher');
-const vaultClient = require('../nodebackend/build/vaultClient');
+const vaultClient = require('../nodebackend/build/clients/vaultClient');
 const logger = require('../nodebackend/build/logger').default;
 
 let isConnected = false;

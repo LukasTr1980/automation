@@ -1,8 +1,8 @@
 import { Redis } from 'ioredis';
-import * as envSwitcher from './envSwitcher';
-import namespaces from './namespace';
+import * as envSwitcher from '../envSwitcher';
+import namespaces from '../namespace';
 import * as vaultClient from './vaultClient';
-import logger from './logger';
+import logger from '../logger';
 import { Server } from 'socket.io';
 
 let client: Redis | undefined;

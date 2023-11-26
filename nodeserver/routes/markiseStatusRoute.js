@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { connectToRedis } = require('../../nodebackend/build/redisClient');
+const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
 const namespaces = require('../namespace');
 
 const markiseStatusNamespace = namespaces.markiseStatus;

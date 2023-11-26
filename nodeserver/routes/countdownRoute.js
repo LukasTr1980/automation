@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { initiateCountdown, updateCountdowns } = require('../countdown');
-const { connectToRedis } = require('../../nodebackend/build/redisClient');
+const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
 
 router.get('/currentCountdowns', async (req, res) => {
     const client = await connectToRedis();

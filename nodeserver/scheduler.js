@@ -1,6 +1,6 @@
 const schedule = require('node-schedule');
 const { promisify } = require('util');
-const { connectToRedis } = require('../nodebackend/build/redisClient');
+const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
 const isIrrigationNeeded = require('ai');
 const getTaskEnabler = require('./getTaskEnabler');
 const sharedState = require('./sharedState');
