@@ -2,7 +2,7 @@ const config = require('../nodebackend/build/configs');
 const queryAllData = require('../nodebackend/build/clients/influxdb-client').default;
 const getCurrentDate = require('../nodebackend/build/utils/currentDate').default;
 const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
-const traditionalCheck = require('./traditionalCheck');
+const traditionalCheck = require('../nodebackend/build/traditionalCheck');
 const logger = require('../nodebackend/build/logger').default;
 
 async function createChatCompletion() {

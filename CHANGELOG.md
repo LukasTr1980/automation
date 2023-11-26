@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] 2023-11-26
 ### Changed
 - Migration of influxdb-client to TS
+- Migration of traditonalcheck.js to TS
 
 ## [v15.1.3] 2023-11-26
 ### Changed
