@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved config from ai folder to nodebackend folder converting to typescript
 - Migrated listGPTModels
 - Folder adaption, moved clients to /clients
+- Migration of currentdate and fluqueries to TS
 
 ## [v15.0.3] 2023-11-24
 ### Fixed

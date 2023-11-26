@@ -1,22 +1,19 @@
-const { flux } = require('@influxdata/influxdb-client');
-const bucket = 'iobroker';
+import { flux } from '@influxdata/influxdb-client';
 
-const computeDateFourDaysAgo = () => {
-    // Get the current date
-    const currentDate = new Date();
+const bucket: string = 'iobroker';
 
-    // Subtract 4 days
+const computeDateFourDaysAgo = (): string => {
+    const currentDate: Date = new Date();
+
     currentDate.setDate(currentDate.getDate() - 4);
-
     currentDate.setHours(0, 0, 0, 0);
 
-    // Return the date as a string in ISO format
     return currentDate.toISOString();
 }
 
-const startDate = computeDateFourDaysAgo();
+const startDate: string = computeDateFourDaysAgo();
 
-function constructRainSumQuery(startDate) {
+const constructRainSumQuery = (startDate: string): string => {
     return `
         from(bucket: "${bucket}")
           |> range(start: time(v: "${startDate}"), stop: now())
@@ -27,7 +24,7 @@ function constructRainSumQuery(startDate) {
     `;
 }
 
-const rainsumQuery = constructRainSumQuery(startDate);
+const rainsumQuery: string = constructRainSumQuery(startDate);
 
 const outTempQuery = flux`
     from(bucket: "${bucket}")
@@ -71,7 +68,7 @@ const rainrate = flux`
       |> last()
 `;
 
-module.exports = {
+export {
     outTempQuery,
     windQuery,
     humidityQuery,

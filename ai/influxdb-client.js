@@ -7,7 +7,7 @@ const {
     rainsumQuery,
     rainTodayQuery,
     rainrate
-} = require('./fluxQueries');
+} = require('../nodebackend/build/utils/fluxQueries');
 
 const org = 'villaanna';
 
