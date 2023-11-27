@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration of influxdb-client to TS
 - Migration of traditonalcheck.js to TS
 
+### Added
+- Puppeteer and test cases
+
 ## [v15.1.3] 2023-11-26
 ### Changed
 - Moved config from ai folder to nodebackend folder converting to typescript
