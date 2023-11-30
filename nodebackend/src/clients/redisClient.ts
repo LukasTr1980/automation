@@ -141,7 +141,7 @@ async function subscribeToRedisKey(io: Server) {
   }
 }
 
-export = {
+export {
   connectToRedis,
   subscribeToRedisKey
 };

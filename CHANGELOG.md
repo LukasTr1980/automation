@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Migration of influxdb-client to TS
 - Migration of traditonalcheck.js to TS
+- Changed export of redisClient.ts
 
 ### Added
 - Puppeteer and test cases
