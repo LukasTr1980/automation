@@ -1,4 +1,4 @@
-const shouldTurnOnIrrigation = require('./gptChatCompletion');
+const shouldTurnOnIrrigation = require('../nodebackend/build/gptChatCompletion').default;
 
 async function isIrrigationNeeded() {
   const data = await shouldTurnOnIrrigation();

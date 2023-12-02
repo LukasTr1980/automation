@@ -36,12 +36,12 @@ async function querySingleData(fluxQuery: ParameterizedQuery): Promise<DataRow[]
 }
 
 interface WeatherData {
-  outTemp: number | null;
-  wind: number | null;
-  humidity: number | null;
-  rainSum: number | null;
-  rainToday: number | null;
-  rainRate: number | null;
+  outTemp: number;
+  wind: number;
+  humidity: number;
+  rainSum: number;
+  rainToday: number;
+  rainRate: number;
 }
 
 async function queryAllData(): Promise<WeatherData> {
@@ -54,12 +54,12 @@ async function queryAllData(): Promise<WeatherData> {
     const rainrateResults = await querySingleData(rainrate);
 
     return {
-      outTemp: outTempResults.length > 0 ? +outTempResults[0]._value.toFixed(2) : null,
-      wind: windResults.length > 0 ? +windResults[0]._value.toFixed(2) : null,
-      humidity: humidityResults.length > 0 ? +humidityResults[0]._value.toFixed(2) : null,
-      rainSum: rainsumResults.length > 0 ? +rainsumResults[0]._value.toFixed(2) : null,
-      rainToday: rainTodayResults.length > 0 ? +rainTodayResults[0]._value.toFixed(2) : null,
-      rainRate: rainrateResults.length > 0 ? +(rainrateResults[0]._value / 10).toFixed(2) : null
+      outTemp: outTempResults.length > 0 ? +outTempResults[0]._value.toFixed(2) : 0,
+      wind: windResults.length > 0 ? +windResults[0]._value.toFixed(2) : 0,
+      humidity: humidityResults.length > 0 ? +humidityResults[0]._value.toFixed(2) : 0,
+      rainSum: rainsumResults.length > 0 ? +rainsumResults[0]._value.toFixed(2) : 0,
+      rainToday: rainTodayResults.length > 0 ? +rainTodayResults[0]._value.toFixed(2) : 0,
+      rainRate: rainrateResults.length > 0 ? +(rainrateResults[0]._value / 10).toFixed(2) : 0
     };
   } catch (error) {
     logger.error('Error querying data from InfluxDB', error);
@@ -67,4 +67,4 @@ async function queryAllData(): Promise<WeatherData> {
   }
 }
 
-export default queryAllData;
+export { queryAllData, WeatherData };
