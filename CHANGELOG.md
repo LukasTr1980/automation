@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Dockerfile to match new folder and project structure
+- Migration of constants to constants.ts
+
+### Added
+- Extended test case with puppeteer to click a switch
 
 ## [v15.2.1] 2023-12-02
 ### Changed

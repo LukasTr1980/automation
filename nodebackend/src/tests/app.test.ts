@@ -31,10 +31,34 @@ describe('Login Tests', () => {
         await page.goto('http://localhost:5173/');
         await page.type('#\\:r1\\:', process.env.VALID_USERNAME!);
         await page.type('#\\:r3\\:', process.env.VALID_PASSWORD!);
+    
         const [response] = await Promise.all([
             page.waitForResponse(response => response.url().includes('/api/login')),
+            page.waitForNavigation(), // Wait for navigation to complete after login
             page.click('button.MuiButton-root')
         ]);
         expect(response.status()).toBe(200); // Assuming 200 is the success status code
-    });
+        expect(page.url()).toBe('http://localhost:5173/home');
+
+        await page.waitForSelector('a[href="/villa-anna/home"]', { visible: true });
+
+        // Click the link and wait for navigation to complete
+        await Promise.all([
+            page.waitForNavigation(), // Wait for navigation to complete after clicking the link
+            page.click('a[href="/villa-anna/home"]') // Clicking the link
+        ]);
+        expect(page.url()).toBe('http://localhost:5173/villa-anna/home');
+
+        await page.waitForSelector('a[href="/villa-anna/bewaesserung"]', { visible: true });
+
+        await Promise.all([
+            page.waitForNavigation(),
+            page.click('a[href="/villa-anna/bewaesserung')
+        ]);
+        expect(page.url()).toBe('http://localhost:5173/villa-anna/bewaesserung');
+
+        await page.waitForSelector('span[aria-label="Lukas West"]', { visible: true });
+
+        await page.click('span[aria-label="Lukas West"]');
+    });    
 });

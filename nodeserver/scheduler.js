@@ -5,7 +5,7 @@ const isIrrigationNeeded = require('../nodebackend/build/gptChatIrrigation').def
 const getTaskEnabler = require('./getTaskEnabler');
 const sharedState = require('./sharedState');
 const generateUniqueId = require('./generateUniqueId');
-const { topicToTaskEnablerKey } = require('./constants');
+const { topicToTaskEnablerKey } = require('../nodebackend/build/utils/constants');
 const MqttPublisher = require('./mqtt/mqttPublisher');
 const logger = require('../nodebackend/build/logger').default;
 
