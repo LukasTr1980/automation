@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { addSseClient, latestStates } = require('../mqttHandler');
-const isIrrigationNeeded = require('ai');
+const isIrrigationNeeded = require('../../nodebackend/build/gptChatIrrigation').default;
 
 router.get('/', async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');

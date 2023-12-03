@@ -1,7 +1,7 @@
 const schedule = require('node-schedule');
 const { promisify } = require('util');
 const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
-const isIrrigationNeeded = require('ai');
+const isIrrigationNeeded = require('../nodebackend/build/gptChatIrrigation').default;
 const getTaskEnabler = require('./getTaskEnabler');
 const sharedState = require('./sharedState');
 const generateUniqueId = require('./generateUniqueId');
