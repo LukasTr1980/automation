@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] 2023-12-03
 ### Removed
-- ai folder, migrated to nobebackend
+- ai folder, migrated to nodebackend
 
 ### Changed
 - Dockerfile to match new folder and project structure
 - Migration of constants to constants.ts
+- Migration of generateUniqueId to .ts
+- Excluded tests folder from build
 
 ### Added
 - Extended test case with puppeteer to click a switch
