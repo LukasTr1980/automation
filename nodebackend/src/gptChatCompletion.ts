@@ -44,8 +44,6 @@ async function createChatCompletion(): Promise<CompletionResponse> {
       .replace(/\$\{month\}/g, month)
       .replace(/\$\{weekday\}/g, weekday);
 
-    logger.info(`Formatted GPT Request: ${formattedGptRequest}`);
-
     const openai = await getOpenAI();
 
     const completion = await openai.chat.completions.create({

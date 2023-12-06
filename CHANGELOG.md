@@ -7,16 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] 2023-12-03
 ### Removed
-- ai folder, migrated to nodebackend
+- AI folder, migrated to nodebackend.
+- Removed exclusion of test folder from tsconfig.
 
 ### Changed
-- Dockerfile to match new folder and project structure
-- Migration of constants to constants.ts
-- Migration of generateUniqueId to .ts
-- Excluded tests folder from build
+- Dockerfile to match new folder and project structure.
+- Migration of constants to `constants.ts`.
+- Migration of `generateUniqueId` to TypeScript.
+- Excluded tests folder from build.
+- Renamed folder 'tests' to 'test'.
+- Set `testMatch` in package.json to avoid running tests twice.
 
 ### Added
-- Extended test case with puppeteer to click a switch
+- Extended test case with Puppeteer to click a switch.
 
 ## [v15.2.1] 2023-12-02
 ### Changed
