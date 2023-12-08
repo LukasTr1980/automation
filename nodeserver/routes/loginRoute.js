@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { loginValidation } = require('../inputValidation');
+const { loginValidation } = require('../../nodebackend/build/utils/inputValidation');
 const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
 const crypto = require('crypto');
 const vaultClient = require('../../nodebackend/build/clients/vaultClient'); // Import your Vault client

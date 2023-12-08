@@ -59,6 +59,16 @@ describe('Login Tests', () => {
 
         await page.waitForSelector('span[aria-label="Lukas West"]', { visible: true });
 
+        const isInitiallyToggled = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
+
         await page.click('span[aria-label="Lukas West"]');
+
+        const isToggledAfterFirstClick = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
+        expect(isToggledAfterFirstClick).toBe(!isInitiallyToggled);
+
+        await page.click('span[aria-label="Lukas West"]');
+
+        const isToggledAfterSecondClick = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
+        expect(isToggledAfterSecondClick).toBe(isInitiallyToggled);
     });    
 });

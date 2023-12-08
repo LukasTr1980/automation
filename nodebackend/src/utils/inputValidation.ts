@@ -1,6 +1,11 @@
-const Joi = require('joi');
+import Joi from 'joi';
 
-const loginValidation = (data) => {
+interface LoginData {
+    username: string;
+    password: string;
+}
+
+const loginValidation = (data: LoginData) => {
     const schema = Joi.object({
         username: Joi.string().alphanum().min(1).max(30).required()
             .messages({
@@ -22,6 +27,6 @@ const loginValidation = (data) => {
     return schema.validate(data);
 };
 
-module.exports = {
+export {
     loginValidation
 };
