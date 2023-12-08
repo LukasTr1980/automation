@@ -6,7 +6,7 @@ const getTaskEnabler = require('./getTaskEnabler');
 const sharedState = require('./sharedState');
 const generateUniqueId = require('../nodebackend/build/utils/generateUniqueId').default;
 const { topicToTaskEnablerKey } = require('../nodebackend/build/utils/constants');
-const MqttPublisher = require('./mqtt/mqttPublisher');
+const MqttPublisher = require('../nodebackend/build/utils/mqttPublisher').default;
 const logger = require('../nodebackend/build/logger').default;
 
 const publisher = new MqttPublisher();

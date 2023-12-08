@@ -1,4 +1,4 @@
-const { connectToMongo } = require('./mongoClient');
+const { connectToMongo } = require('../nodebackend/build/clients/mongoClient');
 const EventEmitter = require('events');
 const { writeToInflux } = require('./influxDbClient');
 const mqttClient = require('./mqttClient');

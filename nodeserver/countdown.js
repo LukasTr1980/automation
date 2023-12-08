@@ -1,7 +1,7 @@
 // countdown.js
 const logger = require('../nodebackend/build/logger').default;
 const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
-const MqttPublisher = require('./mqtt/mqttPublisher');
+const MqttPublisher = require('../nodebackend/build/utils/mqttPublisher').default;
 
 const publisher = new MqttPublisher();
 
