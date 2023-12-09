@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const setTaskEnabler = require('../switchTaskEnabler');
+const setTaskEnabler = require('../../nodebackend/build/utils/switchTaskEnabler').default;
 const logger = require('../../nodebackend/build/logger').default;
 
 router.post('/', async (req, res) => {

@@ -1,7 +1,7 @@
-const logger = require('../nodebackend/build/logger').default;
-const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
+import logger from '../logger';
+import { connectToRedis } from '../clients/redisClient';
 
-async function setTaskEnabler(zone, state) {
+async function setTaskEnabler(zone: string, state: boolean): Promise<void> {
   try {
     const client = await connectToRedis();
     // Set the state of the task enabler for a given zone
@@ -12,4 +12,4 @@ async function setTaskEnabler(zone, state) {
   }
 }
 
-module.exports = setTaskEnabler;
+export default setTaskEnabler;

@@ -31,7 +31,7 @@ describe('Login Tests', () => {
         await page.goto('http://localhost:5173/');
         await page.type('#\\:r1\\:', process.env.VALID_USERNAME!);
         await page.type('#\\:r3\\:', process.env.VALID_PASSWORD!);
-    
+
         const [response] = await Promise.all([
             page.waitForResponse(response => response.url().includes('/api/login')),
             page.waitForNavigation(), // Wait for navigation to complete after login
@@ -57,18 +57,20 @@ describe('Login Tests', () => {
         ]);
         expect(page.url()).toBe('http://localhost:5173/villa-anna/bewaesserung');
 
-        await page.waitForSelector('span[aria-label="Lukas West"]', { visible: true });
+        await page.waitForSelector('#switch-lukas-west-3', { visible: true });
 
         const isInitiallyToggled = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
-
-        await page.click('span[aria-label="Lukas West"]');
+        
+        await page.click('#switch-lukas-west-3');
 
         const isToggledAfterFirstClick = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
-        expect(isToggledAfterFirstClick).toBe(!isInitiallyToggled);
+        expect(isToggledAfterFirstClick).toBe(!isInitiallyToggled); // Expect the opposite of the initial state
 
-        await page.click('span[aria-label="Lukas West"]');
-
+        await page.waitForSelector('#switch-lukas-west-3', { visible: true });
+        
+        await page.click('#switch-lukas-west-3');
+        
         const isToggledAfterSecondClick = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
-        expect(isToggledAfterSecondClick).toBe(isInitiallyToggled);
-    });    
+        expect(isToggledAfterSecondClick).toBe(isInitiallyToggled); // Expect it to return to the initial state             
+    });
 });

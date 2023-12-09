@@ -134,6 +134,8 @@ const BewaesserungPage = () => {
                       checked={val}
                       label={switchDescriptions[i]}
                       handleToggle={() => handleToggle(i)}
+                      id={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
+                      name={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
                     />
                   </Grid>
                 ))}
@@ -158,11 +160,15 @@ const BewaesserungPage = () => {
                       label='Ai block:'
                       disabled={true}
                       color='warning'
+                      id="switch-ai-block"
+                      name="switch-ai-block"
                     />
                   </Box>
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
+                    id="textAiResponse"
+                    name="textAiResponse"
                     label="AI Antwort"
                     variant="outlined"
                     fullWidth

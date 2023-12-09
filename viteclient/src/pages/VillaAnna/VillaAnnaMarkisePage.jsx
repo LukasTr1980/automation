@@ -138,6 +138,8 @@ const MarkisePage = () => {
                                     handleToggle={() => { }}
                                     disabled
                                     color='warning'
+                                    id="switch-regen-block"
+                                    name="switch-regen-block"
                                 />
                                 <SwitchComponent
                                     checked={markiseStatus['weather:windy'] === 'closing'}
@@ -145,6 +147,8 @@ const MarkisePage = () => {
                                     handleToggle={() => { }}
                                     disabled
                                     color='warning'
+                                    id="switch-wind-block"
+                                    name="switch-wind-block"
                                 />
                                 <SwitchComponent
                                     checked={markiseStatus.throttling_active === 'true'}
@@ -152,6 +156,8 @@ const MarkisePage = () => {
                                     handleToggle={() => { }}
                                     disabled
                                     color='warning'
+                                    id="switch-drosselung"
+                                    name="switch-drosselung"
                                 />
                             </Box>
                         </CardContent>
