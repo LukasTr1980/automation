@@ -1,14 +1,15 @@
-const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
-const logger = require('../nodebackend/build/logger').default; // Import your logger
+import { connectToRedis } from '../clients/redisClient';
+import logger from '../logger'; // Import your logger
+import { Socket } from 'socket.io';
 
-const authMiddlewareSocket = async (socket, next) => {
+const authMiddlewareSocket = async (socket: Socket, next: (err?: Error) => void) => {
   try {
     const authHeader = socket.handshake.headers['authorization'];
     let sessionId = authHeader && authHeader.split(' ')[1];
 
     if (!sessionId) {
       // Try getting sessionId from query parameters
-      sessionId = socket.handshake.query.session;
+      sessionId = socket.handshake.query.session as string;
     }
 
     if (!sessionId) {
@@ -27,9 +28,14 @@ const authMiddlewareSocket = async (socket, next) => {
     // if session is valid, proceed to next middleware or connection handler
     next();
   } catch (error) {
-    logger.error(`Socket authentication error: ${error.message}`);
-    next(error);
+    if (error instanceof Error) {
+      logger.error(`Socket authentication error: ${error.message}`);
+      next(error);
+    } else {
+      logger.error(`Socket authentication error: An unknown error occurred`);
+      next(new Error('An unknown error occurred'));
+    }
   }
 };
 
-module.exports = authMiddlewareSocket;
+export default authMiddlewareSocket;

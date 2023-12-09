@@ -102,6 +102,8 @@ const SettingsPage = () => {
                     <CardHeader title="Edit GPT Request" />
                     <CardContent>
                         <TextField
+                            id="textFieldGptRequest"
+                            name="textFieldGptRequest"
                             label="GPT Request"
                             variant="outlined"
                             fullWidth

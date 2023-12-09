@@ -1,7 +1,7 @@
 const { connectToMongo } = require('../nodebackend/build/clients/mongoClient');
 const EventEmitter = require('events');
 const { writeToInflux } = require('./influxDbClient');
-const mqttClient = require('./mqttClient');
+const mqttClient = require('../nodebackend/build/clients/mqttClient').default;
 const { broadcastToSseClients, addSseClient } = require('./sseHandler');
 const logger = require('../nodebackend/build/logger').default;
 

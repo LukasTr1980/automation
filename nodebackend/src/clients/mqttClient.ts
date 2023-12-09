@@ -1,10 +1,10 @@
-const mqtt = require('mqtt');
-const { mqttBrokerUrl } = require('../nodebackend/build/utils/constants');
-const logger = require('../nodebackend/build/logger').default;
+import mqtt from 'mqtt';
+import { mqttBrokerUrl } from '../utils/constants';
+import logger from '../logger';
 
 const MQTT_RECONNECT_INTERVAL = 5000; // 5 seconds
 
-const mqttOptions = {
+const mqttOptions: mqtt.IClientOptions = {
     reconnectPeriod: MQTT_RECONNECT_INTERVAL,
     connectTimeout: 30 * 1000, // 30 seconds
     keepalive: 60, // keepalive time in seconds
@@ -21,7 +21,7 @@ mqttClient.on('reconnect', () => {
     logger.info('Reconnecting to MQTT broker...');
 });
 
-mqttClient.on('error', (err) => {
+mqttClient.on('error', (err: Error) => {
     logger.error('MQTT Error:', err);
 });
 
@@ -33,4 +33,4 @@ mqttClient.on('close', () => {
     logger.info('MQTT client disconnected');
 });
 
-module.exports = mqttClient;
+export default mqttClient;
