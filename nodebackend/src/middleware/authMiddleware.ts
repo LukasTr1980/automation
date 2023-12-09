@@ -1,20 +1,21 @@
-const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
-const logger = require('../nodebackend/build/logger').default; // Import your logger
+import { Request, Response, NextFunction } from 'express';
+import { connectToRedis } from '../clients/redisClient';
+import logger from '../logger';
 
-const authMiddleware = async (req, res, next) => {
+const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const clientIp = req.ip; // Get client's IP address
   const authHeader = req.headers['authorization'];
   let sessionId = authHeader && authHeader.split(' ')[1];
 
   if (!sessionId) {
-      // Try getting sessionId from query parameters
-      sessionId = req.query.session;
+    // Try getting sessionId from query parameters
+    sessionId = req.query.session as string | undefined;
   }
 
   if (!sessionId) {
-      logger.warn(`Authentication failed from IP ${clientIp}: No session ID provided`);
-      res.status(401).send();
-      return;
+    logger.warn(`Authentication failed from IP ${clientIp}: No session ID provided`);
+    res.status(401).send();
+    return;
   }
 
   // Get the Redis client
@@ -33,4 +34,4 @@ const authMiddleware = async (req, res, next) => {
   next();
 }
 
-module.exports = authMiddleware;
+export default authMiddleware;

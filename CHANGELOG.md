@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] 2023-12-08
 ### Changed
 - Migration of mongoClient, buildUrlMap and mqttPublisher to TS
+- Migration of authMiddleware and socketConfig to TS
 
 ## [v15.3.0] 2023-12-08
 ### Removed

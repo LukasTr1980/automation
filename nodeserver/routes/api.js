@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { apiLimiter, loginLimiter } = require('../rateLimiter');
-const authMiddleware = require('../authMiddleware');
+const authMiddleware = require('../../nodebackend/build/middleware/authMiddleware').default;
 
 //Place before authMiddleware
 const loginRouter = require('./loginRoute');
