@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const getTaskEnabler = require('../getTaskEnabler');
+const getTaskEnabler = require('../../nodebackend/build/utils/getTaskEnabler').default;
 const logger = require('../../nodebackend/build/logger').default;
 
 router.get('/', async (req, res) => {

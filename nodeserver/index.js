@@ -8,7 +8,7 @@ const configureSocket = require('../nodebackend/build/socketConfig').default;
 const authMiddlewareSocket = require('./authMiddlewareSocket');
 const { subscribeToRedisKey } = require('../nodebackend/build/clients/redisClient')
 const { loadScheduledTasks } = require('./scheduler');
-const { apiLimiter } = require('./rateLimiter');
+const { apiLimiter } = require('../nodebackend/build/middleware/rateLimiter');
 const apiRouter = require('./routes/api');
 const logger = require('../nodebackend/build/logger').default;
 require('./markiseBlock');

@@ -1,17 +1,16 @@
-const logger = require('../nodebackend/build/logger').default;
-const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
+import logger from '../logger';
+import { connectToRedis } from '../clients/redisClient';
 
-async function getTaskEnabler(zone) {
+async function getTaskEnabler(zone: string): Promise<boolean | void> {
   try {
     const client = await connectToRedis();
     const result = await client.get(`taskEnabler:${zone}`);
     logger.info(`Task enabler status for zone "${zone}" retrieved as "${result}"`);
 
-    // Convert the string "true"/"false" to boolean true/false
     return result === 'true';
   } catch (error) {
     logger.error('Error while getting task enabler status:', error);
   }
 }
 
-module.exports = getTaskEnabler;
+export default getTaskEnabler;
