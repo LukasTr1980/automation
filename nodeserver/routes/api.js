@@ -20,7 +20,7 @@ const getGptRequestRouter = require('./getGptRequestRoute');
 const updateGptRequestRouter = require('./updateGptRequestRoute');
 const deleteTaskRouter = require('./deleteTaskRoute');
 const getSecretsRouter = require('./getSecretsRoute');
-const updateSecretsRouter = require('./updateSecretsRoute');
+const updateSecretsRouter = require('../../nodebackend/build/routes/updateSecretsRoute').default;
 const countdownRouter = require('./countdownRoute');
 const markiseStatusRouter = require('./markiseStatusRoute');
 

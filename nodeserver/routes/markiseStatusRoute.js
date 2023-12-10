@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
-const namespaces = require('../namespace');
+const namespaces = require('../../nodebackend/build/namespace').default;
 
 const markiseStatusNamespace = namespaces.markiseStatus;
 

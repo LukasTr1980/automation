@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] 2023-12-09
+## [v15.4.0] 2023-12-10
 ### Changed
 - Migration of mongoClient, buildUrlMap and mqttPublisher to TS
 - Migration of authMiddleware and socketConfig to TS
@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration of mqttClient to TS
 - Migration of authMiddlewareSocket to TS
 - Migration of sharedState to TS
+- Migration of updateSecretsRoute, sseHandler to TS
+- Puppeteer test now checks for response not for UI changes
 
 ### Added
 - id and name field for frontend

@@ -1,16 +1,15 @@
-//sseHandler.js
-const sseClients = [];
+import { Response } from 'express'; // or from 'http' if you are not using Express
 
-// Broadcast a message to all active SSE clients
-const broadcastToSseClients = (topic, msg) => {
+const sseClients: Response[] = [];
+
+const broadcastToSseClients = (topic: string, msg: string): void => {
     const dataString = `data: ${JSON.stringify({ type: 'switchState', topic, state: msg })}\n\n`;
     sseClients.forEach(client => {
         client.write(dataString);
     });
 };
 
-// Add a new SSE client to the list and handle its closure
-const addSseClient = (client) => {
+const addSseClient = (client: Response): void => {
     sseClients.push(client);
     client.on('close', () => {
         const index = sseClients.indexOf(client);
@@ -20,7 +19,7 @@ const addSseClient = (client) => {
     });
 };
 
-module.exports = {
+export {
     broadcastToSseClients,
     addSseClient
 };

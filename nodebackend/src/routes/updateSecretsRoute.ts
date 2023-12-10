@@ -1,16 +1,25 @@
-const express = require('express');
-const router = express.Router();
-const vaultClient = require('../../nodebackend/build/clients/vaultClient'); // Ensure the path is correct
-const logger = require('../../nodebackend/build/logger').default;
+import express, { Request, Response } from 'express';
+import * as vaultClient from '../clients/vaultClient'; // Ensure the path is correct
+import logger from '../logger';
 
-router.post('/', async (req, res) => {
+const router = express.Router();
+
+interface UpdateRequestBody {
+    influxDbAiToken?: string;
+    influxDbAutomationToken?: string;
+    openAiApiToken?: string;
+    newPassword?: string;
+}
+
+// If you expect no URL parameters, use Record<string, never>
+router.post('/', async (req: Request<Record<string, never>, unknown, UpdateRequestBody>, res: Response) => {
     try {
         const { influxDbAiToken, influxDbAutomationToken, openAiApiToken, newPassword } = req.body;
 
         // Ensure you're logged in to Vault
         await vaultClient.login();
 
-        let updatedFields = [];
+        const updatedFields: string[] = [];
 
         if (influxDbAiToken) {
             await vaultClient.writeSecret('kv/data/automation/influxdb', { aitoken: influxDbAiToken });
@@ -45,4 +54,4 @@ router.post('/', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

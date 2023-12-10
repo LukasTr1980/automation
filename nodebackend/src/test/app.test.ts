@@ -58,19 +58,31 @@ describe('Login Tests', () => {
         expect(page.url()).toBe('http://localhost:5173/villa-anna/bewaesserung');
 
         await page.waitForSelector('#switch-lukas-west-3', { visible: true });
-
-        const isInitiallyToggled = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
         
-        await page.click('#switch-lukas-west-3');
-
-        const isToggledAfterFirstClick = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
-        expect(isToggledAfterFirstClick).toBe(!isInitiallyToggled); // Expect the opposite of the initial state
-
-        await page.waitForSelector('#switch-lukas-west-3', { visible: true });
-        
-        await page.click('#switch-lukas-west-3');
-        
-        const isToggledAfterSecondClick = await page.$eval('span[aria-label="Lukas West"]', el => el.classList.contains('Mui-checked'));
-        expect(isToggledAfterSecondClick).toBe(isInitiallyToggled); // Expect it to return to the initial state             
+        const [toggleResponse] = await Promise.all([
+            page.waitForResponse(response => 
+                response.request().url().includes('/simpleapi') &&
+                response.request().method() === 'POST'
+            ),
+            page.click('#switch-lukas-west-3')
+        ]);
+    
+        if (toggleResponse.ok()) {
+            // Log the response text for debugging
+            const responseText = await toggleResponse.text();
+    
+            // Parse response based on its content type
+            if (toggleResponse.headers()['content-type'].includes('application/json')) {
+                const responseBody = JSON.parse(responseText);
+                expect(responseBody).toMatchObject({ message: "Message published successfully." });
+            } else {
+                // Handle non-JSON response (e.g., plain text)
+                expect(responseText).toContain("Message published successfully.");
+            }
+        } else {
+            throw new Error(`Response was not OK: ${toggleResponse.status()}`);
+        }
+    
+        expect(toggleResponse.status()).toBe(200);
     });
 });
