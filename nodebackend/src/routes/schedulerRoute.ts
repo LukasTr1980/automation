@@ -1,9 +1,18 @@
-const express = require('express');
-const router = express.Router();
-const { scheduleTask } = require('../scheduler');
-const logger = require('../../nodebackend/build/logger').default;
+import express from 'express';
+import { scheduleTask } from '../scheduler';
+import logger from '../logger';
 
-router.post('/', async (req, res) => {
+const router = express.Router();
+
+// Define the RecurrenceRule interface as per your scheduler's expectations
+interface RecurrenceRule {
+  hour: number;
+  minute: number;
+  dayOfWeek: number[];
+  month: number[];
+}
+
+router.post('/', async (req: express.Request, res: express.Response) => {
     const { topic, state, days, months, hour, minute } = req.body;
   
     if (!topic || state === undefined || !days || !months || !hour || !minute) {
@@ -11,8 +20,8 @@ router.post('/', async (req, res) => {
       return;
     }
   
-    // Create recurrence rule
-    const recurrenceRule = {
+    // Create recurrence rule as an object
+    const recurrenceRule: RecurrenceRule = {
       hour: Number(hour),
       minute: Number(minute),
       dayOfWeek: days,
@@ -26,6 +35,6 @@ router.post('/', async (req, res) => {
       logger.error('Error while scheduling task:', error);
       res.status(500).send('Internal server error');
     }
-  });
+});
 
-module.exports = router;
+export default router;

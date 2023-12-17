@@ -12,7 +12,7 @@ router.use(apiLimiter, authMiddleware);
 const mqttRouter = require('./mqttRoute');
 const simpleapiRouter = require('../../nodebackend/build/routes/simpleapiRoute').default;
 const sessionRouter = require('../../nodebackend/build/routes/sessionRoute').default;
-const schedulerRouter = require('./schedulerRoute');
+const schedulerRouter = require('../../nodebackend/build/routes/schedulerRoute').default;
 const scheduledTasksRouter = require('./scheduledTasksRoute');
 const switchTaskEnablerRouter = require('../../nodebackend/build/routes/switchTaskEnablerRoute').default;
 const getTaskEnablerRouter = require('../../nodebackend/build/routes/getTaskEnablerRoute').default;

@@ -88,7 +88,15 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
   };
 }
 
-async function scheduleTask(topic: string, state: boolean, recurrenceRule: string): Promise<void> {
+interface RecurrenceRule {
+  hour: number;
+  minute: number;
+  dayOfWeek: number[];
+  month: number[];
+}
+
+
+async function scheduleTask(topic: string, state: boolean, recurrenceRule: RecurrenceRule): Promise<void> {
   if (!topic || state === undefined || !recurrenceRule) {
     throw new Error('Missing required parameters: topic, state, recurrenceRule');
   }
@@ -106,7 +114,8 @@ async function scheduleTask(topic: string, state: boolean, recurrenceRule: strin
 
   const client = await connectToRedis();
   const setAsync = promisify(client.set).bind(client);
-  await setAsync(jobKey, JSON.stringify({ id: uniqueID, state, recurrenceRule }));
+  const jobData = JSON.stringify({ id: uniqueID, state, recurrenceRule });
+  await setAsync(jobKey, jobData);
 }
 
 async function loadScheduledTasks(): Promise<void> {
