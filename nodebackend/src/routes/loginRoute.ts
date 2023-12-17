@@ -1,13 +1,14 @@
-const express = require('express');
-const router = express.Router();
-const { loginValidation } = require('../../nodebackend/build/utils/inputValidation');
-const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
-const crypto = require('crypto');
-const vaultClient = require('../../nodebackend/build/clients/vaultClient'); // Import your Vault client
-const logger = require('../../nodebackend/build/logger').default;
+import express from 'express';
+import { loginValidation } from '../utils/inputValidation';
+import { connectToRedis } from '../clients/redisClient';
+import crypto from 'crypto';
+import * as vaultClient from '../clients/vaultClient'; // Import your Vault client
+import logger from '../logger';
 
-router.post('/', async (req, res) => {
-    const clientIp = req.ip;
+const router = express.Router();
+
+router.post('/', async (req: express.Request, res: express.Response) => {
+    const clientIp: string | undefined = req.ip;
 
     const { error } = loginValidation(req.body);
     if (error) {
@@ -18,13 +19,10 @@ router.post('/', async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // Log in to Vault if not already logged in
-        if (!vaultClient.clientToken) {
-            await vaultClient.login();
-        }
-        
+        await vaultClient.login();
+
         // Fetch user's password from Vault
-        const secretPath = `kv/data/automation/login/${username}`;
+        const secretPath: string = `kv/data/automation/login/${username}`;
         const credentialsResponse = await vaultClient.getSecret(secretPath);
 
         if (!credentialsResponse) {
@@ -33,16 +31,16 @@ router.post('/', async (req, res) => {
         }
 
         // Extract the password from the Vault response
-        const storedPassword = credentialsResponse.data.password;
+        const storedPassword: string = credentialsResponse.data.password;
 
         // Check if the password from Vault matches the input password
         if (password !== storedPassword) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - Incorrect password`);
             return res.status(401).json({ status: 'error', message: 'Incorrect username or password.' });
         }
-        
+
         // Password correct, generate a session ID
-        const sessionId = crypto.randomBytes(16).toString('hex');
+        const sessionId: string = crypto.randomBytes(16).toString('hex');
 
         // Store the session ID in Redis
         const redis = await connectToRedis();
@@ -53,9 +51,14 @@ router.post('/', async (req, res) => {
         // Send the session ID back to the client
         res.status(200).json({ status: 'success', session: sessionId });
     } catch (error) {
-        logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);
-        res.status(500).json({ status: 'error', message: 'An error occurred while processing your request.' });
+        if (error instanceof Error) {
+            logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);
+            res.status(500).json({ status: 'error', message: 'An error occurred while processing your request.' });
+        } else {
+            logger.error(`An unexpected error occurred during user login for username: ${username} from IP ${clientIp}`);
+            res.status(500).json({ status: 'error', message: 'An unexpected error occurred.' });
+        }
     }
 });
 
-module.exports = router;
+export default router;

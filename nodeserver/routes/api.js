@@ -4,7 +4,7 @@ const { apiLimiter, loginLimiter } = require('../../nodebackend/build/middleware
 const authMiddleware = require('../../nodebackend/build/middleware/authMiddleware').default;
 
 //Place before authMiddleware
-const loginRouter = require('./loginRoute');
+const loginRouter = require('../../nodebackend/build/routes/loginRoute').default;
 router.use('/login', loginLimiter, loginRouter);
 
 router.use(apiLimiter, authMiddleware);
@@ -17,12 +17,12 @@ const scheduledTasksRouter = require('./scheduledTasksRoute');
 const switchTaskEnablerRouter = require('../../nodebackend/build/routes/switchTaskEnablerRoute').default;
 const getTaskEnablerRouter = require('./getTaskEnablerRoute');
 const getGptRequestRouter = require('../../nodebackend/build/routes/getGptRequestRoute').default;
-const updateGptRequestRouter = require('./updateGptRequestRoute');
+const updateGptRequestRouter = require('../../nodebackend/build/routes/updateGptRequestRoute').default;
 const deleteTaskRouter = require('../../nodebackend/build/routes/deleteTaskRoute').default;
 const getSecretsRouter = require('../../nodebackend/build/routes/getSecretsRoute').default;
 const updateSecretsRouter = require('../../nodebackend/build/routes/updateSecretsRoute').default;
 const countdownRouter = require('../../nodebackend/build/routes/countdownRoute').default;
-const markiseStatusRouter = require('./markiseStatusRoute');
+const markiseStatusRouter = require('../../nodebackend/build/routes/markiseStatusRoute').default;
 
 router.use('/mqtt', mqttRouter);
 router.use('/simpleapi', simpleapiRouter);
