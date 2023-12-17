@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated scheduler to TypeScript.
 - Modified schedulerTask function to now accept an object as recurrenceRule, enhancing flexibility in scheduling tasks.
 - Migrated schedulerRoute to TypeScript.
+- Migrated scheduledTasksRoute to Typescript
 
 ## [v15.5.0] - 2023-12-17
 ### Added
