@@ -1,26 +1,28 @@
-const schedule = require('node-schedule');
-const { promisify } = require('util');
-const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
-const isIrrigationNeeded = require('../nodebackend/build/gptChatIrrigation').default;
-const getTaskEnabler = require('../nodebackend/build/utils/getTaskEnabler').default;
-const sharedState = require('../nodebackend/build/utils/sharedState');
-const generateUniqueId = require('../nodebackend/build/utils/generateUniqueId').default;
-const { topicToTaskEnablerKey } = require('../nodebackend/build/utils/constants');
-const MqttPublisher = require('../nodebackend/build/utils/mqttPublisher').default;
-const logger = require('../nodebackend/build/logger').default;
+import schedule from 'node-schedule';
+import { promisify } from 'util';
+import { connectToRedis } from './clients/redisClient';
+import isIrrigationNeeded from './gptChatIrrigation';
+import getTaskEnabler from './utils/getTaskEnabler';
+import { sharedState } from './utils/sharedState';
+import generateUniqueId from './utils/generateUniqueId';
+import { topicToTaskEnablerKey } from './utils/constants';
+import MqttPublisher from './utils/mqttPublisher';
+import logger from './logger';
 
 const publisher = new MqttPublisher();
 
-let jobs = {};
+interface Job {
+  [key: string]: schedule.Job;
+}
 
-function createTask(topic, state) {
+const jobs: Job = {};
+
+async function createTask(topic: string, state: boolean): Promise<() => Promise<void>> {
   return async function () {
     try {
-
       const zoneName = topic.split('/')[2];
 
-      if (topicToTaskEnablerKey.hasOwnProperty(zoneName)) {
-
+      if (Object.prototype.hasOwnProperty.call(topicToTaskEnablerKey, zoneName)) {
         const taskEnablerKey = topicToTaskEnablerKey[zoneName];
 
         const taskEnablerState = await getTaskEnabler(taskEnablerKey);
@@ -30,22 +32,20 @@ function createTask(topic, state) {
           return;
         }
       } else {
-        logger.info(`No task enabler key found for "${zoneName}". Proceeding without checking task enabler state.`)
+        logger.info(`No task enabler key found for "${zoneName}". Proceeding without checking task enabler state.`);
       }
 
       // Special logic for markise
       if (topic.startsWith('markise/switch/haupt/set')) {
         if (!sharedState.timeoutOngoing) {
-          // Send initial state (from Redis key)
-          publisher.publish(topic, state.toString(), (err) => {
+          publisher.publish(topic, state.toString(), (err: Error | null) => {
             if (err) {
               logger.error('Error while publishing message:', err);
             } else {
               logger.info('Message published successfully.');
 
-              // Send state 3 after 40 seconds
               setTimeout(() => {
-                publisher.publish(topic, '3', (err) => {
+                publisher.publish(topic, '3', (err: Error | null) => {
                   if (err) {
                     logger.error('Error while publishing second message:', err);
                   } else {
@@ -53,7 +53,6 @@ function createTask(topic, state) {
                   }
                 });
               }, 40000); // 40 seconds delay
-
             }
           });
         } else {
@@ -61,7 +60,7 @@ function createTask(topic, state) {
         }
       } else {
         if (state === false) {
-          publisher.publish(topic, state.toString(), (err) => {
+          publisher.publish(topic, state.toString(), (err: Error | null) => {
             if (err) {
               logger.error('Error while publishing message:', err);
             } else {
@@ -69,11 +68,9 @@ function createTask(topic, state) {
             }
           });
         } else {
-          // Check if isIrrigationNeeded is true for original logic
-          const { result: irrigationNeeded, response: gptResponse } = await isIrrigationNeeded();
+          const { result: irrigationNeeded } = await isIrrigationNeeded();
           if (irrigationNeeded) {
-            // Original logic for other topics
-            publisher.publish(topic, state.toString(), (err) => {
+            publisher.publish(topic, state.toString(), (err: Error | null) => {
               if (err) {
                 logger.error('Error while publishing message:', err);
               } else {
@@ -91,7 +88,7 @@ function createTask(topic, state) {
   };
 }
 
-async function scheduleTask(topic, state, recurrenceRule) {
+async function scheduleTask(topic: string, state: boolean, recurrenceRule: string): Promise<void> {
   if (!topic || state === undefined || !recurrenceRule) {
     throw new Error('Missing required parameters: topic, state, recurrenceRule');
   }
@@ -104,7 +101,7 @@ async function scheduleTask(topic, state, recurrenceRule) {
     jobs[jobKey].cancel();
   }
 
-  const task = createTask(topic, state);
+  const task = await createTask(topic, state);
   jobs[jobKey] = schedule.scheduleJob(recurrenceRule, task);
 
   const client = await connectToRedis();
@@ -112,7 +109,7 @@ async function scheduleTask(topic, state, recurrenceRule) {
   await setAsync(jobKey, JSON.stringify({ id: uniqueID, state, recurrenceRule }));
 }
 
-async function loadScheduledTasks() {
+async function loadScheduledTasks(): Promise<void> {
   const patterns = ['bewaesserung*', 'markise*'];
   const client = await connectToRedis();
   const keysAsync = promisify(client.keys).bind(client);
@@ -121,51 +118,65 @@ async function loadScheduledTasks() {
   for (const pattern of patterns) {
     const jobKeys = await keysAsync(pattern);
 
-    for (const jobKey of jobKeys) {
-      const data = await getAsync(jobKey);
-      const { state, recurrenceRule } = JSON.parse(data);
+    if (jobKeys) {
+      for (const jobKey of jobKeys) {
+        const data = await getAsync(jobKey);
+        if (data) {
+          const { state, recurrenceRule } = JSON.parse(data);
 
-      // Extract topic from jobKey, it should be everything before the last underscore
-      const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
+          const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
 
-      // Schedule the task
-      const task = createTask(topic, state);
-      jobs[jobKey] = schedule.scheduleJob(recurrenceRule, task);
+          const task = await createTask(topic, state);
+          jobs[jobKey] = schedule.scheduleJob(recurrenceRule, task);
+        }
+      }
     }
   }
 }
 
-async function getScheduledTasks() {
+interface TaskDetail {
+  taskId: string;
+  state: boolean;
+  recurrenceRule: string;
+}
+
+interface TasksByTopic {
+  [key: string]: TaskDetail[];
+}
+
+async function getScheduledTasks(): Promise<TasksByTopic> {
   const patterns = ['bewaesserung*', 'markise*'];
   const client = await connectToRedis();
   const keysAsync = promisify(client.keys).bind(client);
   const getAsync = promisify(client.get).bind(client);
 
-  const tasksByTopic = {};
+  const tasksByTopic: TasksByTopic = {};
 
   for (const pattern of patterns) {
     const jobKeys = await keysAsync(pattern);
 
-    for (const jobKey of jobKeys) {
-      const data = await getAsync(jobKey);
-      const { id, state, recurrenceRule } = JSON.parse(data);
+    if (jobKeys) {
+      for (const jobKey of jobKeys) {
+        const data = await getAsync(jobKey);
 
-      // Extract topic from jobKey
-      const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
+        if (data) {
+          const { id, state, recurrenceRule } = JSON.parse(data);
 
-      // Initialize the topic array if not done yet
-      if (!tasksByTopic[topic]) {
-        tasksByTopic[topic] = [];
+          const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
+
+          if (!tasksByTopic[topic]) {
+            tasksByTopic[topic] = [];
+          }
+
+          tasksByTopic[topic].push({ taskId: id, state, recurrenceRule });
+        }
       }
-
-      // Push the task to the appropriate topic array
-      tasksByTopic[topic].push({ taskId: id, state, recurrenceRule });
     }
   }
   return tasksByTopic;
 }
 
-module.exports = {
+export {
   scheduleTask,
   loadScheduledTasks,
   getScheduledTasks,

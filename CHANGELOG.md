@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - 2023-12-17
 ### Changed
 - Migrated the getTaskEnablerRoute to TypeScript (TS) for improved type safety and maintainability.
+- Migrated scheduler to TS
 
 ## [v15.5.0] - 2023-12-17
 ### Added
