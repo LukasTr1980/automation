@@ -1,19 +1,22 @@
-const express = require('express');
-const router = express.Router();
-const getTaskEnabler = require('../../nodebackend/build/utils/getTaskEnabler').default;
-const logger = require('../../nodebackend/build/logger').default;
+import express from 'express';
+import getTaskEnabler from '../utils/getTaskEnabler';
+import logger from '../logger';
 
-router.get('/', async (req, res) => {
-    const { zone } = req.query;
+const router = express.Router();
+
+router.get('/', async (req: express.Request, res: express.Response) => {
+    const zone = req.query.zone as string | undefined;
   
     if (!zone) {
+      logger.warn('Missing required parameter: zone');
       res.status(400).send('Missing required parameter: zone');
       return;
     }
   
     try {
       const state = await getTaskEnabler(zone);
-      // Return the state
+      logger.info(`Task enabler status for zone ${zone}: ${state}`);
+
       res.status(200).json({ state });
     } catch (error) {
       logger.error('Error while getting task enabler status:', error);
@@ -21,4 +24,4 @@ router.get('/', async (req, res) => {
     }
   });
 
-module.exports = router;
+export default router;
