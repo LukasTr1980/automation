@@ -1,7 +1,7 @@
-// countdown.js
-const logger = require('../nodebackend/build/logger').default;
-const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
-const MqttPublisher = require('../nodebackend/build/utils/mqttPublisher').default;
+// countdown.ts
+import logger from '../logger';
+import { connectToRedis } from '../clients/redisClient';
+import MqttPublisher from '../utils/mqttPublisher';
 
 const publisher = new MqttPublisher();
 
@@ -12,9 +12,13 @@ const hoursKeySuffix = ':countdownHours';
 const minutesKeySuffix = ':countdownMinutes';
 const countdownKeySuffix = ':value';
 
-let countdownIntervals = {};
+interface CountdownIntervals {
+  [key: string]: NodeJS.Timeout;
+}
 
-async function updateHoursAndMinutes(topic) {
+const countdownIntervals: CountdownIntervals = {};
+
+async function updateHoursAndMinutes(topic: string): Promise<void> {
     const client = await connectToRedis();
     const countdownKey = countdownPrefix + topic + countdownKeySuffix;
     const hoursKey = countdownPrefix + topic + hoursKeySuffix;
@@ -23,9 +27,8 @@ async function updateHoursAndMinutes(topic) {
     const countdownValueStr = await client.get(countdownKey);
     let countdownValue = countdownValueStr ? parseInt(countdownValueStr) : 0;
 
-    // Corrected the calculations for hours and minutes
     const currentHours = Math.floor(countdownValue / 3600);
-    countdownValue %= 3600;  // Update countdownValue to the remainder after extracting hours
+    countdownValue %= 3600;
     const currentMinutes = Math.floor(countdownValue / 60);
 
     await Promise.all([
@@ -34,13 +37,12 @@ async function updateHoursAndMinutes(topic) {
     ]);
 }
 
-async function initiateCountdown(topic, hours, minutes, action) {
+async function initiateCountdown(topic: string, hours: number, minutes: number, action: string): Promise<void> {
     const client = await connectToRedis();
-    let countdownValue = (hours * 3600) + (minutes * 60);  // Moved out of setInterval
+    let countdownValue = (hours * 3600) + (minutes * 60);
     const controlKey = countdownPrefix + topic + controlKeySuffix;
     const countdownKey = countdownPrefix + topic + countdownKeySuffix;
 
-    // Initially set Redis keys
     await Promise.all([
         client.set(countdownKey, countdownValue.toString()),
         client.set(controlKey, action)
@@ -67,7 +69,6 @@ async function initiateCountdown(topic, hours, minutes, action) {
         delete countdownIntervals[topic];
     }
 
-    // Update Redis key every second
     const intervalId = setInterval(async () => {
         const controlSignal = await client.get(controlKey);
         if (controlSignal === 'start' && countdownValue > 0) {
@@ -77,14 +78,14 @@ async function initiateCountdown(topic, hours, minutes, action) {
             clearInterval(intervalId);
             if (countdownValue === 0 || controlSignal === 'stop') {
                 sendSignal(topic, false);
-                await client.set(controlKey, 'stop');  // Automatically stop when countdown reaches 0
+                await client.set(controlKey, 'stop');
             }
         }
     }, 1000);
     countdownIntervals[topic] = intervalId;
 }
 
-async function updateCountdowns(topic) {
+async function updateCountdowns(topic: string): Promise<void> {
     const client = await connectToRedis();
 
     const controlKey = countdownPrefix + topic + controlKeySuffix;
@@ -95,7 +96,6 @@ async function updateCountdowns(topic) {
     const controlSignal = await client.get(controlKey);
 
     if (controlSignal === 'reset') {
-
         await Promise.all([
             client.set(countdownKey, '0'),
             client.set(hoursKey, '0'),
@@ -138,9 +138,9 @@ async function updateCountdowns(topic) {
     }
 }
 
-async function sendSignal(topic, state) {
+async function sendSignal(topic: string, state: boolean): Promise<void> {
     try {
-        publisher.publish(topic, state.toString(), (err) => {
+        publisher.publish(topic, state.toString(), (err: Error) => {
             if (err) {
                 logger.error('Error while publishing message:', err);
             } else {
@@ -152,7 +152,7 @@ async function sendSignal(topic, state) {
     }
 }
 
-module.exports = {
+export {
     initiateCountdown,
     updateCountdowns
 };

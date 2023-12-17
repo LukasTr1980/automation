@@ -1,9 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
-const logger = require('../../nodebackend/build/logger').default;
+import express from 'express';
+import { Request, Response } from 'express';
+import { connectToRedis } from '../clients/redisClient';
+import logger from '../logger';
 
-router.get('/', async (req, res) => {
+const router = express.Router();
+
+router.get('/', async (req: Request, res: Response): Promise<void> => {
     try {
       const client = await connectToRedis();
       const gptRequest = await client.get("gptRequestKey");
@@ -12,6 +14,6 @@ router.get('/', async (req, res) => {
       logger.error('Error while fetching GPT request:', error);
       res.status(500).send('Internal server error');
     }
-  });
+});
 
-module.exports = router;
+export default router;

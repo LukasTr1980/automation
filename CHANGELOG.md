@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration of getSecretsRoute to TS
 - Migration of sessionRoute to TS
 - Migration of switchTaskEnablerRoute to TS
+- Migration of countdownRoute to TS
+- Migration of getGptRequestRoute to TS
+- Migration of countdown to TS
 
 ### Fixed
 - Fixed the association between zoneName and taskId to ensure the correct task is deleted.

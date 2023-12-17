@@ -1,14 +1,22 @@
-// countdownRoutes.js
-const express = require('express');
-const router = express.Router();
-const { initiateCountdown, updateCountdowns } = require('../countdown');
-const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
+// countdownRoutes.ts
+import express, { Request, Response } from 'express';
+import { initiateCountdown, updateCountdowns } from '../utils/countdown';
+import { connectToRedis } from '../clients/redisClient';
 
-router.get('/currentCountdowns', async (req, res) => {
+interface Countdown {
+    value: number;
+    hours: string | null;
+    minutes: string | null;
+    control: string | null;
+}
+
+const router = express.Router();
+
+router.get('/currentCountdowns', async (req: Request, res: Response) => {
     const client = await connectToRedis();
-    const keys = await client.keys('countdown:*:value');  // Get keys for all countdown values
-    const countdowns = {};
-    for (let key of keys) {
+    const keys = await client.keys('countdown:*:value'); // Get keys for all countdown values
+    const countdowns: { [key: string]: Countdown } = {};
+    for (const key of keys) {
         const topic = key.split(':')[1];
         const valueKey = `countdown:${topic}:value`;
         const hoursKey = `countdown:${topic}:countdownHours`;
@@ -23,7 +31,7 @@ router.get('/currentCountdowns', async (req, res) => {
             client.get(controlKey)
         ]);
 
-        const numericValue = parseInt(value, 10);
+        const numericValue = value !== null ? parseInt(value, 10) : 0;
 
         // Construct a countdown object for each topic
         countdowns[topic] = {
@@ -33,10 +41,10 @@ router.get('/currentCountdowns', async (req, res) => {
             control
         };
     }
-    res.json(countdowns);  // Send the countdowns as a JSON object
+    res.json(countdowns); // Send the countdowns as a JSON object
 });
 
-router.post('/setCountdown', async (req, res) => {
+router.post('/setCountdown', async (req: Request, res: Response) => {
     const { topic, hours, minutes, action } = req.body;
 
     if (!topic || (action !== 'start' && action !== 'stop' && action !== 'reset')) {
@@ -81,4 +89,4 @@ router.post('/setCountdown', async (req, res) => {
     res.status(200).send(responseMessage);
 });
 
-module.exports = router;
+export default router;

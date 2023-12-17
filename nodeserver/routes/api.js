@@ -16,12 +16,12 @@ const schedulerRouter = require('./schedulerRoute');
 const scheduledTasksRouter = require('./scheduledTasksRoute');
 const switchTaskEnablerRouter = require('../../nodebackend/build/routes/switchTaskEnablerRoute').default;
 const getTaskEnablerRouter = require('./getTaskEnablerRoute');
-const getGptRequestRouter = require('./getGptRequestRoute');
+const getGptRequestRouter = require('../../nodebackend/build/routes/getGptRequestRoute').default;
 const updateGptRequestRouter = require('./updateGptRequestRoute');
 const deleteTaskRouter = require('../../nodebackend/build/routes/deleteTaskRoute').default;
 const getSecretsRouter = require('../../nodebackend/build/routes/getSecretsRoute').default;
 const updateSecretsRouter = require('../../nodebackend/build/routes/updateSecretsRoute').default;
-const countdownRouter = require('./countdownRoute');
+const countdownRouter = require('../../nodebackend/build/routes/countdownRoute').default;
 const markiseStatusRouter = require('./markiseStatusRoute');
 
 router.use('/mqtt', mqttRouter);
