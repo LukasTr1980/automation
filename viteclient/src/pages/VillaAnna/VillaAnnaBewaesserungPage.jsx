@@ -204,8 +204,12 @@ const BewaesserungPage = () => {
             ) : (
               <>
                 {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
-                {Object.entries(orderedTasks).map(([zoneName, tasks], index) => {
-                  return <ScheduledTaskCard key={`${zoneName}-${index}`} zoneName={zoneName} tasks={tasks} onDelete={handleDeleteTask} redisKey={bewaesserungsTopicsSet[index]} />
+                {Object.entries(orderedTasks).map(([zoneName, tasks]) => {
+                  // Find the correct index for the zoneName
+                  const topicIndex = switchDescriptions.findIndex(desc => desc === zoneName);
+                  const redisKey = bewaesserungsTopicsSet[topicIndex];
+
+                  return <ScheduledTaskCard key={`${zoneName}-${topicIndex}`} zoneName={zoneName} tasks={tasks} onDelete={handleDeleteTask} redisKey={redisKey} />;
                 })}
               </>
             )}

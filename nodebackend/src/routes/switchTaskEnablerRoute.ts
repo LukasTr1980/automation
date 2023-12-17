@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const setTaskEnabler = require('../../nodebackend/build/utils/switchTaskEnabler').default;
-const logger = require('../../nodebackend/build/logger').default;
+import express, { Request, Response } from 'express';
+import setTaskEnabler from '../utils/switchTaskEnabler';
+import logger from '../logger';
 
-router.post('/', async (req, res) => {
+const router = express.Router();
+
+router.post('/', async (req: Request, res: Response) => {
     const { zone, state } = req.body;
   
     if (!zone || state === undefined) {
@@ -18,6 +19,6 @@ router.post('/', async (req, res) => {
       logger.error('Error while updating task enabler status:', error);
       res.status(500).send('Internal server error');
     }
-  });
+});
 
-module.exports = router;
+export default router;

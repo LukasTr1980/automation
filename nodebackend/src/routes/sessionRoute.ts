@@ -1,10 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
+import express from 'express';
+import { connectToRedis } from '../clients/redisClient';
 
-router.get('/', async (req, res) => {
+const router = express.Router();
+
+router.get('/', async (req: express.Request, res: express.Response): Promise<void> => {
     const authHeader = req.headers['authorization'];
-    const sessionId = authHeader && authHeader.split(' ')[1];
+    const sessionId = authHeader?.split(' ')[1];
   
     // Get the Redis client
     const redis = await connectToRedis();
@@ -17,6 +18,6 @@ router.get('/', async (req, res) => {
     } else {
       res.status(401).send();
     }
-  });
+});
 
-module.exports = router;
+export default router;

@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const vaultClient = require('../../nodebackend/build/clients/vaultClient'); // Ensure the path is correct
-const logger = require('../../nodebackend/build/logger').default;
+import express, { Request, Response } from 'express';
+import * as vaultClient from '../clients/vaultClient'; // Ensure the path is correct
+import logger from '../logger';
 
-router.get('/', async (req, res) => {
+const router = express.Router();
+
+router.get('/', async (req: Request, res: Response) => {
     try {
         // Attempt to login to Vault if not already logged in
         await vaultClient.login();
@@ -37,4 +38,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

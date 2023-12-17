@@ -1,9 +1,15 @@
-const express = require('express');
-const router = express.Router();
-const { connectToRedis } = require('../../nodebackend/build/clients/redisClient');
-const logger = require('../../nodebackend/build/logger').default;
+import express, { Request, Response } from 'express';
+import { connectToRedis } from '../clients/redisClient';
+import logger from '../logger';
 
-router.delete('/', async (req, res) => {
+const router = express.Router();
+
+interface RequestBody {
+  taskId: string;
+  zone: string;
+}
+
+router.delete('/', async (req: Request<Record<string, never>, unknown, RequestBody>, res: Response) => {
     logger.info("Received body:", req.body);
     const { taskId, zone } = req.body;
   
@@ -34,4 +40,4 @@ router.delete('/', async (req, res) => {
     });
   });
 
-module.exports = router;
+export default router;
