@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] 2023-12-17
+### Added
+- Added second toggle of switch lukas west to turn it off in test run with puppeteer
+
 ### Changed
 - Migration of simpleapiRoute to TS
 - Migration of deleteTaskRoute to TS
@@ -15,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed the association between zoneName and taskId to ensure the correct task is deleted.
+
+### Removed
+- Deleted passwordHasher.js
 
 ## [v15.4.0] 2023-12-10
 ### Changed
