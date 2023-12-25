@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { addSseClient, latestStates } = require('../mqttHandler');
+const { addSseClient, latestStates } = require('../../nodebackend/build/utils/mqttHandler');
 const isIrrigationNeeded = require('../../nodebackend/build/gptChatIrrigation').default;
 
 router.get('/', async (req, res) => {

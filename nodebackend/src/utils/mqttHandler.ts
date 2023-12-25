@@ -1,17 +1,22 @@
-const { connectToMongo } = require('../nodebackend/build/clients/mongoClient');
-const EventEmitter = require('events');
-const { writeToInflux } = require('../nodebackend/build/clients/influxdb-client');
-const mqttClient = require('../nodebackend/build/clients/mqttClient').default;
-const { broadcastToSseClients, addSseClient } = require('../nodebackend/build/utils/sseHandler');
-const logger = require('../nodebackend/build/logger').default;
+import { connectToMongo } from '../clients/mongoClient';
+import { EventEmitter } from 'events';
+import { writeToInflux } from '../clients/influxdb-client';
+import mqttClient from '../clients/mqttClient';
+import { broadcastToSseClients, addSseClient } from './sseHandler';
+import logger from '../logger';
 
 class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();
 
-let mqttTopics = [];
-let mqttTopicsNumber = [];
+let mqttTopics: string[] = [];
+let mqttTopicsNumber: string[] = [];
 
-async function fetchMqttTopics() {
+interface MqttTopicsResult {
+    mqttTopics: string[];
+    mqttTopicsNumber: string[];
+}
+
+async function fetchMqttTopics(): Promise<MqttTopicsResult | null> {
     try {
         const db = await connectToMongo();
         const collection = db.collection('nodeServerConfig');
@@ -19,10 +24,11 @@ async function fetchMqttTopics() {
         return doc ? { mqttTopics: doc.mqttTopics, mqttTopicsNumber: doc.mqttTopicsNumber } : null;
     } catch (error) {
         logger.error('Could not fetch MQTT Topics', error);
+        return null;
     }
 }
 
-const latestStates = {};
+const latestStates: Record<string, string> = {};
 
 // Subscribe to all topics and set message handlers
 mqttClient.on('connect', async () => {
@@ -73,7 +79,7 @@ setInterval(() => {
 }, SAVE_INTERVAL);
 
 // Handlers for topics with specific check functions
-const createTopicHandler = (topic, checkFunction) => {
+const createTopicHandler = (topic: string, checkFunction: (message: string) => boolean) => {
     return {
         getStatus: () => {
             const message = latestStates[topic];
@@ -85,10 +91,9 @@ const createTopicHandler = (topic, checkFunction) => {
 const rainRateHandler = createTopicHandler('wetter/number/weathercloud_regenrate', (message) => Number(message) > 0);
 const windHandler = createTopicHandler('wetter/number/wind', (message) => Number(message) >= 20);
 
-module.exports = {
-    latestStates,
-    addSseClient,
-    isRaining: rainRateHandler.getStatus,
-    isWindy: windHandler.getStatus,
-    stateChangeEmitter
-};
+// Individual exports for each entity
+export { latestStates, addSseClient, stateChangeEmitter };
+
+// Exporting functions with specific aliases
+export const isRaining = rainRateHandler.getStatus;
+export const isWindy = windHandler.getStatus;
