@@ -24,4 +24,4 @@ COPY --from=nodebackend-build /usr/src/nodebackend .
 COPY --from=client-build /usr/src/viteclient/dist ../viteclient/dist
 
 EXPOSE 8523
-CMD ["node", "index.js"]
+CMD ["node", "build/index.js"]
