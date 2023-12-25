@@ -1,9 +1,9 @@
 const { Point } = require('@influxdata/influxdb-client');
-const config = require('./config');
+const config = require('../nodebackend/build/configs');
 const logger = require('../nodebackend/build/logger').default;
 
 async function writeToInflux(topic, message) {
-    const influxDbClient = await config.getInfluxDbClient();
+    const influxDbClient = await config.getInfluxDbClientAutomation();
     const writeApi = influxDbClient.getWriteApi('villaanna', 'automation');
 
     const point = new Point('mqtt_data').tag('topic', topic);

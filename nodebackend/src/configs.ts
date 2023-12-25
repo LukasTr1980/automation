@@ -9,68 +9,104 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 let openai: OpenAI | undefined;
-let influxDbClient: InfluxDB | undefined;
+let influxDbClientAI: InfluxDB | undefined;
+let influxDbClientAutomation: InfluxDB | undefined;
 let openaiApiKey: string | undefined;
-let influxDbToken: string | undefined;
+let influxDbTokenAI: string | undefined;
+let influxDbTokenAutomation: string | undefined;
 
-async function initializeConfig(): Promise<void> {
+async function initializeOpenAIConfig(): Promise<void> {
     try {
         await vaultClient.login();
-        const credentials = await vaultClient.getSecret('kv/data/automation/openai');
-        openaiApiKey = credentials.data.apikey;
+        const openaiCredentials = await vaultClient.getSecret('kv/data/automation/openai');
+        openaiApiKey = openaiCredentials.data.apikey;
 
         if (!openaiApiKey) {
             throw new Error('Failed to retrieve Openai Api Key from Vault.');
         }
+
+        openai = new OpenAI({
+            apiKey: openaiApiKey,
+        });
     } catch (error) {
-        logger.error('Could not fetch credentials from Vault', error);
+        logger.error('Could not fetch OpenAI credentials from Vault', error);
         throw error;
     }
+}
 
-    openai = new OpenAI({
-        apiKey: openaiApiKey,
-    });
-
+async function initializeInfluxDbConfigAI(): Promise<void> {
     try {
         await vaultClient.login();
         const credentials = await vaultClient.getSecret('kv/data/automation/influxdb');
-        influxDbToken = credentials.data.aitoken;
+        influxDbTokenAI = credentials.data.aitoken;
 
-        if (!influxDbToken) {
-            throw new Error('Failed to retrieve influxdb AI token from Vault.');
+        if (!influxDbTokenAI) {
+            throw new Error('Failed to retrieve InfluxDB AI token from Vault.');
         }
+
+        const influxDbConfigAI = {
+            url: envSwitcher.influxDbUrl,
+            token: influxDbTokenAI,
+        };
+        influxDbClientAI = new InfluxDB(influxDbConfigAI);
     } catch (error) {
-        logger.error('Could not fetch credentials from Vault', error);
+        logger.error('Could not fetch InfluxDB AI credentials from Vault', error);
         throw error;
     }
+}
 
-    const influxDbConfig = {
-        url: envSwitcher.influxDbUrl,
-        token: influxDbToken
-    };
-    influxDbClient = new InfluxDB(influxDbConfig);
+async function initializeInfluxDbConfigAutomation(): Promise<void> {
+    try {
+        await vaultClient.login();
+        const credentials = await vaultClient.getSecret('kv/data/automation/influxdb');
+        influxDbTokenAutomation = credentials.data.automationtoken;
+
+        if (!influxDbTokenAutomation) {
+            throw new Error('Failed to retrieve InfluxDB Automation token from Vault.');
+        }
+
+        const influxDbConfigAutomation = {
+            url: envSwitcher.influxDbUrl,
+            token: influxDbTokenAutomation,
+        };
+        influxDbClientAutomation = new InfluxDB(influxDbConfigAutomation);
+    } catch (error) {
+        logger.error('Could not fetch InfluxDB Automation credentials from Vault', error);
+        throw error;
+    }
 }
 
 async function getOpenAI(): Promise<OpenAI> {
     if (!openai) {
-        await initializeConfig();
+        await initializeOpenAIConfig();
     }
-    if (openai === undefined) {
-        logger.error('Openai client is not initialized')
-        throw new Error('Openai client is not initialized')
+    if (!openai) {
+        logger.error('OpenAI client is not initialized');
+        throw new Error('OpenAI client is not initialized');
     }
     return openai;
 }
 
-async function getInfluxDbClient(): Promise<InfluxDB> {
-    if (!influxDbClient) {
-        await initializeConfig();
+async function getInfluxDbClientAI(): Promise<InfluxDB> {
+    if (!influxDbClientAI) {
+        await initializeInfluxDbConfigAI();
     }
-    if (influxDbClient === undefined) {
-        logger.error('Influxdb client is not initialized')
-        throw new Error('Influxdb client is not initialized')
+    if (!influxDbClientAI) {
+        logger.error('InfluxDB AI client is not initialized');
+        throw new Error('InfluxDB AI client is not initialized');
     }
-    return influxDbClient;
+    return influxDbClientAI;
+}
+
+async function getInfluxDbClientAutomation(): Promise<InfluxDB> {
+    if (!influxDbClientAutomation) {
+        await initializeInfluxDbConfigAutomation();
+    }
+    if (!influxDbClientAutomation) {
+        logger.error('InfluxDB Automation client is not initialized');
+        throw new Error('InfluxDB Automation client is not initialized');
+    }
+    return influxDbClientAutomation;
 }
 
 export const vaultRoleId = process.env.VAULT_ROLE_ID!;
@@ -78,5 +114,6 @@ export const vaultSecretId = process.env.VAULT_SECRET_ID!;
 
 export {
     getOpenAI,
-    getInfluxDbClient
+    getInfluxDbClientAI,
+    getInfluxDbClientAutomation
 };

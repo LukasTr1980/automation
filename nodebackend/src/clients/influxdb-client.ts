@@ -1,6 +1,6 @@
 import { ParameterizedQuery } from '@influxdata/influxdb-client';
 import logger from '../logger';
-import { getInfluxDbClient } from '../configs';
+import { getInfluxDbClientAI } from '../configs';
 import {
     outTempQuery,
     windQuery,
@@ -17,7 +17,7 @@ interface DataRow {
 }
 
 async function querySingleData(fluxQuery: ParameterizedQuery): Promise<DataRow[]> {
-  const queryApi = (await getInfluxDbClient()).getQueryApi(org);
+  const queryApi = (await getInfluxDbClientAI()).getQueryApi(org);
   const result: DataRow[] = [];
   return new Promise((resolve, reject) => {
     queryApi.queryRows(fluxQuery, {
