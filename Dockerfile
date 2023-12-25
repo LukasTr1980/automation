@@ -17,18 +17,11 @@ ARG VERSION
 RUN echo "VITE_APP_VERSION=${VERSION}" > .env
 RUN npm run build
 
-# Build the Node.js app
-FROM node:18-slim AS app-build
-WORKDIR /usr/src/nodeserver
-COPY ./nodeserver/package*.json ./
-RUN npm install --only=production
-COPY ./nodeserver .
-
-# Copy built React app as a sibling
+# Final stage: Setup the nodebackend to run
+FROM node:18-slim
+WORKDIR /usr/src/nodebackend
+COPY --from=nodebackend-build /usr/src/nodebackend .
 COPY --from=client-build /usr/src/viteclient/dist ../viteclient/dist
 
-# Copy nodebackend library as a sibling
-COPY --from=nodebackend-build /usr/src/nodebackend ../nodebackend
-
 EXPOSE 8523
-CMD [ "node", "index.js" ]
+CMD ["node", "index.js"]

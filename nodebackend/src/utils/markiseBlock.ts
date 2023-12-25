@@ -1,20 +1,20 @@
-const { isRaining, isWindy, stateChangeEmitter } = require('../nodebackend/build/utils/mqttHandler');
-const sharedState = require('../nodebackend/build/utils/sharedState');
-const { connectToRedis } = require('../nodebackend/build/clients/redisClient');
-const namespaces = require('../nodebackend/build/namespace').default;
-const MqttPublisher = require('../nodebackend/build/utils/mqttPublisher').default;
-const logger = require('../nodebackend/build/logger').default;
+import { isRaining, isWindy, stateChangeEmitter } from './mqttHandler';
+import { sharedState } from './sharedState';
+import { connectToRedis } from '../clients/redisClient';
+import namespaces from '../namespace';
+import MqttPublisher from './mqttPublisher';
+import logger from '../logger';
 
 const publisher = new MqttPublisher();
 
-async function checkConditionsAndSendValues() {
+async function checkConditionsAndSendValues(): Promise<void> {
     try {
-        const markiseStatusNamespace = namespaces.markiseStatus;
+        const markiseStatusNamespace: string = namespaces.markiseStatus;
         const redisClient = await connectToRedis();
 
         const lastExecutionTimestamp = await redisClient.get(`${markiseStatusNamespace}:markise:last_execution_timestamp`);
-        const now = Date.now();
-        const timeSinceLastExecution = now - (lastExecutionTimestamp || 0);
+        const now: number = Date.now();
+        const timeSinceLastExecution: number = now - (Number(lastExecutionTimestamp) || 0);
 
         if (timeSinceLastExecution < 15 * 60 * 1000) { 
             return;
@@ -22,9 +22,9 @@ async function checkConditionsAndSendValues() {
 
         if (isRaining() || isWindy()) {
             logger.info('Rain or wind detected, sending values...');
-            sendValue(2, markiseStatusNamespace);
+            await sendValue(2, markiseStatusNamespace);
             await delay(40000);  // Wait for 40 seconds
-            sendValue(3, markiseStatusNamespace);
+            await sendValue(3, markiseStatusNamespace);
 
             await redisClient.set(`${markiseStatusNamespace}:markise:throttling_active`, 'true');
 
@@ -42,11 +42,11 @@ async function checkConditionsAndSendValues() {
     }
 }
 
-async function sendValue(value, markiseStatusNamespace) {
-    const topic = 'markise/switch/haupt/set';
+async function sendValue(value: number, markiseStatusNamespace: string): Promise<void> {
+    const topic: string = 'markise/switch/haupt/set';
 
     try {
-        publisher.publish(topic, value.toString(), (err) => {
+        publisher.publish(topic, value.toString(), (err: Error | null) => {
             if (err) {
                 logger.error(`Failed to send value: ${value}`, err);
             }
@@ -54,7 +54,7 @@ async function sendValue(value, markiseStatusNamespace) {
 
         const redisClient = await connectToRedis();
 
-        let action;
+        let action: string | undefined;
         if (value === 2) {
             action = 'closing';
         } else if (value === 3) {
@@ -77,8 +77,7 @@ async function sendValue(value, markiseStatusNamespace) {
     }
 }
 
-
-function delay(ms) {
+function delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 

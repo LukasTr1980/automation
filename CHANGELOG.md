@@ -5,9 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2023-12-25
+## [v15.7.0] - 2023-12-25
 ### Changed
-- Migrated `mqttHandler` to Typescript
+- Migrated `mqttHandler` to Typescript.
+- Migrated `index.js` to Typescript.
+- Migrated `api.js` to Typescript.
+- Migrated `mqttRoute.js` to Typescript.
+- Migrated `markiseBlock.js` to Typescript.
+- Changed Dockerfile to reflect new folder structure and node backend as main work directory.
+
+### Removed
+- `nodeserver` folder, all backend files are now in TypeScript and migrated into `nodebackend` folder.
+- Test files `authMiddleware.test.js` and `routes.loginroute.test.js`.
 
 ## [v15.6.0] - 2023-12-25
 ### Changed

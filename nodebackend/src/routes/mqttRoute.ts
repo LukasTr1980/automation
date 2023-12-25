@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const { addSseClient, latestStates } = require('../../nodebackend/build/utils/mqttHandler');
-const isIrrigationNeeded = require('../../nodebackend/build/gptChatIrrigation').default;
+import express, { Request, Response } from 'express';
+import { addSseClient, latestStates } from '../utils/mqttHandler';
+import isIrrigationNeeded from '../gptChatIrrigation';
 
-router.get('/', async (req, res) => {
+const router = express.Router();
+
+router.get('/', async (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -23,4 +24,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
