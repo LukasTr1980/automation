@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.7.2] - 2023-12-25
+### Changed
+- Updated npm packages for bug fixes and performance improvements
+
 ## [v15.7.1] - 2023-12-25
 ### Fixed
 - Changed Dockerfile CMD command to "build/index.js" from "index.js".
