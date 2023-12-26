@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated `AuthGuard` component from JavaScript to TypeScript.
 - Migrated `CountdownCard`, `DialogFullScreen`, `timeCalculator`, and `WeekdaysSelect` components from JavaScript to TypeScript.
 - Changed dependabot.yml to check depencies of new viteclientts folder.
+- Migrated `CentralizedSnackbar`, `SnackbarContext` and `SocketContext` components from JavaScript to TypeScript.
 
 ## [v15.7.2] - 2023-12-25
 ### Changed
