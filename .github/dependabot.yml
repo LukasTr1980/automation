@@ -13,3 +13,7 @@ updates:
     directory: "/viteclient" # Location of package manifests
     schedule:
       interval: "weekly"
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/viteclientts" # Location of package manifests
+    schedule:
+      interval: "weekly"

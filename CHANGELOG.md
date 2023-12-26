@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated `BackButton`, `constants`, and `LoadingSpinner` components from JavaScript to TypeScript.
 - Migrated `MinuteField`, `MonthsSelect`, `OnPressSwitchComponent`, `SecretField` and `switchCompontent` components from JavaScript to TypeScript.
 - Migrated `AuthGuard` component from JavaScript to TypeScript.
+- Migrated `CountdownCard`, `DialogFullScreen`, `timeCalculator`, and `WeekdaysSelect` components from JavaScript to TypeScript.
+- Changed dependabot.yml to check depencies of new viteclientts folder.
 
 ## [v15.7.2] - 2023-12-25
 ### Changed
