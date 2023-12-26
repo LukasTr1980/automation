@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated project setup to include basic Vite TypeScript installation, enhancing development environment and build process.
 - Migrated `BackButton`, `constants`, and `LoadingSpinner` components from JavaScript to TypeScript.
+- Migrated `MinuteField`, `MonthsSelect`, `OnPressSwitchComponent`, `SecretField` and `switchCompontent` components from JavaScript to TypeScript.
 
 ## [v15.7.2] - 2023-12-25
 ### Changed
