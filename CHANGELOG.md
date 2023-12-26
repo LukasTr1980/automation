@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed dependabot.yml to check depencies of new viteclientts folder.
 - Migrated `CentralizedSnackbar`, `SnackbarContext` and `SocketContext` components from JavaScript to TypeScript.
 - Migrated `NavMenu` component from JavaScript to TypeScript.
+- Migrated `index`, `ScheduledTaskCard` and `SchedulerCard` components from JavaScript to TypeScript.
+- Modified Types of setSelectedHour and setSelectedMinute to strings
 
 ## [v15.7.2] - 2023-12-25
 ### Changed

@@ -3,7 +3,7 @@ import React from 'react';
 
 type HourFieldProps = {
   selectedHour: number | string;
-  setSelectedHour: (value: number | string) => void;
+  setSelectedHour: (value: string) => void;
   error?: boolean;
   min?: number;
   max?: number;
@@ -13,10 +13,7 @@ const HourField: React.FC<HourFieldProps> = ({ selectedHour, setSelectedHour, er
 
   const handleHourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    const numericValue = Number(value);
-    if (numericValue >= min && numericValue <= max) {
-      setSelectedHour(numericValue);
-    }
+    setSelectedHour(value); // Always pass a string to setSelectedHour
   };
 
   return (

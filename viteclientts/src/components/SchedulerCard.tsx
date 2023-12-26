@@ -1,0 +1,236 @@
+// SchedulerCard.tsx
+import React, { useState, useContext } from 'react';
+import axios from 'axios';
+import { bewaesserungsTopicsSet, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
+import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
+import SwitchComponent from './switchComponent';
+import DialogFullScreen from './DialogFullScreen';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Grid,
+  FormControl,
+  FormControlLabel,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+} from '@mui/material';
+import { SnackbarContext } from './snackbar/SnackbarContext';
+
+interface RecurrenceRule {
+  hour: number;
+  minute: number;
+  dayOfWeek: number[];
+  month: number[];
+}
+
+interface ScheduledTask {
+  recurrenceRule: RecurrenceRule;
+  state: boolean;
+  taskId: string;
+  topic: string;
+}
+
+interface SchedulerCardProps {
+  setReloadTasks: React.Dispatch<React.SetStateAction<boolean>>;
+  scheduledTasks: ScheduledTask[];
+  setScheduledTasks: React.Dispatch<React.SetStateAction<ScheduledTask[]>>;
+  initialTopic?: string;
+  mqttTopics?: string[];
+  topicDescriptions?: string[];
+}
+
+const SchedulerCard: React.FC<SchedulerCardProps> = ({
+  setReloadTasks,
+  setScheduledTasks,
+  initialTopic,
+  mqttTopics = bewaesserungsTopicsSet,
+  topicDescriptions = switchDescriptions,
+}) => {
+  const snackbackContext = useContext(SnackbarContext);
+
+  if (!snackbackContext) {
+    throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
+  }
+
+  const { showSnackbar } = snackbackContext;
+  const [selectedTopic, setSelectedTopic] = useState<string>(initialTopic || mqttTopics[0]);
+  const specialSwitchValues: Record<string, Record<string, number>> = {
+    'markise/switch/haupt/set': { 'true': 1, 'false': 2 }
+  };
+
+  const topicLabels: Record<string, Record<string, string>> = {
+    'markise/switch/haupt/set': { 'true': "Ausfahren", 'false': "Einfahren" }
+  };
+  const [switchState, setSwitchState] = useState<boolean>(false);
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [selectedMonths, setSelectedMonths] = useState<number[]>([]);
+  const [selectedHour, setSelectedHour] = useState<string>('');
+  const [selectedMinute, setSelectedMinute] = useState<string>('');
+  const [weekDaysDialogOpen, setWeekDaysDialogOpen] = useState<boolean>(false);
+  const [monthDialogOpen, setMonthDialogOpen] = useState<boolean>(false);
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  const selectedDayNames = selectedDays
+    .map(num => Object.keys(daysOfWeekNumbers).find(key => daysOfWeekNumbers[key] === num))
+    .filter(Boolean) as string[];
+
+  const selectedMonthNames = selectedMonths
+    .map(num => Object.keys(monthsNumbers).find(key => monthsNumbers[key] === num))
+    .filter(Boolean) as string[];
+
+  const weekDaysButtonText = selectedDayNames.length
+    ? selectedDayNames.map(day => day.substring(0, 3)).join(', ')
+    : "Wochentage";
+
+  const monthButtonText = selectedMonthNames.length
+    ? selectedMonthNames.map(month => month.substring(0, 3)).join(', ')
+    : "Monate";
+
+  const currentLabel = topicLabels[selectedTopic]
+    ? topicLabels[selectedTopic][String(switchState)]
+    : switchState ? "Ein" : "Aus";
+
+  const handleTopicChange = (event: SelectChangeEvent<string>) => {
+    setSelectedTopic(event.target.value as string);
+  };
+
+  const handleSwitchChange = (event: React.ChangeEvent<{ checked: boolean }>) => {
+    setSwitchState(event.target.checked);
+  };
+
+  const [fieldValidity, setFieldValidity] = useState({
+    month: true,
+    day: true,
+    hour: true,
+    minute: true
+  });
+
+  const handleSchedule = () => {
+    const isValid = {
+      month: selectedMonths.length > 0,
+      day: selectedDays.length > 0,
+      hour: selectedHour !== '',
+      minute: selectedMinute !== '',
+    };
+
+    setFieldValidity(isValid);
+
+    if (Object.values(isValid).every(Boolean)) {
+      const stateValue = specialSwitchValues[selectedTopic]
+        ? specialSwitchValues[selectedTopic][String(switchState)]
+        : switchState;
+
+      axios.post(`${apiUrl}/scheduler`, {
+        hour: selectedHour,
+        minute: selectedMinute,
+        topic: selectedTopic,
+        state: stateValue,
+        days: selectedDays,
+        months: selectedMonths
+      })
+        .then(response => {
+          const successMessage = response.data;
+          console.log(successMessage);
+          axios.get(`${apiUrl}/scheduledTasks`)
+            .then(response => {
+              setScheduledTasks(response.data);
+              setSelectedHour('');
+              setSelectedMinute('');
+              setSelectedDays([]);
+              setSelectedMonths([]);
+              setSelectedTopic(mqttTopics[0]);
+              setSwitchState(false);
+              setReloadTasks(prevState => !prevState);
+              showSnackbar(successMessage);
+            })
+            .catch(error => console.error('Error:', error));
+        })
+        .catch(error => console.error('Error:', error));
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader title="Zeiplan erstellen" />
+      <CardContent>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel id="mqtt-topic-label">Zone</InputLabel>
+              <Select
+                labelId="mqtt-topic-label"
+                value={selectedTopic}
+                onChange={handleTopicChange}
+              >
+                {mqttTopics.map((topic, i) => (
+                  <MenuItem value={topic} key={i}>
+                    {topicDescriptions[i] || topic}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <SwitchComponent
+                  checked={switchState}
+                  handleToggle={handleSwitchChange}
+                  label={currentLabel}
+                />
+              }
+              label="" // Since the label is handled inside the custom component, we leave it empty here.
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <HourField selectedHour={selectedHour} setSelectedHour={setSelectedHour} error={!fieldValidity.hour} />
+          </Grid>
+          <Grid item xs={6}>
+            <MinuteField selectedMinute={selectedMinute} setSelectedMinute={setSelectedMinute} error={!fieldValidity.minute} />
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained"
+              color={fieldValidity.day ? (selectedDays.length ? "primary" : "secondary") : "error"}
+              fullWidth
+              onClick={() => setWeekDaysDialogOpen(true)}
+              aria-pressed={selectedDays.length ? 'true' : 'false'}
+            >
+              {weekDaysButtonText}
+            </Button>
+            <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)}>
+              <Grid item xs={12}>
+                <WeekdaysSelect selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
+              </Grid>
+            </DialogFullScreen>
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained"
+              color={fieldValidity.month ? (selectedMonths.length ? "primary" : "secondary") : "error"}
+              fullWidth
+              onClick={() => setMonthDialogOpen(true)}
+              aria-pressed={selectedMonths.length ? 'true' : 'false'}
+            >
+              {monthButtonText}
+            </Button>
+            <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)}>
+              <Grid item xs={12}>
+                <MonthsSelect selectedMonths={selectedMonths} setSelectedMonths={setSelectedMonths} />
+              </Grid>
+            </DialogFullScreen>
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" color="primary" fullWidth onClick={handleSchedule}>
+              Planen
+            </Button>
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default SchedulerCard;

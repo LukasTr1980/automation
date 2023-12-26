@@ -1,11 +1,11 @@
-// Minutefield.tsx
+// MinuteField.tsx
+
 import { TextField } from '@mui/material';
-import PropTypes from 'prop-types';
-import { ChangeEvent } from 'react';
+import React, { ChangeEvent } from 'react';
 
 interface MinuteFieldProps {
   selectedMinute: number | string;
-  setSelectedMinute: (minute: number | string) => void;
+  setSelectedMinute: (minute: string) => void; // Accepts only string now
   error?: boolean;
   min?: number;
   max?: number;
@@ -16,7 +16,7 @@ const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMi
   const handleMinuteChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     if (parseInt(value) >= min && parseInt(value) <= max) {
-      setSelectedMinute(value);
+      setSelectedMinute(value); // Passing string to setSelectedMinute
     }
   };
 
@@ -32,17 +32,6 @@ const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMi
       error={error}
     />
   );
-}
-
-MinuteField.propTypes = {
-  selectedMinute: PropTypes.oneOfType([
-    PropTypes.number,
-    PropTypes.string,
-  ]).isRequired,
-  setSelectedMinute: PropTypes.func.isRequired,
-  error: PropTypes.bool,
-  min: PropTypes.number,
-  max: PropTypes.number,
 };
 
 export default MinuteField;

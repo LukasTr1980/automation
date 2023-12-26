@@ -5,7 +5,7 @@ import Switch from '@mui/material/Switch';
 interface SwitchComponentProps {
   checked: boolean;
   label?: string;
-  handleToggle?: () => void;
+  handleToggle?: (event: React.ChangeEvent<{ checked: boolean; }>) => void;
   disabled?: boolean;
   color?: 'primary' | 'secondary' | 'default' | 'error' | 'info' | 'success' | 'warning';
   id?: string;
