@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - 2023-12-26
 ### Added
 - New `viteclientts` folder for migrating `viteclient` from JavaScript to TypeScript.
+- Copied `images` folder to the new `viteclientts` folder.
 
 ### Changed
 - Updated project setup to include basic Vite TypeScript installation, enhancing development environment and build process.
+- Migrated `BackButton`, `constants`, and `LoadingSpinner` components from JavaScript to TypeScript.
 
 ## [v15.7.2] - 2023-12-25
 ### Changed
