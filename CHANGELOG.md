@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated `NavMenu` component from JavaScript to TypeScript.
 - Migrated `index`, `ScheduledTaskCard` and `SchedulerCard` components from JavaScript to TypeScript.
 - Modified Types of setSelectedHour and setSelectedMinute to strings
+- Migrated `Layout` and `ErrorBoundary` from JavaScript to TypeScript.
 
 ## [v15.7.2] - 2023-12-25
 ### Changed
