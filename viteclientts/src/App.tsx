@@ -32,7 +32,6 @@ function App() {
   }, [cookies]);
 
   return (
-    <SocketProvider>
       <SnackbarProvider>
         <ErrorBoundary>
           <Router>
@@ -43,7 +42,7 @@ function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
                   <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
-                  <Route path='/villa-anna/*' element={<AuthGuard><VillaAnnaRoutes /></AuthGuard>} />
+                  <Route path='/villa-anna/*' element={<AuthGuard><SocketProvider><VillaAnnaRoutes /></SocketProvider></AuthGuard>} />
                   <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
                 </Routes>
               </header>
@@ -52,7 +51,6 @@ function App() {
           </Router>
         </ErrorBoundary>
       </SnackbarProvider>
-    </SocketProvider>
   );
 }
 

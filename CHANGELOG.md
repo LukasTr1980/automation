@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - New `viteclientts` folder for migrating `viteclient` from JavaScript to TypeScript.
 - Copied `images` folder to the new `viteclientts` folder.
+- Added CSS for devices < 600 px to have 0 padding on root
 
 ### Changed
 - Updated project setup to include basic Vite TypeScript installation, enhancing development environment and build process.
@@ -32,10 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed console.log statements from `VillaAnnaCountdownPage`
+- Removed viteclient folder from dependabot
 
 ### Fixed
 - Backbutton being transparent
 - HourFiled and MinuteFiel now allow deletion of values
+- Moved Socketprovider in `App` to Routes behind Authguard to avoid rendering errors
 
 ## [v15.7.2] - 2023-12-25
 ### Changed
