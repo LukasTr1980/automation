@@ -27,11 +27,12 @@ interface RecurrenceRule {
   month: number[];
 }
 
-interface ScheduledTask {
+export interface ScheduledTask {
   recurrenceRule: RecurrenceRule;
   state: boolean;
   taskId: string;
   topic: string;
+  id: string;
 }
 
 interface SchedulerCardProps {

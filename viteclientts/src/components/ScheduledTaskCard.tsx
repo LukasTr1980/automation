@@ -7,24 +7,12 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { daysOfWeek, months } from './constants';
 import axios from 'axios';
-import PropTypes from 'prop-types';
 import { SnackbarContext } from './snackbar/SnackbarContext';
-
-interface Task {
-  recurrenceRule: {
-    hour: number;
-    minute: number;
-    dayOfWeek: number[];
-    month: number[];
-  };
-  state: boolean;
-  taskId: string;
-  topic: string;
-}
+import { ScheduledTask } from './SchedulerCard';
 
 interface ScheduledTaskCardProps {
   zoneName: string;
-  tasks: Task[];
+  tasks: ScheduledTask[];
   customLabels?: { [key: string]: string };
   onDelete?: (taskId: string) => void;
   redisKey?: string;
@@ -148,11 +136,3 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
     </Card>
   );
 }
-
-ScheduledTaskCard.propTypes = {
-  zoneName: PropTypes.string.isRequired,
-  tasks: PropTypes.array.isRequired,
-  customLabels: PropTypes.object,
-  onDelete: PropTypes.func,
-  redisKey: PropTypes.string,
-};
