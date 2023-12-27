@@ -13,6 +13,7 @@ import {
     CardHeader,
     Button,
     Typography,
+    SelectChangeEvent,
 } from '@mui/material';
 import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
@@ -20,13 +21,36 @@ import CountdownCard from '../../components/CountdownCard';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 import { SocketContext } from '../../components/socketio/SocketContext';
 
+interface Countdown {
+    value: number;
+    hours: string;
+    minutes: string;
+    control: string;
+}
+
+type CountdownsState = {
+    [key: string]: Countdown | undefined;
+};
+
 const VillaAnnacountdownPage = () => {
+    const handleHourChange = (value: string) => {
+        setSelectedHour(Number(value));
+    };
+    const handleMinuteChange = (value: string) => {
+        setSelectedMinute(Number(value));
+    };
     const { socket, connected } = useContext(SocketContext);
-    const { showSnackbar } = useContext(SnackbarContext);
+    const snackbackContext = useContext(SnackbarContext);
+
+    if (!snackbackContext) {
+      throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
+    }
+  
+    const { showSnackbar } = snackbackContext;
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
     const [selectedHour, setSelectedHour] = useState(0);
     const [selectedMinute, setSelectedMinute] = useState(10);
-    const [countdowns, setCountdowns] = useState({});
+    const [countdowns, setCountdowns] = useState<CountdownsState>({});
     const [fieldValidity, setFieldvalidity] = useState({
         hour: true,
         minute: true
@@ -34,14 +58,14 @@ const VillaAnnacountdownPage = () => {
 
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    const handleZoneChange = (event) => {
+    const handleZoneChange = (event: SelectChangeEvent) => {
         setSelectedZone(event.target.value);
     }
 
-    const handleSendTopic = (action) => {
+    const handleSendTopic = (action: string) => {
         const isValid = {
-            hour: selectedHour !== '',
-            minute: selectedMinute !== '',
+            hour: selectedHour !== 0,
+            minute: selectedMinute !== 0,
         }
 
         setFieldvalidity(isValid);
@@ -81,6 +105,7 @@ const VillaAnnacountdownPage = () => {
     useEffect(() => {
         if (socket && connected) {  // Check connected status
             socket.on("redis-countdown-update", (data) => {
+                console.log(data);
                 setCountdowns(prevCountdowns => ({
                     ...prevCountdowns,
                     [data.topic]: {
@@ -125,7 +150,7 @@ const VillaAnnacountdownPage = () => {
                             <Grid item xs={6}>
                                 <HourField
                                     selectedHour={selectedHour}
-                                    setSelectedHour={setSelectedHour}
+                                    setSelectedHour={handleHourChange}
                                     error={!fieldValidity.hour}
                                     min={0}
                                     max={99}
@@ -134,7 +159,7 @@ const VillaAnnacountdownPage = () => {
                             <Grid item xs={6}>
                                 <MinuteField
                                     selectedMinute={selectedMinute}
-                                    setSelectedMinute={setSelectedMinute}
+                                    setSelectedMinute={handleMinuteChange}
                                     error={!fieldValidity.minute}
                                     min={1}
                                     max={99}

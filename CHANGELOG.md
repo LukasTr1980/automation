@@ -23,7 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified Types of setSelectedHour and setSelectedMinute to strings
 - Migrated `Layout` and `ErrorBoundary` from JavaScript to TypeScript.
 - Migrated `404Page`, `Homepage`, `LoginPage` and `SettingsPage` from JavaScript to TypeScript.
-- Replaced react-cookie with universal-cookie to avoid Typescript error in Loginpage
+- Replaced react-cookie with universal-cookie to avoid Typescript error in `Loginpage`
+- Migrated `VillaAnnaCountdownPage`and `VillaAnnaHomePage` from JavaScript to TypeScript.
+
+### Removed
+- Removed console.log statements from `VillaAnnaCountdownPage`
 
 ## [v15.7.2] - 2023-12-25
 ### Changed
