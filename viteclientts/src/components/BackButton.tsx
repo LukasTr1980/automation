@@ -5,7 +5,7 @@ import React from 'react';
 const BackButton: React.FC = () => {
 
   return (
-    <Button startIcon={<ArrowBackIcon />} onClick={() => window.history.back()}>
+    <Button startIcon={<ArrowBackIcon style={{ color:'white' }} />} onClick={() => window.history.back()} style={{ color:'white' }}>
       Back
     </Button>
   );

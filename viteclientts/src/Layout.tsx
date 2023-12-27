@@ -77,20 +77,21 @@ const Layout: React.FC<LayoutProps> = ({
           </Grid>
         </Box>
       </Container>
-      <footer
-        style={{
-          width: '100%',
-          position: 'fixed',
-          bottom: 0,
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          padding: '8px 0',
-          textAlign: 'center',
-        }}
-      >
-        <Typography variant='body2' color={'black'} fontWeight={'bold'}>
+      <div style={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '10px 0',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: for visibility
+      }}>
+        <Typography variant='body2' color='black' fontWeight='bold'>
           Version: {appVersion}
         </Typography>
-      </footer>
+      </div>
     </>
   );
 };

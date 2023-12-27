@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced react-cookie with universal-cookie to avoid Typescript error in `Loginpage`
 - Migrated `VillaAnnaCountdownPage`and `VillaAnnaHomePage` from JavaScript to TypeScript.
 - Migrated `App`, `VillaAnnaBewaesserungPage`, `VillaAnnaMarkisePage`, and `VillaAnnaRoutes` from JavaScript to TypeScript.
+- `index.css` changed backgroundcolor to darkgrey and hover to whitesmoke
+- In `Layout.tsx` removed footer and used an div tag instead to achieve desired footer behaviour
+- Changed color of arrow and text in `BackButton`
 
 ### Removed
 - Removed console.log statements from `VillaAnnaCountdownPage`
