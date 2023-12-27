@@ -33,12 +33,6 @@ type CountdownsState = {
 };
 
 const VillaAnnacountdownPage = () => {
-    const handleHourChange = (value: string) => {
-        setSelectedHour(Number(value));
-    };
-    const handleMinuteChange = (value: string) => {
-        setSelectedMinute(Number(value));
-    };
     const { socket, connected } = useContext(SocketContext);
     const snackbackContext = useContext(SnackbarContext);
 
@@ -48,8 +42,8 @@ const VillaAnnacountdownPage = () => {
   
     const { showSnackbar } = snackbackContext;
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
-    const [selectedHour, setSelectedHour] = useState(0);
-    const [selectedMinute, setSelectedMinute] = useState(10);
+    const [selectedHour, setSelectedHour] = useState<string>('0');
+    const [selectedMinute, setSelectedMinute] = useState<string>('10');
     const [countdowns, setCountdowns] = useState<CountdownsState>({});
     const [fieldValidity, setFieldvalidity] = useState({
         hour: true,
@@ -64,8 +58,8 @@ const VillaAnnacountdownPage = () => {
 
     const handleSendTopic = (action: string) => {
         const isValid = {
-            hour: selectedHour !== 0,
-            minute: selectedMinute !== 0,
+            hour: selectedHour !== '',
+            minute: selectedMinute !== '',
         }
 
         setFieldvalidity(isValid);
@@ -150,7 +144,7 @@ const VillaAnnacountdownPage = () => {
                             <Grid item xs={6}>
                                 <HourField
                                     selectedHour={selectedHour}
-                                    setSelectedHour={handleHourChange}
+                                    setSelectedHour={setSelectedHour}
                                     error={!fieldValidity.hour}
                                     min={0}
                                     max={99}
@@ -159,9 +153,9 @@ const VillaAnnacountdownPage = () => {
                             <Grid item xs={6}>
                                 <MinuteField
                                     selectedMinute={selectedMinute}
-                                    setSelectedMinute={handleMinuteChange}
+                                    setSelectedMinute={setSelectedMinute}
                                     error={!fieldValidity.minute}
-                                    min={1}
+                                    min={0}
                                     max={99}
                                 />
                             </Grid>

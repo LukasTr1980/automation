@@ -13,7 +13,10 @@ const HourField: React.FC<HourFieldProps> = ({ selectedHour, setSelectedHour, er
 
   const handleHourChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    setSelectedHour(value); // Always pass a string to setSelectedHour
+    const numValue = Number(value);
+    if (!isNaN(numValue) && numValue >= min && numValue <= max) {
+      setSelectedHour(value);
+    }
   };
 
   return (

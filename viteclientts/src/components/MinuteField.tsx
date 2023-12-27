@@ -1,5 +1,3 @@
-// MinuteField.tsx
-
 import { TextField } from '@mui/material';
 import React, { ChangeEvent } from 'react';
 
@@ -15,8 +13,9 @@ const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMi
 
   const handleMinuteChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    if (parseInt(value) >= min && parseInt(value) <= max) {
-      setSelectedMinute(value); // Passing string to setSelectedMinute
+    const numValue = Number(value);
+    if (!isNaN(numValue) && numValue >= min && numValue <= max) {
+      setSelectedMinute(value);
     }
   };
 
