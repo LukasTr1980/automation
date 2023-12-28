@@ -30,10 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `index.css` changed backgroundcolor to darkgrey and hover to whitesmoke
 - In `Layout.tsx` removed footer and used an div tag instead to achieve desired footer behaviour
 - Changed color of arrow and text in `BackButton`
+- Changed `Dockerfile` folder name from viteclient to viteclientts
 
 ### Removed
 - Removed console.log statements from `VillaAnnaCountdownPage`
 - Removed viteclient folder from dependabot
+- Removed folder assets
 
 ### Fixed
 - Backbutton being transparent
