@@ -5,28 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2023-12-28
+## [v15.8.0] - 2023-12-28
 ### Added
-- New `viteclientts` folder for migrating `viteclient` from JavaScript to TypeScript.
-- Copied `images` folder to the new `viteclientts` folder.
+- New `viteclientts` folder for migrating `viteclient` from JavaScript to TypeScript
+- Copied `images` folder to the new `viteclientts` folder
 - Added CSS for devices < 600 px to have 0 padding on root
 
 ### Changed
-- Updated project setup to include basic Vite TypeScript installation, enhancing development environment and build process.
-- Migrated `BackButton`, `constants`, and `LoadingSpinner` components from JavaScript to TypeScript.
-- Migrated `MinuteField`, `MonthsSelect`, `OnPressSwitchComponent`, `SecretField` and `switchCompontent` components from JavaScript to TypeScript.
-- Migrated `AuthGuard` component from JavaScript to TypeScript.
-- Migrated `CountdownCard`, `DialogFullScreen`, `timeCalculator`, and `WeekdaysSelect` components from JavaScript to TypeScript.
-- Changed dependabot.yml to check depencies of new viteclientts folder.
-- Migrated `CentralizedSnackbar`, `SnackbarContext` and `SocketContext` components from JavaScript to TypeScript.
-- Migrated `NavMenu` component from JavaScript to TypeScript.
-- Migrated `index`, `ScheduledTaskCard` and `SchedulerCard` components from JavaScript to TypeScript.
+- Updated project setup to include basic Vite TypeScript installation, enhancing development environment and build process
+- Migrated `BackButton`, `constants`, and `LoadingSpinner` components from JavaScript to TypeScript
+- Migrated `MinuteField`, `MonthsSelect`, `OnPressSwitchComponent`, `SecretField` and `switchCompontent` components from JavaScript to TypeScript
+- Migrated `AuthGuard` component from JavaScript to TypeScript
+- Migrated `CountdownCard`, `DialogFullScreen`, `timeCalculator`, and `WeekdaysSelect` components from JavaScript to TypeScript
+- Changed dependabot.yml to check depencies of new viteclientts folder
+- Migrated `CentralizedSnackbar`, `SnackbarContext` and `SocketContext` components from JavaScript to TypeScript
+- Migrated `NavMenu` component from JavaScript to TypeScript
+- Migrated `index`, `ScheduledTaskCard` and `SchedulerCard` components from JavaScript to TypeScript
 - Modified Types of setSelectedHour and setSelectedMinute to strings
-- Migrated `Layout` and `ErrorBoundary` from JavaScript to TypeScript.
-- Migrated `404Page`, `Homepage`, `LoginPage` and `SettingsPage` from JavaScript to TypeScript.
+- Migrated `Layout` and `ErrorBoundary` from JavaScript to TypeScript
+- Migrated `404Page`, `Homepage`, `LoginPage` and `SettingsPage` from JavaScript to TypeScript
 - Replaced react-cookie with universal-cookie to avoid Typescript error in `Loginpage`
-- Migrated `VillaAnnaCountdownPage`and `VillaAnnaHomePage` from JavaScript to TypeScript.
-- Migrated `App`, `VillaAnnaBewaesserungPage`, `VillaAnnaMarkisePage`, and `VillaAnnaRoutes` from JavaScript to TypeScript.
+- Migrated `VillaAnnaCountdownPage`and `VillaAnnaHomePage` from JavaScript to TypeScript
+- Migrated `App`, `VillaAnnaBewaesserungPage`, `VillaAnnaMarkisePage`, and `VillaAnnaRoutes` from JavaScript to TypeScript
 - `index.css` changed backgroundcolor to darkgrey and hover to whitesmoke
 - In `Layout.tsx` removed footer and used an div tag instead to achieve desired footer behaviour
 - Changed color of arrow and text in `BackButton`
