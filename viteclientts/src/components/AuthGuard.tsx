@@ -13,6 +13,7 @@ interface AuthGuardProps {
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const [cookies] = useCookies(['session']);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [shouldNavigate, setShouldNavigate] = useState<boolean>(false);
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -27,15 +28,24 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
         if (response.status === 200) {
           setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          setShouldNavigate(true);
         }
       } catch (error) {
         setIsAuthenticated(false);
-        navigate('/login');
+        setShouldNavigate(true);
       }
     };
 
     checkSession();
-  }, [cookies.session, navigate, apiUrl]);
+  }, [cookies.session, apiUrl]);
+
+  useEffect(() => {
+    if (shouldNavigate) {
+      navigate('/login');
+    }
+  }, [shouldNavigate, navigate]);
 
   if (isAuthenticated === null) {
     return (
@@ -46,7 +56,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   } else if (isAuthenticated === true) {
     return children;
   } else {
-    return null;  // You can return null or a redirect to the login page or any other placeholder
+    return null;
   }
 };
 

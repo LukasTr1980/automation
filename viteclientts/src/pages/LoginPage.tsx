@@ -10,6 +10,7 @@ const LoginForm: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string>('');
   const cookies = new Cookies();
   const navigate = useNavigate();
+  const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: FormEvent) => {
@@ -23,8 +24,8 @@ const LoginForm: React.FC = () => {
       });
 
       if (response.data.status === 'success') {
-        cookies.set('session', response.data.session, { path: '/' });
-        cookies.set('username', username, { path: '/' });
+        cookies.set('session', response.data.session, { path: '/', secure: isSecureCookie });
+        cookies.set('username', username, { path: '/', secure: isSecureCookie });
         navigate('/home');
       } else {
         setErrorMsg(response.data.message);

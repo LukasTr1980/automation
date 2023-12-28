@@ -56,6 +56,12 @@ const NavMenu: React.FC = () => {
     </div>
   );
 
+  const buttonStyle = (path: string) => ({
+    ...(window.location.pathname === path ? { backgroundColor: 'darkblue' } : {}),
+    variant: window.location.pathname === path ? "contained" : "text",
+    marginRight: '16px'
+  })
+
   return (
     <>
       <AppBar position="fixed">
@@ -81,8 +87,7 @@ const NavMenu: React.FC = () => {
                 color='inherit'
                 component={NavLink}
                 to="/home"
-                style={window.location.pathname === "/home" ? { backgroundColor: 'darkblue' } : {}}
-                variant={window.location.pathname === "/home" ? "contained" : "text"}
+                style={buttonStyle("/home")}
               >
                 Home
               </Button>
@@ -90,8 +95,7 @@ const NavMenu: React.FC = () => {
                 color='inherit'
                 component={NavLink}
                 to="/villa-anna/home"
-                style={window.location.pathname.includes('/villa-anna') ? { backgroundColor: 'darkblue' } : {}}
-                variant={window.location.pathname === "/villa-anna/home" ? "contained" : "text"}
+                style={buttonStyle("/villa-anna/home")}
               >
                 Villa Anna
               </Button>
@@ -99,8 +103,7 @@ const NavMenu: React.FC = () => {
                 color='inherit'
                 component={NavLink}
                 to="/settings"
-                style={window.location.pathname === "/settings" ? { backgroundColor: 'darkblue' } : {}}
-                variant={window.location.pathname === "/settings" ? "contained" : "text"}
+                style={{ ...buttonStyle("/settings"), marginRight: 0 }}
               >
                 Settings
               </Button>
