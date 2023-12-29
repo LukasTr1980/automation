@@ -1,5 +1,6 @@
 // SecretField.tsx
-import { TextField, Button } from '@mui/material';
+import { TextField } from '@mui/material';
+import CustomButton from './Button';
 
 interface SecretFieldProps {
   label: string;
@@ -44,14 +45,11 @@ const SecretField: React.FC<SecretFieldProps> = ({
         InputLabelProps={{ shrink: true }}
         error={!isValid}
       />
-      <Button
-        variant="contained"
-        color="primary"
+      <CustomButton
         onClick={onUpdate}
-        sx={{ mt: 2, mb: 2 }}
       >
         Update {label}
-      </Button>
+      </CustomButton>
     </>
   );
 };

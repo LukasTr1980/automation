@@ -1,7 +1,6 @@
-import { Link as RouterLink } from 'react-router-dom';
-import Button from '@mui/material/Button';
 import { Box, Grid } from '@mui/material';
 import Layout from '../../Layout';
+import CustomButton from '../../components/Button';
 
 const HomePage = () => {
   return (
@@ -16,33 +15,21 @@ const HomePage = () => {
               p: 4,
             }}
           >
-            <Button
-              variant="contained"
-              color="primary"
-              component={RouterLink}
+            <CustomButton
               to="/villa-anna/bewaesserung"
-              sx={{ my: 2, width: '200px' }} // set a width
             >
               Bewässerung
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              component={RouterLink}
+            </CustomButton>
+            <CustomButton
               to="/villa-anna/markise"
-              sx={{ my: 2, width: '200px' }} // set the same width
             >
               Markise
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              component={RouterLink}
+            </CustomButton>
+            <CustomButton
               to="/villa-anna/countdown"
-              sx={{ my: 2, width: '200px' }} // set the same width
             >
               Countdown
-            </Button>
+            </CustomButton>
           </Box>
       </Grid>
     </Layout>

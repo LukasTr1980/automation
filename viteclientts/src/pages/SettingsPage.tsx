@@ -7,11 +7,11 @@ import {
     CardContent,
     CardHeader,
     TextField,
-    Button,
     TextareaAutosize
 } from '@mui/material';
 import SecretField from '../components/SecretField';
 import { SnackbarContext } from '../components/snackbar/SnackbarContext';
+import CustomButton from '../components/Button';
 
 const SettingsPage: React.FC = () => {
     const TextareaAutosizeComponent: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = TextareaAutosize;
@@ -124,14 +124,12 @@ const SettingsPage: React.FC = () => {
                                 }
                             }}
                         />
-                        <Button
-                            variant="contained"
-                            color="primary"
+                        <CustomButton
                             onClick={handleUpdate}
                             sx={{ mt: 2 }}
                         >
                             Update GPT Request
-                        </Button>
+                        </CustomButton>
                     </CardContent>
                 </Card>
             </Grid>

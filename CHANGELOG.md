@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2023-12-29
+### Added
+- Added `Button.tsx` for a CustomButton 
+
+### Changed
+- Changed the Colorpalette of Buttons and Navmenu on mobile and big screens
+- Changed the size of Titles to a smaller size
+
 ## [v15.9.0] - 2023-12-28
 ### Added
 - Set secure cookie flag in `LoginPage` for more security

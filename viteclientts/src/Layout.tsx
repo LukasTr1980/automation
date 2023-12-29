@@ -66,7 +66,7 @@ const Layout: React.FC<LayoutProps> = ({
                         <BackButton />
                       </Box>
                     )}
-                    <Typography variant="h4" align="center">{title}</Typography>
+                    <Typography variant="h5" align="center">{title}</Typography>
                   </Box>
                 </Grid>
 

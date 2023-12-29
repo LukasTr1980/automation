@@ -26,7 +26,13 @@ const NavMenu: React.FC = () => {
         <NavLink to='/home'>
           <img src={logo} alt='Logo' style={{ height: '40px' }} />
         </NavLink>
-        <IconButton edge='end' color='inherit' aria-label='close' onClick={handleDrawerToggle}>
+        <IconButton 
+        edge='end' 
+        color='inherit' 
+        aria-label='close' 
+        onClick={handleDrawerToggle}
+        sx={{ color: 'white' }}
+        >
           <CloseIcon />
         </IconButton>
       </div>
@@ -43,9 +49,10 @@ const NavMenu: React.FC = () => {
               component={NavLink}
               to={path}
               style={{
-                ...window.location.pathname.split('/')[1] === basePath ? { backgroundColor: 'lightgrey' } : {},
+                ...window.location.pathname.split('/')[1] === basePath ? { backgroundColor: '#202123' } : {},
                 fontSize: '1.1rem',
-                padding: '10px 16px'
+                padding: '10px 16px',
+                color: 'white'
               }}
             >
               {text}
@@ -57,14 +64,17 @@ const NavMenu: React.FC = () => {
   );
 
   const buttonStyle = (path: string) => ({
-    ...(window.location.pathname === path ? { backgroundColor: 'darkblue' } : {}),
+    ...(window.location.pathname === path ? { backgroundColor: '#202223' } : {}),
     variant: window.location.pathname === path ? "contained" : "text",
-    marginRight: '16px'
-  })
+    marginRight: '16px',
+    '&:hover': {
+      backgroundColor: '#202123',
+    },
+  });  
 
   return (
     <>
-      <AppBar position="fixed">
+      <AppBar position="fixed" sx={{ backgroundColor: 'black' }}>
         <Toolbar>
           {isSmallScreen ? (
             <>
@@ -74,7 +84,14 @@ const NavMenu: React.FC = () => {
               <NavLink to='/home'>
                 <img src={logo} alt='Logo' style={{ height: '40px' }} />
               </NavLink>
-              <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle}>
+              <Drawer 
+              anchor="left" 
+              open={drawerOpen} 
+              onClose={handleDrawerToggle}
+              sx={{ 
+                '& .MuiDrawer-paper': { backgroundColor: 'black' }
+              }}
+              >
                 {drawer}
               </Drawer>
             </>
@@ -87,7 +104,7 @@ const NavMenu: React.FC = () => {
                 color='inherit'
                 component={NavLink}
                 to="/home"
-                style={buttonStyle("/home")}
+                sx={buttonStyle("/home")}
               >
                 Home
               </Button>
@@ -95,7 +112,7 @@ const NavMenu: React.FC = () => {
                 color='inherit'
                 component={NavLink}
                 to="/villa-anna/home"
-                style={buttonStyle("/villa-anna/home")}
+                sx={buttonStyle("/villa-anna/home")}
               >
                 Villa Anna
               </Button>
@@ -103,7 +120,7 @@ const NavMenu: React.FC = () => {
                 color='inherit'
                 component={NavLink}
                 to="/settings"
-                style={{ ...buttonStyle("/settings"), marginRight: 0 }}
+                sx={{ ...buttonStyle("/settings"), marginRight: 0 }}
               >
                 Settings
               </Button>
