@@ -18,13 +18,12 @@ const CustomButton: React.FC<CustomButtonProps> = ({ to, ...props }) => {
       {...props}
       sx={{
         my: 2,
-        width: '200px',
+        width: { xs: '100%', sm: '200px' },
         backgroundColor: 'black',
         color: 'white',
         '&:hover': {
           backgroundColor: '#202123',
         },
-        // Add any additional styles or overrides here
       }}
     >
       {props.children}

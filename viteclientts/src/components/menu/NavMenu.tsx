@@ -63,14 +63,20 @@ const NavMenu: React.FC = () => {
     </div>
   );
 
-  const buttonStyle = (path: string) => ({
-    ...(window.location.pathname === path ? { backgroundColor: '#202223' } : {}),
-    variant: window.location.pathname === path ? "contained" : "text",
-    marginRight: '16px',
-    '&:hover': {
-      backgroundColor: '#202123',
-    },
-  });  
+  const buttonStyle = (path: string) => {
+    const isActive = path === '/home' || path === '/settings'
+      ? window.location.pathname === path
+      : window.location.pathname.includes('/villa-anna/');
+  
+    return {
+      backgroundColor: isActive ? '#202223' : 'inherit',
+      variant: isActive ? "contained" : "text",
+      marginRight: '16px',
+      '&:hover': {
+        backgroundColor: isActive ? '#202123' : 'inherit',
+      },
+    };
+  };  
 
   return (
     <>

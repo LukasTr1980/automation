@@ -11,7 +11,6 @@ import {
     Card,
     CardContent,
     CardHeader,
-    Button,
     Typography,
     SelectChangeEvent,
 } from '@mui/material';
@@ -20,6 +19,7 @@ import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 import { SocketContext } from '../../components/socketio/SocketContext';
+import CustomButton from '../../components/Button';
 
 interface Countdown {
     value: number;
@@ -160,19 +160,19 @@ const VillaAnnacountdownPage = () => {
                                 />
                             </Grid>
                             <Grid item xs={4}>
-                                <Button variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
+                                <CustomButton variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
                                     Start
-                                </Button>
+                                </CustomButton>
                             </Grid>
                             <Grid item xs={4}>
-                                <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
+                                <CustomButton variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
                                     Stop
-                                </Button>
+                                </CustomButton>
                             </Grid>
                             <Grid item xs={4}>
-                                <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
+                                <CustomButton variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
                                     Reset
-                                </Button>
+                                </CustomButton>
                             </Grid>
                         </Grid>
                     </CardContent>
