@@ -6,7 +6,6 @@ import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
 import SwitchComponent from './switchComponent';
 import DialogFullScreen from './DialogFullScreen';
 import {
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -19,6 +18,7 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { SnackbarContext } from './snackbar/SnackbarContext';
+import CustomButton from './Button';
 
 interface RecurrenceRule {
   hour: number;
@@ -194,14 +194,15 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             <MinuteField selectedMinute={selectedMinute} setSelectedMinute={setSelectedMinute} error={!fieldValidity.minute} />
           </Grid>
           <Grid item xs={12}>
-            <Button variant="contained"
-              color={fieldValidity.day ? (selectedDays.length ? "primary" : "secondary") : "error"}
+            <CustomButton
+              variant="contained"
+              error={!fieldValidity.day}
               fullWidth
               onClick={() => setWeekDaysDialogOpen(true)}
               aria-pressed={selectedDays.length ? 'true' : 'false'}
             >
               {weekDaysButtonText}
-            </Button>
+            </CustomButton>
             <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)}>
               <Grid item xs={12}>
                 <WeekdaysSelect selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
@@ -209,14 +210,15 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             </DialogFullScreen>
           </Grid>
           <Grid item xs={12}>
-            <Button variant="contained"
-              color={fieldValidity.month ? (selectedMonths.length ? "primary" : "secondary") : "error"}
+            <CustomButton
+              variant="contained"
+              error={!fieldValidity.month}
               fullWidth
               onClick={() => setMonthDialogOpen(true)}
               aria-pressed={selectedMonths.length ? 'true' : 'false'}
             >
               {monthButtonText}
-            </Button>
+            </CustomButton>
             <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)}>
               <Grid item xs={12}>
                 <MonthsSelect selectedMonths={selectedMonths} setSelectedMonths={setSelectedMonths} />
@@ -224,9 +226,9 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             </DialogFullScreen>
           </Grid>
           <Grid item xs={12}>
-            <Button variant="contained" color="primary" fullWidth onClick={handleSchedule}>
+            <CustomButton variant="contained" color="primary" fullWidth onClick={handleSchedule}>
               Planen
-            </Button>
+            </CustomButton>
           </Grid>
         </Grid>
       </CardContent>

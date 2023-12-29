@@ -37,9 +37,9 @@ const MarkisePage = () => {
     const snackbackContext = useContext(SnackbarContext);
 
     if (!snackbackContext) {
-      throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
+        throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
     }
-  
+
     const { showSnackbar } = snackbackContext;
 
     useEffect(() => {
@@ -139,9 +139,9 @@ const MarkisePage = () => {
                     <Card>
                         <CardHeader title="Markise Steuern" />
                         <CardContent>
-                            <Grid container spacing={2} justifyContent="center">
-                                <OnPressSwitchComponent markiseState={markiseState} onSend={handleSend} />
-                            </Grid>
+
+                            <OnPressSwitchComponent markiseState={markiseState} onSend={handleSend} />
+
                         </CardContent>
                     </Card>
                 </Grid>

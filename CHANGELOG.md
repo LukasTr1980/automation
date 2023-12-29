@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `Button.tsx` for a CustomButton 
 - Added width in `Button.tsx` to handle small screens
+- Added outlined prop to `Button.tsx` and also error color
 
 ### Changed
 - Changed the Colorpalette of Buttons and Navmenu on mobile and big screens
 - Changed the size of Titles to a smaller size
 - Changed Buttons of `VillaAnnaCountdownPage` with new CustomButtons
+- Changed Buttons of `DialogFullScreen`, `OnpressSwitchComponent`, `SchedulerCard` and `VillaAnnaMarkisePage` with new CustomButtons
 
 ### Fixed
 - When in sublink of /villa-anna/ Route, the button remains active

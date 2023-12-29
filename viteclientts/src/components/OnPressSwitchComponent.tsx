@@ -1,6 +1,7 @@
 // OnPressSwitchComponent.tsx
 import { useEffect, useState } from 'react';
-import { Button, Box } from '@mui/material';
+import { Grid } from '@mui/material';
+import CustomButton from './Button';
 
 interface OnPressSwitchComponentProps {
   markiseState: string | null;
@@ -42,31 +43,33 @@ const OnPressSwitchComponent: React.FC<OnPressSwitchComponentProps> = ({ markise
   const handlePause = () => stopSendingValue();
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '10px', width: '100%' }}>
-        <Button
-          variant={pressedButton === 'up' ? 'contained' : 'outlined'}
-          onMouseDown={handlePressUp}
-          sx={{ width: '200px' }}
-        >
-          Ausfahren
-        </Button>
-        <Button
-          variant={pressedButton === 'pause' ? 'contained' : 'outlined'}
-          onClick={handlePause}
-          sx={{ width: '200px' }}
-        >
-          Pause
-        </Button>
-        <Button
-          variant={pressedButton === 'down' ? 'contained' : 'outlined'}
-          onMouseDown={handlePressDown}
-          sx={{ width: '200px' }}
-        >
-          Einfahren
-        </Button>
-      </Box>
-    </Box>
+    <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <CustomButton
+            variant={pressedButton === 'up' ? 'contained' : 'outlined'}
+            onMouseDown={handlePressUp}
+            fullWidth
+          >
+            Ausfahren
+          </CustomButton>
+        </Grid>
+        <Grid item xs={12}>
+          <CustomButton
+            variant={pressedButton === 'pause' ? 'contained' : 'outlined'}
+            onClick={handlePause}
+          >
+            Pause
+          </CustomButton>
+        </Grid>
+        <Grid item xs={12}>
+          <CustomButton
+            variant={pressedButton === 'down' ? 'contained' : 'outlined'}
+            onMouseDown={handlePressDown}
+          >
+            Einfahren
+          </CustomButton>
+        </Grid>
+        </Grid>
   );
 };
 
