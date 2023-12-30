@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2023-12-29
+## [v15.10.0] - 2023-12-30
 ### Added
-- Added `Button.tsx` for a CustomButton 
+- Added `Button.tsx` for a CustomButton
 - Added width in `Button.tsx` to handle small screens
 - Added outlined prop to `Button.tsx` and also error color
 
@@ -16,9 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed the size of Titles to a smaller size
 - Changed Buttons of `VillaAnnaCountdownPage` with new CustomButtons
 - Changed Buttons of `DialogFullScreen`, `OnpressSwitchComponent`, `SchedulerCard` and `VillaAnnaMarkisePage` with new CustomButtons
+- Changed marginbottom in `Layout.tsx`
+- Changed Inputlabel in `SchedulerCard` to shrink false
+- Changed marginRight in `NavMenu` to 25 px
 
 ### Fixed
 - When in sublink of /villa-anna/ Route, the button remains active
+
+### Removed
+- In `LoginPage` removed universal-cookie npm module and switched to react-cookie
 
 ## [v15.9.0] - 2023-12-28
 ### Added

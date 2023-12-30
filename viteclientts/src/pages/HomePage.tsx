@@ -12,7 +12,6 @@ const HomePage: React.FC = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            p: 4,
           }}
         >
           <CustomButton

@@ -57,7 +57,7 @@ const Layout: React.FC<LayoutProps> = ({
                         style={{
                           width: '180px',
                           height: 'auto',
-                          marginBottom: '20px',
+                          marginBottom: '24px',
                         }}
                       />
                     )}

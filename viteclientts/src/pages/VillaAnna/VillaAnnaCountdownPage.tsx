@@ -127,7 +127,7 @@ const VillaAnnacountdownPage = () => {
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
-                                    <InputLabel id="zone-select-label">Zone</InputLabel>
+                                    <InputLabel id="zone-select-label" shrink={false}>Zone</InputLabel>
                                     <Select
                                         labelId="zone-select-label"
                                         value={selectedZone}
@@ -159,17 +159,17 @@ const VillaAnnacountdownPage = () => {
                                     max={99}
                                 />
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item xs={12}>
                                 <CustomButton variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
                                     Start
                                 </CustomButton>
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item xs={12}>
                                 <CustomButton variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
                                     Stop
                                 </CustomButton>
                             </Grid>
-                            <Grid item xs={4}>
+                            <Grid item xs={12}>
                                 <CustomButton variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
                                     Reset
                                 </CustomButton>

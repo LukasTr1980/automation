@@ -161,7 +161,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="mqtt-topic-label">Zone</InputLabel>
+              <InputLabel id="mqtt-topic-label" shrink={false}>Zone</InputLabel>
               <Select
                 labelId="mqtt-topic-label"
                 value={selectedTopic}

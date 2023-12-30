@@ -104,7 +104,7 @@ const NavMenu: React.FC = () => {
           ) : (
             <>
               <NavLink to='/home' style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-                <img src={logo} alt='Logo' style={{ height: '40px', marginRight: '8px' }} />
+                <img src={logo} alt='Logo' style={{ height: '40px', marginRight: '25px' }} />
               </NavLink>
               <Button
                 color='inherit'

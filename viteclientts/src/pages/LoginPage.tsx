@@ -1,14 +1,14 @@
 import { useState, FormEvent } from 'react';
 import { TextField, Button, Typography, Box } from '@mui/material';
 import axios from 'axios';
-import Cookies from 'universal-cookie';
+import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
-  const cookies = new Cookies();
+  const [, setCookie] = useCookies(['session', 'username']);
   const navigate = useNavigate();
   const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -24,8 +24,8 @@ const LoginForm: React.FC = () => {
       });
 
       if (response.data.status === 'success') {
-        cookies.set('session', response.data.session, { path: '/', secure: isSecureCookie });
-        cookies.set('username', username, { path: '/', secure: isSecureCookie });
+        setCookie('session', response.data.session, { path: '/', secure: isSecureCookie });
+        setCookie('username', username, { path: '/', secure: isSecureCookie });
         navigate('/home');
       } else {
         setErrorMsg(response.data.message);
