@@ -44,11 +44,12 @@ const SecretField: React.FC<SecretFieldProps> = ({
         onChange={(e) => onChange(e.target.value)}
         InputLabelProps={{ shrink: true }}
         error={!isValid}
+        sx={{ marginTop: '30px' }}
       />
       <CustomButton
         onClick={onUpdate}
       >
-        Update {label}
+        New {label}
       </CustomButton>
     </>
   );

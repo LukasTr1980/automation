@@ -126,7 +126,6 @@ const SettingsPage: React.FC = () => {
                         />
                         <CustomButton
                             onClick={handleUpdate}
-                            sx={{ mt: 2 }}
                         >
                             Update GPT Request
                         </CustomButton>

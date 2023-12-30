@@ -16,16 +16,19 @@ const HomePage = () => {
           >
             <CustomButton
               to="/villa-anna/bewaesserung"
+              customWidth={{ xs: '311px', sm: '311px' }}
             >
               Bewässerung
             </CustomButton>
             <CustomButton
               to="/villa-anna/markise"
+              customWidth={{ xs: '311px', sm: '311px' }}
             >
               Markise
             </CustomButton>
             <CustomButton
               to="/villa-anna/countdown"
+              customWidth={{ xs: '311px', sm: '311px' }}
             >
               Countdown
             </CustomButton>

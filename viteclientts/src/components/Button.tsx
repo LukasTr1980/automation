@@ -22,7 +22,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({ to, error, customWidth, var
 
   const buttonStyles = {
     my: 1,
-    width: customWidth || { xs: '100%', sm: '250px' },
+    width: customWidth || { xs: '100%', sm: '311px' },
     backgroundColor: isOutlined ? 'transparent' : (error ? errorColor : 'black'),
     color: isOutlined ? outlinedColor : 'white', // Black text for outlined, white for others
     border: isOutlined ? '1px solid' : 'none',

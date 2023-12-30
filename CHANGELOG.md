@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `TimeDisplay` on right site of `NavMenu`
 - In `Button` added possibility to pass customWidth prop
+- Added margin in `SecretField`
 
 ### Changed
 - In `LoginPage` changed default Mui Button to Custombutton
+- Changed `Button` width sm to 311 px
+- Changed customwidth in `HomePage` and `VillaAnnaHomePage`
 
 ### Fixed
 - Hover color of `NavMenu` Buttons on big screens

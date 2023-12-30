@@ -16,11 +16,13 @@ const HomePage: React.FC = () => {
         >
           <CustomButton
             to="/villa-anna/home"
+            customWidth={{ xs: '311px', sm: '311px' }}
           >
             Villa Anna
           </CustomButton>
           <CustomButton
             to="/settings"
+            customWidth={{ xs: '311px', sm: '311px' }}
           >
             Settings
           </CustomButton>
