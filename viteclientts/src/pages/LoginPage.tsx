@@ -1,8 +1,9 @@
 import { useState, FormEvent } from 'react';
-import { TextField, Button, Typography, Box } from '@mui/material';
+import { TextField, Typography, Box } from '@mui/material';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
+import CustomButton from '../components/Button';
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
@@ -101,13 +102,12 @@ const LoginForm: React.FC = () => {
           style: { color: "#757575", transition: "none" },
         }}
       />
-      <Button
-        variant="contained"
-        color="primary"
+      <CustomButton
         type="submit"
+        customWidth={{ xs: '100%', sm: '100%' }}
       >
         Login
-      </Button>
+      </CustomButton>
     </Box>
   );
 };

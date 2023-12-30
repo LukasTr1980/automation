@@ -4,6 +4,7 @@ import { Button, AppBar, Toolbar, Drawer, List, ListItemButton, IconButton, useM
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import logo from '../../images/logo-192x192.png';
+import TimeDisplay from '../TimeDisplay';
 
 const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -73,7 +74,7 @@ const NavMenu: React.FC = () => {
       variant: isActive ? "contained" : "text",
       marginRight: '16px',
       '&:hover': {
-        backgroundColor: isActive ? '#202123' : 'inherit',
+        backgroundColor: isActive ? '#202123' : '#202123',
       },
     };
   };  
@@ -132,6 +133,9 @@ const NavMenu: React.FC = () => {
               </Button>
             </>
           )}
+          <div style={{ marginLeft: 'auto' }} >
+            <TimeDisplay />
+          </div>
         </Toolbar>
       </AppBar>
     </>

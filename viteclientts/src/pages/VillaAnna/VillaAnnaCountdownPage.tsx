@@ -99,7 +99,6 @@ const VillaAnnacountdownPage = () => {
     useEffect(() => {
         if (socket && connected) {  // Check connected status
             socket.on("redis-countdown-update", (data) => {
-                console.log(data);
                 setCountdowns(prevCountdowns => ({
                     ...prevCountdowns,
                     [data.topic]: {

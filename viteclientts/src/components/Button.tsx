@@ -7,9 +7,10 @@ import { Link as RouterLink, LinkProps as RouterLinkProps } from 'react-router-d
 interface CustomButtonProps extends ButtonProps {
   to?: RouterLinkProps['to'];
   error?: boolean;
+  customWidth?: string | object;
 }
 
-const CustomButton: React.FC<CustomButtonProps> = ({ to, error, variant = "contained", ...props }) => {
+const CustomButton: React.FC<CustomButtonProps> = ({ to, error, customWidth, variant = "contained", ...props }) => {
   const LinkBehavior = React.forwardRef<HTMLAnchorElement, Omit<RouterLinkProps, 'to'>>((props, ref) => (
     <RouterLink ref={ref} to={to || '#'} {...props} />
   ));
@@ -21,7 +22,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({ to, error, variant = "conta
 
   const buttonStyles = {
     my: 1,
-    width: { xs: '100%', sm: '250px' },
+    width: customWidth || { xs: '100%', sm: '250px' },
     backgroundColor: isOutlined ? 'transparent' : (error ? errorColor : 'black'),
     color: isOutlined ? outlinedColor : 'white', // Black text for outlined, white for others
     border: isOutlined ? '1px solid' : 'none',
