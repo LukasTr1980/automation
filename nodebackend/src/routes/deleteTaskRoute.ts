@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { connectToRedis } from '../clients/redisClient';
 import logger from '../logger';
+import { jobs } from '../scheduler';
 
 const router = express.Router();
 
@@ -15,6 +16,16 @@ router.delete('/', async (req: Request<Record<string, never>, unknown, RequestBo
   
     if (!taskId || !zone) {
       return res.status(400).send('Missing required parameters: taskId, zone');
+    }
+
+    const jobKey = `${zone}_${taskId}`;
+
+    if (jobs[jobKey]) {
+      jobs[jobKey].cancel();
+      delete jobs[jobKey];
+      logger.info(`Scheduled job ${jobKey} cancelled successfully`);
+    } else {
+      logger.warn(`No scheduled job found for key ${jobKey}`);
     }
   
     // Construct the Redis key

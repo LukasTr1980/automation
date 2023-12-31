@@ -189,4 +189,5 @@ export {
   scheduleTask,
   loadScheduledTasks,
   getScheduledTasks,
+  jobs
 };

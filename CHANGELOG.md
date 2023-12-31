@@ -5,22 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] 2023-12-30
+## [v15.11.0] - 2023-12-31
 ### Added
-- `TimeDisplay` on right site of `NavMenu`
-- In `Button` added possibility to pass customWidth prop
+- `TimeDisplay` on the right side of `NavMenu`
+- In `Button`, added the possibility to pass a `customWidth` prop
 - Added margin in `SecretField`
 
 ### Changed
-- In `LoginPage` changed default Mui Button to Custombutton
-- Changed `Button` width sm to 311 px
-- Changed customwidth in `HomePage` and `VillaAnnaHomePage`
+- In `LoginPage`, changed default Mui Button to `CustomButton`
+- Changed `Button` width in 'sm' to 311 px
+- Changed `customWidth` in `HomePage` and `VillaAnnaHomePage`
 
 ### Fixed
-- Hover color of `NavMenu` Buttons on big screens
+- Hover color of `NavMenu` buttons on big screens
+- When a task is deleted, it now also cancels the job in node-scheduler
 
 ### Removed
-- In `VillaAnnaCountdownPage` removed console.log
+- In `VillaAnnaCountdownPage`, removed `console.log`
 
 ## [v15.10.0] - 2023-12-30
 ### Added
