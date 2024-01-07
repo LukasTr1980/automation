@@ -5,6 +5,7 @@ import SwitchComponent from './switchComponent';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { daysOfWeek, months } from './constants';
 import axios from 'axios';
 import { SnackbarContext } from './snackbar/SnackbarContext';
@@ -16,9 +17,10 @@ interface ScheduledTaskCardProps {
   customLabels?: { [key: string]: string };
   onDelete?: (taskId: string) => void;
   redisKey?: string;
+  onCopyTask: (task: ScheduledTask) => void;
 }
 
-export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey }: ScheduledTaskCardProps) {
+export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey, onCopyTask }: ScheduledTaskCardProps) {
   const snackbackContext = useContext(SnackbarContext);
 
   if (!snackbackContext) {
@@ -82,6 +84,11 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
       });
   };
 
+  const handleCopy = (task: ScheduledTask) => {
+    onCopyTask(task);
+    showSnackbar("Zeitplan kopiert");
+  };
+
   return (
     <Card style={{ margin: "10px", border: "1px solid black" }}>
       <CardContent style={{ display: 'flex', flexDirection: 'column' }}>
@@ -97,8 +104,8 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
 
           const isActive = parsedTask.recurrenceRule.month.includes(currentMonth) && switchStates[cleanZoneName];
 
-          const status = customLabels && customLabels[parsedTask.state ? "true" : "false"]
-            ? customLabels[parsedTask.state ? "true" : "false"]
+          const status = customLabels && customLabels[parsedTask.state.toString()]
+            ? customLabels[parsedTask.state.toString()]
             : (parsedTask.state ? "Ein" : "Aus");
 
           const allDays = parsedTask.recurrenceRule.dayOfWeek.length === 7;
@@ -125,6 +132,9 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                 </Typography>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', minWidth: '50px' }}>
+                <IconButton aria-label='copy' onClick={() => handleCopy(task)}>
+                  <ContentCopyIcon />
+                </IconButton>
                 <IconButton aria-label='delete' onClick={() => handleDelete(task.taskId)}>
                   <DeleteIcon />
                 </IconButton>

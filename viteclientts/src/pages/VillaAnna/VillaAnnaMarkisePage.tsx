@@ -34,6 +34,7 @@ const MarkisePage = () => {
     const [reloadTasks, setReloadTasks] = useState(false);
     const customMarkiseLabels = { '1': "Ausfahren", '2': "Einfahren" };
     const apiUrl = import.meta.env.VITE_API_URL;
+    const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
     const snackbackContext = useContext(SnackbarContext);
 
     if (!snackbackContext) {
@@ -189,6 +190,7 @@ const MarkisePage = () => {
                         scheduledTasks={scheduledTasks}
                         setScheduledTasks={setScheduledTasks}
                         setReloadTasks={setReloadTasks}
+                        taskToCopy={copiedTask}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -204,6 +206,7 @@ const MarkisePage = () => {
                                     customLabels={customMarkiseLabels}
                                     onDelete={handleDeleteTask}
                                     redisKey="markise/switch/haupt/set"
+                                    onCopyTask={setCopiedTask}
                                 />
                             )}
                         </CardContent>

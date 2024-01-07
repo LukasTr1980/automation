@@ -1,5 +1,5 @@
 // SchedulerCard.tsx
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { bewaesserungsTopicsSet, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
 import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
@@ -42,6 +42,7 @@ interface SchedulerCardProps {
   initialTopic?: string;
   mqttTopics?: string[];
   topicDescriptions?: string[];
+  taskToCopy?: ScheduledTask | null;
 }
 
 const SchedulerCard: React.FC<SchedulerCardProps> = ({
@@ -50,6 +51,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   initialTopic,
   mqttTopics = bewaesserungsTopicsSet,
   topicDescriptions = switchDescriptions,
+  taskToCopy,
 }) => {
   const snackbackContext = useContext(SnackbarContext);
 
@@ -154,9 +156,29 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (taskToCopy) {
+      setSelectedTopic(taskToCopy.topic);
+
+      let booleanState;
+      if (typeof taskToCopy.state === 'number') {
+        booleanState = taskToCopy.state === 1;
+      } else {
+        booleanState = taskToCopy.state;
+      }
+
+      setSwitchState(booleanState);
+
+      setSelectedDays(taskToCopy.recurrenceRule.dayOfWeek);
+      setSelectedMonths(taskToCopy.recurrenceRule.month);
+      setSelectedHour(taskToCopy.recurrenceRule.hour.toString());
+      setSelectedMinute(taskToCopy.recurrenceRule.minute.toString());
+    }
+  }, [taskToCopy]);
+
   return (
     <Card>
-      <CardHeader title="Zeiplan erstellen" />
+      <CardHeader title="Zeitplan erstellen" />
       <CardContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>

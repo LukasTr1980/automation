@@ -40,13 +40,14 @@ const BewaesserungPage = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [response, setResponse] = useState("");
   const [formattedEvaluation, setFormattedEvaluation] = useState("");
-    const snackbackContext = useContext(SnackbarContext);
+  const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
+  const snackbackContext = useContext(SnackbarContext);
 
-    if (!snackbackContext) {
-      throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
-    }
-  
-    const { showSnackbar } = snackbackContext;
+  if (!snackbackContext) {
+    throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
+  }
+
+  const { showSnackbar } = snackbackContext;
 
   useEffect(() => {
     const sessionId = cookies.session;
@@ -206,7 +207,7 @@ const BewaesserungPage = () => {
 
       {/* Use the SchedulerCard component */}
       <Grid item xs={12}>
-        <SchedulerCard setReloadTasks={setReloadTasks} scheduledTasks={scheduledTasks} setScheduledTasks={setScheduledTasks} />
+        <SchedulerCard setReloadTasks={setReloadTasks} scheduledTasks={scheduledTasks} setScheduledTasks={setScheduledTasks} taskToCopy={copiedTask} />
       </Grid>
 
       <Grid item xs={12}>
@@ -219,11 +220,17 @@ const BewaesserungPage = () => {
               <>
                 {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
                 {Object.entries(orderedTasks).map(([zoneName, tasks]) => {
-                  // Find the correct index for the zoneName
                   const topicIndex = switchDescriptions.findIndex(desc => desc === zoneName);
                   const redisKey = bewaesserungsTopicsSet[topicIndex];
 
-                  return <ScheduledTaskCard key={`${zoneName}-${topicIndex}`} zoneName={zoneName} tasks={tasks} onDelete={handleDeleteTask} redisKey={redisKey} />;
+                  return <ScheduledTaskCard
+                    key={`${zoneName}-${topicIndex}`}
+                    zoneName={zoneName}
+                    tasks={tasks}
+                    onDelete={handleDeleteTask}
+                    redisKey={redisKey}
+                    onCopyTask={setCopiedTask}
+                  />;
                 })}
               </>
             )}
