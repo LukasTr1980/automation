@@ -1,11 +1,7 @@
 import { Checkbox, FormControl, FormControlLabel, FormGroup } from '@mui/material';
 import { daysOfWeek, daysOfWeekNumbers } from './constants';
 import React from 'react';
-
-interface WeekdaysSelectProps {
-  selectedDays: number[];
-  setSelectedDays: (days: number[]) => void;
-}
+import { WeekdaysSelectProps } from '../types/types';
 
 const WeekdaysSelect: React.FC<WeekdaysSelectProps> = ({ selectedDays, setSelectedDays }) => {
   const allDays = ['Täglich', ...daysOfWeek]; // 'Täglich' is now the first item

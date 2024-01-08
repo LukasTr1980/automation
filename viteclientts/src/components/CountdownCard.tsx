@@ -1,5 +1,6 @@
 import React from 'react';
 import { Typography, Card, CardContent, Box } from '@mui/material';
+import { CountdownCardProps } from '../types/types';
 
 // Function to convert seconds into HH:mm:ss format
 const formatTime = (seconds: number) => {
@@ -25,17 +26,6 @@ const getStatusBackgroundColor = (status: string) => {
             return 'transparent';
     }
 };
-
-interface Countdown {
-  topic?: string;
-  value: number;
-  control: string;
-}
-
-interface CountdownCardProps {
-  zoneName: string;
-  countdown: Countdown;
-}
 
 const CountdownCard: React.FC<CountdownCardProps> = ({ zoneName, countdown }) => {
     const formattedTime = formatTime(countdown.value);

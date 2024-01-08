@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2024-01-08
+### Added
+- New `types` folder containing a `types.ts` file for centralized type definitions.
+
+### Removed
+- Types and interfaces declarations from all TypeScript files, now consolidated in the `types.ts` file for improved structure clarity.
+
 ## [v15.12.0] - 2024-01-07
 ### Added
 - In `TimeDisplay`, added the display of the year.

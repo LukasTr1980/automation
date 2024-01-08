@@ -19,31 +19,7 @@ import {
 } from '@mui/material';
 import { SnackbarContext } from './snackbar/SnackbarContext';
 import CustomButton from './Button';
-
-interface RecurrenceRule {
-  hour: number;
-  minute: number;
-  dayOfWeek: number[];
-  month: number[];
-}
-
-export interface ScheduledTask {
-  recurrenceRule: RecurrenceRule;
-  state: boolean;
-  taskId: string;
-  topic: string;
-  id: string;
-}
-
-interface SchedulerCardProps {
-  setReloadTasks: React.Dispatch<React.SetStateAction<boolean>>;
-  scheduledTasks: ScheduledTask[];
-  setScheduledTasks: React.Dispatch<React.SetStateAction<ScheduledTask[]>>;
-  initialTopic?: string;
-  mqttTopics?: string[];
-  topicDescriptions?: string[];
-  taskToCopy?: ScheduledTask | null;
-}
+import { SchedulerCardProps } from '../types/types';
 
 const SchedulerCard: React.FC<SchedulerCardProps> = ({
   setReloadTasks,

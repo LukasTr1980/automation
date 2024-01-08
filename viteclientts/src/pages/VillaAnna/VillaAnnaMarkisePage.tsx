@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
 import { Typography, Grid, Card, CardHeader, CardContent, Box } from '@mui/material';
 import OnPressSwitchComponent from '../../components/OnPressSwitchComponent';
-import SchedulerCard, { ScheduledTask } from '../../components/SchedulerCard';
+import SchedulerCard from '../../components/SchedulerCard';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard'; // Assuming you use this, as in the other page
 import { useCookies } from 'react-cookie';
 import axios from 'axios';
@@ -9,18 +9,7 @@ import Layout from '../../Layout'
 import { SocketContext } from '../../components/socketio/SocketContext';
 import SwitchComponent from '../../components/switchComponent';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
-
-interface MarkiseStatus {
-    last_execution_timestamp?: string;
-    throttling_active?: string;
-    'weather:raining'?: string;
-    'weather:windy'?: string;
-}
-
-interface APIResponse {
-    [key: string]: Partial<ScheduledTask>[]; // Use Partial<ScheduledTask> if the tasks might not have all properties of ScheduledTask
-}
-
+import { MarkiseStatus, ScheduledTask, APIResponse } from '../../types/types';
 
 const MarkisePage = () => {
     const [markiseStatus, setMarkiseStatus] = useState<MarkiseStatus>({});

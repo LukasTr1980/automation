@@ -9,16 +9,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { daysOfWeek, months } from './constants';
 import axios from 'axios';
 import { SnackbarContext } from './snackbar/SnackbarContext';
-import { ScheduledTask } from './SchedulerCard';
-
-interface ScheduledTaskCardProps {
-  zoneName: string;
-  tasks: ScheduledTask[];
-  customLabels?: { [key: string]: string };
-  onDelete?: (taskId: string) => void;
-  redisKey?: string;
-  onCopyTask: (task: ScheduledTask) => void;
-}
+import { ScheduledTask, ScheduledTaskCardProps } from '../types/types';
 
 export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey, onCopyTask }: ScheduledTaskCardProps) {
   const snackbackContext = useContext(SnackbarContext);

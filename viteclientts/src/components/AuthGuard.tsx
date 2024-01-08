@@ -4,11 +4,7 @@ import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import { Box, CircularProgress } from '@mui/material';
 import PropTypes from 'prop-types';
-import { ReactNode } from 'react';
-
-interface AuthGuardProps {
-  children: ReactNode;
-}
+import { AuthGuardProps } from '../types/types';
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const [cookies] = useCookies(['session']);

@@ -1,20 +1,7 @@
 // SecretField.tsx
 import { TextField } from '@mui/material';
 import CustomButton from './Button';
-
-interface SecretFieldProps {
-  label: string;
-  secretValue: string;
-  placeholder?: boolean;
-  isFocused: boolean;
-  isValid: boolean;
-  onFocus: () => void;
-  onBlur: () => void;
-  onChange: (value: string) => void;
-  onUpdate: () => void;
-  type?: string;
-  autoComplete?: string;
-}
+import { SecretFieldProps } from '../types/types';
 
 const SecretField: React.FC<SecretFieldProps> = ({ 
   label, 

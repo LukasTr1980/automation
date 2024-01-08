@@ -4,7 +4,7 @@ import { useCookies } from 'react-cookie';
 import SwitchComponent from '../../components/switchComponent';
 import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
-import SchedulerCard, { ScheduledTask } from '../../components/SchedulerCard';
+import SchedulerCard from '../../components/SchedulerCard';
 import {
   Box,
   Typography,
@@ -18,14 +18,7 @@ import {
 import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
-
-interface APIResponse {
-  [key: string]: Partial<ScheduledTask>[];
-}
-
-interface GroupedTasks {
-  [zoneName: string]: ScheduledTask[];
-}
+import { GroupedTasks, ScheduledTask, APIResponse } from '../../types/types';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);

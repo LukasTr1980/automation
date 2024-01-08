@@ -1,9 +1,6 @@
 import { Box, CircularProgress } from '@mui/material';
 import React from 'react';
-
-type LoadingSpinnerProps = {
-  size?: number;
-};
+import { LoadingSpinnerProps } from '../types/types';
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 50 }) => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>

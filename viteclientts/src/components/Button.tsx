@@ -1,14 +1,9 @@
 // Button.tsx
 
 import React from 'react';
-import { Button, ButtonProps } from '@mui/material';
+import { Button } from '@mui/material';
 import { Link as RouterLink, LinkProps as RouterLinkProps } from 'react-router-dom';
-
-interface CustomButtonProps extends ButtonProps {
-  to?: RouterLinkProps['to'];
-  error?: boolean;
-  customWidth?: string | object;
-}
+import { CustomButtonProps } from '../types/types';
 
 const CustomButton: React.FC<CustomButtonProps> = ({ to, error, customWidth, variant = "contained", ...props }) => {
   const LinkBehavior = React.forwardRef<HTMLAnchorElement, Omit<RouterLinkProps, 'to'>>((props, ref) => (

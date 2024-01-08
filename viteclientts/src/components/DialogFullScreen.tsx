@@ -3,12 +3,7 @@ import { Dialog, Box, Grid, IconButton, DialogTitle } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTheme } from '@mui/material/styles';
 import CustomButton from './Button';
-
-interface DialogFullScreenProps {
-  open: boolean;
-  onClose: () => void;
-  children?: React.ReactNode;
-}
+import { DialogFullScreenProps } from '../types/types';
 
 const DialogFullScreen: React.FC<DialogFullScreenProps> = ({ open, onClose, children }) => {
   const theme = useTheme();

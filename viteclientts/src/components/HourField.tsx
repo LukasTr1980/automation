@@ -1,13 +1,6 @@
 import { TextField } from '@mui/material';
 import React from 'react';
-
-type HourFieldProps = {
-  selectedHour: number | string;
-  setSelectedHour: (value: string) => void;
-  error?: boolean;
-  min?: number;
-  max?: number;
-};
+import { HourFieldProps } from '../types/types';
 
 const HourField: React.FC<HourFieldProps> = ({ selectedHour, setSelectedHour, error, min = 0, max = 23 }) => {
 

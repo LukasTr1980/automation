@@ -1,10 +1,7 @@
 // File: ErrorBoundary.tsx
 import React from 'react';
-import { SnackbarContext, SnackbarContextValue } from './snackbar/SnackbarContext';
-
-interface ErrorBoundaryState {
-    hasError: boolean;
-}
+import { SnackbarContext } from './snackbar/SnackbarContext';
+import { SnackbarContextValue, ErrorBoundaryState } from '../types/types';
 
 class ErrorBoundary extends React.Component<React.PropsWithChildren<unknown>, ErrorBoundaryState> {
     static contextType = SnackbarContext;

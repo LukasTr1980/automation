@@ -1,13 +1,6 @@
 import { createContext, useState, FC, ReactNode } from 'react';
 import { AlertColor } from '@mui/material/Alert';
-
-export interface SnackbarContextValue {
-    showSnackbar: (message: string, severity?: AlertColor) => void;
-    message: string;
-    severity: AlertColor;
-    openSnackbar: boolean;
-    closeSnackbar: () => void;
-}
+import { SnackbarContextValue } from '../../types/types';
 
 export const SnackbarContext = createContext<SnackbarContextValue | undefined>(undefined);
 

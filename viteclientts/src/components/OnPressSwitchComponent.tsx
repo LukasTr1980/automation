@@ -2,11 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Grid } from '@mui/material';
 import CustomButton from './Button';
-
-interface OnPressSwitchComponentProps {
-  markiseState: string | null;
-  onSend: (value: number) => void;
-}
+import { OnPressSwitchComponentProps } from '../types/types';
 
 const OnPressSwitchComponent: React.FC<OnPressSwitchComponentProps> = ({ markiseState, onSend }) => {
   const [timeoutId, setTimeoutId] = useState<number | null>(null);

@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { io, Socket } from 'socket.io-client';
 import { useCookies } from 'react-cookie';
@@ -7,10 +7,7 @@ export const SocketContext = createContext<{ socket: Socket | null; connected: b
   socket: null,
   connected: false,
 });
-
-type SocketProviderProps = {
-  children: ReactNode;
-};
+import { SocketProviderProps } from '../../types/types';
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
     const [cookies] = useCookies(['session']);

@@ -2,11 +2,7 @@
 import { Checkbox, FormControl, FormControlLabel, FormGroup } from '@mui/material';
 import { months as initialMonths, monthsNumbers } from './constants';
 import PropTypes from 'prop-types';
-
-interface MonthsSelectProps {
-  selectedMonths: number[];
-  setSelectedMonths: (months: number[]) => void;
-}
+import { MonthsSelectProps } from '../types/types';
 
 const MonthsSelect: React.FC<MonthsSelectProps> = ({ selectedMonths, setSelectedMonths }) => {
   const months = ['Jeden Monat', ...initialMonths];

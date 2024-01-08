@@ -1,5 +1,5 @@
 // File: Layout.tsx
-import React, { ReactNode } from 'react';
+import React from 'react';
 import {
   Container,
   Grid,
@@ -10,15 +10,7 @@ import BackButton from './components/BackButton';
 import NavMenu from './components/menu/NavMenu';
 import LoadingSpinner from './components/LoadingSpinner';
 import logo from './images/logo-512x512.png';
-
-interface LayoutProps {
-  title: string;
-  children: ReactNode;
-  showBackButton?: boolean;
-  loading?: boolean;
-  showNavMenu?: boolean;
-  showLogo?: boolean;
-}
+import { LayoutProps } from './types/types';
 
 const appVersion = import.meta.env.VITE_APP_VERSION;
 

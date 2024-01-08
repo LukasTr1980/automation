@@ -20,17 +20,7 @@ import CountdownCard from '../../components/CountdownCard';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 import { SocketContext } from '../../components/socketio/SocketContext';
 import CustomButton from '../../components/Button';
-
-interface Countdown {
-    value: number;
-    hours: string;
-    minutes: string;
-    control: string;
-}
-
-type CountdownsState = {
-    [key: string]: Countdown | undefined;
-};
+import { CountdownsState } from '../../types/types';
 
 const VillaAnnacountdownPage = () => {
     const { socket, connected } = useContext(SocketContext);

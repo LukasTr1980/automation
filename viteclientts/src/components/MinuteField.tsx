@@ -1,13 +1,6 @@
 import { TextField } from '@mui/material';
 import React, { ChangeEvent } from 'react';
-
-interface MinuteFieldProps {
-  selectedMinute: number | string;
-  setSelectedMinute: (minute: string) => void; // Accepts only string now
-  error?: boolean;
-  min?: number;
-  max?: number;
-}
+import { MinuteFieldProps } from '../types/types';
 
 const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMinute, error, min = 0, max = 59 }) => {
 

@@ -1,16 +1,7 @@
 // SwitchComponent.tsx
 import Typography from '@mui/material/Typography';
 import Switch from '@mui/material/Switch';
-
-interface SwitchComponentProps {
-  checked: boolean;
-  label?: string;
-  handleToggle?: (event: React.ChangeEvent<{ checked: boolean; }>) => void;
-  disabled?: boolean;
-  color?: 'primary' | 'secondary' | 'default' | 'error' | 'info' | 'success' | 'warning';
-  id?: string;
-  name?: string;
-}
+import { SwitchComponentProps } from '../types/types';
 
 const SwitchComponent: React.FC<SwitchComponentProps> = ({ checked, label, handleToggle, disabled = false, color = 'primary', id, name }) => (
   <div>
