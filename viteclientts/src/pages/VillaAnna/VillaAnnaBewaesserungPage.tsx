@@ -19,9 +19,12 @@ import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 import { GroupedTasks, ScheduledTask, APIResponse } from '../../types/types';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
   const [switchesLoading, setSwitchesLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [switches, setSwitches] = useState([false, false, false, false, false]);
@@ -126,6 +129,10 @@ const BewaesserungPage = () => {
     setReloadTasks(prevState => !prevState);  // Toggle to force re-fetch
   };
 
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
   return (
     <Layout title='Villa Anna Bewässerung'>
       <Grid item xs={12}>
@@ -212,18 +219,30 @@ const BewaesserungPage = () => {
             ) : (
               <>
                 {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
-                {Object.entries(orderedTasks).map(([zoneName, tasks]) => {
-                  const topicIndex = switchDescriptions.findIndex(desc => desc === zoneName);
-                  const redisKey = bewaesserungsTopicsSet[topicIndex];
 
-                  return <ScheduledTaskCard
-                    key={`${zoneName}-${topicIndex}`}
-                    zoneName={zoneName}
-                    tasks={tasks}
-                    onDelete={handleDeleteTask}
-                    redisKey={redisKey}
-                    onCopyTask={setCopiedTask}
-                  />;
+                <Tabs value={activeTab} onChange={handleTabChange} variant='scrollable' aria-label="Zone tabs" scrollButtons allowScrollButtonsMobile>
+                  {Object.keys(orderedTasks).map((zoneName) => (
+                    <Tab label={zoneName} key={zoneName} />
+                  ))}
+                </Tabs>
+
+                {Object.entries(orderedTasks).map(([zoneName, tasks]) => {
+                  if (zoneName === Object.keys(orderedTasks)[activeTab]) {
+                    const topicIndex = switchDescriptions.findIndex(desc => desc === zoneName);
+                    const redisKey = bewaesserungsTopicsSet[topicIndex];
+
+                    return (
+                      <ScheduledTaskCard
+                        key={`${zoneName}-${topicIndex}`}
+                        zoneName={zoneName}
+                        tasks={tasks}
+                        onDelete={handleDeleteTask}
+                        redisKey={redisKey}
+                        onCopyTask={setCopiedTask}
+                      />
+                    );
+                  }
+                  return null;
                 })}
               </>
             )}

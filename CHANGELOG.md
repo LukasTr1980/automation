@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - 2024-01-08
 ### Added
 - New `types` folder containing a `types.ts` file for centralized type definitions.
+- Grouping of tasks in `ScheduledTaskCard`, grouping tasks with the same day and month, highlighted with a border.
+- Tabs in `VillaAnnaBewaesserungPage` for easy navigation between different zones, displaying the earliest month as the first task.
 
 ### Removed
 - Types and interfaces declarations from all TypeScript files, now consolidated in the `types.ts` file for improved structure clarity.
