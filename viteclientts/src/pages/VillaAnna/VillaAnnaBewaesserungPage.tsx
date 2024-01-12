@@ -21,6 +21,7 @@ import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
 import { GroupedTasks, ScheduledTask, APIResponse } from '../../types/types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import SkeletonLoader from '../../components/skeleton';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);
@@ -165,7 +166,7 @@ const BewaesserungPage = () => {
           <CardHeader title="AI Entscheidung" />
           <CardContent>
             {aiLoading ? (
-              <LoadingSpinner />
+              <SkeletonLoader />
             ) : (
               <Grid container spacing={2} justifyContent="space-between">
                 <Grid item xs={12}>
