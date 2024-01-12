@@ -5,15 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-12
+## [v15.13.0] - 2024-01-12
 ### Added
 - New `types` folder containing a `types.ts` file for centralized type definitions.
 - Grouping of tasks in `ScheduledTaskCard`, grouping tasks with the same day and month, highlighted with a border.
 - Tabs in `VillaAnnaBewaesserungPage` for easy navigation between different zones, displaying the earliest month as the first task.
-- Added new file `skeleton.tsx` for different loading animations
+- Added new file `skeleton.tsx` for different loading animations.
 
 ### Changed
-- Changed in `VillaAnnaBewaesserungsPage` from Loadingspinner to skeleton to avoid layout shift
+- Changed in `VillaAnnaBewaesserungsPage` from Loadingspinner to skeleton to avoid layout shift.
+- Changed styling of Tabs to fit for mobile and large screens in `VillaAnnaBewaesserungPage`.
 
 ### Removed
 - Types and interfaces declarations from all TypeScript files, now consolidated in the `types.ts` file for improved structure clarity.
