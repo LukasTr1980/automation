@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../Layout';
 import axios from 'axios';
 import {
@@ -10,18 +10,12 @@ import {
     TextareaAutosize
 } from '@mui/material';
 import SecretField from '../components/SecretField';
-import { SnackbarContext } from '../components/snackbar/SnackbarContext';
+import useSnackbar from '../utils/useSnackbar';
 import CustomButton from '../components/Button';
 
 const SettingsPage: React.FC = () => {
     const TextareaAutosizeComponent: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = TextareaAutosize;
-    const snackbackContext = useContext(SnackbarContext);
-
-    if (!snackbackContext) {
-      throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
-    }
-  
-    const { showSnackbar } = snackbackContext;
+    const { showSnackbar } = useSnackbar();
     const [gptRequest, setGptRequest] = useState<string>('');
     const [influxDbAiToken, setInfluxDbAiToken] = useState<string>('');
     const [influxDbAutomationToken, setInfluxDbAutomationToken] = useState<string>('');

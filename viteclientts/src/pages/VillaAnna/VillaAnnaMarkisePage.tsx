@@ -8,7 +8,7 @@ import axios from 'axios';
 import Layout from '../../Layout'
 import { SocketContext } from '../../components/socketio/SocketContext';
 import SwitchComponent from '../../components/switchComponent';
-import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
+import useSnackbar from '../../utils/useSnackbar';
 import { MarkiseStatus, ScheduledTask, APIResponse } from '../../types/types';
 
 const MarkisePage = () => {
@@ -24,13 +24,7 @@ const MarkisePage = () => {
     const customMarkiseLabels = { '1': "Ausfahren", '2': "Einfahren" };
     const apiUrl = import.meta.env.VITE_API_URL;
     const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
-    const snackbackContext = useContext(SnackbarContext);
-
-    if (!snackbackContext) {
-        throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
-    }
-
-    const { showSnackbar } = snackbackContext;
+    const { showSnackbar } = useSnackbar();
 
     useEffect(() => {
         const sessionId = cookies.session;

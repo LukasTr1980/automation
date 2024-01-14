@@ -1,5 +1,5 @@
 // SchedulerCard.tsx
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { bewaesserungsTopicsSet, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
 import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
@@ -17,7 +17,7 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material';
-import { SnackbarContext } from './snackbar/SnackbarContext';
+import useSnackbar from '../utils/useSnackbar';
 import CustomButton from './Button';
 import { SchedulerCardProps } from '../types/types';
 
@@ -29,13 +29,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   topicDescriptions = switchDescriptions,
   taskToCopy,
 }) => {
-  const snackbackContext = useContext(SnackbarContext);
-
-  if (!snackbackContext) {
-    throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
-  }
-
-  const { showSnackbar } = snackbackContext;
+  const { showSnackbar } = useSnackbar();
   const [selectedTopic, setSelectedTopic] = useState<string>(initialTopic || mqttTopics[0]);
   const specialSwitchValues: Record<string, Record<string, number>> = {
     'markise/switch/haupt/set': { 'true': 1, 'false': 2 }

@@ -17,20 +17,14 @@ import {
 import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
-import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
+import useSnackbar from '../../utils/useSnackbar';
 import { SocketContext } from '../../components/socketio/SocketContext';
 import CustomButton from '../../components/Button';
 import { CountdownsState } from '../../types/types';
 
 const VillaAnnacountdownPage = () => {
     const { socket, connected } = useContext(SocketContext);
-    const snackbackContext = useContext(SnackbarContext);
-
-    if (!snackbackContext) {
-      throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
-    }
-  
-    const { showSnackbar } = snackbackContext;
+    const { showSnackbar } = useSnackbar();
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
     const [selectedHour, setSelectedHour] = useState<string>('0');
     const [selectedMinute, setSelectedMinute] = useState<string>('10');

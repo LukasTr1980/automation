@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import SwitchComponent from './switchComponent';
@@ -8,17 +8,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { daysOfWeek, months } from './constants';
 import axios from 'axios';
-import { SnackbarContext } from './snackbar/SnackbarContext';
+import useSnackbar from '../utils/useSnackbar';
 import { ScheduledTask, ScheduledTaskCardProps } from '../types/types';
 
 export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey, onCopyTask }: ScheduledTaskCardProps) {
-  const snackbackContext = useContext(SnackbarContext);
-
-  if (!snackbackContext) {
-    throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
-  }
-
-  const { showSnackbar } = snackbackContext;
+  const { showSnackbar } = useSnackbar();
   const currentMonth = new Date().getMonth();
 
   const cleanZoneName = zoneName

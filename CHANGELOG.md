@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- New utility file `useSnackbar` to reduce code duplication.
+
+### Fixed
+- Corrected error handling in `showSnackbar`: previously, an incorrect error message related to `SchedulerTaskCard` was displayed when `showSnackbar` was not used within `SnackbarProvider`.
+
 ## [v15.13.1] - 2024-01-13
 ### Fixed
 - Fixed `skeleton` to show on small screens a bigger loading area to avoid layout shift.

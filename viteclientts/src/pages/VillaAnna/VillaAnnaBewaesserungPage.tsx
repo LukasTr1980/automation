@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import SwitchComponent from '../../components/switchComponent';
@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { SnackbarContext } from '../../components/snackbar/SnackbarContext';
+import useSnackbar from '../../utils/useSnackbar';
 import { GroupedTasks, ScheduledTask, APIResponse } from '../../types/types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -38,13 +38,7 @@ const BewaesserungPage = () => {
   const [response, setResponse] = useState("");
   const [formattedEvaluation, setFormattedEvaluation] = useState("");
   const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
-  const snackbackContext = useContext(SnackbarContext);
-
-  if (!snackbackContext) {
-    throw new Error('ScheduledTaskCard must be used within a SnackbarProvider');
-  }
-
-  const { showSnackbar } = snackbackContext;
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     const sessionId = cookies.session;
