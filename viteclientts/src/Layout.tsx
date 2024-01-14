@@ -23,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({
   return (
     <>
       {showNavMenu && <NavMenu />}
-      <Container maxWidth='sm' style={{ paddingBottom: '30px' }}>
+      <Container style={{ paddingBottom: '60px', maxWidth: '700px' }}>
         <Grid container spacing={3} justifyContent="center" alignItems="center" paddingTop={8}>
 
           {loading ? (
