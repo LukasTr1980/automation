@@ -5,12 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - 2024-01-14
 ### Added
-- New utility file `useSnackbar` to reduce code duplication.
+- New utility file `useSnackbar` for reducing code duplication.
+
+### Changed
+- Updated `Layout` component: set container max-width to 'sm' and removed `Box` element.
 
 ### Fixed
-- Corrected error handling in `showSnackbar`: previously, an incorrect error message related to `SchedulerTaskCard` was displayed when `showSnackbar` was not used within `SnackbarProvider`.
+- Fixed error handling in `showSnackbar`: corrected an issue where an unrelated error message from `SchedulerTaskCard` was displayed when `showSnackbar` was used outside of `SnackbarProvider`.
+
+### Removed
+- Removed `BackButton` component, as it became redundant with the implementation of `NavMenu`.
 
 ## [v15.13.1] - 2024-01-13
 ### Fixed

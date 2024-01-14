@@ -4,7 +4,7 @@ import CustomButton from '../../components/Button';
 
 const HomePage = () => {
   return (
-    <Layout title='Villa Anna Automation' showBackButton={false} showLogo={true}>
+    <Layout title='Villa Anna Automation' showLogo={true}>
       <Grid item xs={12}>
           <Box
             sx={{

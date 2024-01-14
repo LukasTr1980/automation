@@ -4,7 +4,7 @@ import CustomButton from '../components/Button';
 
 const HomePage: React.FC = () => {
   return (
-    <Layout title="Automation" showBackButton={false} showLogo={true}>
+    <Layout title="Automation" showLogo={true}>
       <Grid item xs={12}>
         <Box
           sx={{
