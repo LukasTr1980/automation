@@ -81,7 +81,7 @@ const NavMenu: React.FC = () => {
 
   return (
     <>
-      <AppBar position="fixed" sx={{ backgroundColor: 'black' }}>
+      <AppBar position="fixed" sx={{ backgroundColor: 'black', height: '64px' }}>
         <Toolbar>
           {isSmallScreen ? (
             <>

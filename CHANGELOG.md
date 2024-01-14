@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated `Layout` component: set container max-width to 'sm' and removed `Box` element.
+- Updated height of Appbar in `NavMenu` to 64px to maintain consistency between mobile and desktop
 
 ### Fixed
 - Fixed error handling in `showSnackbar`: corrected an issue where an unrelated error message from `SchedulerTaskCard` was displayed when `showSnackbar` was used outside of `SnackbarProvider`.
