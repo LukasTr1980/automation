@@ -1,6 +1,5 @@
 // SecretField.tsx
-import { TextField } from '@mui/material';
-import CustomButton from './Button';
+import { Button, TextField } from '@mui/material';
 import { SecretFieldProps } from '../types/types';
 
 const SecretField: React.FC<SecretFieldProps> = ({ 
@@ -33,11 +32,13 @@ const SecretField: React.FC<SecretFieldProps> = ({
         error={!isValid}
         sx={{ marginTop: '30px' }}
       />
-      <CustomButton
+      <Button
         onClick={onUpdate}
+        variant='contained'
+        sx={{ width: '300px', my: 2 }}
       >
         New {label}
-      </CustomButton>
+      </Button>
     </>
   );
 };

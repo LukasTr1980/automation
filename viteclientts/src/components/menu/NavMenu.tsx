@@ -32,7 +32,6 @@ const NavMenu: React.FC = () => {
         color='inherit' 
         aria-label='close' 
         onClick={handleDrawerToggle}
-        sx={{ color: 'white' }}
         >
           <CloseIcon />
         </IconButton>
@@ -81,7 +80,7 @@ const NavMenu: React.FC = () => {
 
   return (
     <>
-      <AppBar position="fixed" sx={{ backgroundColor: 'black' }}>
+      <AppBar position="fixed">
         <Toolbar>
           {isSmallScreen ? (
             <>

@@ -1,9 +1,8 @@
 import { useState, FormEvent } from 'react';
-import { TextField, Typography, Box } from '@mui/material';
+import { TextField, Typography, Box, Button } from '@mui/material';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
-import CustomButton from '../components/Button';
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
@@ -65,19 +64,19 @@ const LoginForm: React.FC = () => {
     <Box
       component="form"
       onSubmit={handleSubmit}
+      border={1}
       sx={{
         display: 'flex',
         flexDirection: 'column',
         maxWidth: '300px',
         margin: '0 auto',
         p: 2,
-        backgroundColor: '#f5f5f5',
         gap: 2,
       }}
       noValidate
       autoComplete="off"
     >
-      <Typography variant="h5" color="black">Login Villa Anna Automation</Typography>
+      <Typography variant="h5">Login Villa Anna Automation</Typography>
       {errorMsg && <Typography color="error">{errorMsg}</Typography>}
       <TextField
         label="Username"
@@ -87,7 +86,7 @@ const LoginForm: React.FC = () => {
         required
         InputLabelProps={{
           shrink: true,
-          style: { color: "#757575", transition: "none" },
+          style: { transition: "none" },
         }}
       />
       <TextField
@@ -99,15 +98,15 @@ const LoginForm: React.FC = () => {
         required
         InputLabelProps={{
           shrink: true,
-          style: { color: "#757575", transition: "none" },
+          style: { transition: "none" },
         }}
       />
-      <CustomButton
+      <Button
         type="submit"
-        customWidth={{ xs: '100%', sm: '100%' }}
+        variant='contained'
       >
         Login
-      </CustomButton>
+      </Button>
     </Box>
   );
 };

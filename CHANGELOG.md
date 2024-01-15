@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-14
+## [Unreleased] - 2024-01-15
+
 ### Added
 - New utility file `useSnackbar` for reducing code duplication.
 
 ### Changed
+- Applying default MUI design
 - Updated `Layout` component: set container max-width to 'sm' and removed `Box` element.
 - Updated `Layout` component: set container max-width to 700px.
 
