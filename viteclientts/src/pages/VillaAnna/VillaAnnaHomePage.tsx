@@ -16,25 +16,22 @@ const HomePage = () => {
         >
           <Button
             component={RouterLink}
-            variant='contained'
             to="/villa-anna/bewaesserung"
-            sx={{ width: '300px', my: 2 }}
+            style={{ fontSize: '18px', margin: '10px' }}
           >
             Bewässerung
           </Button>
           <Button
-            variant='contained'
             component={RouterLink}
             to="/villa-anna/markise"
-            sx={{ width: '300px', my: 2 }}
+            style={{ fontSize: '18px', margin: '10px' }}
           >
             Markise
           </Button>
           <Button
             component={RouterLink}
             to="/villa-anna/countdown"
-            variant='contained'
-            sx={{ width: '300px', my: 2 }}
+            style={{ fontSize: '18px', margin: '10px' }}
           >
             Countdown
           </Button>

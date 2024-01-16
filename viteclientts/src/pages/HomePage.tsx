@@ -1,5 +1,5 @@
 import Layout from '../Layout';
-import { Box, Grid, Button } from '@mui/material';
+import { Box, Button, Grid } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
@@ -14,19 +14,17 @@ const HomePage: React.FC = () => {
             justifyContent: 'center',
           }}
         >
-          <Button
-            to="/villa-anna/home"
-            component={RouterLink}
-            variant='contained'
-            sx={{ width: '300px', my: 2 }}
+          <Button 
+          component={RouterLink}
+          to="/villa-anna/home"
+          style={{ fontSize: '18px', margin: '10px' }}
           >
             Villa Anna
           </Button>
-          <Button
-            to="/settings"
-            component={RouterLink}
-            variant='contained'
-            sx={{ width: '300px', my: 2 }}
+          <Button 
+          component={RouterLink}
+          to="/settings"
+          style={{ fontSize: '18px', margin: '10px' }}
           >
             Settings
           </Button>

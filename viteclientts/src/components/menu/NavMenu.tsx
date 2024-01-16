@@ -16,7 +16,7 @@ const NavMenu: React.FC = () => {
   };
 
   const drawer = (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div>
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -27,11 +27,11 @@ const NavMenu: React.FC = () => {
         <NavLink to='/home'>
           <img src={logo} alt='Logo' style={{ height: '40px' }} />
         </NavLink>
-        <IconButton 
-        edge='end' 
-        color='inherit' 
-        aria-label='close' 
-        onClick={handleDrawerToggle}
+        <IconButton
+          edge='end'
+          color='inherit'
+          aria-label='close'
+          onClick={handleDrawerToggle}
         >
           <CloseIcon />
         </IconButton>
@@ -42,18 +42,11 @@ const NavMenu: React.FC = () => {
           { text: 'Villa Anna', path: '/villa-anna/home' },
           { text: 'Settings', path: '/settings' }
         ].map(({ text, path }) => {
-          const basePath: string = path.split('/')[1];
           return (
             <ListItemButton
               key={text}
               component={NavLink}
               to={path}
-              style={{
-                ...window.location.pathname.split('/')[1] === basePath ? { backgroundColor: '#202123' } : {},
-                fontSize: '1.1rem',
-                padding: '10px 16px',
-                color: 'white'
-              }}
             >
               {text}
             </ListItemButton>
@@ -62,21 +55,6 @@ const NavMenu: React.FC = () => {
       </List>
     </div>
   );
-
-  const buttonStyle = (path: string) => {
-    const isActive = path === '/home' || path === '/settings'
-      ? window.location.pathname === path
-      : window.location.pathname.includes('/villa-anna/');
-  
-    return {
-      backgroundColor: isActive ? '#202223' : 'inherit',
-      variant: isActive ? "contained" : "text",
-      marginRight: '16px',
-      '&:hover': {
-        backgroundColor: isActive ? '#202123' : '#202123',
-      },
-    };
-  };  
 
   return (
     <>
@@ -90,13 +68,10 @@ const NavMenu: React.FC = () => {
               <NavLink to='/home'>
                 <img src={logo} alt='Logo' style={{ height: '40px' }} />
               </NavLink>
-              <Drawer 
-              anchor="left" 
-              open={drawerOpen} 
-              onClose={handleDrawerToggle}
-              sx={{ 
-                '& .MuiDrawer-paper': { backgroundColor: 'black' }
-              }}
+              <Drawer
+                anchor="left"
+                open={drawerOpen}
+                onClose={handleDrawerToggle}
               >
                 {drawer}
               </Drawer>
@@ -107,26 +82,23 @@ const NavMenu: React.FC = () => {
                 <img src={logo} alt='Logo' style={{ height: '40px', marginRight: '25px' }} />
               </NavLink>
               <Button
-                color='inherit'
+                sx={{ color: 'white', '&:hover': { backgroundColor: '#1871CA', color: 'white' } }}
                 component={NavLink}
                 to="/home"
-                sx={buttonStyle("/home")}
               >
                 Home
               </Button>
               <Button
-                color='inherit'
+                sx={{ color: 'white', '&:hover': { backgroundColor: '#1871CA', color: 'white' } }}
                 component={NavLink}
                 to="/villa-anna/home"
-                sx={buttonStyle("/villa-anna/home")}
               >
                 Villa Anna
               </Button>
               <Button
-                color='inherit'
+                sx={{ color: 'white', '&:hover': { backgroundColor: '#1871CA', color: 'white' } }}
                 component={NavLink}
                 to="/settings"
-                sx={{ ...buttonStyle("/settings"), marginRight: 0 }}
               >
                 Settings
               </Button>
