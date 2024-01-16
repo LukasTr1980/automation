@@ -64,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({
         justifyContent: 'center',
         alignItems: 'center',
         padding: '10px 0',
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backgroundColor: 'whitesmoke',
       }}>
         <Typography variant='body2' color='black' fontWeight='bold'>
           Version: {appVersion}

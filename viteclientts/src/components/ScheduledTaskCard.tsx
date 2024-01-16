@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import SwitchComponent from './switchComponent';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -98,8 +96,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
   });
 
   return (
-    <Card style={{ margin: "10px", border: "1px solid black" }}>
-      <CardContent style={{ display: 'flex', flexDirection: 'column' }}>
+    <>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6" component="div">{zoneName}</Typography>
           <SwitchComponent checked={switchStates[cleanZoneName]} handleToggle={handleToggle(cleanZoneName)} />
@@ -147,7 +144,6 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
             </div>
           ))
         }
-      </CardContent>
-    </Card>
+</>
   );
 }
