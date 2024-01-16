@@ -1,6 +1,4 @@
 import React, { ReactNode } from 'react';
-import { ButtonProps } from '@mui/material';
-import { LinkProps as RouterLinkProps } from 'react-router-dom';
 import { AlertColor } from '@mui/material/Alert';
 
 export interface SchedulerCardProps {
@@ -47,12 +45,6 @@ export interface LayoutProps {
 
 export interface AuthGuardProps {
     children: ReactNode;
-}
-
-export interface CustomButtonProps extends ButtonProps {
-    to?: RouterLinkProps['to'];
-    error?: boolean;
-    customWidth?: string | object;
 }
 
 export interface Countdown {

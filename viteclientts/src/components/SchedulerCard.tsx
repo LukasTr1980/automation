@@ -16,9 +16,9 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Button,
 } from '@mui/material';
 import useSnackbar from '../utils/useSnackbar';
-import CustomButton from './Button';
 import { SchedulerCardProps } from '../types/types';
 
 const SchedulerCard: React.FC<SchedulerCardProps> = ({
@@ -186,15 +186,15 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             <MinuteField selectedMinute={selectedMinute} setSelectedMinute={setSelectedMinute} error={!fieldValidity.minute} />
           </Grid>
           <Grid item xs={12}>
-            <CustomButton
+            <Button
               variant="contained"
-              error={!fieldValidity.day}
+              color={!fieldValidity.day ? "error" : "primary"}
               fullWidth
               onClick={() => setWeekDaysDialogOpen(true)}
               aria-pressed={selectedDays.length ? 'true' : 'false'}
             >
               {weekDaysButtonText}
-            </CustomButton>
+            </Button>
             <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)}>
               <Grid item xs={12}>
                 <WeekdaysSelect selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
@@ -202,15 +202,15 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             </DialogFullScreen>
           </Grid>
           <Grid item xs={12}>
-            <CustomButton
+            <Button
               variant="contained"
-              error={!fieldValidity.month}
+              color={!fieldValidity.day ? "error" : "primary"}
               fullWidth
               onClick={() => setMonthDialogOpen(true)}
               aria-pressed={selectedMonths.length ? 'true' : 'false'}
             >
               {monthButtonText}
-            </CustomButton>
+            </Button>
             <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)}>
               <Grid item xs={12}>
                 <MonthsSelect selectedMonths={selectedMonths} setSelectedMonths={setSelectedMonths} />
@@ -218,9 +218,9 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             </DialogFullScreen>
           </Grid>
           <Grid item xs={12}>
-            <CustomButton variant="contained" color="primary" fullWidth onClick={handleSchedule}>
+            <Button variant="contained" color="primary" fullWidth onClick={handleSchedule}>
               Planen
-            </CustomButton>
+            </Button>
           </Grid>
         </Grid>
       </CardContent>

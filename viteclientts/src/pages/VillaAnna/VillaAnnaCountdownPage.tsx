@@ -13,13 +13,13 @@ import {
     CardHeader,
     Typography,
     SelectChangeEvent,
+    Button,
 } from '@mui/material';
 import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import useSnackbar from '../../utils/useSnackbar';
 import { SocketContext } from '../../components/socketio/SocketContext';
-import CustomButton from '../../components/Button';
 import { CountdownsState } from '../../types/types';
 
 const VillaAnnacountdownPage = () => {
@@ -143,19 +143,19 @@ const VillaAnnacountdownPage = () => {
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <CustomButton variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
+                                <Button variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
                                     Start
-                                </CustomButton>
+                                </Button>
                             </Grid>
                             <Grid item xs={12}>
-                                <CustomButton variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
+                                <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
                                     Stop
-                                </CustomButton>
+                                </Button>
                             </Grid>
                             <Grid item xs={12}>
-                                <CustomButton variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
+                                <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
                                     Reset
-                                </CustomButton>
+                                </Button>
                             </Grid>
                         </Grid>
                     </CardContent>

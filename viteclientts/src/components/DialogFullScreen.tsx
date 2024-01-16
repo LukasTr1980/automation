@@ -1,8 +1,7 @@
 import React from 'react';
-import { Dialog, Box, Grid, IconButton, DialogTitle } from '@mui/material';
+import { Dialog, Box, Grid, IconButton, DialogTitle, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTheme } from '@mui/material/styles';
-import CustomButton from './Button';
 import { DialogFullScreenProps } from '../types/types';
 
 const DialogFullScreen: React.FC<DialogFullScreenProps> = ({ open, onClose, children }) => {
@@ -26,12 +25,12 @@ const DialogFullScreen: React.FC<DialogFullScreenProps> = ({ open, onClose, chil
         >
           {children}
           <Grid item xs={12}>
-            <CustomButton
+            <Button
               variant="contained"
               onClick={onClose}
             >
               Speichern
-            </CustomButton>
+            </Button>
           </Grid>
         </Grid>
       </Box>
