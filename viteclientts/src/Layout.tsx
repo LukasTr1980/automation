@@ -24,8 +24,6 @@ const Layout: React.FC<LayoutProps> = ({
     <>
       {showNavMenu && <NavMenu />}
       <Container style={{ paddingBottom: '60px', maxWidth: '700px' }}>
-        <Grid container spacing={3} justifyContent="center" alignItems="center" paddingTop={8}>
-
           {loading ? (
             <Grid item xs={12}>
               <LoadingSpinner />
@@ -45,15 +43,13 @@ const Layout: React.FC<LayoutProps> = ({
                       }}
                     />
                   )}
-                  <Typography variant="h5" align="center">{title}</Typography>
+                  <Typography variant="h5" align="center" color='black'>{title}</Typography>
                 </Box>
               </Grid>
 
               {children}
             </>
           )}
-
-        </Grid>
       </Container>
       <div style={{
         position: 'fixed',

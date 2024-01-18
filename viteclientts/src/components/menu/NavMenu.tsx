@@ -47,6 +47,7 @@ const NavMenu: React.FC = () => {
               key={text}
               component={NavLink}
               to={path}
+              style={{ fontSize: '1.3em' }}
             >
               {text}
             </ListItemButton>
@@ -72,6 +73,7 @@ const NavMenu: React.FC = () => {
                 anchor="left"
                 open={drawerOpen}
                 onClose={handleDrawerToggle}
+                PaperProps={{ style: { width: '60%' } }}
               >
                 {drawer}
               </Drawer>
