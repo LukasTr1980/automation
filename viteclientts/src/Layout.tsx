@@ -24,6 +24,7 @@ const Layout: React.FC<LayoutProps> = ({
     <>
       {showNavMenu && <NavMenu />}
       <Container style={{ paddingBottom: '60px', maxWidth: '700px' }}>
+        <Grid container paddingTop={8}>
           {loading ? (
             <Grid item xs={12}>
               <LoadingSpinner />
@@ -50,6 +51,7 @@ const Layout: React.FC<LayoutProps> = ({
               {children}
             </>
           )}
+        </Grid>
       </Container>
       <div style={{
         position: 'fixed',

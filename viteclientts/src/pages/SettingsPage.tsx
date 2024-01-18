@@ -97,7 +97,7 @@ const SettingsPage: React.FC = () => {
 
     return (
         <Layout title='Settings'>
-            <Grid item xs={12}>
+            <Grid item xs={12} paddingTop={1} paddingBottom={1}>
                 <Card>
                     <CardHeader title="Edit GPT Request" />
                     <CardContent>

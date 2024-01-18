@@ -119,7 +119,7 @@ const MarkisePage = () => {
     return (
         <Layout title='Villa Anna Markise' loading={isLoading}>
             <>
-                <Grid item xs={12}>
+                <Grid item xs={12} paddingTop={1} paddingBottom={1}>
                     <Card>
                         <CardHeader title="Markise Steuern" />
                         <CardContent>
@@ -129,7 +129,7 @@ const MarkisePage = () => {
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} paddingBottom={1}>
                     <Card>
                         <CardHeader title="Wetter Block" />
                         <CardContent>
@@ -165,7 +165,7 @@ const MarkisePage = () => {
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} paddingBottom={1}>
                     <SchedulerCard
                         initialTopic="markise/switch/haupt/set"
                         mqttTopics={["markise/switch/haupt/set"]}

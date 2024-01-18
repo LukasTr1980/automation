@@ -103,7 +103,7 @@ const VillaAnnacountdownPage = () => {
 
     return (
         <Layout title="Villa Anna Countdown">
-            <Grid item xs={12}>
+            <Grid item xs={12} paddingTop={1} paddingBottom={1}>
                 <Card>
                     <CardHeader title="Countdown einstellen" />
                     <CardContent>
@@ -161,7 +161,7 @@ const VillaAnnacountdownPage = () => {
                     </CardContent>
                 </Card>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} paddingBottom={1}>
                 <Card>
                     <CardHeader title={<Typography variant="h6">Countdowns</Typography>} />  {/* Adjusted title */}
                     <CardContent>

@@ -130,7 +130,7 @@ const BewaesserungPage = () => {
 
   return (
     <Layout title='Villa Anna Bewässerung'>
-      <Grid item xs={12}>
+      <Grid item xs={12} paddingTop={1} paddingBottom={1}>
         <Card>
           <CardHeader title="Schalter" />
           <CardContent>
@@ -155,7 +155,7 @@ const BewaesserungPage = () => {
         </Card>
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid item xs={12} paddingBottom={1}>
         <Card>
           <CardHeader title="AI Entscheidung" />
           <CardContent>
@@ -201,7 +201,7 @@ const BewaesserungPage = () => {
       </Grid>
 
       {/* Use the SchedulerCard component */}
-      <Grid item xs={12}>
+      <Grid item xs={12} paddingBottom={1}>
         <SchedulerCard setReloadTasks={setReloadTasks} scheduledTasks={scheduledTasks} setScheduledTasks={setScheduledTasks} taskToCopy={copiedTask} />
       </Grid>
 
