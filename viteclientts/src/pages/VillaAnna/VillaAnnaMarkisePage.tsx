@@ -120,7 +120,7 @@ const MarkisePage = () => {
         <Layout title='Villa Anna Markise' loading={isLoading}>
             <>
                 <Grid item xs={12} paddingTop={1} paddingBottom={1}>
-                    <Card>
+                    <Card variant='outlined'>
                         <CardHeader title="Markise Steuern" />
                         <CardContent>
 
@@ -130,7 +130,7 @@ const MarkisePage = () => {
                     </Card>
                 </Grid>
                 <Grid item xs={12} paddingBottom={1}>
-                    <Card>
+                    <Card variant='outlined'>
                         <CardHeader title="Wetter Block" />
                         <CardContent>
                             <Box display="flex" justifyContent="center" alignItems="center" gap={3}>

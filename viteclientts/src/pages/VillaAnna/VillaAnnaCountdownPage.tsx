@@ -104,7 +104,7 @@ const VillaAnnacountdownPage = () => {
     return (
         <Layout title="Villa Anna Countdown">
             <Grid item xs={12} paddingTop={1} paddingBottom={1}>
-                <Card>
+                <Card variant='outlined'>
                     <CardHeader title="Countdown einstellen" />
                     <CardContent>
                         <Grid container spacing={2}>
@@ -162,7 +162,7 @@ const VillaAnnacountdownPage = () => {
                 </Card>
             </Grid>
             <Grid item xs={12} paddingBottom={1}>
-                <Card>
+                <Card variant='outlined'>
                     <CardHeader title={<Typography variant="h6">Countdowns</Typography>} />  {/* Adjusted title */}
                     <CardContent>
                         {zoneOrder.map(zoneName => {

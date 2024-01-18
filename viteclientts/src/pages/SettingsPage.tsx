@@ -98,7 +98,7 @@ const SettingsPage: React.FC = () => {
     return (
         <Layout title='Settings'>
             <Grid item xs={12} paddingTop={1} paddingBottom={1}>
-                <Card>
+                <Card variant='outlined'>
                     <CardHeader title="Edit GPT Request" />
                     <CardContent>
                         <TextField
@@ -130,7 +130,7 @@ const SettingsPage: React.FC = () => {
             </Grid>
 
             <Grid item xs={12}>
-                <Card>
+                <Card variant='outlined'>
                     <CardHeader title="Edit Secrets" />
                     <CardContent>
                         <SecretField

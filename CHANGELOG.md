@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increased width of drawer in `NavMenu` to 60%.
 - Increased font size of `ListItemButton` to 1.2em.
 - Set padding options in sigle pages
+- Changed Card variants to outlined
 
 ## [v15.14.0] - 2024-01-16
 

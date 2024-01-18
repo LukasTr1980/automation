@@ -131,7 +131,7 @@ const BewaesserungPage = () => {
   return (
     <Layout title='Villa Anna Bewässerung'>
       <Grid item xs={12} paddingTop={1} paddingBottom={1}>
-        <Card>
+        <Card variant='outlined'>
           <CardHeader title="Schalter" />
           <CardContent>
             {switchesLoading ? (
@@ -156,7 +156,7 @@ const BewaesserungPage = () => {
       </Grid>
 
       <Grid item xs={12} paddingBottom={1}>
-        <Card>
+        <Card variant='outlined'>
           <CardHeader title="AI Entscheidung" />
           <CardContent>
             {aiLoading ? (
@@ -206,7 +206,7 @@ const BewaesserungPage = () => {
       </Grid>
 
       <Grid item xs={12}>
-        <Card>
+        <Card variant='outlined'>
           <CardHeader title="Eingestellte Zeipläne" />
           <CardContent>
             {tasksLoading ? (

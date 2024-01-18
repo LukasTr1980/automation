@@ -147,7 +147,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   }, [taskToCopy]);
 
   return (
-    <Card>
+    <Card variant='outlined'>
       <CardHeader title="Zeitplan erstellen" />
       <CardContent>
         <Grid container spacing={2}>
