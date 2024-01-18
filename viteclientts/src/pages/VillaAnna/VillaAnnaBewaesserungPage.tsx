@@ -215,18 +215,18 @@ const BewaesserungPage = () => {
               <>
                 {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
 
-              <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: { xs: 310, sm: '100%' } }}>
-                <Tabs value={activeTab} 
-                onChange={handleTabChange} 
-                variant='scrollable' 
-                aria-label="Zone tabs" 
-                scrollButtons 
-                allowScrollButtonsMobile
-                >
-                  {Object.keys(orderedTasks).map((zoneName) => (
-                    <Tab label={zoneName} key={zoneName} />
-                  ))}
-                </Tabs>
+                <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: { xs: 310, sm: '100%' } }}>
+                  <Tabs value={activeTab}
+                    onChange={handleTabChange}
+                    variant='scrollable'
+                    aria-label="Zone tabs"
+                    scrollButtons
+                    allowScrollButtonsMobile
+                  >
+                    {Object.keys(orderedTasks).map((zoneName) => (
+                      <Tab label={zoneName} key={zoneName} />
+                    ))}
+                  </Tabs>
                 </Box>
 
                 {Object.entries(orderedTasks).map(([zoneName, tasks]) => {

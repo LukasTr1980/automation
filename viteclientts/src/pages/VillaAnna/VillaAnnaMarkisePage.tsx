@@ -177,7 +177,7 @@ const MarkisePage = () => {
                     />
                 </Grid>
                 <Grid item xs={12}>
-                    <Card>
+                    <Card variant='outlined'>
                         <CardHeader title="Eingestellte Zeitpläne" />
                         <CardContent>
                             {scheduledTasks.length === 0 ? (
