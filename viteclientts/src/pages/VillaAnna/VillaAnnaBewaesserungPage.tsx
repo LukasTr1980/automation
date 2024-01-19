@@ -183,6 +183,7 @@ const BewaesserungPage = () => {
                     variant="outlined"
                     fullWidth
                     multiline
+                    rows={3}
                     InputProps={{
                       inputComponent: TextareaAutosize,
                       inputProps: {

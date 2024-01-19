@@ -1,34 +1,49 @@
 import Layout from '../Layout';
-import { Box, Button, Grid } from '@mui/material';
+import { Grid, Card, CardActionArea, CardMedia, CardContent, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import VillaAnnaButtonImage from '../images/VillaAnnaButton.jpeg';
+import SettingsButtonImage from '../images/SettingsButton.jpg';
 
 const HomePage: React.FC = () => {
   return (
-    <Layout title="Automation" showLogo={true}>
-      <Grid item xs={12}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Button 
-          component={RouterLink}
-          to="/villa-anna/home"
-          style={{ fontSize: '18px', margin: '10px' }}
-          >
-            Villa Anna
-          </Button>
-          <Button 
-          component={RouterLink}
-          to="/settings"
-          style={{ fontSize: '18px', margin: '10px' }}
-          >
-            Settings
-          </Button>
-        </Box>
+    <Layout title="Automation">
+      <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
+        <Grid item>
+          <RouterLink to="/villa-anna/home" style={{ textDecoration: 'none' }}>
+            <Card sx={{ maxWidth: '200px' }} variant='outlined'>
+              <CardActionArea>
+                <CardMedia
+                  component='img'
+                  image={VillaAnnaButtonImage}
+                  alt='Irrigation Button'
+                />
+                <CardContent>
+                  <Typography gutterBottom variant="h6" component="div">
+                    Villa Anna
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </RouterLink>
+        </Grid>
+        <Grid item>
+          <RouterLink to="/settings" style={{ textDecoration: 'none' }}>
+            <Card sx={{ maxWidth: '200px' }} variant='outlined'>
+              <CardActionArea>
+                <CardMedia
+                  component='img'
+                  image={SettingsButtonImage}
+                  alt='Irrigation Button'
+                />
+                <CardContent>
+                  <Typography gutterBottom variant="h6" component="div">
+                    Settings
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </RouterLink>
+        </Grid>
       </Grid>
     </Layout>
   );

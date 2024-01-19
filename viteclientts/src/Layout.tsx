@@ -32,6 +32,7 @@ const Layout: React.FC<LayoutProps> = ({
           ) : (
             <>
               <Grid item xs={12}>
+              <Typography align="center" fontWeight='bold' fontSize='1.3em' textTransform='uppercase' paddingBottom={1}>{title}</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   {showLogo && (
                     <img
@@ -44,8 +45,8 @@ const Layout: React.FC<LayoutProps> = ({
                       }}
                     />
                   )}
-                  <Typography variant="h5" align="center" color='black'>{title}</Typography>
                 </Box>
+                
               </Grid>
 
               {children}

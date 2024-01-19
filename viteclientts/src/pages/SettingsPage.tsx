@@ -108,6 +108,7 @@ const SettingsPage: React.FC = () => {
                             variant="outlined"
                             fullWidth
                             multiline
+                            rows={3}
                             InputProps={{
                                 inputComponent: TextareaAutosizeComponent,
                                 inputProps: {
@@ -170,7 +171,7 @@ const SettingsPage: React.FC = () => {
                             autoComplete='off'
                         />
                         <SecretField
-                            label="New Password"
+                            label="Password"
                             type='password'
                             secretValue={newPassword}
                             placeholder={passwordExists}

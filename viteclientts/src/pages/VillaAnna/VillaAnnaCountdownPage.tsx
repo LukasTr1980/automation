@@ -11,7 +11,6 @@ import {
     Card,
     CardContent,
     CardHeader,
-    Typography,
     SelectChangeEvent,
     Button,
 } from '@mui/material';
@@ -99,7 +98,7 @@ const VillaAnnacountdownPage = () => {
                 socket.off("redis-countdown-update");  // Clean up event listener
             }
         };
-    }, [socket, connected]);  
+    }, [socket, connected]);
 
     return (
         <Layout title="Villa Anna Countdown">
@@ -163,7 +162,7 @@ const VillaAnnacountdownPage = () => {
             </Grid>
             <Grid item xs={12} paddingBottom={1}>
                 <Card variant='outlined'>
-                    <CardHeader title={<Typography variant="h6">Countdowns</Typography>} />  {/* Adjusted title */}
+                    <CardHeader title='Countdowns' />
                     <CardContent>
                         {zoneOrder.map(zoneName => {
                             const topic = bewaesserungsTopicsSet[zoneOrder.indexOf(zoneName)];
