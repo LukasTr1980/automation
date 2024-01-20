@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Instead of Time, show user information in NavMenu
 - Added npm package Zustand for role validation on frontend
 - Added Logout function
+- Added Snackbar Login Message on success
+- Added persistent storage in localstorage for zustand state management to save role
+- Refactoring of session route in backend
+
+### Changed
+- Changed from alert message on login form to snackbar alert messages
 
 ## [v15.15.0] - 2024-01-18
 ### Added

@@ -51,7 +51,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
         // Send the session ID back to the client
-        res.status(200).json({ status: 'success', session: sessionId, role: userRole });
+        res.status(200).json({ status: 'success', session: sessionId, role: userRole, message: 'Logged in!' });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);

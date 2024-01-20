@@ -4,20 +4,20 @@ import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../utils/store';
+import useSnackbar from '../utils/useSnackbar';
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [errorMsg, setErrorMsg] = useState<string>('');
   const { setRole } = useUserStore();
   const [, setCookie] = useCookies(['session', 'username']);
   const navigate = useNavigate();
   const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
   const apiUrl = import.meta.env.VITE_API_URL;
+  const { showSnackbar } = useSnackbar();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setErrorMsg(''); // Clear any existing errors
 
     try {
       const response = await axios.post(`${apiUrl}/login`, {
@@ -30,36 +30,23 @@ const LoginForm: React.FC = () => {
         setCookie('username', username, { path: '/', secure: isSecureCookie });
         setRole(response.data.role);
         navigate('/home');
+        showSnackbar(response.data.message, 'success');
       } else {
-        setErrorMsg(response.data.message);
+        showSnackbar(response.data.message, 'error');
       }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        // Handling Axios errors specifically
-        if (error.response) {
-          const status = error.response.status;
-          if (status === 400 || status === 401) {
-            const data = error.response.data;
-            if (typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
-              setErrorMsg(data.message);
-            } else {
-              setErrorMsg('Authentication failed.');
-            }
-          } else {
-            setErrorMsg('An unexpected error occurred.');
-          }
-        } else {
-          setErrorMsg('A network error occurred.');
+    } catch (error) {
+      let errorMessage = 'An unexpected error occurred.';
+      if (axios.isAxiosError(error) && error.response) {
+        const status = error.response.status;
+        if (status === 400 || status === 401) {
+          errorMessage = error.response.data.message || errorMessage;
         }
       } else if (error instanceof Error) {
-        // Handling generic Error instances
         console.error('Error:', error.message);
-        setErrorMsg('An unexpected error occurred.');
       } else {
-        // Handling unknown errors
         console.error('An unknown error occurred:', error);
-        setErrorMsg('An unexpected error occurred.');
       }
+      showSnackbar(errorMessage, 'error');
     }
   };
 
@@ -80,7 +67,6 @@ const LoginForm: React.FC = () => {
       autoComplete="off"
     >
       <Typography variant="h5">Login Villa Anna Automation</Typography>
-      {errorMsg && <Typography color="error">{errorMsg}</Typography>}
       <TextField
         label="Username"
         variant="outlined"
