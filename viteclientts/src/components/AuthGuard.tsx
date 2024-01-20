@@ -5,16 +5,20 @@ import { useCookies } from 'react-cookie';
 import { Box, CircularProgress } from '@mui/material';
 import PropTypes from 'prop-types';
 import { AuthGuardProps } from '../types/types';
+import { useUserStore } from '../utils/store';
 
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
   const [cookies] = useCookies(['session']);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [shouldNavigate, setShouldNavigate] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { role } = useUserStore(); // Accessing role from Zustand store
   const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const checkSession = async () => {
+
+      // Server-side validation
       try {
         const response = await axios.get(`${apiUrl}/session`, {
           headers: {
@@ -24,13 +28,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
         });
 
         if (response.status === 200) {
-          const userRole = response.data.role;
-          if (!requiredRole || userRole === requiredRole) {
-            setIsAuthenticated(true);
-          } else {
-          setIsAuthenticated(false);
-          setShouldNavigate(true);
-          }
+          setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);
           setShouldNavigate(true);
@@ -42,7 +40,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
     };
 
     checkSession();
-  }, [cookies.session, apiUrl, requiredRole]);
+  }, [cookies.session, apiUrl, role, requiredRole]);
 
   useEffect(() => {
     if (shouldNavigate) {

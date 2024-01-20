@@ -6,12 +6,14 @@ import CloseIcon from '@mui/icons-material/Close';
 import logo from '../../images/logo-192x192.png';
 //import TimeDisplay from '../TimeDisplay';
 import { useCookies } from 'react-cookie';
+import { useUserStore } from '../../utils/store';
 
 const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [cookies] = useCookies(['username'])
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const { role } = useUserStore();
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
@@ -51,7 +53,7 @@ const NavMenu: React.FC = () => {
         {[
           { text: 'Home', path: '/home' },
           { text: 'Villa Anna', path: '/villa-anna/home' },
-          { text: 'Settings', path: '/settings' }
+          ...(role === 'admin' ? [{ text: 'Settings', path: '/settings' }] : [])
         ].map(({ text, path }) => {
           return (
             <ListItemButton
@@ -108,6 +110,7 @@ const NavMenu: React.FC = () => {
               >
                 Villa Anna
               </Button>
+              {role === 'admin' && (
               <Button
                 sx={{ color: 'white', '&:hover': { backgroundColor: '#1871CA', color: 'white' } }}
                 component={NavLink}
@@ -115,6 +118,7 @@ const NavMenu: React.FC = () => {
               >
                 Settings
               </Button>
+              )}
             </>
           )}
 

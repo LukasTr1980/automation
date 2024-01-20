@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `rows` prop to `TextField` to fix rerender bug.
 - Added role based authentication to allow multiple users
 - Instead of Time, show user information in NavMenu
+- Added npm package Zustand for role validation on frontend
 
 ## [v15.15.0] - 2024-01-18
 ### Added

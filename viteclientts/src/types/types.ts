@@ -164,3 +164,8 @@ export type LoadingSpinnerProps = {
 export type SocketProviderProps = {
     children: ReactNode;
 };
+
+export interface UserState {
+    role: string | null;
+    setRole: (role: string | null) => void;
+}

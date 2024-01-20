@@ -3,8 +3,11 @@ import { Grid, Card, CardActionArea, CardMedia, CardContent, Typography } from '
 import { Link as RouterLink } from 'react-router-dom';
 import VillaAnnaButtonImage from '../images/VillaAnnaButton.jpeg';
 import SettingsButtonImage from '../images/SettingsButton.jpg';
+import { useUserStore } from '../utils/store';
 
 const HomePage: React.FC = () => {
+  const { role } = useUserStore();
+
   return (
     <Layout title="Automation">
       <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
@@ -26,6 +29,7 @@ const HomePage: React.FC = () => {
             </Card>
           </RouterLink>
         </Grid>
+        {role === 'admin' && (
         <Grid item>
           <RouterLink to="/settings" style={{ textDecoration: 'none' }}>
             <Card sx={{ maxWidth: '200px' }} variant='outlined'>
@@ -44,6 +48,7 @@ const HomePage: React.FC = () => {
             </Card>
           </RouterLink>
         </Grid>
+        )}
       </Grid>
     </Layout>
   );
