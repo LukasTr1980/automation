@@ -1,19 +1,30 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Button, AppBar, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme } from '@mui/material';
+import { Button, AppBar, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import logo from '../../images/logo-192x192.png';
-import TimeDisplay from '../TimeDisplay';
+//import TimeDisplay from '../TimeDisplay';
+import { useCookies } from 'react-cookie';
 
 const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [cookies] = useCookies(['username'])
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
   };
+
+  const userInfoDisplay = cookies.username ? (
+    <div style={{ marginLeft: 'auto' }}>
+      <Typography textTransform='capitalize'>
+        {`User: ${cookies.username}`}
+      </Typography>
+
+    </div>
+  ) : null
 
   const drawer = (
     <div>
@@ -106,9 +117,9 @@ const NavMenu: React.FC = () => {
               </Button>
             </>
           )}
-          <div style={{ marginLeft: 'auto' }} >
-            <TimeDisplay />
-          </div>
+
+          {userInfoDisplay}
+
         </Toolbar>
       </AppBar>
     </>
