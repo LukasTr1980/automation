@@ -41,7 +41,7 @@ function App() {
                   <Route path='/' element={<LoginPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
-                  <Route path='/settings' element={<AuthGuard><SettingsPage /></AuthGuard>} />
+                  <Route path='/settings' element={<AuthGuard requiredRole='admin'><SettingsPage /></AuthGuard>} />
                   <Route path='/villa-anna/*' element={<AuthGuard><SocketProvider><VillaAnnaRoutes /></SocketProvider></AuthGuard>} />
                   <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
                 </Routes>

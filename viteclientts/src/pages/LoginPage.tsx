@@ -8,7 +8,7 @@ const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
-  const [, setCookie] = useCookies(['session', 'username']);
+  const [, setCookie] = useCookies(['session', 'username', 'role']);
   const navigate = useNavigate();
   const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -26,6 +26,7 @@ const LoginForm: React.FC = () => {
       if (response.data.status === 'success') {
         setCookie('session', response.data.session, { path: '/', secure: isSecureCookie });
         setCookie('username', username, { path: '/', secure: isSecureCookie });
+        setCookie('role', response.data.role, { path: '/', secure: isSecureCookie });
         navigate('/home');
       } else {
         setErrorMsg(response.data.message);

@@ -23,15 +23,16 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         // Fetch user's password from Vault
         const secretPath: string = `kv/data/automation/login/${username}`;
-        const credentialsResponse = await vaultClient.getSecret(secretPath);
+        const userData = await vaultClient.getSecret(secretPath);
 
-        if (!credentialsResponse) {
+        if (!userData) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - User not found in Vault`);
             return res.status(401).json({ status: 'error', message: 'Incorrect username or password.' });
         }
 
         // Extract the password from the Vault response
-        const storedPassword: string = credentialsResponse.data.password;
+        const storedPassword: string = userData.data.password;
+        const userRole: string = userData.data.role;
 
         // Check if the password from Vault matches the input password
         if (password !== storedPassword) {
@@ -44,12 +45,13 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         // Store the session ID in Redis
         const redis = await connectToRedis();
-        await redis.set(`session:${sessionId}`, username, 'EX', 86400);
+        const sessionData = JSON.stringify({ username, role: userRole })
+        await redis.set(`session:${sessionId}`, sessionData, 'EX', 86400);
 
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
         // Send the session ID back to the client
-        res.status(200).json({ status: 'success', session: sessionId });
+        res.status(200).json({ status: 'success', session: sessionId, role: userRole });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);

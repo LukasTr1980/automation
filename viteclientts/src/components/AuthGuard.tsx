@@ -6,7 +6,7 @@ import { Box, CircularProgress } from '@mui/material';
 import PropTypes from 'prop-types';
 import { AuthGuardProps } from '../types/types';
 
-const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
+const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
   const [cookies] = useCookies(['session']);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [shouldNavigate, setShouldNavigate] = useState<boolean>(false);
@@ -19,11 +19,18 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         const response = await axios.get(`${apiUrl}/session`, {
           headers: {
             'Authorization': `Bearer ${cookies.session}`
-          }
+          },
+          params: { requiredRole }
         });
 
         if (response.status === 200) {
-          setIsAuthenticated(true);
+          const userRole = response.data.role;
+          if (!requiredRole || userRole === requiredRole) {
+            setIsAuthenticated(true);
+          } else {
+          setIsAuthenticated(false);
+          setShouldNavigate(true);
+          }
         } else {
           setIsAuthenticated(false);
           setShouldNavigate(true);
@@ -35,7 +42,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     };
 
     checkSession();
-  }, [cookies.session, apiUrl]);
+  }, [cookies.session, apiUrl, requiredRole]);
 
   useEffect(() => {
     if (shouldNavigate) {
@@ -58,6 +65,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
 
 AuthGuard.propTypes = {
   children: PropTypes.node.isRequired,
+  requiredRole: PropTypes.string
 };
 
 export default AuthGuard;
