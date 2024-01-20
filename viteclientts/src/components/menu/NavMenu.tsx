@@ -8,6 +8,7 @@ import logo from '../../images/logo-192x192.png';
 import { useCookies } from 'react-cookie';
 import { useUserStore } from '../../utils/store';
 import { ExitToApp } from '@mui/icons-material';
+import useSnackbar from '../../utils/useSnackbar';
 
 const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -17,6 +18,7 @@ const NavMenu: React.FC = () => {
   const { role, setRole } = useUserStore();
   const navigate = useNavigate();
   const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
+  const { showSnackbar } = useSnackbar();
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
@@ -78,6 +80,7 @@ const NavMenu: React.FC = () => {
     removeCookie('username', { path: '/', secure: isSecureCookie });
     setRole(null);
     navigate('/login');
+    showSnackbar('Logged out!')
   }
 
   return (

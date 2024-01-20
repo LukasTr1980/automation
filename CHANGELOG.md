@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Redesigned `Homepage` to include images as buttons.
 - Set countdown text in `VillaAnnaCountdownPage` to default font family.
+- Added new state isRoleChecking to `Authguard` to avoid brief display of hidden page sections until the role is checked, instead it displays loading spinner
 
 ### Added
 - Added `rows` prop to `TextField` to fix rerender bug.
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Snackbar Login Message on success
 - Added persistent storage in localstorage for zustand state management to save role
 - Refactoring of session route in backend
+- Added Snackbar to display Logged out message
 
 ### Changed
 - Changed from alert message on login form to snackbar alert messages

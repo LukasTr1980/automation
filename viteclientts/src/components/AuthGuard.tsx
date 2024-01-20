@@ -6,6 +6,7 @@ import { Box, CircularProgress } from '@mui/material';
 import PropTypes from 'prop-types';
 import { AuthGuardProps } from '../types/types';
 import { useUserStore } from '../utils/store';
+import useSnackbar from '../utils/useSnackbar';
 
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
   const [cookies] = useCookies(['session']);
@@ -14,9 +15,12 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
   const navigate = useNavigate();
   const { role } = useUserStore(); // Accessing role from Zustand store
   const apiUrl = import.meta.env.VITE_API_URL;
+  const { showSnackbar } = useSnackbar();
+  const [isRoleChecking, setIsRoleChecking] = useState<boolean>(true);
 
   useEffect(() => {
     const checkSession = async () => {
+      setIsRoleChecking(true);
 
       // Server-side validation
       try {
@@ -33,14 +37,31 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
           setIsAuthenticated(false);
           setShouldNavigate(true);
         }
+        setIsRoleChecking(false);
       } catch (error) {
         setIsAuthenticated(false);
         setShouldNavigate(true);
+
+        let errorMessage = 'An error occurred';
+        if (axios.isAxiosError(error) && error.response) {
+          if (error.response) {
+            const message = error.response.data.message || 'An error occurred';
+            const status = error.response.status;
+            if (status === 401 || status === 403) {
+              showSnackbar(message, 'error');
+            }
+          } else {
+            errorMessage = 'Network Error';
+            showSnackbar(errorMessage, 'error');
+          }
+
+        }
+        setIsRoleChecking(false);
       }
     };
 
     checkSession();
-  }, [cookies.session, apiUrl, role, requiredRole]);
+  }, [cookies.session, apiUrl, role, requiredRole, showSnackbar]);
 
   useEffect(() => {
     if (shouldNavigate) {
@@ -48,7 +69,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
     }
   }, [shouldNavigate, navigate]);
 
-  if (isAuthenticated === null) {
+  if (isAuthenticated === null || isRoleChecking) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress size={50} />
