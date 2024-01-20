@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Button, AppBar, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -7,20 +7,23 @@ import logo from '../../images/logo-192x192.png';
 //import TimeDisplay from '../TimeDisplay';
 import { useCookies } from 'react-cookie';
 import { useUserStore } from '../../utils/store';
+import { ExitToApp } from '@mui/icons-material';
 
 const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-  const [cookies] = useCookies(['username'])
+  const [cookies, , removeCookie] = useCookies(['username', 'session']);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const { role } = useUserStore();
+  const { role, setRole } = useUserStore();
+  const navigate = useNavigate();
+  const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
   };
 
   const userInfoDisplay = cookies.username ? (
-    <div style={{ marginLeft: 'auto' }}>
+    <div style={{ marginLeft: 'auto', paddingRight: 2 }}>
       <Typography textTransform='capitalize'>
         {`User: ${cookies.username}`}
       </Typography>
@@ -70,6 +73,13 @@ const NavMenu: React.FC = () => {
     </div>
   );
 
+  const handleLogout = () => {
+    removeCookie('session', { path: '/', secure: isSecureCookie });
+    removeCookie('username', { path: '/', secure: isSecureCookie });
+    setRole(null);
+    navigate('/login');
+  }
+
   return (
     <>
       <AppBar position="fixed">
@@ -111,18 +121,21 @@ const NavMenu: React.FC = () => {
                 Villa Anna
               </Button>
               {role === 'admin' && (
-              <Button
-                sx={{ color: 'white', '&:hover': { backgroundColor: '#1871CA', color: 'white' } }}
-                component={NavLink}
-                to="/settings"
-              >
-                Settings
-              </Button>
+                <Button
+                  sx={{ color: 'white', '&:hover': { backgroundColor: '#1871CA', color: 'white' } }}
+                  component={NavLink}
+                  to="/settings"
+                >
+                  Settings
+                </Button>
               )}
             </>
           )}
 
           {userInfoDisplay}
+          <IconButton edge='end' onClick={handleLogout} sx={{ color: 'white' }}>
+            <ExitToApp />
+          </IconButton>
 
         </Toolbar>
       </AppBar>
