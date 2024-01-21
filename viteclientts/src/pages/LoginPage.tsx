@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
-import { TextField, Typography, Box, Button } from '@mui/material';
+import { TextField, Typography, Box } from '@mui/material';
+import { LoadingButton } from '@mui/lab'
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
@@ -15,9 +16,11 @@ const LoginForm: React.FC = () => {
   const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
+  const [loginButtonLoading, setLoginButtonLoading] = useState<boolean>(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setLoginButtonLoading(true);
 
     try {
       const response = await axios.post(`${apiUrl}/login`, {
@@ -48,6 +51,7 @@ const LoginForm: React.FC = () => {
       }
       showSnackbar(errorMessage, 'error');
     }
+    setLoginButtonLoading(false);
   };
 
   return (
@@ -90,12 +94,13 @@ const LoginForm: React.FC = () => {
           style: { transition: "none" },
         }}
       />
-      <Button
+      <LoadingButton
         type="submit"
         variant='contained'
+        loading={loginButtonLoading}
       >
         Login
-      </Button>
+      </LoadingButton>
     </Box>
   );
 };

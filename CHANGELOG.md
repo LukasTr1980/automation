@@ -5,11 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-21
+## [v15.17.0] - 2024-01-21
+
+### Added
+- Added `LoadingButton` to `LoginPage` for better user feedback.
 
 ### Changed
-- Centered logos on small screens
-- Changed size and padding of title in `Layout`, made it responsive
+- Centered logos on small screens.
+- Changed size and padding of title in `Layout`, made it responsive.
+
+### Fixed
+- Fixed multiple renders of React layout due to `showSnackbar` in dependency array of `AuthGuard`. Implemented useRef to optimize rendering.
 
 ## [v15.16.0] - 2024-01-21
 

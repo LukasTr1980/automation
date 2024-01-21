@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
@@ -16,7 +16,12 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
   const { role } = useUserStore(); // Accessing role from Zustand store
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
+  const showSnackbarRef = useRef(showSnackbar);
   const [isRoleChecking, setIsRoleChecking] = useState<boolean>(true);
+
+  useEffect(() => {
+    showSnackbarRef.current = showSnackbar;
+  }, [showSnackbar]);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -48,11 +53,11 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
             const message = error.response.data.message || 'An error occurred';
             const status = error.response.status;
             if (status === 401 || status === 403) {
-              showSnackbar(message, 'error');
+              showSnackbarRef.current(message, 'error');
             }
           } else {
             errorMessage = 'Network Error';
-            showSnackbar(errorMessage, 'error');
+            showSnackbarRef.current(errorMessage, 'error');
           }
 
         }
@@ -61,7 +66,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
     };
 
     checkSession();
-  }, [cookies.session, apiUrl, role, requiredRole, showSnackbar]);
+  }, [cookies.session, apiUrl, role, requiredRole]);
 
   useEffect(() => {
     if (shouldNavigate) {
