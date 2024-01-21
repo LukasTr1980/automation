@@ -5,25 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-20
-### Changed
-- Redesigned `Homepage` to include images as buttons.
-- Set countdown text in `VillaAnnaCountdownPage` to default font family.
-- Added new state isRoleChecking to `Authguard` to avoid brief display of hidden page sections until the role is checked, instead it displays loading spinner
+## [v15.16.0] - 2024-01-21
 
 ### Added
-- Added `rows` prop to `TextField` to fix rerender bug.
-- Added role based authentication to allow multiple users
-- Instead of Time, show user information in NavMenu
-- Added npm package Zustand for role validation on frontend
-- Added Logout function
-- Added Snackbar Login Message on success
-- Added persistent storage in localstorage for zustand state management to save role
-- Refactoring of session route in backend
-- Added Snackbar to display Logged out message
+- `rows` prop to `TextField` to fix rerender bug.
+- Role-based authentication for multiple user roles.
+- Display of user information in `NavMenu` instead of time.
+- Npm package `Zustand` for role validation on frontend.
+- Logout function.
+- Snackbar message for successful login.
+- Persistent storage in `localStorage` for `Zustand` state management to save user roles.
+- Refactoring of session route in backend.
+- Snackbar to display "Logged out" message.
 
 ### Changed
-- Changed from alert message on login form to snackbar alert messages
+- Redesigned `Homepage` to include images as buttons.
+- Countdown text in `VillaAnnaCountdownPage` set to default font family.
+- Added new state `isRoleChecking` in `Authguard` for loading spinner display until role check, avoiding brief display of hidden sections.
+- Dependencies updates.
+- Replaced alert message on login form with snackbar alert messages.
 
 ## [v15.15.0] - 2024-01-18
 ### Added
