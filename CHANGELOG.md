@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2024-01-21
+
+### Changed
+- Centered logos on small screens
+- Changed size and padding of title in `Layout`, made it responsive
+
 ## [v15.16.0] - 2024-01-21
 
 ### Added

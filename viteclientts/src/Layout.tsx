@@ -24,15 +24,15 @@ const Layout: React.FC<LayoutProps> = ({
     <>
       {showNavMenu && <NavMenu />}
       <Container style={{ paddingBottom: '60px', maxWidth: '700px' }}>
-        <Grid container paddingTop={8}>
+        <Grid container paddingTop={9}>
           {loading ? (
             <Grid item xs={12}>
               <LoadingSpinner />
             </Grid>
           ) : (
             <>
-              <Grid item xs={12}>
-              <Typography align="center" fontWeight='bold' fontSize='1.3em' textTransform='uppercase' paddingBottom={1}>{title}</Typography>
+              <Grid item xs={12} sx={{ paddingBottom: { xs: 1, sm: 4 } }}>
+                <Typography align="center" fontWeight='bold' textTransform='uppercase' sx={{ fontSize: { xs: '1.3em', sm: '2em' } }}>{title}</Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   {showLogo && (
                     <img
@@ -46,7 +46,7 @@ const Layout: React.FC<LayoutProps> = ({
                     />
                   )}
                 </Box>
-                
+
               </Grid>
 
               {children}

@@ -42,7 +42,7 @@ const NavMenu: React.FC = () => {
         padding: '8px',
         borderBottom: '1px solid lightgrey'
       }}>
-        <NavLink to='/home'>
+        <NavLink to='/home' style={{ display: 'inline-flex', alignItems: 'center' }}>
           <img src={logo} alt='Logo' style={{ height: '40px' }} />
         </NavLink>
         <IconButton
@@ -92,7 +92,7 @@ const NavMenu: React.FC = () => {
               <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDrawerToggle}>
                 <MenuIcon />
               </IconButton>
-              <NavLink to='/home'>
+              <NavLink to='/home' style={{ display: 'inline-flex', alignItems: 'center' }}>
                 <img src={logo} alt='Logo' style={{ height: '40px' }} />
               </NavLink>
               <Drawer
