@@ -12,14 +12,14 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         publisher.publish(topic, state.toString(), (err: Error | null) => {
             if (err) {
                 logger.error('Error while publishing message:', err);
-                res.status(500).send('Error while publishing message to MQTT broker.');
+                res.status(500).send('errorWhilePerformingTheSwitching');
             } else {
-                res.send('Message published successfully.');
+                res.send('switchingPerformed');
             }
         });
     } catch (error) {
         logger.error('Error:', error);
-        res.status(500).send('An error occurred.');
+        res.status(500).send('anErrorOccurred');
     }
 });
 

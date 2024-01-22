@@ -1,4 +1,3 @@
-// SchedulerCard.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { bewaesserungsTopicsSet, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
@@ -20,6 +19,7 @@ import {
 } from '@mui/material';
 import useSnackbar from '../utils/useSnackbar';
 import { SchedulerCardProps } from '../types/types';
+import { useTranslation } from 'react-i18next';
 
 const SchedulerCard: React.FC<SchedulerCardProps> = ({
   setReloadTasks,
@@ -46,6 +46,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   const [weekDaysDialogOpen, setWeekDaysDialogOpen] = useState<boolean>(false);
   const [monthDialogOpen, setMonthDialogOpen] = useState<boolean>(false);
   const apiUrl = import.meta.env.VITE_API_URL;
+  const { t } = useTranslation();
 
   const selectedDayNames = selectedDays
     .map(num => Object.keys(daysOfWeekNumbers).find(key => daysOfWeekNumbers[key] === num))
@@ -106,8 +107,8 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
         months: selectedMonths
       })
         .then(response => {
-          const successMessage = response.data;
-          console.log(successMessage);
+          const backendMessageKey = response.data;
+          const translatedMessage = t(backendMessageKey);
           axios.get(`${apiUrl}/scheduledTasks`)
             .then(response => {
               setScheduledTasks(response.data);
@@ -118,7 +119,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
               setSelectedTopic(mqttTopics[0]);
               setSwitchState(false);
               setReloadTasks(prevState => !prevState);
-              showSnackbar(successMessage);
+              showSnackbar(translatedMessage);
             })
             .catch(error => console.error('Error:', error));
         })

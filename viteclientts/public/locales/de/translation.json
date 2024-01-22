@@ -1,0 +1,12 @@
+{
+    "settings": "Einstellungen",
+    "editGptRequest": "GPT Anfrage ändern",
+    "editSecrets": "Secrets bearbeiten",
+    "errorWhilePerformingTheSwitching": "Fehler beim durchführen der Schaltung",
+    "switchingPerformed": "Schaltung durchgeführt",
+    "anErrorOccurred": "Ein Fehler ist aufgetreten",
+    "scheduleCreated": "Zeitplan erstellt",
+    "internalServerError": "Internal server error",
+    "taskNotFound": "Zeitplan nicht gefunden",
+    "scheduleDeleted": "Zeitplan gelöscht"
+}

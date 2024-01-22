@@ -10,6 +10,7 @@ import { SocketContext } from '../../components/socketio/SocketContext';
 import SwitchComponent from '../../components/switchComponent';
 import useSnackbar from '../../utils/useSnackbar';
 import { MarkiseStatus, ScheduledTask, APIResponse } from '../../types/types';
+import { useTranslation } from 'react-i18next';
 
 const MarkisePage = () => {
     const [markiseStatus, setMarkiseStatus] = useState<MarkiseStatus>({});
@@ -25,6 +26,7 @@ const MarkisePage = () => {
     const apiUrl = import.meta.env.VITE_API_URL;
     const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
     const { showSnackbar } = useSnackbar();
+    const { t } = useTranslation();
 
     useEffect(() => {
         const sessionId = cookies.session;
@@ -75,7 +77,9 @@ const MarkisePage = () => {
 
         axios.post(`${apiUrl}/simpleapi`, data)
             .then(response => {
-                showSnackbar(response.data);
+                const backendMessageKey = response.data;
+                const translatedMessage = t(backendMessageKey);
+                showSnackbar(translatedMessage);
             })
             .catch((error) => {
                 console.error('Error: ', error);

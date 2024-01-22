@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import SecretField from '../components/SecretField';
 import useSnackbar from '../utils/useSnackbar';
+import { useTranslation } from 'react-i18next';
 
 const SettingsPage: React.FC = () => {
     const TextareaAutosizeComponent: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = TextareaAutosize;
@@ -25,6 +26,7 @@ const SettingsPage: React.FC = () => {
     const [influxDbAutomationTokenExists, setInfluxDbAutomationTokenExists] = useState<boolean>(false);
     const [openAiApiTokenExists, setOpenAiApiTokenExists] = useState<boolean>(false);
     const [passwordExists, setPasswordExists] = useState<boolean>(false);
+    const { t } = useTranslation();
     const [isFocused, setIsFocused] = useState<{ [key: string]: boolean }>({
         influxDbAiToken: false,
         influxDbAutomationToken: false,
@@ -99,7 +101,7 @@ const SettingsPage: React.FC = () => {
         <Layout title='Settings'>
             <Grid item xs={12} paddingTop={1} paddingBottom={1}>
                 <Card variant='outlined'>
-                    <CardHeader title="Edit GPT Request" />
+                    <CardHeader title={t("editGptRequest")} />
                     <CardContent>
                         <TextField
                             id="textFieldGptRequest"
@@ -132,7 +134,7 @@ const SettingsPage: React.FC = () => {
 
             <Grid item xs={12}>
                 <Card variant='outlined'>
-                    <CardHeader title="Edit Secrets" />
+                    <CardHeader title={t("editSecrets")} />
                     <CardContent>
                         <SecretField
                             label="InfluxDB AI Token"

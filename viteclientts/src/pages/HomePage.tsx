@@ -4,9 +4,11 @@ import { Link as RouterLink } from 'react-router-dom';
 import VillaAnnaButtonImage from '../images/VillaAnnaButton.jpeg';
 import SettingsButtonImage from '../images/SettingsButton.jpg';
 import { useUserStore } from '../utils/store';
+import { useTranslation } from 'react-i18next';
 
 const HomePage: React.FC = () => {
   const { role } = useUserStore();
+  const { t } = useTranslation();
 
   return (
     <Layout title="Automation">
@@ -41,7 +43,7 @@ const HomePage: React.FC = () => {
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div">
-                    Settings
+                    {t('settings')}
                   </Typography>
                 </CardContent>
               </CardActionArea>

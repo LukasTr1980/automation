@@ -22,6 +22,7 @@ import { GroupedTasks, ScheduledTask, APIResponse } from '../../types/types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import SkeletonLoader from '../../components/skeleton';
+import { useTranslation } from 'react-i18next';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);
@@ -39,6 +40,7 @@ const BewaesserungPage = () => {
   const [formattedEvaluation, setFormattedEvaluation] = useState("");
   const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
   const { showSnackbar } = useSnackbar();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const sessionId = cookies.session;
@@ -114,7 +116,9 @@ const BewaesserungPage = () => {
       state: newSwitchState[index],
     })
       .then(response => {
-        showSnackbar(response.data);
+        const backendMessageKey = response.data;
+        const translatedMessage = t(backendMessageKey);
+        showSnackbar(translatedMessage);
       })
       .catch(error => console.error('Error:', error));
   };

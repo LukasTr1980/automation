@@ -1,0 +1,12 @@
+{
+    "settings": "Settings",
+    "editGptRequest": "Edit GPT Request",
+    "editSecrets": "Edit Secrets",
+    "errorWhilePerformingTheSwitching": "Error while performing the switching",
+    "switchingPerformed": "Switching performed",
+    "anErrorOccurred": "An Error Occurred",
+    "scheduleCreated": "Schedule created",
+    "internalServerError": "Internal server error",
+    "taskNotFound": "Task not found",
+    "scheduleDeleted": "Schedule deleted"
+}

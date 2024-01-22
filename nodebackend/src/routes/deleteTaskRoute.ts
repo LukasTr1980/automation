@@ -15,7 +15,8 @@ router.delete('/', async (req: Request<Record<string, never>, unknown, RequestBo
     const { taskId, zone } = req.body;
   
     if (!taskId || !zone) {
-      return res.status(400).send('Missing required parameters: taskId, zone');
+      logger.warn('Missing required parameters: taskId, zone');
+      return res.status(400).send('anErrorOccurred');
     }
 
     const jobKey = `${zone}_${taskId}`;
@@ -38,15 +39,15 @@ router.delete('/', async (req: Request<Record<string, never>, unknown, RequestBo
     redis.del(redisKey, function (err, reply) {
       if (err) {
         logger.error('Error while deleting task:', err);
-        return res.status(500).send('Internal server error');
+        return res.status(500).send('internalServerError');
       }
   
       if (reply === 1) {
         logger.info(`Task ${redisKey} deleted successfully`);
-        return res.status(200).send('Zeitplan gelöscht');
+        return res.status(200).send('scheduleDeleted');
       } else {
         logger.info(`Task ${redisKey} not found`);
-        return res.status(404).send('Task not found');
+        return res.status(404).send('taskNotFound');
       }
     });
   });

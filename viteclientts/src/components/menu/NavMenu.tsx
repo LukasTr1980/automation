@@ -9,6 +9,7 @@ import { useCookies } from 'react-cookie';
 import { useUserStore } from '../../utils/store';
 import { ExitToApp } from '@mui/icons-material';
 import useSnackbar from '../../utils/useSnackbar';
+import { useTranslation } from 'react-i18next';
 
 const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -19,6 +20,7 @@ const NavMenu: React.FC = () => {
   const navigate = useNavigate();
   const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
   const { showSnackbar } = useSnackbar();
+  const { t } = useTranslation();
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
@@ -58,7 +60,7 @@ const NavMenu: React.FC = () => {
         {[
           { text: 'Home', path: '/home' },
           { text: 'Villa Anna', path: '/villa-anna/home' },
-          ...(role === 'admin' ? [{ text: 'Settings', path: '/settings' }] : [])
+          ...(role === 'admin' ? [{ text: t('settings'), path: '/settings' }] : [])
         ].map(({ text, path }) => {
           return (
             <ListItemButton
@@ -129,7 +131,7 @@ const NavMenu: React.FC = () => {
                   component={NavLink}
                   to="/settings"
                 >
-                  Settings
+                  {t('settings')}
                 </Button>
               )}
             </>
