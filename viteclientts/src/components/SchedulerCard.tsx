@@ -149,7 +149,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
   return (
     <Card variant='outlined'>
-      <CardHeader title="Zeitplan erstellen" />
+      <CardHeader title={t("createSchedule")} />
       <CardContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>

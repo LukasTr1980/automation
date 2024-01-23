@@ -34,5 +34,9 @@
     "passwordMinLength": "Passwort muss eine Mindestlänge von 1 haben",
     "passwordMaxLength": "Passwort darf maximal 30 Zeichen lang sein",
     "passwordRequired": "Passwort ist ein Pflichtfeld",
-    "anUnexpectedErrorOccurred": "Ein unerwarteter Fehler ist aufgetreten"
+    "anUnexpectedErrorOccurred": "Ein unerwarteter Fehler ist aufgetreten",
+    "switches": "Schalter",
+    "createSchedule": "Zeitplan erstellen",
+    "scheduledPlans": "Eingestellte Zeipläne",
+    "noScheduledPlans": "Keine eingestellten Zeitpläne"
 }

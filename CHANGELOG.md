@@ -5,13 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-23
+## [v15.18.1] - 2024-01-23
 ### Added
 - Added i18n for translation between english and german
 - More translations added
 
 ### Changed
 - Dependency updates
+
+### Removed
+- Deleted `TimeDisplay` and removed code from `NavMenu`
 
 ## [v15.17.0] - 2024-01-21
 

@@ -182,10 +182,10 @@ const MarkisePage = () => {
                 </Grid>
                 <Grid item xs={12}>
                     <Card variant='outlined'>
-                        <CardHeader title="Eingestellte Zeitpläne" />
+                        <CardHeader title={t("scheduledPlans")} />
                         <CardContent>
                             {scheduledTasks.length === 0 ? (
-                                <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>
+                                <Typography variant="body1">{t('noScheduledPlans')}</Typography>
                             ) : (
                                 <ScheduledTaskCard
                                     zoneName="Markise"

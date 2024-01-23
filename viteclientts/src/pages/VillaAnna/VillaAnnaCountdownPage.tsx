@@ -20,6 +20,7 @@ import CountdownCard from '../../components/CountdownCard';
 import useSnackbar from '../../utils/useSnackbar';
 import { SocketContext } from '../../components/socketio/SocketContext';
 import { CountdownsState } from '../../types/types';
+import { useTranslation } from 'react-i18next';
 
 const VillaAnnacountdownPage = () => {
     const { socket, connected } = useContext(SocketContext);
@@ -28,6 +29,7 @@ const VillaAnnacountdownPage = () => {
     const [selectedHour, setSelectedHour] = useState<string>('0');
     const [selectedMinute, setSelectedMinute] = useState<string>('10');
     const [countdowns, setCountdowns] = useState<CountdownsState>({});
+    const { t } = useTranslation();
     const [fieldValidity, setFieldvalidity] = useState({
         hour: true,
         minute: true
@@ -56,7 +58,9 @@ const VillaAnnacountdownPage = () => {
                 action: action
             })
                 .then(response => {
-                    showSnackbar(response.data);
+                    const backendMessageKey = response.data;
+                    const translatedMessage = t(backendMessageKey);
+                    showSnackbar(translatedMessage);
                 })
                 .catch(error => {
                     console.error('Error', error);

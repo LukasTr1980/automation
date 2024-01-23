@@ -136,7 +136,7 @@ const BewaesserungPage = () => {
     <Layout title='Villa Anna Bewässerung'>
       <Grid item xs={12} paddingTop={1} paddingBottom={1}>
         <Card variant='outlined'>
-          <CardHeader title="Schalter" />
+          <CardHeader title={t('switches')} />
           <CardContent>
             {switchesLoading ? (
               <LoadingSpinner />
@@ -212,13 +212,13 @@ const BewaesserungPage = () => {
 
       <Grid item xs={12}>
         <Card variant='outlined'>
-          <CardHeader title="Eingestellte Zeipläne" />
+          <CardHeader title={t("scheduledPlans")} />
           <CardContent>
             {tasksLoading ? (
               <LoadingSpinner />
             ) : (
               <>
-                {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne.</Typography>}
+                {scheduledTasks.length === 0 && <Typography variant="body1">{t('noScheduledPlans')}</Typography>}
 
                 <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: { xs: 310, sm: '100%' } }}>
                   <Tabs value={activeTab}

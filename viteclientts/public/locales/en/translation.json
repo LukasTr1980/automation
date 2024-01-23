@@ -34,5 +34,9 @@
     "passwordMinLength": "Password must be at least 1 character long",
     "passwordMaxLength": "Password can be a maximum of 30 characters long",
     "passwordRequired": "Password is a required field",
-    "anUnexpectedErrorOccurred": "An unexpected error occurred"
+    "anUnexpectedErrorOccurred": "An unexpected error occurred",
+    "switches": "Switches",
+    "createSchedule": "Create Schedule",
+    "scheduledPlans": "Scheduled Plans",
+    "noScheduledPlans": "No scheduled plans"
 }

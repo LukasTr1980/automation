@@ -4,7 +4,6 @@ import { Button, AppBar, Toolbar, Drawer, List, ListItemButton, IconButton, useM
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import logo from '../../images/logo-192x192.png';
-//import TimeDisplay from '../TimeDisplay';
 import { useCookies } from 'react-cookie';
 import { useUserStore } from '../../utils/store';
 import { ExitToApp } from '@mui/icons-material';
