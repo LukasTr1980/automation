@@ -2,6 +2,7 @@
 import express, { Request, Response } from 'express';
 import { initiateCountdown, updateCountdowns } from '../utils/countdown';
 import { connectToRedis } from '../clients/redisClient';
+import logger from '../logger';
 
 interface Countdown {
     value: number;
@@ -48,7 +49,8 @@ router.post('/setCountdown', async (req: Request, res: Response) => {
     const { topic, hours, minutes, action } = req.body;
 
     if (!topic || (action !== 'start' && action !== 'stop' && action !== 'reset')) {
-        return res.status(400).send('Invalid parameters: topic and action are required, action must be start, stop, or reset');
+        logger.warn('Invalid parameters: topic and action are required, action must be start, stop, or reset');
+        return res.status(400).send('anErrorOccurred');
     }
 
     const countdownPrefix = 'countdown:';
@@ -73,16 +75,16 @@ router.post('/setCountdown', async (req: Request, res: Response) => {
     let responseMessage;
     switch (action) {
         case 'start':
-            responseMessage = 'Countdown gestartet';
+            responseMessage = 'countdownStarted';
             break;
         case 'stop':
-            responseMessage = 'Countdown gestoppt';
+            responseMessage = 'countdownStopped';
             break;
         case 'reset':
-            responseMessage = 'Countdown resettet';
+            responseMessage = 'countdownReset';
             break;
         default:
-            responseMessage = 'Aktion ausgeführt';
+            responseMessage = 'actionExecuted';
             break;
     }
 

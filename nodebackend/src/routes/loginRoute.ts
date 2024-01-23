@@ -27,7 +27,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         if (!userData) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - User not found in Vault`);
-            return res.status(401).json({ status: 'error', message: 'Incorrect username or password.' });
+            return res.status(401).json({ status: 'error', message: 'incorrectUserOrPass' });
         }
 
         // Extract the password from the Vault response
@@ -37,7 +37,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         // Check if the password from Vault matches the input password
         if (password !== storedPassword) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - Incorrect password`);
-            return res.status(401).json({ status: 'error', message: 'Incorrect username or password.' });
+            return res.status(401).json({ status: 'error', message: 'incorrectUserOrPass' });
         }
 
         // Password correct, generate a session ID
@@ -51,14 +51,14 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
         // Send the session ID back to the client
-        res.status(200).json({ status: 'success', session: sessionId, role: userRole, message: 'Logged in!' });
+        res.status(200).json({ status: 'success', session: sessionId, role: userRole, message: 'loggedIn' });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);
-            res.status(500).json({ status: 'error', message: 'An error occurred while processing your request.' });
+            res.status(500).json({ status: 'error', message: 'internalServerError' });
         } else {
             logger.error(`An unexpected error occurred during user login for username: ${username} from IP ${clientIp}`);
-            res.status(500).json({ status: 'error', message: 'An unexpected error occurred.' });
+            res.status(500).json({ status: 'error', message: 'internalServerError' });
         }
     }
 });

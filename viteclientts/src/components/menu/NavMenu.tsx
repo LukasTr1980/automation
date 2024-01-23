@@ -82,7 +82,8 @@ const NavMenu: React.FC = () => {
     removeCookie('username', { path: '/', secure: isSecureCookie });
     setRole(null);
     navigate('/login');
-    showSnackbar('Logged out!')
+    const translatedMessage = t('loggedOut');
+    showSnackbar(translatedMessage);
   }
 
   return (

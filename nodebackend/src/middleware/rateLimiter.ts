@@ -17,8 +17,8 @@ function createRateLimiter(windowMs: number, max: number, message: string) {
     });
 }
 
-const loginLimiter = createRateLimiter(15 * 60 * 1000, 100, 'Too many login attempts from this IP, please try again after 15 minutes.');
-const apiLimiter = createRateLimiter(1 * 60 * 1000, 1000, 'Too many requests from this IP, please try again after a minute.');
+const loginLimiter = createRateLimiter(15 * 60 * 1000, 100, 'tooManyLoginAttempts');
+const apiLimiter = createRateLimiter(1 * 60 * 1000, 1000, 'tooManyRequests');
 
 export {
     loginLimiter,

@@ -12,7 +12,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       res.status(200).json({ gptRequest });
     } catch (error) {
       logger.error('Error while fetching GPT request:', error);
-      res.status(500).send('Internal server error');
+      res.status(500).send('internalServerError');
     }
 });
 

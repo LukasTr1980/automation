@@ -8,16 +8,17 @@ router.post('/', async (req: Request, res: Response) => {
     const { zone, state } = req.body;
   
     if (!zone || state === undefined) {
-      res.status(400).send('Missing required parameters: zone, state');
+      logger.warn('Missing required parameters: zone, state');
+      res.status(400).send('anErrorOccurred');
       return;
     }
   
     try {
       await setTaskEnabler(zone, state);
-      res.status(200).send('Task enabler status updated successfully');
+      res.status(200).send('scheduleEnablerUpdated');
     } catch (error) {
       logger.error('Error while updating task enabler status:', error);
-      res.status(500).send('Internal server error');
+      res.status(500).send('internalServerError');
     }
 });
 

@@ -14,7 +14,7 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
 
   if (!sessionId) {
     logger.warn(`Authentication failed from IP ${clientIp}: No session ID provided`);
-    res.status(401).send();
+    res.status(401).send('authenticationFailed');
     return;
   }
 
@@ -26,7 +26,7 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
   
   if (!session) {
     logger.warn(`Authentication failed from IP ${clientIp}: Invalid session ID [${sessionId}]`);
-    res.status(401).send();
+    res.status(401).send('authenticationFailed');
     return;
   }
   

@@ -10,7 +10,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
       res.json(tasks);
     } catch (err) {
       logger.error(err);
-      res.status(500).send('Error fetching scheduled tasks');
+      res.status(500).send('internalServerError');
     }
 });
 

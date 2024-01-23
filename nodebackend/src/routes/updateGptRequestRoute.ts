@@ -9,14 +9,14 @@ router.post('/', async (req: Request, res: Response) => {
         const { newGptRequest } = req.body;
         const client = await connectToRedis();
         await client.set("gptRequestKey", newGptRequest);
-        res.status(200).send('GPT request updated successfully');
+        res.status(200).send('GptRequestUpdated');
     } catch (error: unknown) {
         if (error instanceof Error) {
             logger.error('Error while updating GPT request:', error);
         } else {
             logger.error('An unexpected error occurred while updating GPT request');
         }
-        res.status(500).send('Internal server error');
+        res.status(500).send('internalServerError');
     }
 });
 

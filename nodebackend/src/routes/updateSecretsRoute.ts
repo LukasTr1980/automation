@@ -43,14 +43,14 @@ router.post('/', async (req: Request<Record<string, never>, unknown, UpdateReque
         }
 
         if (updatedFields.length === 0) {
-            res.status(400).send('No fields to update.');
+            res.status(400).send('noFieldsToUpdate');
             return;
         }
 
         res.status(200).send(`Successfully updated: ${updatedFields.join(', ')}`);
     } catch (error) {
         logger.error('Error while updating secrets in Vault', error);
-        res.status(500).send('Internal server error');
+        res.status(500).send('internalServerError');
     }
 });
 

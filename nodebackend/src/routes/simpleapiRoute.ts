@@ -19,7 +19,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         });
     } catch (error) {
         logger.error('Error:', error);
-        res.status(500).send('anErrorOccurred');
+        res.status(500).send('internalServerError');
     }
 });
 
