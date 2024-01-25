@@ -38,5 +38,9 @@
     "switches": "Schalter",
     "createSchedule": "Zeitplan erstellen",
     "scheduledPlans": "Eingestellte Zeipläne",
-    "noScheduledPlans": "Keine eingestellten Zeitpläne"
+    "noScheduledPlans": "Keine eingestellten Zeitpläne",
+    "updateSuccessInfluxDBAIToken": "InfluxDB AI Token erfolgreich aktualisiert",
+    "updateSuccessInfluxDBAutomationToken": "InfluxDB Automation Token erfolgreich aktualisiert",
+    "updateSuccessOpenAIAPIToken": "OpenAI API Token erfolgreich aktualisiert",
+    "updateSuccessPassword": "Passwort erfolgreich aktualisiert"
 }

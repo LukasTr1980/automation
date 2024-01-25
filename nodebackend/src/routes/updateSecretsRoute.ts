@@ -11,12 +11,16 @@ interface UpdateRequestBody {
     newPassword?: string;
 }
 
-// If you expect no URL parameters, use Record<string, never>
+const fieldToTranslationKeyMap: { [key: string]: string } = {
+    'InfluxDB AI Token': 'updateSuccessInfluxDBAIToken',
+    'InfluxDB Automation Token': 'updateSuccessInfluxDBAutomationToken',
+    'OpenAI API Token': 'updateSuccessOpenAIAPIToken',
+    'Password': 'updateSuccessPassword'
+};
+
 router.post('/', async (req: Request<Record<string, never>, unknown, UpdateRequestBody>, res: Response) => {
     try {
         const { influxDbAiToken, influxDbAutomationToken, openAiApiToken, newPassword } = req.body;
-
-        // Ensure you're logged in to Vault
         await vaultClient.login();
 
         const updatedFields: string[] = [];
@@ -37,8 +41,7 @@ router.post('/', async (req: Request<Record<string, never>, unknown, UpdateReque
         }
 
         if (newPassword) {
-            // Directly save the new password without hashing
-            await vaultClient.writeSecret('kv/data/automation/login/admin', { password: newPassword });
+            await vaultClient.writeSecret('kv/data/automation/login/admin', { password: newPassword, role: 'admin' });
             updatedFields.push('Password');
         }
 
@@ -46,8 +49,9 @@ router.post('/', async (req: Request<Record<string, never>, unknown, UpdateReque
             res.status(400).send('noFieldsToUpdate');
             return;
         }
-
-        res.status(200).send(`Successfully updated: ${updatedFields.join(', ')}`);
+        
+        const translationKeys = updatedFields.map(field => fieldToTranslationKeyMap[field]);
+        res.status(200).send(translationKeys);
     } catch (error) {
         logger.error('Error while updating secrets in Vault', error);
         res.status(500).send('internalServerError');

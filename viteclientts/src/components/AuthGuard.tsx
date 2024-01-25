@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import { AuthGuardProps } from '../types/types';
 import { useUserStore } from '../utils/store';
 import useSnackbar from '../utils/useSnackbar';
+import { useStableTranslation } from '../utils/useStableTranslation';
 
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
   const [cookies] = useCookies(['session']);
@@ -18,6 +19,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
   const { showSnackbar } = useSnackbar();
   const showSnackbarRef = useRef(showSnackbar);
   const [isRoleChecking, setIsRoleChecking] = useState<boolean>(true);
+  const stableTranslate = useStableTranslation();
 
   useEffect(() => {
     showSnackbarRef.current = showSnackbar;
@@ -47,13 +49,14 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
         setIsAuthenticated(false);
         setShouldNavigate(true);
 
-        let errorMessage = 'An error occurred';
+        let errorMessage = stableTranslate('anUnexpectedErrorOccurred');
         if (axios.isAxiosError(error) && error.response) {
           if (error.response) {
-            const message = error.response.data.message || 'An error occurred';
             const status = error.response.status;
             if (status === 401 || status === 403) {
-              showSnackbarRef.current(message, 'error');
+              const backendMessageKey = error.response.data.message || 'anUnexpectedErrorOccurred';
+              const translatedMessage = stableTranslate(backendMessageKey);
+              showSnackbarRef.current(translatedMessage, 'error');
             }
           } else {
             errorMessage = 'Network Error';
@@ -66,7 +69,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
     };
 
     checkSession();
-  }, [cookies.session, apiUrl, role, requiredRole]);
+  }, [cookies.session, apiUrl, role, requiredRole, stableTranslate]);
 
   useEffect(() => {
     if (shouldNavigate) {

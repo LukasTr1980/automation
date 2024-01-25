@@ -38,5 +38,9 @@
     "switches": "Switches",
     "createSchedule": "Create Schedule",
     "scheduledPlans": "Scheduled Plans",
-    "noScheduledPlans": "No scheduled plans"
+    "noScheduledPlans": "No scheduled plans",
+    "updateSuccessInfluxDBAIToken": "InfluxDB AI Token successfully updated",
+    "updateSuccessInfluxDBAutomationToken": "InfluxDB Automation Token successfully updated",
+    "updateSuccessOpenAIAPIToken": "OpenAI API Token successfully updated",
+    "updateSuccessPassword": "Password successfully updated"
 }

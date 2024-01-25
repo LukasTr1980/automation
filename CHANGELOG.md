@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2024-01-25
+
+### Added
+- New `useStableTranslation` hook with callback to minimize rerenders when using translations in `useEffect` hooks.
+- Translation support in `AuthGuard`.
+- Translation of all messages in `SettingsPage` by implementing a mapping function to relay keys to messages in backend.
+
+### Fixed
+- Updated `SettingsPage` to ensure that changing the admin password also sets the correct role in vault.
+
 ## [v15.18.1] - 2024-01-23
+
 ### Added
 - Added i18n for translation between english and german
 - More translations added

@@ -37,7 +37,7 @@ const SecretField: React.FC<SecretFieldProps> = ({
         variant='contained'
         sx={{ width: '300px', my: 2 }}
       >
-        New {label}
+        Update
       </Button>
     </>
   );

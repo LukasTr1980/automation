@@ -54,7 +54,9 @@ const SettingsPage: React.FC = () => {
     const handleUpdate = () => {
         axios.post(`${apiUrl}/updateGptRequest`, { newGptRequest: gptRequest })
             .then((response) => {
-                showSnackbar(response.data);
+                const backendMessageKey = response.data;
+                const translatedMessage = t(backendMessageKey);
+                showSnackbar(translatedMessage);
             })
             .catch(error => {
                 console.error('Error updating GPT request:', error);
@@ -82,7 +84,9 @@ const SettingsPage: React.FC = () => {
 
         axios.post(`${apiUrl}/updateSecrets`, payload)
             .then((response) => {
-                showSnackbar(response.data);
+                const backendMessageKey = response.data;
+                const translatedMessage = t(backendMessageKey);
+                showSnackbar(translatedMessage);
             })
             .catch(error => {
                 console.error(`Error updating ${secretType}:`, error);
@@ -126,7 +130,7 @@ const SettingsPage: React.FC = () => {
                             variant='contained'
                             sx={{ width: '300px', my: 2 }}
                         >
-                            Update GPT Request
+                            Update
                         </Button>
                     </CardContent>
                 </Card>
