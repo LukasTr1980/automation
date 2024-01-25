@@ -59,7 +59,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
               showSnackbarRef.current(translatedMessage, 'error');
             }
           } else {
-            errorMessage = 'Network Error';
+            errorMessage = stableTranslate('networkError');
             showSnackbarRef.current(errorMessage, 'error');
           }
 

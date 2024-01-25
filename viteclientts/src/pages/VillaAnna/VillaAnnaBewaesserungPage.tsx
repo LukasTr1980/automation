@@ -41,6 +41,7 @@ const BewaesserungPage = () => {
   const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
   const { showSnackbar } = useSnackbar();
   const { t } = useTranslation();
+  const title = `Villa Anna ${t('irrigation')}`;
 
   useEffect(() => {
     const sessionId = cookies.session;
@@ -133,7 +134,7 @@ const BewaesserungPage = () => {
   };
 
   return (
-    <Layout title='Villa Anna Bewässerung'>
+    <Layout title={title}>
       <Grid item xs={12} paddingTop={1} paddingBottom={1}>
         <Card variant='outlined'>
           <CardHeader title={t('switches')} />

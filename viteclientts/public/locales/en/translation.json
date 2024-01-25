@@ -42,5 +42,7 @@
     "updateSuccessInfluxDBAIToken": "InfluxDB AI Token successfully updated",
     "updateSuccessInfluxDBAutomationToken": "InfluxDB Automation Token successfully updated",
     "updateSuccessOpenAIAPIToken": "OpenAI API Token successfully updated",
-    "updateSuccessPassword": "Password successfully updated"
+    "updateSuccessPassword": "Password successfully updated",
+    "networkError": "Network error",
+    "irrigation": "Irrigation"
 }

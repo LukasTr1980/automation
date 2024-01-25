@@ -32,25 +32,25 @@ function App() {
   }, [cookies]);
 
   return (
-      <SnackbarProvider>
-        <ErrorBoundary>
-          <Router>
-            <div className="App">
-              <header className="App-header">
-                <Routes>
-                  <Route path='/' element={<LoginPage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
-                  <Route path='/settings' element={<AuthGuard requiredRole='admin'><SettingsPage /></AuthGuard>} />
-                  <Route path='/villa-anna/*' element={<AuthGuard><SocketProvider><VillaAnnaRoutes /></SocketProvider></AuthGuard>} />
-                  <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
-                </Routes>
-              </header>
-              <CentralizedSnackbar />
-            </div>
-          </Router>
-        </ErrorBoundary>
-      </SnackbarProvider>
+    <SnackbarProvider>
+      <ErrorBoundary>
+        <Router>
+          <div className="App">
+            <header className="App-header">
+              <Routes>
+                <Route path='/' element={<LoginPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
+                <Route path='/settings' element={<AuthGuard requiredRole='admin'><SettingsPage /></AuthGuard>} />
+                <Route path='/villa-anna/*' element={<AuthGuard><SocketProvider><VillaAnnaRoutes /></SocketProvider></AuthGuard>} />
+                <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
+              </Routes>
+            </header>
+            <CentralizedSnackbar />
+          </div>
+        </Router>
+      </ErrorBoundary>
+    </SnackbarProvider>
   );
 }
 
