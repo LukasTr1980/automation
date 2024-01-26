@@ -1,14 +1,39 @@
-export const daysOfWeek: string[] = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-export const daysOfWeekNumbers: { [key: string]: number } = {
-  'Sonntag': 0,
-  'Montag': 1,
-  'Dienstag': 2,
-  'Mittwoch': 3,
-  'Donnerstag': 4,
-  'Freitag': 5,
-  'Samstag': 6
+import { useTranslation } from "react-i18next";
+import { DaysOfWeekNumbers, MonthsNumbers } from "../types/types";
+
+export const useDaysOfWeek = () => {
+  const { t } = useTranslation();
+  return [
+    t('sunday'), t('monday'), t('tuesday'), t('wednesday'), 
+    t('thursday'), t('friday'), t('saturday')
+  ];
 };
-export const months: string[] = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+
+export const useDaysOfWeekNumbers = () => {
+  const daysOfWeek = useDaysOfWeek();
+  return daysOfWeek.reduce<DaysOfWeekNumbers>((acc, day, index) => {
+    acc[day] = index;
+    return acc;
+  }, {});
+};
+
+export const useMonths = () => {
+  const { t } = useTranslation();
+  return [
+    t('january'), t('february'), t('march'), t('april'), 
+    t('may'), t('june'), t('july'), t('august'), 
+    t('september'), t('october'), t('november'), t('december')
+  ];
+};
+
+export const useMonthsNumbers = () => {
+  const months = useMonths();
+  return months.reduce<MonthsNumbers>((acc, month, index) => {
+    acc[month] = index;
+    return acc;
+  }, {});
+};
+
 export const monthsNumbers: { [key: string]: number } = {
   'Januar': 0,
   'Februar': 1,

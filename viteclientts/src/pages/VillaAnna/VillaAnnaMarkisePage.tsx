@@ -27,6 +27,7 @@ const MarkisePage = () => {
     const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
     const { showSnackbar } = useSnackbar();
     const { t } = useTranslation();
+    const title = `Villa Anna ${t('awning')}`;
 
     useEffect(() => {
         const sessionId = cookies.session;
@@ -121,11 +122,11 @@ const MarkisePage = () => {
     }, [socket, fetchCurrentMarkiseStatus, connected]);  // Include connected in dependencies    
 
     return (
-        <Layout title='Villa Anna Markise' loading={isLoading}>
+        <Layout title={title} loading={isLoading}>
             <>
                 <Grid item xs={12} paddingTop={1} paddingBottom={1}>
                     <Card variant='outlined'>
-                        <CardHeader title="Markise Steuern" />
+                        <CardHeader title={t('controlAwning')} />
                         <CardContent>
 
                             <OnPressSwitchComponent markiseState={markiseState} onSend={handleSend} />
@@ -135,12 +136,12 @@ const MarkisePage = () => {
                 </Grid>
                 <Grid item xs={12} paddingBottom={1}>
                     <Card variant='outlined'>
-                        <CardHeader title="Wetter Block" />
+                        <CardHeader title={t('weatherBlock')} />
                         <CardContent>
                             <Box display="flex" justifyContent="center" alignItems="center" gap={3}>
                                 <SwitchComponent
                                     checked={markiseStatus['weather:raining'] === 'closing'}
-                                    label="Regen block"
+                                    label={t('rainBlock')}
                                     handleToggle={() => { }}
                                     disabled
                                     color='warning'
@@ -149,7 +150,7 @@ const MarkisePage = () => {
                                 />
                                 <SwitchComponent
                                     checked={markiseStatus['weather:windy'] === 'closing'}
-                                    label="Wind block"
+                                    label={t('windBlock')}
                                     handleToggle={() => { }}
                                     disabled
                                     color='warning'
@@ -158,7 +159,7 @@ const MarkisePage = () => {
                                 />
                                 <SwitchComponent
                                     checked={markiseStatus.throttling_active === 'true'}
-                                    label="Drosselung"
+                                    label={t('throttling')}
                                     handleToggle={() => { }}
                                     disabled
                                     color='warning'

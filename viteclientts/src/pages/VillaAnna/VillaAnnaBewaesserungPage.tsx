@@ -162,7 +162,7 @@ const BewaesserungPage = () => {
 
       <Grid item xs={12} paddingBottom={1}>
         <Card variant='outlined'>
-          <CardHeader title="AI Entscheidung" />
+          <CardHeader title={t('aiDecision')} />
           <CardContent>
             {aiLoading ? (
               <SkeletonLoader />

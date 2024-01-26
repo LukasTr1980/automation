@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 2024-01-25
 
-### Changed
-- More translations
+### Added
+- Added more translations
+- Added more Typescript types
 
 ## [v15.19.0] - 2024-01-25
 - Changelog with new version

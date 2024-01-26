@@ -1,11 +1,13 @@
 // MonthsSelect.tsx
 import { Checkbox, FormControl, FormControlLabel, FormGroup } from '@mui/material';
-import { months as initialMonths, monthsNumbers } from './constants';
+import { useMonths, useMonthsNumbers } from './constants';
 import PropTypes from 'prop-types';
 import { MonthsSelectProps } from '../types/types';
 
 const MonthsSelect: React.FC<MonthsSelectProps> = ({ selectedMonths, setSelectedMonths }) => {
+  const initialMonths = useMonths();
   const months = ['Jeden Monat', ...initialMonths];
+  const monthsNumbers = useMonthsNumbers();
 
   const handleMonthSelect = (month: string) => {
     if (month === 'Jeden Monat') {

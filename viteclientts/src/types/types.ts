@@ -169,3 +169,11 @@ export interface UserState {
     role: string | null;
     setRole: (role: string | null) => void;
 }
+
+export type DaysOfWeekNumbers = {
+    [key: string]: number;
+}
+
+export type MonthsNumbers = {
+    [key: string]: number;
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { bewaesserungsTopicsSet, switchDescriptions, daysOfWeekNumbers, monthsNumbers } from './constants';
+import { bewaesserungsTopicsSet, switchDescriptions, useDaysOfWeekNumbers, useMonthsNumbers } from './constants';
 import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
 import SwitchComponent from './switchComponent';
 import DialogFullScreen from './DialogFullScreen';
@@ -29,6 +29,8 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   topicDescriptions = switchDescriptions,
   taskToCopy,
 }) => {
+  const daysOfWeekNumbers = useDaysOfWeekNumbers();
+  const monthsNumbers = useMonthsNumbers();
   const { showSnackbar } = useSnackbar();
   const [selectedTopic, setSelectedTopic] = useState<string>(initialTopic || mqttTopics[0]);
   const specialSwitchValues: Record<string, Record<string, number>> = {

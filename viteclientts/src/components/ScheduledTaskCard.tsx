@@ -4,13 +4,15 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { daysOfWeek, months } from './constants';
+import { useDaysOfWeek, useMonths } from './constants';
 import axios from 'axios';
 import useSnackbar from '../utils/useSnackbar';
 import { ScheduledTask, ScheduledTaskCardProps } from '../types/types';
 import { useTranslation } from 'react-i18next';
 
 export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey, onCopyTask }: ScheduledTaskCardProps) {
+  const daysOfWeek = useDaysOfWeek();
+  const months = useMonths();
   const { showSnackbar } = useSnackbar();
   const currentMonth = new Date().getMonth();
   const { t } = useTranslation();

@@ -1,17 +1,19 @@
 import { Checkbox, FormControl, FormControlLabel, FormGroup } from '@mui/material';
-import { daysOfWeek, daysOfWeekNumbers } from './constants';
+import { useDaysOfWeek, useDaysOfWeekNumbers } from './constants';
 import React from 'react';
 import { WeekdaysSelectProps } from '../types/types';
 
 const WeekdaysSelect: React.FC<WeekdaysSelectProps> = ({ selectedDays, setSelectedDays }) => {
+  const daysOfWeek = useDaysOfWeek();
+  const daysOfWeekNumbers = useDaysOfWeekNumbers();
   const allDays = ['Täglich', ...daysOfWeek]; // 'Täglich' is now the first item
 
   const handleDaySelect = (day: string) => {
     if (day === 'Täglich') {
       if (selectedDays.length === daysOfWeek.length) {
-        setSelectedDays([]); // Unselect all days if "Täglich" is chosen and all days are currently selected
+        setSelectedDays([]);
       } else {
-        setSelectedDays(daysOfWeek.map(day => daysOfWeekNumbers[day]).sort((a, b) => a - b)); // Select all days if not all days are currently selected
+        setSelectedDays(daysOfWeek.map(day => daysOfWeekNumbers[day]).sort((a, b) => a - b));
       }
     } else {
       const dayNumber = daysOfWeekNumbers[day];
