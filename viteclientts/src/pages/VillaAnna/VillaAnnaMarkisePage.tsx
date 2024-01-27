@@ -31,20 +31,18 @@ const MarkisePage = () => {
 
     useEffect(() => {
         const sessionId = cookies.session;
-        const url = sessionId ? `${apiUrl}/mqtt?session=${sessionId}` : `${apiUrl}/mqtt`;
+        const url = sessionId ? `${apiUrl}/mqtt?session=${sessionId}&checkIrrigation=false` : `${apiUrl}/mqtt?checkIrrigation=false`;
         const eventSource = new EventSource(url);
 
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
 
             if (data.type === 'switchState') {
-                // Handle the individual switch update
                 if (data.topic && data.topic === 'markise/switch/haupt') {
                     setMarkiseState(data.state);
                     setSwitchesLoaded(true);
                 }
 
-                // Handle the initial state for all switches
                 else if (data.latestStates && data.latestStates['markise/switch/haupt'] !== undefined) {
                     setMarkiseState(data.latestStates['markise/switch/haupt']);
                     setSwitchesLoaded(true);
