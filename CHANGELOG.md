@@ -5,11 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-25
+## [v15.19.1] - 2024-01-27
 
 ### Added
-- Added more translations
-- Added more Typescript types
+- Added more translations.
+- Added more TypeScript types.
+
+### Changed
+- Changed GPT model and role of GPT model.
 
 ## [v15.19.0] - 2024-01-25
 - Changelog with new version

@@ -47,9 +47,9 @@ async function createChatCompletion(): Promise<CompletionResponse> {
     const openai = await getOpenAI();
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-3.5-turbo-1106",
       messages: [
-        { "role": "system", "content": "You are a helpful assistant." },
+        { "role": "system", "content": "You are a condition evaluator." },
         { "role": "user", "content": formattedGptRequest }
       ],
       max_tokens: 1000,
