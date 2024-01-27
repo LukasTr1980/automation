@@ -62,6 +62,8 @@ export interface DialogFullScreenProps {
     open: boolean;
     onClose: () => void;
     children?: React.ReactNode;
+    title?: string;
+    showButton?: boolean;
 }
 
 export interface ErrorBoundaryState {

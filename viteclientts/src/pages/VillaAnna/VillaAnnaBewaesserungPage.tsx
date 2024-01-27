@@ -12,8 +12,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  TextareaAutosize,
-  TextField
+  Button
 } from '@mui/material';
 import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -23,6 +22,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import SkeletonLoader from '../../components/skeleton';
 import { useTranslation } from 'react-i18next';
+import DialogFullScreen from '../../components/DialogFullScreen';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);
@@ -40,6 +40,7 @@ const BewaesserungPage = () => {
   const [formattedEvaluation, setFormattedEvaluation] = useState("");
   const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
   const { showSnackbar } = useSnackbar();
+  const [isAiResponseDialogOpen, setIsAiResponseDialogOpen] = useState(false);
   const { t } = useTranslation();
   const title = `Villa Anna ${t('irrigation')}`;
 
@@ -133,6 +134,14 @@ const BewaesserungPage = () => {
     setActiveTab(newValue);
   };
 
+  const handleOpenDialog = () => {
+    setIsAiResponseDialogOpen(true);
+  }
+
+  const handleCloseDialog = () => {
+    setIsAiResponseDialogOpen(false);
+  }
+
   return (
     <Layout title={title}>
       <Grid item xs={12} paddingTop={1} paddingBottom={1}>
@@ -181,25 +190,27 @@ const BewaesserungPage = () => {
                   </Box>
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    id="textAiResponse"
-                    name="textAiResponse"
-                    label="AI Antwort"
-                    variant="outlined"
+                  <Button
+                    variant='contained'
+                    onClick={handleOpenDialog}
                     fullWidth
-                    multiline
-                    rows={3}
-                    InputProps={{
-                      inputComponent: TextareaAutosize,
-                      inputProps: {
-                        minRows: 3,
-                        value: `${response}` +
-                          `${formattedEvaluation ? `\n\n${formattedEvaluation}` : ''}`,
-                        spellCheck: false
-                      }
-                    }}
-                  />
+                    color='info'
+                  >
+                    {t('aiResponse')}
+                  </Button>
                 </Grid>
+                <DialogFullScreen
+                  title={t('aiResponse')}
+                  open={isAiResponseDialogOpen}
+                  onClose={handleCloseDialog}
+                  showButton={false}
+                >
+
+                  <Typography>
+                    {response}
+                    {formattedEvaluation && `\n\n${formattedEvaluation}`}
+                  </Typography>
+                </DialogFullScreen>
               </Grid>
             )}
           </CardContent>
@@ -208,7 +219,12 @@ const BewaesserungPage = () => {
 
       {/* Use the SchedulerCard component */}
       <Grid item xs={12} paddingBottom={1}>
-        <SchedulerCard setReloadTasks={setReloadTasks} scheduledTasks={scheduledTasks} setScheduledTasks={setScheduledTasks} taskToCopy={copiedTask} />
+        <SchedulerCard
+          setReloadTasks={setReloadTasks}
+          scheduledTasks={scheduledTasks}
+          setScheduledTasks={setScheduledTasks}
+          taskToCopy={copiedTask}
+        />
       </Grid>
 
       <Grid item xs={12}>

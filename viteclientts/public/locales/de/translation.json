@@ -72,5 +72,7 @@
     "weatherBlock": "Wetter Block",
     "rainBlock": "Regen Block",
     "windBlock": "Wind Block",
-    "throttling": "Drosselung"
+    "throttling": "Drosselung",
+    "aiResponse": "AI Antwort",
+    "save": "Speichern"
 }
