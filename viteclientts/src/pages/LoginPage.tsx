@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { TextField, Typography, Box } from '@mui/material';
+import { Box, TextField, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab'
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
@@ -37,7 +37,7 @@ const LoginForm: React.FC = () => {
         navigate('/home');
         const backendMessageKey = response.data.message;
         const translatedMessage = t(backendMessageKey);
-        setPreviousLastLogin(new Date(response.data.previousLastLogin));
+        setPreviousLastLogin((response.data.previousLastLogin));
         showSnackbar(translatedMessage, 'success');
       } else {
         const backendMessageKey = response.data.message;

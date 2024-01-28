@@ -170,8 +170,8 @@ export type SocketProviderProps = {
 export interface UserState {
     role: string | null;
     setRole: (role: string | null) => void;
-    previousLastLogin: Date | null; 
-    setPreviousLastLogin: (lastLogin: Date | null) => void;
+    previousLastLogin: number | null; 
+    setPreviousLastLogin: (lastLogin: number | null) => void;
 }
 
 export type DaysOfWeekNumbers = {

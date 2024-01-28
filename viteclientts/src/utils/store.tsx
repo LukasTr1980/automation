@@ -12,7 +12,7 @@ const useUserStore = create<UserState>((set) => ({
         }
         set({ role });
     },
-    setPreviousLastLogin: (lastLogin: Date | null) => {
+    setPreviousLastLogin: (lastLogin: number | null) => {
         set({ previousLastLogin: lastLogin });
     }
 }));

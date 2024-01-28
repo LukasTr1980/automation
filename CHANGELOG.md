@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Refactored `DialogFullScreen` component for improved styling and better adherence to Material-UI design principles.
 - Removed `Textarea` from `VillaAnnaBewaesserungPage` and moved AI Response display to a modal window.
+- In MongoDB now a unixtimestamp gets stored for userLogins
 
 ## [v15.19.4] - 2024-01-27
 

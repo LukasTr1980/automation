@@ -7,9 +7,8 @@ import { useUserStore } from '../utils/store';
 import { useTranslation } from 'react-i18next';
 
 const HomePage: React.FC = () => {
-  const { role, previousLastLogin } = useUserStore();
+  const { role } = useUserStore();
   const { t } = useTranslation();
-  console.log(previousLastLogin);
 
   return (
     <Layout title="Automation">

@@ -7,7 +7,7 @@ async function updateLastLogin(username: string): Promise<void> {
         const db: Db = await connectToMongo();
         const userLoginsCollection = db.collection('userLogins');
 
-        const lastLoginTime = new Date();
+        const lastLoginTime = Date.now();
         const updateResult = await userLoginsCollection.updateOne(
             { username: username },
             { $set: { lastLoginTime: lastLoginTime } },
