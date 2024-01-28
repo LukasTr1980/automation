@@ -4,6 +4,7 @@ import { connectToRedis } from '../clients/redisClient';
 import crypto from 'crypto';
 import * as vaultClient from '../clients/vaultClient'; // Import your Vault client
 import logger from '../logger';
+import { updateLastLogin, getLastLogin } from '../utils/useLoginsModule';
 
 const router = express.Router();
 
@@ -21,7 +22,6 @@ router.post('/', async (req: express.Request, res: express.Response) => {
     try {
         await vaultClient.login();
 
-        // Fetch user's password from Vault
         const secretPath: string = `kv/data/automation/login/${username}`;
         const userData = await vaultClient.getSecret(secretPath);
 
@@ -30,28 +30,26 @@ router.post('/', async (req: express.Request, res: express.Response) => {
             return res.status(401).json({ status: 'error', message: 'incorrectUserOrPass' });
         }
 
-        // Extract the password from the Vault response
         const storedPassword: string = userData.data.password;
         const userRole: string = userData.data.role;
 
-        // Check if the password from Vault matches the input password
         if (password !== storedPassword) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - Incorrect password`);
             return res.status(401).json({ status: 'error', message: 'incorrectUserOrPass' });
         }
 
-        // Password correct, generate a session ID
         const sessionId: string = crypto.randomBytes(16).toString('hex');
 
-        // Store the session ID in Redis
         const redis = await connectToRedis();
         const sessionData = JSON.stringify({ username, role: userRole })
         await redis.set(`session:${sessionId}`, sessionData, 'EX', 86400);
 
+        const previousLastLogin = await getLastLogin(username);
+
+        await updateLastLogin(username);
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
-        // Send the session ID back to the client
-        res.status(200).json({ status: 'success', session: sessionId, role: userRole, message: 'loggedIn' });
+        res.status(200).json({ status: 'success', session: sessionId, role: userRole, previousLastLogin: previousLastLogin, message: 'loggedIn' });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);

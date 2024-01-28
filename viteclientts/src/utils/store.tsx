@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { UserState } from '../types/types';
 
 const useUserStore = create<UserState>((set) => ({
-    role: localStorage.getItem('userRole'), // Can be string or null
+    role: localStorage.getItem('userRole'),
+    previousLastLogin: null,
     setRole: (role: string | null) => {
         if (role === null) {
             localStorage.removeItem('userRole'); // Remove the item if role is null
@@ -10,6 +11,9 @@ const useUserStore = create<UserState>((set) => ({
             localStorage.setItem('userRole', role); // Persist the role
         }
         set({ role });
+    },
+    setPreviousLastLogin: (lastLogin: Date | null) => {
+        set({ previousLastLogin: lastLogin });
     }
 }));
 

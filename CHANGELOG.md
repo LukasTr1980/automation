@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - More translations
+- Last Login registration per user basis in mongoDb
+- Send parameter to frontend to display last Login info in components
 
 ### Changed
 - Refactored `DialogFullScreen` component for improved styling and better adherence to Material-UI design principles.

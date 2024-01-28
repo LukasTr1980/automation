@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const { setRole } = useUserStore();
+  const { setRole, setPreviousLastLogin } = useUserStore();
   const [, setCookie] = useCookies(['session', 'username']);
   const navigate = useNavigate();
   const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
@@ -37,6 +37,7 @@ const LoginForm: React.FC = () => {
         navigate('/home');
         const backendMessageKey = response.data.message;
         const translatedMessage = t(backendMessageKey);
+        setPreviousLastLogin(new Date(response.data.previousLastLogin));
         showSnackbar(translatedMessage, 'success');
       } else {
         const backendMessageKey = response.data.message;
