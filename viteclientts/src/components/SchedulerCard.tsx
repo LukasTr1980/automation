@@ -156,7 +156,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="mqtt-topic-label" shrink={false}>Zone</InputLabel>
+              <InputLabel id="mqtt-topic-label" shrink={false}>{t('zone')}</InputLabel>
               <Select
                 labelId="mqtt-topic-label"
                 value={selectedTopic}
@@ -198,7 +198,11 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             >
               {weekDaysButtonText}
             </Button>
-            <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)}>
+            <DialogFullScreen 
+            open={weekDaysDialogOpen} 
+            onClose={() => setWeekDaysDialogOpen(false)}
+            title={t('select')}
+            >
               <Grid item xs={12}>
                 <WeekdaysSelect selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
               </Grid>
@@ -214,7 +218,11 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             >
               {monthButtonText}
             </Button>
-            <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)}>
+            <DialogFullScreen 
+            open={monthDialogOpen} 
+            onClose={() => setMonthDialogOpen(false)}
+            title={t('select')}
+            >
               <Grid item xs={12}>
                 <MonthsSelect selectedMonths={selectedMonths} setSelectedMonths={setSelectedMonths} />
               </Grid>

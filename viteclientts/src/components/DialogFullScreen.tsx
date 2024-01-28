@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { DialogFullScreenProps } from '../types/types';
 
-const DialogFullScreen: React.FC<DialogFullScreenProps> = ({ open, onClose, children, title = 'Auswählen', showButton = true }) => {
+const DialogFullScreen: React.FC<DialogFullScreenProps> = ({ open, onClose, children, title, showButton = true }) => {
   const { t } = useTranslation();
 
   return (

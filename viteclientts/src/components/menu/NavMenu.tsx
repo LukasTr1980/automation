@@ -28,7 +28,7 @@ const NavMenu: React.FC = () => {
   const userInfoDisplay = cookies.username ? (
     <div style={{ marginLeft: 'auto', paddingRight: 2 }}>
       <Typography textTransform='capitalize'>
-        {`User: ${cookies.username}`}
+        {t('user')}: <strong>{cookies.username}</strong>
       </Typography>
 
     </div>

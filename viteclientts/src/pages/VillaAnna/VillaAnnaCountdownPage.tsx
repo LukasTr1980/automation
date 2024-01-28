@@ -108,12 +108,12 @@ const VillaAnnacountdownPage = () => {
         <Layout title="Villa Anna Countdown">
             <Grid item xs={12} paddingTop={1} paddingBottom={1}>
                 <Card variant='outlined'>
-                    <CardHeader title="Countdown einstellen" />
+                    <CardHeader title={t('setCountdown')} />
                     <CardContent>
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <FormControl fullWidth>
-                                    <InputLabel id="zone-select-label" shrink={false}>Zone</InputLabel>
+                                    <InputLabel id="zone-select-label" shrink={false}>{t('zone')}</InputLabel>
                                     <Select
                                         labelId="zone-select-label"
                                         value={selectedZone}

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Typography, Card, CardContent, Box } from '@mui/material';
 import { CountdownCardProps } from '../types/types';
+import { useTranslation } from 'react-i18next';
 
-// Function to convert seconds into HH:mm:ss format
 const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -28,6 +28,7 @@ const getStatusBackgroundColor = (status: string) => {
 };
 
 const CountdownCard: React.FC<CountdownCardProps> = ({ zoneName, countdown }) => {
+    const { t } = useTranslation();
     const formattedTime = formatTime(countdown.value);
     return (
         <Card sx={{ m: 2, boxShadow: 3 }}>
@@ -50,17 +51,17 @@ const CountdownCard: React.FC<CountdownCardProps> = ({ zoneName, countdown }) =>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline' }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography variant="h4">{formattedTime.hours}</Typography>
-                        <Typography variant="caption" color="text.secondary">STUNDEN</Typography>
+                        <Typography variant="caption" color="text.secondary">{t('hours')}</Typography>
                     </Box>
                     <Typography variant="h4" sx={{ mx: 1 }}>:</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography variant="h4">{formattedTime.minutes}</Typography>
-                        <Typography variant="caption" color="text.secondary">MINUTEN</Typography>
+                        <Typography variant="caption" color="text.secondary">{t('minutes')}</Typography>
                     </Box>
                     <Typography variant="h4" sx={{ mx: 1 }}>:</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography variant="h4">{formattedTime.seconds}</Typography>
-                        <Typography variant="caption" color="text.secondary">SEKUNDEN</Typography>
+                        <Typography variant="caption" color="text.secondary">{t('seconds')}</Typography>
                     </Box>
                 </Box>
             </CardContent>

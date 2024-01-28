@@ -1,6 +1,7 @@
 import { TextField } from '@mui/material';
 import React from 'react';
 import { HourFieldProps } from '../types/types';
+import { useTranslation } from 'react-i18next';
 
 const HourField: React.FC<HourFieldProps> = ({ selectedHour, setSelectedHour, error, min = 0, max = 23 }) => {
 
@@ -11,10 +12,11 @@ const HourField: React.FC<HourFieldProps> = ({ selectedHour, setSelectedHour, er
       setSelectedHour(value);
     }
   };
+  const { t } = useTranslation();
 
   return (
     <TextField
-      label="Stunde"
+      label={t('hour')}
       type="number"
       InputProps={{ inputProps: { min, max } }}
       value={selectedHour}

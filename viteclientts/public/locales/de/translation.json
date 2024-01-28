@@ -74,5 +74,15 @@
     "windBlock": "Wind Block",
     "throttling": "Drosselung",
     "aiResponse": "AI Antwort",
-    "save": "Speichern"
+    "save": "Speichern",
+    "select": "Auswählen",
+    "setCountdown": "Countdown einstellen",
+    "hours": "Stunden",
+    "minutes": "Minuten",
+    "seconds": "Sekunden",
+    "hour": "Stunde",
+    "minute": "Minute",
+    "second": "Sekunde",
+    "zone": "Zone",
+    "user": "Benutzer"
 }
