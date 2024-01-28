@@ -5,17 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-01-28
+## [v15.20.0] - 2024-01-28
 
 ### Added
-- More translations
-- Last Login registration per user basis in mongoDb
-- Send parameter to frontend to display last Login info in components
+- Additional translations for various modules.
+- Last login registration for each user, stored in MongoDB.
+- New parameter sent to the frontend for displaying last login information in UI components.
+- Implementation of `dateUtils` for converting dates to local formats using npm moment.
 
 ### Changed
-- Refactored `DialogFullScreen` component for improved styling and better adherence to Material-UI design principles.
-- Removed `Textarea` from `VillaAnnaBewaesserungPage` and moved AI Response display to a modal window.
-- In MongoDB now a unixtimestamp gets stored for userLogins
+- Refactored `DialogFullScreen` component for improved styling, aligning better with Material-UI design principles.
+- Removed `Textarea` from `VillaAnnaBewaesserungPage` and introduced a modal window for displaying AI responses.
+- Updated MongoDB storage method for user logins to use Unix timestamp format.
 
 ## [v15.19.4] - 2024-01-27
 

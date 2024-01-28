@@ -84,5 +84,6 @@
     "minute": "Minute",
     "second": "Sekunde",
     "zone": "Zone",
-    "user": "Benutzer"
+    "user": "Benutzer",
+    "lastLogin": "Letzter Login"
 }

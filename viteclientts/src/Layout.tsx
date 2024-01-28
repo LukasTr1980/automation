@@ -10,6 +10,9 @@ import NavMenu from './components/menu/NavMenu';
 import LoadingSpinner from './components/LoadingSpinner';
 import logo from './images/logo-512x512.png';
 import { LayoutProps } from './types/types';
+import { useUserStore } from './utils/store';
+import { convertToGermanDate } from './utils/dateUtils';
+import { useTranslation } from 'react-i18next';
 
 const appVersion = import.meta.env.VITE_APP_VERSION;
 
@@ -20,10 +23,14 @@ const Layout: React.FC<LayoutProps> = ({
   showNavMenu = true,
   showLogo = false
 }) => {
+  const { previousLastLogin } = useUserStore();
+  const germanDate = convertToGermanDate(previousLastLogin);
+  const { t } = useTranslation();
+
   return (
     <>
       {showNavMenu && <NavMenu />}
-      <Container style={{ paddingBottom: '60px', maxWidth: '700px' }}>
+      <Container style={{ paddingBottom: '70px', maxWidth: '700px' }}>
         <Grid container paddingTop={9}>
           {loading ? (
             <Grid item xs={12}>
@@ -60,14 +67,18 @@ const Layout: React.FC<LayoutProps> = ({
         right: 0,
         bottom: 0,
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         padding: '10px 0',
         backgroundColor: 'whitesmoke',
       }}>
-        <Typography variant='body2' color='black' fontWeight='bold'>
-          Version: {appVersion}
-        </Typography>
+    <Typography variant='body2' color='black' fontWeight='bold'>
+        Version: {appVersion}
+    </Typography>
+    <Typography variant='body2' color='black' fontWeight='bold'>
+        {t('lastLogin')}: {germanDate}
+    </Typography>
       </div>
     </>
   );

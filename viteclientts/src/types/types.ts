@@ -170,7 +170,7 @@ export type SocketProviderProps = {
 export interface UserState {
     role: string | null;
     setRole: (role: string | null) => void;
-    previousLastLogin: number | null; 
+    previousLastLogin: number | null;
     setPreviousLastLogin: (lastLogin: number | null) => void;
 }
 
@@ -181,3 +181,5 @@ export type DaysOfWeekNumbers = {
 export type MonthsNumbers = {
     [key: string]: number;
 }
+
+export type ConvertToGermanDateFunction = (unixTimeStamp: number | null) => string | null;
