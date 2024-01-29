@@ -15,7 +15,7 @@ const NavMenu: React.FC = () => {
   const [cookies, , removeCookie] = useCookies(['username', 'session']);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const { role, setRole } = useUserStore();
+  const { role, setRole, setPreviousLastLogin } = useUserStore();
   const navigate = useNavigate();
   const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
   const { showSnackbar } = useSnackbar();
@@ -80,6 +80,7 @@ const NavMenu: React.FC = () => {
     removeCookie('session', { path: '/', secure: isSecureCookie });
     removeCookie('username', { path: '/', secure: isSecureCookie });
     setRole(null);
+    setPreviousLastLogin(null);
     navigate('/login');
     const translatedMessage = t('loggedOut');
     showSnackbar(translatedMessage);

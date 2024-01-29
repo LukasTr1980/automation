@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     const sessionId = authHeader?.split(' ')[1];
     if (!sessionId) {
       logger.warn('No session ID provided');
-      return res.status(401).json({ message: 'anErrorOccurred' });
+      return res.status(401).json({ message: 'sessionExpired', severity: 'warning' });
     }
 
     // Get the Redis client
@@ -20,14 +20,14 @@ router.get('/', async (req, res) => {
     const sessionData = await redis.get(`session:${sessionId}`);
     if (!sessionData) {
       logger.warn('Invalid or expired session');
-      return res.status(401).json({ message: 'anErrorOccurred' });
+      return res.status(401).json({ message: 'sessionExpired', severity: 'warning' });
     }
 
     const { username, role } = JSON.parse(sessionData);
     const requiredRole = req.query.requiredRole;
     if (requiredRole && role !== requiredRole) {
       logger.warn('Access denied: role mismatch');
-      return res.status(403).json({ message: 'forbiddenYouDontHavePermission' });
+      return res.status(403).json({ message: 'forbiddenYouDontHavePermission', severity: 'warning' });
     }
 
     res.status(200).json({ username, role });

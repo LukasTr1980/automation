@@ -3,7 +3,8 @@ import { UserState } from '../types/types';
 
 const useUserStore = create<UserState>((set) => ({
     role: localStorage.getItem('userRole'),
-    previousLastLogin: null,
+    previousLastLogin: localStorage.getItem('userLastLogin') ? Number(localStorage.getItem('userLastLogin')) : null,
+
     setRole: (role: string | null) => {
         if (role === null) {
             localStorage.removeItem('userRole'); // Remove the item if role is null
@@ -13,6 +14,11 @@ const useUserStore = create<UserState>((set) => ({
         set({ role });
     },
     setPreviousLastLogin: (lastLogin: number | null) => {
+        if (lastLogin === null) {
+            localStorage.removeItem('userLastLogin');
+        } else {
+            localStorage.setItem('userLastLogin', lastLogin.toString());
+        }
         set({ previousLastLogin: lastLogin });
     }
 }));

@@ -85,5 +85,6 @@
     "second": "Sekunde",
     "zone": "Zone",
     "user": "Benutzer",
-    "lastLogin": "Letzter Login"
+    "lastLogin": "Letzter Login",
+    "sessionExpired": "Sitzung abgelaufen, bitte melden Sie sich erneut an"
 }

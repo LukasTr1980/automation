@@ -23,10 +23,10 @@ const router = express.Router();
 
 // Configure the routes
 router.use('/login', loginLimiter, loginRouter);
+router.use('/session', apiLimiter, sessionRouter);
 router.use(apiLimiter, authMiddleware);
 router.use('/mqtt', mqttRouter);
 router.use('/simpleapi', simpleapiRouter);
-router.use('/session', sessionRouter);
 router.use('/scheduler', schedulerRouter);
 router.use('/scheduledTasks', scheduledTasksRouter);
 router.use('/switchTaskEnabler', switchTaskEnablerRouter);

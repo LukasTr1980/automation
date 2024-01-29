@@ -27,6 +27,14 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
 
   useEffect(() => {
     const checkSession = async () => {
+      if (!cookies.session) {
+        setIsAuthenticated(false);
+        setShouldNavigate(true);
+        const translatedMessage = stableTranslate('sessionExpired');
+        showSnackbarRef.current(translatedMessage, 'warning');
+        return;
+      }
+
       setIsRoleChecking(true);
 
       // Server-side validation
@@ -55,8 +63,9 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
             const status = error.response.status;
             if (status === 401 || status === 403) {
               const backendMessageKey = error.response.data.message || 'anUnexpectedErrorOccurred';
+              const backendSeverity = error.response.data.severity;
               const translatedMessage = stableTranslate(backendMessageKey);
-              showSnackbarRef.current(translatedMessage, 'error');
+              showSnackbarRef.current(translatedMessage, backendSeverity);
             }
           } else {
             errorMessage = stableTranslate('networkError');

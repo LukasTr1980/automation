@@ -85,5 +85,6 @@
     "second": "Second",
     "zone": "Zone",
     "user": "User",
-    "lastLogin": "Last login"
+    "lastLogin": "Last login",
+    "sessionExpired": "Session expired, please log in again"
 }
