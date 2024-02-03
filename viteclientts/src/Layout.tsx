@@ -13,6 +13,7 @@ import { LayoutProps } from './types/types';
 import { useUserStore } from './utils/store';
 import { convertToGermanDate } from './utils/dateUtils';
 import { useTranslation } from 'react-i18next';
+import useCountdown from './utils/useCountdown';
 
 const appVersion = import.meta.env.VITE_APP_VERSION;
 
@@ -23,14 +24,17 @@ const Layout: React.FC<LayoutProps> = ({
   showNavMenu = true,
   showLogo = false
 }) => {
-  const { previousLastLogin } = useUserStore();
+  const { previousLastLogin, role } = useUserStore();
   const germanDate = convertToGermanDate(previousLastLogin);
+  const countdown = useCountdown();
   const { t } = useTranslation();
+
+  const containerPaddingBottom = role === 'admin' ? '90px' : '70px';
 
   return (
     <>
       {showNavMenu && <NavMenu />}
-      <Container style={{ paddingBottom: '70px', maxWidth: '700px' }}>
+      <Container style={{ paddingBottom: containerPaddingBottom, maxWidth: '700px' }}>
         <Grid container paddingTop={9}>
           {loading ? (
             <Grid item xs={12}>
@@ -79,6 +83,11 @@ const Layout: React.FC<LayoutProps> = ({
     <Typography variant='body2' color='black' fontWeight='bold'>
         {t('lastLogin')}: {germanDate}
     </Typography>
+    {role === 'admin' &&
+    <Typography variant='body2' color='black' fontWeight='bold'>
+      {t('tokenExpiresIn')}: {countdown}
+    </Typography>
+     }
       </div>
     </>
   );

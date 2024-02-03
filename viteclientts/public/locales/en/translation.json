@@ -89,5 +89,6 @@
     "sessionExpired": "Session expired, please log in again",
     "tokenMissing": "Missing Token, please log in again",
     "invalidOrExpiredToken": "Invalid or expired Token, please log in again",
-    "notLoggedIn": "Not logged in"
+    "notLoggedIn": "Not logged in",
+    "tokenExpiresIn": "Token expires in"
 }
