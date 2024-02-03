@@ -1,24 +1,59 @@
-import { useState, FormEvent } from 'react';
-import { Box, TextField, Typography } from '@mui/material';
+import { useState, FormEvent, useCallback, useEffect } from 'react';
+import { Box, TextField, Typography, Grid } from '@mui/material';
 import { LoadingButton } from '@mui/lab'
 import axios from 'axios';
-import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../utils/store';
 import useSnackbar from '../utils/useSnackbar';
 import { useTranslation } from 'react-i18next';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const { setRole, setPreviousLastLogin } = useUserStore();
-  const [, setCookie] = useCookies(['session', 'username']);
+  const { setRole, setPreviousLastLogin, setJwtToken, setUserLogin, jwtToken, role, userLogin, hasVisitedBefore, setHasVisitedBefore, setTokenExpiry } = useUserStore();
   const navigate = useNavigate();
-  const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const [loginButtonLoading, setLoginButtonLoading] = useState<boolean>(false);
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
+
+  const refreshToken = useCallback(async () => {
+    try {
+      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin, role });
+      if (response.status === 200 && response.data.accessToken) {
+        setJwtToken(response.data.accessToken);
+        setTokenExpiry(response.data.expiresAt);
+        navigate('/home');
+      }
+    } catch (error) {
+      //Intentionally not handling error
+    }
+    setIsLoading(false);
+  }, [apiUrl, setJwtToken, navigate, role, userLogin, setTokenExpiry]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkAuthState = async () => {
+      if (!jwtToken && hasVisitedBefore) {
+        await refreshToken();
+      } else if (jwtToken) {
+        navigate('/home');
+        return;
+      }
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [jwtToken, refreshToken, navigate, hasVisitedBefore]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -31,13 +66,17 @@ const LoginForm: React.FC = () => {
       });
 
       if (response.data.status === 'success') {
-        setCookie('session', response.data.session, { path: '/', secure: isSecureCookie });
-        setCookie('username', username, { path: '/', secure: isSecureCookie });
+        setUserLogin(username);
+        setJwtToken(response.data.accessToken);
+        setTokenExpiry(response.data.expiresAt);
         setRole(response.data.role);
+        setHasVisitedBefore(true);
         navigate('/home');
+        setPreviousLastLogin((response.data.previousLastLogin));
+
         const backendMessageKey = response.data.message;
         const translatedMessage = t(backendMessageKey);
-        setPreviousLastLogin((response.data.previousLastLogin));
+
         showSnackbar(translatedMessage, 'success');
       } else {
         const backendMessageKey = response.data.message;
@@ -64,53 +103,62 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      border={1}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        maxWidth: '300px',
-        margin: '0 auto',
-        p: 2,
-        gap: 2,
-      }}
-      noValidate
-      autoComplete="off"
-    >
-      <Typography variant="h5">Login Villa Anna Automation</Typography>
-      <TextField
-        label="Username"
-        variant="outlined"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        required
-        InputLabelProps={{
-          shrink: true,
-          style: { transition: "none" },
-        }}
-      />
-      <TextField
-        label="Password"
-        variant="outlined"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        InputLabelProps={{
-          shrink: true,
-          style: { transition: "none" },
-        }}
-      />
-      <LoadingButton
-        type="submit"
-        variant='contained'
-        loading={loginButtonLoading}
-      >
-        Login
-      </LoadingButton>
-    </Box>
+    <>
+      {isLoading ? (
+        <Grid container>
+          <LoadingSpinner />
+        </Grid>
+      ) : (
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          border={1}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            maxWidth: '300px',
+            margin: '0 auto',
+            p: 2,
+            gap: 2,
+          }}
+          noValidate
+          autoComplete="off"
+        >
+          <Typography variant="h5">Login Villa Anna Automation</Typography>
+          <TextField
+            label="Username"
+            variant="outlined"
+            spellCheck={false}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            InputLabelProps={{
+              shrink: true,
+              style: { transition: "none" },
+            }}
+          />
+          <TextField
+            label="Password"
+            variant="outlined"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            InputLabelProps={{
+              shrink: true,
+              style: { transition: "none" },
+            }}
+          />
+          <LoadingButton
+            type="submit"
+            variant='contained'
+            loading={loginButtonLoading}
+          >
+            Login
+          </LoadingButton>
+        </Box>
+      )}
+    </>
   );
 };
 

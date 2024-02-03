@@ -3,10 +3,6 @@ import { InfluxDB } from '@influxdata/influxdb-client';
 import * as envSwitcher from './envSwitcher';
 import * as vaultClient from './clients/vaultClient';
 import logger from './logger';
-import dotenv from 'dotenv';
-import path from 'path';
-
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 let openai: OpenAI | undefined;
 let influxDbClientAI: InfluxDB | undefined;
@@ -14,6 +10,7 @@ let influxDbClientAutomation: InfluxDB | undefined;
 let openaiApiKey: string | undefined;
 let influxDbTokenAI: string | undefined;
 let influxDbTokenAutomation: string | undefined;
+let jwtAccessTokenSecret: string | undefined;
 
 async function initializeOpenAIConfig(): Promise<void> {
     try {
@@ -109,11 +106,39 @@ async function getInfluxDbClientAutomation(): Promise<InfluxDB> {
     return influxDbClientAutomation;
 }
 
+async function initializeJwtConfig(): Promise<void> {
+    try {
+        await vaultClient.login();
+        const jwtSecretData = await vaultClient.getSecret('kv/data/automation/jsonwebtoken');
+        jwtAccessTokenSecret = jwtSecretData.data.JWT_ACCESS_TOKEN_SECRET;
+
+        if (!jwtAccessTokenSecret) {
+            throw new Error('Failed to retrieve JWT Access Token Secret from Vault.');
+        }
+    } catch (error) {
+        logger.error('Could not fetch JWT credentials from Vault', error);
+        throw error;
+    }
+}
+
+async function getJwtAccessTokenSecret(): Promise<string> {
+    if (!jwtAccessTokenSecret) {
+        await initializeJwtConfig();
+    }
+    if (!jwtAccessTokenSecret) {
+        logger.error('JWT Access Token Secret is not initialized');
+        throw new Error('JWT Access Token Secret is not initialized');
+    }
+    return jwtAccessTokenSecret;
+}
+
+
 export const vaultRoleId = process.env.VAULT_ROLE_ID!;
 export const vaultSecretId = process.env.VAULT_SECRET_ID!;
 
 export {
     getOpenAI,
     getInfluxDbClientAI,
-    getInfluxDbClientAutomation
+    getInfluxDbClientAutomation,
+    getJwtAccessTokenSecret
 };

@@ -1,51 +1,84 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { io, Socket } from 'socket.io-client';
-import { useCookies } from 'react-cookie';
+import axios from 'axios';
+import { useUserStore } from '../../utils/store';
+import useSnackbar from '../../utils/useSnackbar';
+import { useStableTranslation } from '../../utils/useStableTranslation';
+import { SocketProviderProps } from '../../types/types';
 
 export const SocketContext = createContext<{ socket: Socket | null; connected: boolean }>({
   socket: null,
   connected: false,
 });
-import { SocketProviderProps } from '../../types/types';
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
-    const [cookies] = useCookies(['session']);
-    const [socket, setSocket] = useState<Socket | null>(null);
-    const [connected, setConnected] = useState(false);
+  const { userLogin, role, setJwtToken, setTokenExpiry } = useUserStore();
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [connected, setConnected] = useState(false);
+  const { showSnackbar } = useSnackbar();
+  const showSnackbarRef = useRef(showSnackbar);
+  const stableTranslate = useStableTranslation();
 
-    const apiUrl = import.meta.env.VITE_API_URL.replace('/api', '');
+  const apiUrlOriginal = import.meta.env.VITE_API_URL;
+  const apiUrl = apiUrlOriginal.replace('/api', '');
 
-    useEffect(() => {
-        if (cookies.session) {  // Only establish a connection if session cookie is defined
-            const socketInstance: Socket = io(apiUrl, {
-                query: {
-                    session: cookies.session
-                }
-            });
-            setSocket(socketInstance);
+  const refreshTokenAndConnect = async () => {
+    try {
+      const refreshResponse = await axios.post(`${apiUrlOriginal}/refreshToken`, { username: userLogin, role });
+      if (refreshResponse.status === 200 && refreshResponse.data.accessToken) {
+        setJwtToken(refreshResponse.data.accessToken);
+        setTokenExpiry(refreshResponse.data.expiresAt);
 
-            // Event handlers to update the connected state
-            socketInstance.on('connect', () => {
-                setConnected(true);
-            });
-            socketInstance.on('disconnect', () => {
-                setConnected(false);
-            });
+        const newSocketInstance = io(apiUrl, {
+          auth: {
+            token: `Bearer ${refreshResponse.data.accessToken}`,
+          },
+        });
 
-            return () => {
-                socketInstance.disconnect();
-            };
-        }
-    }, [apiUrl, cookies.session]);
+        newSocketInstance.on('connect', () => {
+          setConnected(true);
+        });
 
-    return (
-        <SocketContext.Provider value={{ socket, connected }}>
-            {children}
-        </SocketContext.Provider>
-    );
+        newSocketInstance.on('disconnect', () => {
+          setConnected(false);
+        });
+
+        newSocketInstance.on('auth_error', () => {
+          refreshTokenAndConnect();
+        });
+
+        setSocket(newSocketInstance);
+      } else {
+        showSnackbarRef.current(stableTranslate('anUnexpectedErrorOccurred'), 'error');
+      }
+    } catch (error) {
+      showSnackbarRef.current(stableTranslate('anUnexpectedErrorOccurred'), 'error');
+      console.error('Failed to refresh token', error);
+    }
+  };
+
+  useEffect(() => {
+    refreshTokenAndConnect();
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, [userLogin, role]); // Removed jwtToken from dependencies to avoid re-triggering on token update
+
+  useEffect(() => {
+    showSnackbarRef.current = showSnackbar;
+  }, [showSnackbar]);
+
+  return (
+    <SocketContext.Provider value={{ socket, connected }}>
+      {children}
+    </SocketContext.Provider>
+  );
 };
 
 SocketProvider.propTypes = {
-    children: PropTypes.node.isRequired,
+  children: PropTypes.node.isRequired,
 };

@@ -86,5 +86,8 @@
     "zone": "Zone",
     "user": "Benutzer",
     "lastLogin": "Letzter Login",
-    "sessionExpired": "Sitzung abgelaufen, bitte melden Sie sich erneut an"
+    "sessionExpired": "Sitzung abgelaufen, bitte melden Sie sich erneut an",
+    "tokenMissing": "Kein Token, bitte melden Sie sich erneut an",
+    "invalidOrExpiredToken": "Ungültiger oder abgelaufener Token, bitte melden Sie sich erneut an",
+    "notLoggedIn": "Nicht eingeloggt"
 }

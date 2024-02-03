@@ -1,12 +1,11 @@
 import express from 'express';
 import { apiLimiter, loginLimiter } from '../middleware/rateLimiter';
 import authMiddleware from '../middleware/authMiddleware';
+import requiredRole from '../middleware/roleMiddleware';
 
-// Import the routers
 import loginRouter from './loginRoute';
 import mqttRouter from './mqttRoute';
 import simpleapiRouter from './simpleapiRoute';
-import sessionRouter from './sessionRoute';
 import schedulerRouter from './schedulerRoute';
 import scheduledTasksRouter from './scheduledTasksRoute';
 import switchTaskEnablerRouter from './switchTaskEnablerRoute';
@@ -18,24 +17,25 @@ import getSecretsRouter from './getSecretsRoute';
 import updateSecretsRouter from './updateSecretsRoute';
 import countdownRouter from './countdownRoute';
 import markiseStatusRouter from './markiseStatusRoute';
+import refreshTokenRouter from './refreshTokenRoute';
+import logoutRouter from './logoutRoute';
 
 const router = express.Router();
 
-// Configure the routes
 router.use('/login', loginLimiter, loginRouter);
-router.use('/session', apiLimiter, sessionRouter);
-router.use(apiLimiter, authMiddleware);
-router.use('/mqtt', mqttRouter);
-router.use('/simpleapi', simpleapiRouter);
-router.use('/scheduler', schedulerRouter);
-router.use('/scheduledTasks', scheduledTasksRouter);
-router.use('/switchTaskEnabler', switchTaskEnablerRouter);
-router.use('/getTaskEnabler', getTaskEnablerRouter);
-router.use('/getGptRequest', getGptRequestRouter);
-router.use('/updateGptRequest', updateGptRequestRouter);
-router.use('/deleteTask', deleteTaskRouter);
-router.use('/getSecrets', getSecretsRouter);
-router.use('/updateSecrets', updateSecretsRouter);
+router.use('/refreshToken', apiLimiter, refreshTokenRouter);
+router.use('/logout', apiLimiter, logoutRouter);
+router.use('/mqtt', apiLimiter, authMiddleware, mqttRouter);
+router.use('/simpleapi', apiLimiter, authMiddleware, simpleapiRouter);
+router.use('/scheduler', apiLimiter, authMiddleware, schedulerRouter);
+router.use('/scheduledTasks', apiLimiter, authMiddleware, scheduledTasksRouter);
+router.use('/switchTaskEnabler', apiLimiter, authMiddleware, switchTaskEnablerRouter);
+router.use('/getTaskEnabler', apiLimiter, authMiddleware, getTaskEnablerRouter);
+router.use('/getGptRequest', apiLimiter, [authMiddleware, requiredRole('admin')], getGptRequestRouter);
+router.use('/updateGptRequest', apiLimiter, [authMiddleware, requiredRole('admin')], updateGptRequestRouter);
+router.use('/deleteTask', apiLimiter, authMiddleware, deleteTaskRouter);
+router.use('/getSecrets', apiLimiter, [authMiddleware, requiredRole('admin')], getSecretsRouter);
+router.use('/updateSecrets', apiLimiter, [authMiddleware, requiredRole('admin')], updateSecretsRouter);
 router.use('/countdown', countdownRouter);
 router.use('/markiseStatus', markiseStatusRouter);
 

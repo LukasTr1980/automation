@@ -5,6 +5,9 @@ import crypto from 'crypto';
 import * as vaultClient from '../clients/vaultClient'; // Import your Vault client
 import logger from '../logger';
 import { updateLastLogin, getLastLogin } from '../utils/useLoginsModule';
+import jwt from 'jsonwebtoken';
+import { isSecureCookie } from '../envSwitcher';
+import { getJwtAccessTokenSecret } from '../configs';
 
 const router = express.Router();
 
@@ -38,18 +41,33 @@ router.post('/', async (req: express.Request, res: express.Response) => {
             return res.status(401).json({ status: 'error', message: 'incorrectUserOrPass' });
         }
 
-        const sessionId: string = crypto.randomBytes(16).toString('hex');
+        const jwtSecret = await getJwtAccessTokenSecret();
+        const expiresIn = 60;
+
+        const accessToken = jwt.sign({ username, role: userRole }, jwtSecret, { expiresIn });
+
+        const refreshToken = crypto.randomBytes(40).toString('hex');
 
         const redis = await connectToRedis();
-        const sessionData = JSON.stringify({ username, role: userRole })
-        await redis.set(`session:${sessionId}`, sessionData, 'EX', 86400);
+        const refreshTokenData = JSON.stringify({ refreshToken, userRole });
+        await redis.set(`refreshToken:${username}`, refreshTokenData, 'EX', 30 * 24 * 60 * 60);
+
+        const expirationTimestamp = Math.floor(Date.now() / 1000) + expiresIn;
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: isSecureCookie,
+            maxAge: 30 * 24 * 60 * 60,
+            sameSite: 'lax'
+
+        })
 
         const previousLastLogin = await getLastLogin(username);
 
         await updateLastLogin(username);
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
-        res.status(200).json({ status: 'success', session: sessionId, role: userRole, previousLastLogin: previousLastLogin, message: 'loggedIn' });
+        res.status(200).json({ status: 'success', accessToken, expiresAt: expirationTimestamp, role: userRole, previousLastLogin: previousLastLogin, message: 'loggedIn' });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);

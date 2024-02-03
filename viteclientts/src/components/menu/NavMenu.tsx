@@ -1,34 +1,28 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Button, AppBar, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import logo from '../../images/logo-192x192.png';
-import { useCookies } from 'react-cookie';
 import { useUserStore } from '../../utils/store';
-import { ExitToApp } from '@mui/icons-material';
-import useSnackbar from '../../utils/useSnackbar';
 import { useTranslation } from 'react-i18next';
+import LogoutButton from '../LogoutButton';
 
 const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-  const [cookies, , removeCookie] = useCookies(['username', 'session']);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const { role, setRole, setPreviousLastLogin } = useUserStore();
-  const navigate = useNavigate();
-  const isSecureCookie = import.meta.env.VITE_SECURE_COOKIE === 'true';
-  const { showSnackbar } = useSnackbar();
+  const { role, userLogin } = useUserStore();
   const { t } = useTranslation();
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
   };
 
-  const userInfoDisplay = cookies.username ? (
+  const userInfoDisplay = userLogin ? (
     <div style={{ marginLeft: 'auto', paddingRight: 2 }}>
       <Typography textTransform='capitalize'>
-        {t('user')}: <strong>{cookies.username}</strong>
+        {t('user')}: <strong>{userLogin}</strong>
       </Typography>
 
     </div>
@@ -75,16 +69,6 @@ const NavMenu: React.FC = () => {
       </List>
     </div>
   );
-
-  const handleLogout = () => {
-    removeCookie('session', { path: '/', secure: isSecureCookie });
-    removeCookie('username', { path: '/', secure: isSecureCookie });
-    setRole(null);
-    setPreviousLastLogin(null);
-    navigate('/login');
-    const translatedMessage = t('loggedOut');
-    showSnackbar(translatedMessage);
-  }
 
   return (
     <>
@@ -139,9 +123,7 @@ const NavMenu: React.FC = () => {
           )}
 
           {userInfoDisplay}
-          <IconButton edge='end' onClick={handleLogout} sx={{ color: 'white' }}>
-            <ExitToApp />
-          </IconButton>
+          <LogoutButton />
 
         </Toolbar>
       </AppBar>

@@ -1,84 +1,61 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useCookies } from 'react-cookie';
-import { Box, CircularProgress } from '@mui/material';
-import PropTypes from 'prop-types';
-import { AuthGuardProps } from '../types/types';
+import axios, { AxiosError } from 'axios';
+import { AuthGuardProps, ErrorResponse } from '../types/types';
 import { useUserStore } from '../utils/store';
 import useSnackbar from '../utils/useSnackbar';
 import { useStableTranslation } from '../utils/useStableTranslation';
+import LoadingSpinner from './LoadingSpinner';
 
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
-  const [cookies] = useCookies(['session']);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [shouldNavigate, setShouldNavigate] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { role } = useUserStore(); // Accessing role from Zustand store
+  const { jwtToken, role, setJwtToken, userLogin, setTokenExpiry } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const showSnackbarRef = useRef(showSnackbar);
-  const [isRoleChecking, setIsRoleChecking] = useState<boolean>(true);
   const stableTranslate = useStableTranslation();
 
-  useEffect(() => {
-    showSnackbarRef.current = showSnackbar;
-  }, [showSnackbar]);
+  const refreshToken = useCallback(async () => {
+    try {
+      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin, role });
 
-  useEffect(() => {
-    const checkSession = async () => {
-      if (!cookies.session) {
-        setIsAuthenticated(false);
-        setShouldNavigate(true);
-        const translatedMessage = stableTranslate('sessionExpired');
-        showSnackbarRef.current(translatedMessage, 'warning');
-        return;
+      if (response.status === 200 && response.data.accessToken) {
+        setJwtToken(response.data.accessToken);
+        setTokenExpiry(response.data.expiresAt);
+        setIsAuthenticated(true);
+        return true;
       }
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
 
-      setIsRoleChecking(true);
+      const backendMessageKey = axiosError.response?.data.message || 'unexpectedErrorOccurred';
+      const backendMessageSeverity = axiosError.response?.data.severity || 'error';
 
-      // Server-side validation
-      try {
-        const response = await axios.get(`${apiUrl}/session`, {
-          headers: {
-            'Authorization': `Bearer ${cookies.session}`
-          },
-          params: { requiredRole }
-        });
+      showSnackbarRef.current(stableTranslate ? stableTranslate(backendMessageKey) : backendMessageKey, backendMessageSeverity);
+      setIsAuthenticated(false);
+      setShouldNavigate(true);
+      return false;
+    }
+  }, [apiUrl, setJwtToken, userLogin, role, stableTranslate, setTokenExpiry]);
 
-        if (response.status === 200) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-          setShouldNavigate(true);
-        }
-        setIsRoleChecking(false);
-      } catch (error) {
-        setIsAuthenticated(false);
-        setShouldNavigate(true);
 
-        let errorMessage = stableTranslate('anUnexpectedErrorOccurred');
-        if (axios.isAxiosError(error) && error.response) {
-          if (error.response) {
-            const status = error.response.status;
-            if (status === 401 || status === 403) {
-              const backendMessageKey = error.response.data.message || 'anUnexpectedErrorOccurred';
-              const backendSeverity = error.response.data.severity;
-              const translatedMessage = stableTranslate(backendMessageKey);
-              showSnackbarRef.current(translatedMessage, backendSeverity);
-            }
-          } else {
-            errorMessage = stableTranslate('networkError');
-            showSnackbarRef.current(errorMessage, 'error');
-          }
+  useEffect(() => {
+    if (!jwtToken) {
+      refreshToken();
+    }
+  }, [jwtToken, refreshToken]);
 
-        }
-        setIsRoleChecking(false);
-      }
-    };
-
-    checkSession();
-  }, [cookies.session, apiUrl, role, requiredRole, stableTranslate]);
+  useEffect(() => {
+    if (jwtToken && (requiredRole && role !== requiredRole)) {
+      setIsAuthenticated(false);
+      setShouldNavigate(true);
+      showSnackbarRef.current(stableTranslate('forbiddenYouDontHavePermission'), 'warning');
+    } else if (jwtToken) {
+      setIsAuthenticated(true);
+    }
+  }, [jwtToken, role, requiredRole, stableTranslate, showSnackbar]);
 
   useEffect(() => {
     if (shouldNavigate) {
@@ -86,22 +63,19 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
     }
   }, [shouldNavigate, navigate]);
 
-  if (isAuthenticated === null || isRoleChecking) {
+  useEffect(() => {
+    showSnackbarRef.current = showSnackbar;
+  }, [showSnackbar]);
+
+  if (isAuthenticated === null) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress size={50} />
-      </Box>
+      <LoadingSpinner />
     );
-  } else if (isAuthenticated === true) {
+  } else if (isAuthenticated) {
     return children;
   } else {
     return null;
   }
-};
-
-AuthGuard.propTypes = {
-  children: PropTypes.node.isRequired,
-  requiredRole: PropTypes.string
 };
 
 export default AuthGuard;

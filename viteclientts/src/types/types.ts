@@ -168,10 +168,19 @@ export type SocketProviderProps = {
 };
 
 export interface UserState {
+    userLogin: string | null;
+    setUserLogin: (userLogin: string | null) => void;
     role: string | null;
     setRole: (role: string | null) => void;
     previousLastLogin: number | null;
     setPreviousLastLogin: (lastLogin: number | null) => void;
+    jwtToken: string | null;
+    setJwtToken: (token: string | null) => void;
+    clearJwtToken: () => void;
+    hasVisitedBefore: boolean | null;
+    setHasVisitedBefore: (hasVisited: boolean | null) => void;
+    tokenExpiry: number | null;
+    setTokenExpiry: (lastLogin: number | null) => void;
 }
 
 export type DaysOfWeekNumbers = {
@@ -183,3 +192,9 @@ export type MonthsNumbers = {
 }
 
 export type ConvertToGermanDateFunction = (unixTimeStamp: number | null) => string | null;
+
+
+export interface ErrorResponse {
+    message: string;
+    severity: AlertColor;
+  }

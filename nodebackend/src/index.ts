@@ -1,12 +1,14 @@
+//ATTENTION TO IMPORT ORDER, MAY BREAK APPLICATION
+import './dotenvConfig'; //To make env variables immediately available
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import cookie from 'cookie';
 import cors from 'cors';
 import path from 'path';
 import http from 'http';
+import { subscribeToRedisKey } from './clients/redisClient';
 import configureSocket from './socketConfig';
 import authMiddlewareSocket from './middleware/authMiddlewareSocket';
-import { subscribeToRedisKey } from './clients/redisClient';
 import { loadScheduledTasks } from './scheduler';
 import { apiLimiter } from './middleware/rateLimiter';
 import apiRouter from './routes/api';
@@ -22,7 +24,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowedOrigins = ['http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523'];
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy violation'));
+    }
+  },
+  credentials: true,
+}));
 app.use('/api', apiRouter);
 
 const httpServer = http.createServer(app);

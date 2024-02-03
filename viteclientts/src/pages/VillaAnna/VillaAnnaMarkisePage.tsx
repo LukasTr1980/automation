@@ -2,8 +2,7 @@ import { useContext, useEffect, useState, useCallback } from 'react';
 import { Typography, Grid, Card, CardHeader, CardContent, Box } from '@mui/material';
 import OnPressSwitchComponent from '../../components/OnPressSwitchComponent';
 import SchedulerCard from '../../components/SchedulerCard';
-import ScheduledTaskCard from '../../components/ScheduledTaskCard'; // Assuming you use this, as in the other page
-import { useCookies } from 'react-cookie';
+import ScheduledTaskCard from '../../components/ScheduledTaskCard';
 import axios from 'axios';
 import Layout from '../../Layout'
 import { SocketContext } from '../../components/socketio/SocketContext';
@@ -11,8 +10,10 @@ import SwitchComponent from '../../components/switchComponent';
 import useSnackbar from '../../utils/useSnackbar';
 import { MarkiseStatus, ScheduledTask, APIResponse } from '../../types/types';
 import { useTranslation } from 'react-i18next';
+import { useUserStore } from '../../utils/store';
 
 const MarkisePage = () => {
+    const { jwtToken } = useUserStore();
     const [markiseStatus, setMarkiseStatus] = useState<MarkiseStatus>({});
     const { socket, connected } = useContext(SocketContext);
     const [switchesLoaded, setSwitchesLoaded] = useState(false);
@@ -20,7 +21,6 @@ const MarkisePage = () => {
     const isLoading = !(switchesLoaded && tasksLoaded);
     const [markiseState, setMarkiseState] = useState(null);
     const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
-    const [cookies] = useCookies(['session']);
     const [reloadTasks, setReloadTasks] = useState(false);
     const customMarkiseLabels = { '1': "Ausfahren", '2': "Einfahren" };
     const apiUrl = import.meta.env.VITE_API_URL;
@@ -30,8 +30,7 @@ const MarkisePage = () => {
     const title = `Villa Anna ${t('awning')}`;
 
     useEffect(() => {
-        const sessionId = cookies.session;
-        const url = sessionId ? `${apiUrl}/mqtt?session=${sessionId}&checkIrrigation=false` : `${apiUrl}/mqtt?checkIrrigation=false`;
+        const url = jwtToken ? `${apiUrl}/mqtt?token=${jwtToken}&checkIrrigation=false` : `${apiUrl}/mqtt?checkIrrigation=false`;
         const eventSource = new EventSource(url);
 
         eventSource.onmessage = (event) => {
@@ -53,7 +52,7 @@ const MarkisePage = () => {
         return () => {
             eventSource.close();
         };
-    }, [cookies, apiUrl]);
+    }, [jwtToken, apiUrl]);
 
     useEffect(() => {
         axios.get<APIResponse>(`${apiUrl}/scheduledTasks`)

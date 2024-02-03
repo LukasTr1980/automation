@@ -17,6 +17,7 @@ interface Config {
     mongoDbHost: string;
     mosquittoUrl: string;
     vaultUrl: string;
+    isSecureCookie: boolean;
 }
 
 const devConfig: Config = {
@@ -26,7 +27,8 @@ const devConfig: Config = {
     redisHost: '10.25.159.4',
     mongoDbHost: '10.25.159.4:27017',
     mosquittoUrl: 'mqtt://10.25.159.4:1883',
-    vaultUrl: 'http://10.25.159.4:8200'
+    vaultUrl: 'http://10.25.159.4:8200',
+    isSecureCookie: false
 }
 
 const prodConfig: Config = {
@@ -36,7 +38,8 @@ const prodConfig: Config = {
     redisHost: 'redis_container',
     mongoDbHost: 'mongo_container:27017',
     mosquittoUrl: 'mqtt://mosquitto_container:1883',
-    vaultUrl: 'http://vault_container:8200'
+    vaultUrl: 'http://vault_container:8200',
+    isSecureCookie: true
 }
 
 const selectedConfig: Config = isDev ? devConfig : prodConfig;
@@ -48,7 +51,8 @@ export const {
     redisHost,
     mongoDbHost,
     mosquittoUrl,
-    vaultUrl
+    vaultUrl,
+    isSecureCookie
 } = selectedConfig;
 
 export { isDev };

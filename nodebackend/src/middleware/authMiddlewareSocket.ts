@@ -1,32 +1,34 @@
-import { connectToRedis } from '../clients/redisClient';
-import logger from '../logger'; // Import your logger
 import { Socket } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import logger from '../logger';
+import { getJwtAccessTokenSecret } from '../configs';
 
 const authMiddlewareSocket = async (socket: Socket, next: (err?: Error) => void) => {
   try {
     const authHeader = socket.handshake.headers['authorization'];
-    let sessionId = authHeader && authHeader.split(' ')[1];
+    let token = authHeader && authHeader.split(' ')[1];
 
-    if (!sessionId) {
-      // Try getting sessionId from query parameters
-      sessionId = socket.handshake.query.session as string;
+    if (!token) {
+      token = socket.handshake.auth.token;
+      if (token && token.startsWith('Bearer ')) {
+        token = token.slice(7, token.length);
+      }
     }
 
-    if (!sessionId) {
-      logger.warn('Socket authentication failed: No session ID provided');
-      return next(new Error('Authentication error: No session ID'));
+    if (!token) {
+      logger.warn('Socket authentication failed: No JWT token provided');
+      return next(new Error('Authentication error: No JWT token'));
     }
 
-    const redis = await connectToRedis();
-    const session = await redis.get(`session:${sessionId}`);
-
-    if (!session) {
-      logger.warn(`Socket authentication failed: Invalid session ID [${sessionId}]`);
-      return next(new Error('Authentication error: Invalid session ID'));
-    }
-
-    // if session is valid, proceed to next middleware or connection handler
-    next();
+    const jwtSecret = await getJwtAccessTokenSecret();
+    jwt.verify(token, jwtSecret, (err) => {
+      if (err) {
+        logger.warn(`Socket authentication failed: Invalid JWT token`);
+        socket.emit('auth_error', 'Authentication error: Invalid JWT token');
+        return next(new Error('Authentication error: Invalid JWT token'));
+      }
+      next();
+    });
   } catch (error) {
     if (error instanceof Error) {
       logger.error(`Socket authentication error: ${error.message}`);

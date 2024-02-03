@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useCookies } from 'react-cookie';
 import SwitchComponent from '../../components/switchComponent';
 import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
@@ -23,8 +22,10 @@ import Tab from '@mui/material/Tab';
 import SkeletonLoader from '../../components/skeleton';
 import { useTranslation } from 'react-i18next';
 import DialogFullScreen from '../../components/DialogFullScreen';
+import { useUserStore } from '../../utils/store';
 
 const BewaesserungPage = () => {
+  const { jwtToken } = useUserStore();
   const [aiLoading, setAiLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [switchesLoading, setSwitchesLoading] = useState(true);
@@ -32,7 +33,6 @@ const BewaesserungPage = () => {
   const [switches, setSwitches] = useState([false, false, false, false, false]);
   const [irrigationNeededSwitch, setirrigationNeededSwitch] = useState(false);
   const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
-  const [cookies] = useCookies(['session']);
   const [orderedTasks, setOrderedTasks] = useState<GroupedTasks>({});
   const [reloadTasks, setReloadTasks] = useState(false);
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -45,8 +45,7 @@ const BewaesserungPage = () => {
   const title = `Villa Anna ${t('irrigation')}`;
 
   useEffect(() => {
-    const sessionId = cookies.session;
-    const url = sessionId ? `${apiUrl}/mqtt?session=${sessionId}` : `${apiUrl}/mqtt`;
+    const url = jwtToken ? `${apiUrl}/mqtt?token=${jwtToken}` : `${apiUrl}/mqtt`;
     const eventSource = new EventSource(url);
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -72,7 +71,7 @@ const BewaesserungPage = () => {
     return () => {
       eventSource.close();
     };
-  }, [cookies, apiUrl]);
+  }, [jwtToken, apiUrl]);
 
   useEffect(() => {
     axios.get<APIResponse>(`${apiUrl}/scheduledTasks`)
