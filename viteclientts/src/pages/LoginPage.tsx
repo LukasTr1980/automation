@@ -74,8 +74,8 @@ const LoginForm: React.FC = () => {
         setJwtToken(response.data.accessToken);
         setTokenExpiry(response.data.expiresAt);
         setHasVisitedBefore(true);
-        navigate('/home');
         setPreviousLastLogin((response.data.previousLastLogin));
+        navigate('/home');
 
         const backendMessageKey = response.data.message;
         const translatedMessage = t(backendMessageKey);

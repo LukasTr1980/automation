@@ -74,7 +74,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         await updateLastLogin(username);
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
-        res.status(200).json({ status: 'success', accessToken, expiresAt: expirationTimestamp, role: userRole, previousLastLogin: previousLastLogin, message: 'loggedIn' });
+        res.status(200).json({ status: 'success', accessToken, expiresAt: expirationTimestamp, previousLastLogin: previousLastLogin, message: 'loggedIn' });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);

@@ -40,9 +40,8 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
         return res.status(401).send("Authentication failed: Invalid token");
       }
 
-      // Attach user details to the request object
       const payload = decoded as TokenPayload;
-      req.user = payload; // This now includes username and role
+      req.user = payload; 
 
       next();
     });
