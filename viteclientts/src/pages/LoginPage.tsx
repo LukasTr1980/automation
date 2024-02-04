@@ -11,7 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const { setRole, setPreviousLastLogin, setJwtToken, setUserLogin, jwtToken, role, userLogin, hasVisitedBefore, setHasVisitedBefore, setTokenExpiry } = useUserStore();
+  const { setPreviousLastLogin, setJwtToken, setUserLogin, jwtToken, userLogin, hasVisitedBefore, setHasVisitedBefore, setTokenExpiry } = useUserStore();
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
@@ -21,7 +21,7 @@ const LoginForm: React.FC = () => {
 
   const refreshToken = useCallback(async () => {
     try {
-      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin, role });
+      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
       if (response.status === 200 && response.data.accessToken) {
         setJwtToken(response.data.accessToken);
         setTokenExpiry(response.data.expiresAt);
@@ -32,7 +32,7 @@ const LoginForm: React.FC = () => {
       //Intentionally not handling error
     }
     setIsLoading(false);
-  }, [apiUrl, setJwtToken, navigate, role, userLogin, setTokenExpiry]);
+  }, [apiUrl, setJwtToken, navigate, userLogin, setTokenExpiry]);
 
   useEffect(() => {
     let isMounted = true;
@@ -73,7 +73,6 @@ const LoginForm: React.FC = () => {
         setUserLogin(username);
         setJwtToken(response.data.accessToken);
         setTokenExpiry(response.data.expiresAt);
-        setRole(response.data.role);
         setHasVisitedBefore(true);
         navigate('/home');
         setPreviousLastLogin((response.data.previousLastLogin));

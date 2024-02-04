@@ -62,6 +62,13 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         })
 
+        res.cookie('role', userRole, {
+            httpOnly: true,
+            secure: isSecureCookie,
+            maxAge: 30 * 24 * 60 * 60,
+            sameSite: 'lax'
+        });
+
         const previousLastLogin = await getLastLogin(username);
 
         await updateLastLogin(username);

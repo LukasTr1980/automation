@@ -14,9 +14,10 @@ interface StoredData {
 const router = express.Router();
 
 router.post('/', async (req, res) => {
-    const { username, role } = req.body;
+    const { username } = req.body;
 
     const refreshTokenFromBody = req.cookies.refreshToken;
+    const role = req.cookies.role;
 
     if (!username || !role || !refreshTokenFromBody) {
         logger.error('Username and refresh token are required');
@@ -64,8 +65,14 @@ router.post('/', async (req, res) => {
             secure: isSecureCookie,
             maxAge: 30 * 24 * 60 * 60,
             sameSite: 'lax'
+        });
 
-        })
+        res.cookie('role', storedData.userRole, {
+            httpOnly: true,
+            secure: isSecureCookie,
+            maxAge: 30 * 24 * 60 * 60,
+            sameSite: 'lax'
+        });
 
         res.json({ 
             status: 'success', 

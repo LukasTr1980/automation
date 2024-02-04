@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified user authentication flow: 'Last Login' information is now stored in the browser's localStorage.
 - Completly refactored the authentication mechanism in the app by replacing sessions with JWT Tokens
 - Countdown expiry displayed in red
+- Userrole now handled through cookie and not in localstorage
 
 ### Fixed
 - A lot of authentication errors fixed and misbehaviour

@@ -12,7 +12,7 @@ const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const { role, userLogin } = useUserStore();
+  const { userLogin } = useUserStore();
   const { t } = useTranslation();
 
   const handleDrawerToggle = (): void => {
@@ -53,7 +53,7 @@ const NavMenu: React.FC = () => {
         {[
           { text: 'Home', path: '/home' },
           { text: 'Villa Anna', path: '/villa-anna/home' },
-          ...(role === 'admin' ? [{ text: t('settings'), path: '/settings' }] : [])
+          ...(userLogin === 'admin' ? [{ text: t('settings'), path: '/settings' }] : [])
         ].map(({ text, path }) => {
           return (
             <ListItemButton
@@ -110,7 +110,7 @@ const NavMenu: React.FC = () => {
               >
                 Villa Anna
               </Button>
-              {role === 'admin' && (
+              {userLogin === 'admin' && (
                 <Button
                   sx={{ color: 'white', '&:hover': { backgroundColor: '#1871CA', color: 'white' } }}
                   component={NavLink}

@@ -170,8 +170,6 @@ export type SocketProviderProps = {
 export interface UserState {
     userLogin: string | null;
     setUserLogin: (userLogin: string | null) => void;
-    role: string | null;
-    setRole: (role: string | null) => void;
     previousLastLogin: number | null;
     setPreviousLastLogin: (lastLogin: number | null) => void;
     jwtToken: string | null;

@@ -7,7 +7,7 @@ import { useUserStore } from '../utils/store';
 import { useTranslation } from 'react-i18next';
 
 const HomePage: React.FC = () => {
-  const { role } = useUserStore();
+  const { userLogin } = useUserStore();
   const { t } = useTranslation();
 
   return (
@@ -31,7 +31,7 @@ const HomePage: React.FC = () => {
             </Card>
           </RouterLink>
         </Grid>
-        {role === 'admin' && (
+        {userLogin === 'admin' && (
         <Grid item>
           <RouterLink to="/settings" style={{ textDecoration: 'none' }}>
             <Card sx={{ maxWidth: '200px' }} variant='outlined'>

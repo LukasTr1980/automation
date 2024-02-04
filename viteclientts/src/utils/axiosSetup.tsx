@@ -20,12 +20,11 @@ axios.interceptors.response.use(response => response, async (error) => {
         originalRequest._retry = true; 
 
         const apiUrl = import.meta.env.VITE_API_URL;
-        const { userLogin, role } = useUserStore.getState();
+        const { userLogin } = useUserStore.getState();
 
         try {
             const refreshResponse = await axios.post(`${apiUrl}/refreshToken`, {
                 username: userLogin,
-                role: role,
             });
 
             if (refreshResponse.status === 200 && refreshResponse.data.accessToken) {

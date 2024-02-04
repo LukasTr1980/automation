@@ -3,7 +3,6 @@ import { UserState } from '../types/types';
 
 const useUserStore = create<UserState>((set) => ({
     userLogin: localStorage.getItem('userLogin'),
-    role: localStorage.getItem('userRole'),
     previousLastLogin: localStorage.getItem('userLastLogin') ? Number(localStorage.getItem('userLastLogin')) : null,
     jwtToken: null,
     hasVisitedBefore: localStorage.getItem('hasVisitedBefore') === 'true',
@@ -16,15 +15,6 @@ const useUserStore = create<UserState>((set) => ({
             localStorage.setItem('userLogin', userLogin);
         }
         set({ userLogin });
-    },
-
-    setRole: (role: string | null) => {
-        if (role === null) {
-            localStorage.removeItem('userRole');
-        } else {
-            localStorage.setItem('userRole', role);
-        }
-        set({ role });
     },
     setPreviousLastLogin: (lastLogin: number | null) => {
         if (lastLogin === null) {

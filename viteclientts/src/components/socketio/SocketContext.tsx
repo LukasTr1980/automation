@@ -13,7 +13,7 @@ export const SocketContext = createContext<{ socket: Socket | null; connected: b
 });
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
-  const { userLogin, role, setJwtToken, setTokenExpiry } = useUserStore();
+  const { userLogin, setJwtToken, setTokenExpiry } = useUserStore();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -25,7 +25,7 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
 
   const refreshTokenAndConnect = async () => {
     try {
-      const refreshResponse = await axios.post(`${apiUrlOriginal}/refreshToken`, { username: userLogin, role });
+      const refreshResponse = await axios.post(`${apiUrlOriginal}/refreshToken`, { username: userLogin });
       if (refreshResponse.status === 200 && refreshResponse.data.accessToken) {
         setJwtToken(refreshResponse.data.accessToken);
         setTokenExpiry(refreshResponse.data.expiresAt);
@@ -66,7 +66,7 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
         socket.disconnect();
       }
     };
-  }, [userLogin, role]); // Removed jwtToken from dependencies to avoid re-triggering on token update
+  }, [userLogin]); // Removed jwtToken from dependencies to avoid re-triggering on token update
 
   useEffect(() => {
     showSnackbarRef.current = showSnackbar;

@@ -11,6 +11,13 @@ router.post('/', (req: express.Request, res: express.Response) => {
         sameSite: 'lax'
     });
 
+    res.cookie('role', '', {
+        httpOnly: true,
+        expires: new Date(0),
+        secure: isSecureCookie,
+        sameSite: 'lax'
+    });
+
     res.status(200).send('loggedOut');
 });
 

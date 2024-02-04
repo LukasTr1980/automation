@@ -7,7 +7,7 @@ import { useUserStore } from '../utils/store';
 
 const LogoutButton: React.FC = () => {
   const navigate = useNavigate();
-  const { setUserLogin, clearJwtToken, setRole, setPreviousLastLogin, setHasVisitedBefore } = useUserStore();
+  const { setUserLogin, clearJwtToken, setPreviousLastLogin, setHasVisitedBefore } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleLogout = async () => {
@@ -15,7 +15,6 @@ const LogoutButton: React.FC = () => {
       await axios.post(`${apiUrl}/logout`, {});
       setUserLogin(null);
       clearJwtToken();
-      setRole(null);
       setPreviousLastLogin(null);
       setHasVisitedBefore(null);
       navigate('/login');

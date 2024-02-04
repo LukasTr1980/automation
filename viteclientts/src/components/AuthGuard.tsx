@@ -11,7 +11,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [shouldNavigate, setShouldNavigate] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { jwtToken, role, setJwtToken, userLogin, setTokenExpiry } = useUserStore();
+  const { jwtToken, setJwtToken, userLogin, setTokenExpiry } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const showSnackbarRef = useRef(showSnackbar);
@@ -19,7 +19,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
 
   const refreshToken = useCallback(async () => {
     try {
-      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin, role });
+      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
 
       if (response.status === 200 && response.data.accessToken) {
         setJwtToken(response.data.accessToken);
@@ -38,7 +38,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
       setShouldNavigate(true);
       return false;
     }
-  }, [apiUrl, setJwtToken, userLogin, role, stableTranslate, setTokenExpiry]);
+  }, [apiUrl, setJwtToken, userLogin, stableTranslate, setTokenExpiry]);
 
   const verifyTokenAndRole = useCallback(async () => {
     if (!jwtToken) {
@@ -76,16 +76,6 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
       refreshToken();
     }
   }, [jwtToken, refreshToken]);
-
-  useEffect(() => {
-    if (jwtToken && (requiredRole && role !== requiredRole)) {
-      setIsAuthenticated(false);
-      setShouldNavigate(true);
-      showSnackbarRef.current(stableTranslate('forbiddenYouDontHavePermission'), 'warning');
-    } else if (jwtToken) {
-      setIsAuthenticated(true);
-    }
-  }, [jwtToken, role, requiredRole, stableTranslate, showSnackbar]);
 
   useEffect(() => {
     if (shouldNavigate) {
