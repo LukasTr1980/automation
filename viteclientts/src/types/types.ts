@@ -197,4 +197,9 @@ export type ConvertToGermanDateFunction = (unixTimeStamp: number | null) => stri
 export interface ErrorResponse {
     message: string;
     severity: AlertColor;
-  }
+}
+
+export type TokenExpiryCountdown = {
+    value: string;
+    expired: boolean;
+}

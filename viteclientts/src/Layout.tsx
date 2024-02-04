@@ -26,10 +26,11 @@ const Layout: React.FC<LayoutProps> = ({
 }) => {
   const { previousLastLogin, role } = useUserStore();
   const germanDate = convertToGermanDate(previousLastLogin);
-  const countdown = useCountdown();
+  const { value: countdownTime, expired } = useCountdown();
   const { t } = useTranslation();
 
   const containerPaddingBottom = role === 'admin' ? '90px' : '70px';
+  const countdownDisplay = expired ? t('expired') : countdownTime;
 
   return (
     <>
@@ -84,8 +85,8 @@ const Layout: React.FC<LayoutProps> = ({
         {t('lastLogin')}: {germanDate}
     </Typography>
     {role === 'admin' &&
-    <Typography variant='body2' color='black' fontWeight='bold'>
-      {t('tokenExpiresIn')}: {countdown}
+    <Typography variant='body2' color='black' fontWeight='bold' style={{ color: expired ? 'red' : 'inherit' }}>
+      {t('tokenExpiresIn')}: {countdownDisplay}
     </Typography>
      }
       </div>

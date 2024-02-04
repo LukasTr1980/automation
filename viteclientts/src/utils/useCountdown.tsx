@@ -1,13 +1,13 @@
-// File: useCountdown.js
 import { useState, useEffect } from 'react';
 import { useUserStore } from './store';
+import { TokenExpiryCountdown } from '../types/types';
 
 const useCountdown = () => {
   const tokenExpiry = useUserStore(state => state.tokenExpiry);
-  const [timeLeft, setTimeLeft] = useState('');
+  const [timeLeft, setTimeLeft] = useState<TokenExpiryCountdown>({ value: '', expired: false });
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
+    const calculateTimeLeft = (): TokenExpiryCountdown => {
       const now = Date.now();
       const expiryTime = tokenExpiry ? tokenExpiry * 1000 : 0; // Convert to milliseconds
       const difference = expiryTime - now;
@@ -16,9 +16,12 @@ const useCountdown = () => {
         const hours = Math.floor(difference / (1000 * 60 * 60));
         const minutes = Math.floor((difference / (1000 * 60)) % 60);
         const seconds = Math.floor((difference / 1000) % 60);
-        return `${hours}h ${minutes}m ${seconds}s`;
+        return {
+          value: `${hours}h ${minutes}m ${seconds}s`,
+          expired: false
+        };
       } else {
-        return 'Expired';
+        return { value: 'Expired', expired: true };
       }
     };
 
