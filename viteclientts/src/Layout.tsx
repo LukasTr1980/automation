@@ -78,17 +78,20 @@ const Layout: React.FC<LayoutProps> = ({
         padding: '10px 0',
         backgroundColor: 'whitesmoke',
       }}>
-    <Typography variant='body2' color='black' fontWeight='bold'>
-        Version: {appVersion}
-    </Typography>
-    <Typography variant='body2' color='black' fontWeight='bold'>
-        {t('lastLogin')}: {germanDate}
-    </Typography>
-    {userLogin === 'admin' &&
-    <Typography variant='body2' color='black' fontWeight='bold' style={{ color: expired ? 'red' : 'inherit' }}>
-      {t('tokenExpiresIn')}: {countdownDisplay}
-    </Typography>
-     }
+        <Typography variant='body2' color='black' fontWeight='bold'>
+          Version: {appVersion}
+        </Typography>
+        <Typography variant='body2' color='black' fontWeight='bold'>
+          {t('lastLogin')}: {germanDate}
+        </Typography>
+        {userLogin === 'admin' &&
+          <Typography variant='body2' color='black' fontWeight='bold'>
+            {t('tokenExpiresIn')}:&nbsp;
+            <span style={{ color: expired ? 'red' : 'inherit' }}>
+              {countdownDisplay}
+            </span>
+          </Typography>
+        }
       </div>
     </>
   );

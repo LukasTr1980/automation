@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Userrole now handled through cookie and not in localstorage
 - Removed some comments and changed order of some codelines
 - Refactored `AuthGuard` component
+- Now only expired text in `Layout` is red
 
 ### Fixed
 - A lot of authentication errors fixed and misbehaviour
