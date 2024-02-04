@@ -1,101 +1,60 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios, { AxiosError } from 'axios';
-import { AuthGuardProps, ErrorResponse } from '../types/types';
+import axios from 'axios';
+import { AuthGuardProps } from '../types/types';
 import { useUserStore } from '../utils/store';
+import LoadingSpinner from './LoadingSpinner';
 import useSnackbar from '../utils/useSnackbar';
 import { useStableTranslation } from '../utils/useStableTranslation';
-import LoadingSpinner from './LoadingSpinner';
 
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [shouldNavigate, setShouldNavigate] = useState<boolean>(false);
+  const [isChecking, setIsChecking] = useState(true); // State to manage loading status
   const navigate = useNavigate();
   const { jwtToken, setJwtToken, userLogin, setTokenExpiry } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
-  const showSnackbarRef = useRef(showSnackbar);
   const stableTranslate = useStableTranslation();
 
-  const refreshToken = useCallback(async () => {
-    try {
-      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
-
-      if (response.status === 200 && response.data.accessToken) {
-        setJwtToken(response.data.accessToken);
-        setTokenExpiry(response.data.expiresAt);
-        setIsAuthenticated(true);
-        return true;
+  useEffect(() => {
+    const verifyAuthentication = async () => {
+      if (!jwtToken) {
+        // Attempt to refresh the token if not present
+        try {
+          const refreshTokenResponse = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
+          if (refreshTokenResponse.status === 200 && refreshTokenResponse.data.accessToken) {
+            setJwtToken(refreshTokenResponse.data.accessToken);
+            setTokenExpiry(refreshTokenResponse.data.expiresAt);
+          } else {
+            throw new Error('Failed to refresh token');
+          }
+        } catch (error) {
+          showSnackbar(stableTranslate('invalidOrExpiredToken'), 'warning');
+          navigate('/login');
+          return;
+        }
       }
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
 
-      const backendMessageKey = axiosError.response?.data.message || 'unexpectedErrorOccurred';
-      const backendMessageSeverity = axiosError.response?.data.severity || 'error';
-
-      showSnackbarRef.current(stableTranslate ? stableTranslate(backendMessageKey) : backendMessageKey, backendMessageSeverity);
-      setIsAuthenticated(false);
-      setShouldNavigate(true);
-      return false;
-    }
-  }, [apiUrl, setJwtToken, userLogin, stableTranslate, setTokenExpiry]);
-
-  const verifyTokenAndRole = useCallback(async () => {
-    if (!jwtToken) {
-      return;
-    }
-
-    try {
-      const response = await axios.post(`${apiUrl}/verifyToken`, { requiredRole });
-
-      if (response.status === 200) {
-        setIsAuthenticated(true);
-        setShouldNavigate(false);
-
-      } else {
-        setIsAuthenticated(false);
-        setShouldNavigate(true);
-        showSnackbarRef.current(stableTranslate('forbiddenYouDontHavePermission'), 'warning');
+      try {
+        const verifyResponse = await axios.post(`${apiUrl}/verifyToken`, { requiredRole });
+        if (verifyResponse.status === 200) {
+          setIsChecking(false); 
+        } else {
+          throw new Error('Unauthorized');
+        }
+      } catch (error) {
+        showSnackbar(stableTranslate('forbiddenYouDontHavePermission'), 'warning');
+        navigate('/login');
       }
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      const backendMessageKey = axiosError.response?.data.message || 'unexpectedErrorOccurred';
-      const backendMessageSeverity = axiosError.response?.data.severity || 'error';
-      showSnackbarRef.current(stableTranslate ? stableTranslate(backendMessageKey) : backendMessageKey, backendMessageSeverity);
-      setIsAuthenticated(false);
-      setShouldNavigate(true);
-    }
-  }, [apiUrl, jwtToken, requiredRole, stableTranslate]);
+    };
 
-  useEffect(() => {
-    verifyTokenAndRole();
-  }, [jwtToken, verifyTokenAndRole]);
+    verifyAuthentication();
+  }, [apiUrl, jwtToken, navigate, requiredRole, setJwtToken, setTokenExpiry, userLogin, stableTranslate, showSnackbar]);
 
-  useEffect(() => {
-    if (!jwtToken) {
-      refreshToken();
-    }
-  }, [jwtToken, refreshToken]);
-
-  useEffect(() => {
-    if (shouldNavigate) {
-      navigate('/login');
-    }
-  }, [shouldNavigate, navigate]);
-
-  useEffect(() => {
-    showSnackbarRef.current = showSnackbar;
-  }, [showSnackbar]);
-
-  if (isAuthenticated === null) {
-    return (
-      <LoadingSpinner />
-    );
-  } else if (isAuthenticated) {
-    return children;
-  } else {
-    return null;
+  if (isChecking) {
+    return <LoadingSpinner />;
   }
+
+  return <>{children}</>;
 };
 
 export default AuthGuard;
