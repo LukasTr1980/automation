@@ -7,6 +7,7 @@ const useUserStore = create<UserState>((set) => ({
     jwtToken: null,
     hasVisitedBefore: localStorage.getItem('hasVisitedBefore') === 'true',
     tokenExpiry: null,
+    logoutInProgress: false,
 
     setUserLogin: (userLogin: string | null) => {
         if (userLogin === null) {
@@ -41,6 +42,9 @@ const useUserStore = create<UserState>((set) => ({
     setTokenExpiry: (expiry: number | null) => {
         set({ tokenExpiry: expiry });
     },
+    setLogoutInProgress: (inProgress: boolean) => {
+        set({ logoutInProgress: inProgress })
+    }
 }));
 
 export { useUserStore };

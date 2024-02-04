@@ -13,7 +13,7 @@ export const SocketContext = createContext<{ socket: Socket | null; connected: b
 });
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
-  const { userLogin, setJwtToken, setTokenExpiry } = useUserStore();
+  const { userLogin, setJwtToken, setTokenExpiry, logoutInProgress } = useUserStore();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -24,6 +24,10 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
   const apiUrl = apiUrlOriginal.replace('/api', '');
 
   const refreshTokenAndConnect = async () => {
+    if (logoutInProgress) {
+      return;
+    }
+    
     try {
       const refreshResponse = await axios.post(`${apiUrlOriginal}/refreshToken`, { username: userLogin });
       if (refreshResponse.status === 200 && refreshResponse.data.accessToken) {

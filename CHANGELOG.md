@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Display of Tokenexpiry on frontend when admin
+- Added new state in userstore for logout in progress
 
 ### Changed
 - Added severity level to backend messages for improved clarity.
@@ -20,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed some comments and changed order of some codelines
 - Refactored `AuthGuard` component
 - Now only expired text in `Layout` is red
+
+### Removed
+- Removed react-cookie and jwtdecoder as dependencies because not needed
 
 ### Fixed
 - A lot of authentication errors fixed and misbehaviour

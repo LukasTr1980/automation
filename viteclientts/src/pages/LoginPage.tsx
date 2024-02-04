@@ -11,7 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const { setPreviousLastLogin, setJwtToken, setUserLogin, jwtToken, userLogin, hasVisitedBefore, setHasVisitedBefore, setTokenExpiry } = useUserStore();
+  const { setPreviousLastLogin, setJwtToken, setUserLogin, jwtToken, userLogin, hasVisitedBefore, setHasVisitedBefore, setTokenExpiry, setLogoutInProgress } = useUserStore();
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
@@ -104,6 +104,10 @@ const LoginForm: React.FC = () => {
     }
     setLoginButtonLoading(false);
   };
+
+  useEffect(() => {
+    setLogoutInProgress(false);
+  }, []);
 
   return (
     <>

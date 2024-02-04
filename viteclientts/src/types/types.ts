@@ -179,6 +179,8 @@ export interface UserState {
     setHasVisitedBefore: (hasVisited: boolean | null) => void;
     tokenExpiry: number | null;
     setTokenExpiry: (lastLogin: number | null) => void;
+    logoutInProgress: boolean;
+    setLogoutInProgress: (inProgress: boolean) => void;
 }
 
 export type DaysOfWeekNumbers = {

@@ -10,15 +10,18 @@ import { useStableTranslation } from '../utils/useStableTranslation';
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
   const [isChecking, setIsChecking] = useState(true); // State to manage loading status
   const navigate = useNavigate();
-  const { jwtToken, setJwtToken, userLogin, setTokenExpiry } = useUserStore();
+  const { jwtToken, setJwtToken, userLogin, setTokenExpiry, logoutInProgress } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const stableTranslate = useStableTranslation();
 
   useEffect(() => {
     const verifyAuthentication = async () => {
+      if (logoutInProgress) {
+        return;
+      }
+
       if (!jwtToken) {
-        // Attempt to refresh the token if not present
         try {
           const refreshTokenResponse = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
           if (refreshTokenResponse.status === 200 && refreshTokenResponse.data.accessToken) {
@@ -37,7 +40,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
       try {
         const verifyResponse = await axios.post(`${apiUrl}/verifyToken`, { requiredRole });
         if (verifyResponse.status === 200) {
-          setIsChecking(false); 
+          setIsChecking(false);
         } else {
           throw new Error('Unauthorized');
         }
@@ -48,7 +51,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
     };
 
     verifyAuthentication();
-  }, [apiUrl, jwtToken, navigate, requiredRole, setJwtToken, setTokenExpiry, userLogin, stableTranslate, showSnackbar]);
+  }, [apiUrl, jwtToken, navigate, requiredRole, setJwtToken, setTokenExpiry, userLogin, stableTranslate, showSnackbar, logoutInProgress]);
 
   if (isChecking) {
     return <LoadingSpinner />;
