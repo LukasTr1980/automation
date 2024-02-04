@@ -91,5 +91,6 @@
     "invalidOrExpiredToken": "Invalid or expired Token, please log in again",
     "notLoggedIn": "Not logged in",
     "tokenExpiresIn": "Token expires in",
-    "expired": "expired"
+    "expired": "expired",
+    "validToken": "Valid Token"
 }

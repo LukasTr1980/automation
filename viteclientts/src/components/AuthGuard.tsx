@@ -40,6 +40,36 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
     }
   }, [apiUrl, setJwtToken, userLogin, role, stableTranslate, setTokenExpiry]);
 
+  const verifyTokenAndRole = useCallback(async () => {
+    if (!jwtToken) {
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${apiUrl}/verifyToken`, { requiredRole });
+
+      if (response.status === 200) {
+        setIsAuthenticated(true);
+        setShouldNavigate(false);
+
+      } else {
+        setIsAuthenticated(false);
+        setShouldNavigate(true);
+        showSnackbarRef.current(stableTranslate('forbiddenYouDontHavePermission'), 'warning');
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      const backendMessageKey = axiosError.response?.data.message || 'unexpectedErrorOccurred';
+      const backendMessageSeverity = axiosError.response?.data.severity || 'error';
+      showSnackbarRef.current(stableTranslate ? stableTranslate(backendMessageKey) : backendMessageKey, backendMessageSeverity);
+      setIsAuthenticated(false);
+      setShouldNavigate(true);
+    }
+  }, [apiUrl, jwtToken, requiredRole, stableTranslate]);
+
+  useEffect(() => {
+    verifyTokenAndRole();
+  }, [jwtToken, verifyTokenAndRole]);
 
   useEffect(() => {
     if (!jwtToken) {

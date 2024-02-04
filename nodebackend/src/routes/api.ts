@@ -19,11 +19,13 @@ import countdownRouter from './countdownRoute';
 import markiseStatusRouter from './markiseStatusRoute';
 import refreshTokenRouter from './refreshTokenRoute';
 import logoutRouter from './logoutRoute';
+import verifyTokenRouter from './verifyTokenRoute';
 
 const router = express.Router();
 
 router.use('/login', loginLimiter, loginRouter);
 router.use('/refreshToken', apiLimiter, refreshTokenRouter);
+router.use('/verifyToken', apiLimiter, verifyTokenRouter);
 router.use('/logout', apiLimiter, logoutRouter);
 router.use('/mqtt', apiLimiter, authMiddleware, mqttRouter);
 router.use('/simpleapi', apiLimiter, authMiddleware, simpleapiRouter);
@@ -36,7 +38,7 @@ router.use('/updateGptRequest', apiLimiter, [authMiddleware, requiredRole('admin
 router.use('/deleteTask', apiLimiter, authMiddleware, deleteTaskRouter);
 router.use('/getSecrets', apiLimiter, [authMiddleware, requiredRole('admin')], getSecretsRouter);
 router.use('/updateSecrets', apiLimiter, [authMiddleware, requiredRole('admin')], updateSecretsRouter);
-router.use('/countdown', countdownRouter);
-router.use('/markiseStatus', markiseStatusRouter);
+router.use('/countdown', apiLimiter, authMiddleware, countdownRouter);
+router.use('/markiseStatus', apiLimiter, authMiddleware, markiseStatusRouter);
 
 export default router;

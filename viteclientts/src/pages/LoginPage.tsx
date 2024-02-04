@@ -26,6 +26,7 @@ const LoginForm: React.FC = () => {
         setJwtToken(response.data.accessToken);
         setTokenExpiry(response.data.expiresAt);
         navigate('/home');
+        return;
       }
     } catch (error) {
       //Intentionally not handling error
@@ -40,8 +41,11 @@ const LoginForm: React.FC = () => {
       if (!jwtToken && hasVisitedBefore) {
         await refreshToken();
       } else if (jwtToken) {
-        navigate('/home');
-        return;
+        const response = await axios.post(`${apiUrl}/verifyToken`)
+        if (response.status === 200) {
+          navigate('/home');
+          return;
+        }
       }
       if (isMounted) {
         setIsLoading(false);
@@ -53,7 +57,7 @@ const LoginForm: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [jwtToken, refreshToken, navigate, hasVisitedBefore]);
+  }, [jwtToken, refreshToken, navigate, hasVisitedBefore, apiUrl]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

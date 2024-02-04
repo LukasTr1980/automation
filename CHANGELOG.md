@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-02-03
+## [Unreleased] - 2024-02-04
 
 ### Added
 - Display of Tokenexpiry on frontend when admin
@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified user authentication flow: 'Last Login' information is now stored in the browser's localStorage.
 - Completly refactored the authentication mechanism in the app by replacing sessions with JWT Tokens
 - Countdown expiry displayed in red
+
+### Fixed
+- A lot of authentication errors fixed and misbehaviour
 
 ## [v15.20.0] - 2024-01-28
 
