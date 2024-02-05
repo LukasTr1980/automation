@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed some comments and changed order of some codelines
 - Refactored `AuthGuard` component
 - Now only expired text in `Layout` is red
+- Changed eslint rules for exhaustive-deps in react-hooks
 
 ### Removed
 - Removed react-cookie and jwtdecoder as dependencies because not needed
