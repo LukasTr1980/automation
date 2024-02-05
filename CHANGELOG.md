@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored `AuthGuard` component
 - Now only expired text in `Layout` is red
 - Changed eslint rules for exhaustive-deps in react-hooks
+- Now Socketprovider checks first for a valid jwt token instead of requesting always a new token
 
 ### Removed
 - Removed react-cookie and jwtdecoder as dependencies because not needed

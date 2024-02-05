@@ -13,7 +13,7 @@ export const SocketContext = createContext<{ socket: Socket | null; connected: b
 });
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
-  const { userLogin, setJwtToken, setTokenExpiry, logoutInProgress } = useUserStore();
+  const { userLogin, jwtToken, setJwtToken, setTokenExpiry, logoutInProgress } = useUserStore();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -23,54 +23,48 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
   const apiUrlOriginal = import.meta.env.VITE_API_URL;
   const apiUrl = apiUrlOriginal.replace('/api', '');
 
-  const refreshTokenAndConnect = async () => {
-    if (logoutInProgress) {
-      return;
-    }
-    
+  const connectSocket = (token: string) => {
+    const newSocketInstance = io(apiUrl, {
+      auth: { token: `Bearer ${token}` },
+    });
+
+    newSocketInstance.on('connect', () => setConnected(true));
+    newSocketInstance.on('disconnect', () => setConnected(false));
+    newSocketInstance.on('auth_error', refreshTokenAndReconnect);
+
+    setSocket(newSocketInstance);
+  };
+
+  const refreshTokenAndReconnect = async () => {
+    if (logoutInProgress) return;
+
     try {
       const refreshResponse = await axios.post(`${apiUrlOriginal}/refreshToken`, { username: userLogin });
       if (refreshResponse.status === 200 && refreshResponse.data.accessToken) {
         setJwtToken(refreshResponse.data.accessToken);
         setTokenExpiry(refreshResponse.data.expiresAt);
-
-        const newSocketInstance = io(apiUrl, {
-          auth: {
-            token: `Bearer ${refreshResponse.data.accessToken}`,
-          },
-        });
-
-        newSocketInstance.on('connect', () => {
-          setConnected(true);
-        });
-
-        newSocketInstance.on('disconnect', () => {
-          setConnected(false);
-        });
-
-        newSocketInstance.on('auth_error', () => {
-          refreshTokenAndConnect();
-        });
-
-        setSocket(newSocketInstance);
+        connectSocket(refreshResponse.data.accessToken);
       } else {
-        showSnackbarRef.current(stableTranslate('anUnexpectedErrorOccurred'), 'error');
+        throw new Error('Token refresh failed');
       }
     } catch (error) {
       showSnackbarRef.current(stableTranslate('anUnexpectedErrorOccurred'), 'error');
-      console.error('Failed to refresh token', error);
     }
   };
 
   useEffect(() => {
-    refreshTokenAndConnect();
-
+    if (jwtToken) {
+      connectSocket(jwtToken);
+    } else {
+      refreshTokenAndReconnect();
+    }
+  
     return () => {
       if (socket) {
         socket.disconnect();
       }
     };
-  }, [userLogin]); // Removed jwtToken from dependencies to avoid re-triggering on token update
+  }, [userLogin, jwtToken]);
 
   useEffect(() => {
     showSnackbarRef.current = showSnackbar;
