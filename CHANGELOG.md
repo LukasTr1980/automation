@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Display of Tokenexpiry on frontend when admin
 - Added new state in userstore for logout in progress
+- Added encryption for role cookie
 
 ### Changed
 - Added severity level to backend messages for improved clarity.

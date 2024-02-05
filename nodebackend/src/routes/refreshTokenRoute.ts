@@ -5,6 +5,7 @@ import logger from '../logger';
 import crypto from 'crypto';
 import { isSecureCookie } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
+import { initializeEncryptionKey, decrypt, encrypt } from '../utils/enyryptDecrypt';
 
 interface StoredData {
     refreshToken: string;
@@ -28,6 +29,9 @@ router.post('/', async (req, res) => {
         const redis = await connectToRedis();
         const storedDataJson = await redis.get(`refreshToken:${username}`);
 
+        await initializeEncryptionKey();
+        const decryptedRoleCookie = decrypt(role);
+
         let storedData: StoredData = { refreshToken: '' };
         if (storedDataJson) {
             try {
@@ -43,7 +47,7 @@ router.post('/', async (req, res) => {
             return res.status(401).json({ message: 'invalidOrExpiredToken', severity: 'warning' });
         }
 
-        if (!storedDataJson || storedData.userRole !== role) {
+        if (!storedDataJson || storedData.userRole !== decryptedRoleCookie) {
             logger.warn('Invalid user')
             return res.status(403).json({ message: 'forbiddenYouDontHavePermission', severity: 'warning' })
         }
@@ -67,7 +71,9 @@ router.post('/', async (req, res) => {
             sameSite: 'lax'
         });
 
-        res.cookie('role', storedData.userRole, {
+        const encryptedRoleCookie = encrypt(storedData.userRole);
+
+        res.cookie('role', encryptedRoleCookie, {
             httpOnly: true,
             secure: isSecureCookie,
             maxAge: 30 * 24 * 60 * 60,

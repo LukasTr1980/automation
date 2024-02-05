@@ -8,6 +8,7 @@ import { updateLastLogin, getLastLogin } from '../utils/useLoginsModule';
 import jwt from 'jsonwebtoken';
 import { isSecureCookie } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
+import { initializeEncryptionKey, encrypt } from '../utils/enyryptDecrypt'; 
 
 const router = express.Router();
 
@@ -62,7 +63,10 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         })
 
-        res.cookie('role', userRole, {
+        await initializeEncryptionKey();
+        const encryptedRoleCookie = encrypt(userRole);
+
+        res.cookie('role', encryptedRoleCookie, {
             httpOnly: true,
             secure: isSecureCookie,
             maxAge: 30 * 24 * 60 * 60,
