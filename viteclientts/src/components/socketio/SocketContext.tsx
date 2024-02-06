@@ -13,7 +13,7 @@ export const SocketContext = createContext<{ socket: Socket | null; connected: b
 });
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
-  const { userLogin, jwtToken, setJwtToken, setTokenExpiry, logoutInProgress } = useUserStore();
+  const { userLogin, jwtToken, logoutInProgress, setTokenAndExpiry } = useUserStore();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -41,8 +41,7 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     try {
       const refreshResponse = await axios.post(`${apiUrlOriginal}/refreshToken`, { username: userLogin });
       if (refreshResponse.status === 200 && refreshResponse.data.accessToken) {
-        setJwtToken(refreshResponse.data.accessToken);
-        setTokenExpiry(refreshResponse.data.expiresAt);
+        setTokenAndExpiry(refreshResponse.data.accessToken);
         connectSocket(refreshResponse.data.accessToken);
       } else {
         throw new Error('Token refresh failed');

@@ -173,14 +173,13 @@ export interface UserState {
     previousLastLogin: number | null;
     setPreviousLastLogin: (lastLogin: number | null) => void;
     jwtToken: string | null;
-    setJwtToken: (token: string | null) => void;
     clearJwtToken: () => void;
     hasVisitedBefore: boolean | null;
     setHasVisitedBefore: (hasVisited: boolean | null) => void;
     tokenExpiry: number | null;
-    setTokenExpiry: (lastLogin: number | null) => void;
     logoutInProgress: boolean;
     setLogoutInProgress: (inProgress: boolean) => void;
+    setTokenAndExpiry: (token: string | null) => void;
 }
 
 export type DaysOfWeekNumbers = {

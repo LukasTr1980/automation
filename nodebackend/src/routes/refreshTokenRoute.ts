@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { connectToRedis } from '../clients/redisClient';
 import logger from '../logger';
 import crypto from 'crypto';
-import { isSecureCookie } from '../envSwitcher';
+import { isSecureCookie, jwtTokenExpiry } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
 import { initializeEncryptionKey, decrypt, encrypt } from '../utils/enyryptDecrypt';
 
@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
         }
 
         const jwtSecret = await getJwtAccessTokenSecret();
-        const expiresIn = 60;
+        const expiresIn = jwtTokenExpiry;
 
         const newAccessToken = jwt.sign({ username: username, role: storedData.userRole }, jwtSecret, { expiresIn });
 
@@ -61,8 +61,6 @@ router.post('/', async (req, res) => {
         const refreshTokenData: StoredData = { refreshToken: newRefreshToken, userRole: storedData.userRole }
 
         await redis.set(`refreshToken:${username}`, JSON.stringify(refreshTokenData), 'EX', 30 * 24 * 60 * 60);
-
-        const expirationTimestamp = Math.floor(Date.now() / 1000) + expiresIn;
 
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
@@ -82,8 +80,7 @@ router.post('/', async (req, res) => {
 
         res.json({ 
             status: 'success', 
-            accessToken: newAccessToken,
-            expiresAt: expirationTimestamp
+            accessToken: newAccessToken
         });
     } catch (error) {
         const message = (error instanceof Error) ? error.message : 'unknownError';

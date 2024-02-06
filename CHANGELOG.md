@@ -5,31 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-02-04
+## [v16.0.0] - 2024-02-06
 
 ### Added
-- Display of Tokenexpiry on frontend when admin
-- Added new state in userstore for logout in progress
-- Added encryption for role cookie
+- Display of token expiry on frontend for admins.
+- New state in user store for logout process.
+- Encryption for role cookie.
 
 ### Changed
 - Added severity level to backend messages for improved clarity.
-- Reordered API structure by moving session API above the AuthMiddleware.
-- Modified user authentication flow: 'Last Login' information is now stored in the browser's localStorage.
-- Completly refactored the authentication mechanism in the app by replacing sessions with JWT Tokens
-- Countdown expiry displayed in red
-- Userrole now handled through cookie and not in localstorage
-- Removed some comments and changed order of some codelines
-- Refactored `AuthGuard` component
-- Now only expired text in `Layout` is red
-- Changed eslint rules for exhaustive-deps in react-hooks
-- Now Socketprovider checks first for a valid jwt token instead of requesting always a new token
+- Reordered API structure, moving session API above AuthMiddleware.
+- Modified user authentication flow to store 'Last Login' information in browser's localStorage.
+- Completely refactored the authentication mechanism to replace sessions with JWT Tokens.
+- Display countdown expiry in red.
+- User role now handled through cookie instead of localStorage.
+- Cleaned up code by removing some comments and changing the order of some code lines.
+- Refactored `AuthGuard` component.
+- Only display expired text in red in `Layout`.
+- Changed ESLint rules for exhaustive-deps in React hooks.
+- `SocketProvider` now checks for a valid JWT token before requesting a new one.
+- Added new Zustand store function `setTokenAndExpiry`.
 
 ### Removed
-- Removed react-cookie and jwtdecoder as dependencies because not needed
+- Removed `react-cookie` and `jwt-decode` dependencies as they are no longer needed.
 
 ### Fixed
-- A lot of authentication errors fixed and misbehaviour
+- Fixed numerous authentication errors and misbehaviors.
 
 ## [v15.20.0] - 2024-01-28
 

@@ -28,10 +28,7 @@ axios.interceptors.response.use(response => response, async (error) => {
             });
 
             if (refreshResponse.status === 200 && refreshResponse.data.accessToken) {
-                useUserStore.setState({
-                    jwtToken: refreshResponse.data.accessToken,
-                    tokenExpiry: refreshResponse.data.expiresAt,
-                });
+                useUserStore.getState().setTokenAndExpiry(refreshResponse.data.accessToken);
 
                 axios.defaults.headers.common['Authorization'] = `Bearer ${refreshResponse.data.accessToken}`;
                 originalRequest.headers['Authorization'] = `Bearer ${refreshResponse.data.accessToken}`;

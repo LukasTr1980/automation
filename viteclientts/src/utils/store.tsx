@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { UserState } from '../types/types';
+import { jwtDecode } from 'jwt-decode';
 
 const useUserStore = create<UserState>((set) => ({
     userLogin: localStorage.getItem('userLogin'),
@@ -25,8 +26,18 @@ const useUserStore = create<UserState>((set) => ({
         }
         set({ previousLastLogin: lastLogin });
     },
-    setJwtToken: (token: string | null) => {
-        set({ jwtToken: token }); // Function to update jwtToken in the store
+    setTokenAndExpiry: (token: string | null) => {
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                const expiry = decoded.exp;
+                set({ jwtToken: token, tokenExpiry: expiry });
+            } catch (error) {
+                console.error('Failed to decode token:', error);
+            }
+        } else {
+            set({ jwtToken: null, tokenExpiry: undefined });
+        }
     },
     clearJwtToken: () => {
         set({ jwtToken: null }); // Function to clear jwtToken from the store
@@ -38,9 +49,6 @@ const useUserStore = create<UserState>((set) => ({
             localStorage.removeItem('hasVisitedBefore'); // Remove the item if visited is null
         }
         set({ hasVisitedBefore: visited });
-    },
-    setTokenExpiry: (expiry: number | null) => {
-        set({ tokenExpiry: expiry });
     },
     setLogoutInProgress: (inProgress: boolean) => {
         set({ logoutInProgress: inProgress })

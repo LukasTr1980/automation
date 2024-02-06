@@ -18,6 +18,7 @@ interface Config {
     mosquittoUrl: string;
     vaultUrl: string;
     isSecureCookie: boolean;
+    jwtTokenExpiry: number;
 }
 
 const devConfig: Config = {
@@ -28,7 +29,8 @@ const devConfig: Config = {
     mongoDbHost: '10.25.159.4:27017',
     mosquittoUrl: 'mqtt://10.25.159.4:1883',
     vaultUrl: 'http://10.25.159.4:8200',
-    isSecureCookie: false
+    isSecureCookie: false,
+    jwtTokenExpiry: 60
 }
 
 const prodConfig: Config = {
@@ -39,7 +41,8 @@ const prodConfig: Config = {
     mongoDbHost: 'mongo_container:27017',
     mosquittoUrl: 'mqtt://mosquitto_container:1883',
     vaultUrl: 'http://vault_container:8200',
-    isSecureCookie: true
+    isSecureCookie: true,
+    jwtTokenExpiry: 60 * 30
 }
 
 const selectedConfig: Config = isDev ? devConfig : prodConfig;
@@ -52,7 +55,8 @@ export const {
     mongoDbHost,
     mosquittoUrl,
     vaultUrl,
-    isSecureCookie
+    isSecureCookie,
+    jwtTokenExpiry
 } = selectedConfig;
 
 export { isDev };

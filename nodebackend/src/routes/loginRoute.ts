@@ -6,7 +6,7 @@ import * as vaultClient from '../clients/vaultClient'; // Import your Vault clie
 import logger from '../logger';
 import { updateLastLogin, getLastLogin } from '../utils/useLoginsModule';
 import jwt from 'jsonwebtoken';
-import { isSecureCookie } from '../envSwitcher';
+import { isSecureCookie, jwtTokenExpiry } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
 import { initializeEncryptionKey, encrypt } from '../utils/enyryptDecrypt'; 
 
@@ -43,7 +43,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         }
 
         const jwtSecret = await getJwtAccessTokenSecret();
-        const expiresIn = 60;
+        const expiresIn = jwtTokenExpiry;
 
         const accessToken = jwt.sign({ username, role: userRole }, jwtSecret, { expiresIn });
 
@@ -52,8 +52,6 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         const redis = await connectToRedis();
         const refreshTokenData = JSON.stringify({ refreshToken, userRole });
         await redis.set(`refreshToken:${username}`, refreshTokenData, 'EX', 30 * 24 * 60 * 60);
-
-        const expirationTimestamp = Math.floor(Date.now() / 1000) + expiresIn;
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -78,7 +76,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         await updateLastLogin(username);
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
-        res.status(200).json({ status: 'success', accessToken, expiresAt: expirationTimestamp, previousLastLogin: previousLastLogin, message: 'loggedIn' });
+        res.status(200).json({ status: 'success', accessToken, previousLastLogin: previousLastLogin, message: 'loggedIn' });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);

@@ -10,7 +10,7 @@ import { useStableTranslation } from '../utils/useStableTranslation';
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
   const [isChecking, setIsChecking] = useState(true); // State to manage loading status
   const navigate = useNavigate();
-  const { jwtToken, setJwtToken, userLogin, setTokenExpiry, logoutInProgress } = useUserStore();
+  const { jwtToken, userLogin, logoutInProgress, setTokenAndExpiry } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const stableTranslate = useStableTranslation();
@@ -25,8 +25,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
         try {
           const refreshTokenResponse = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
           if (refreshTokenResponse.status === 200 && refreshTokenResponse.data.accessToken) {
-            setJwtToken(refreshTokenResponse.data.accessToken);
-            setTokenExpiry(refreshTokenResponse.data.expiresAt);
+            setTokenAndExpiry(refreshTokenResponse.data.accessToken);
           } else {
             throw new Error('Failed to refresh token');
           }
@@ -51,7 +50,7 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
     };
 
     verifyAuthentication();
-  }, [apiUrl, jwtToken, navigate, requiredRole, setJwtToken, setTokenExpiry, userLogin, stableTranslate, showSnackbar, logoutInProgress]);
+  }, [apiUrl, jwtToken, navigate, requiredRole, userLogin, stableTranslate, showSnackbar, logoutInProgress, setTokenAndExpiry]);
 
   if (isChecking) {
     return <LoadingSpinner />;
