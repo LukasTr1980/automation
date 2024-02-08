@@ -25,30 +25,33 @@ const LoginForm: React.FC = () => {
       if (response.status === 200 && response.data.accessToken) {
         setTokenAndExpiry(response.data.accessToken);
         navigate('/home');
-        return;
       }
     } catch (error) {
-      //Intentionally not handling error
+      showSnackbar(t('invalidOrExpiredToken'), 'warning');
     }
     setIsLoading(false);
-  }, [apiUrl, navigate, userLogin, setTokenAndExpiry]);
+  }, [apiUrl, navigate, userLogin, setTokenAndExpiry]); //Excluded showSnackbar and t to avoid multiple renderings
 
   useEffect(() => {
     let isMounted = true;
 
     const checkAuthState = async () => {
-      if (!jwtToken && hasVisitedBefore) {
-        await refreshToken();
-      } else if (jwtToken) {
-        const response = await axios.post(`${apiUrl}/verifyToken`)
-        if (response.status === 200) {
-          navigate('/home');
-          return;
+      if (hasVisitedBefore) {
+        if (jwtToken) {
+          try {
+            const verifyResponse = await axios.post(`${apiUrl}/verifyToken`);
+            if (verifyResponse.status === 200) {
+              navigate('/home');
+              return;
+            }
+          } catch (error) {
+            await refreshToken();
+          }
+        } else {
+          await refreshToken();
         }
       }
-      if (isMounted) {
-        setIsLoading(false);
-      }
+      if (isMounted) setIsLoading(false);
     };
 
     checkAuthState();

@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
     const role = req.cookies.role;
 
     if (!username || !role || !refreshTokenFromBody) {
-        logger.error('Username and refresh token are required');
+        logger.error('Username, role and refresh token are required');
         return res.status(400).json({ status: 400, message: 'notLoggedIn', severity: 'warning' });
     }
 
@@ -65,7 +65,7 @@ router.post('/', async (req, res) => {
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             secure: isSecureCookie,
-            maxAge: 30 * 24 * 60 * 60,
+            maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
 
@@ -74,7 +74,7 @@ router.post('/', async (req, res) => {
         res.cookie('role', encryptedRoleCookie, {
             httpOnly: true,
             secure: isSecureCookie,
-            maxAge: 30 * 24 * 60 * 60,
+            maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
 

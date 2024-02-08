@@ -8,12 +8,26 @@ import useSnackbar from '../utils/useSnackbar';
 import { useStableTranslation } from '../utils/useStableTranslation';
 
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
-  const [isChecking, setIsChecking] = useState(true); // State to manage loading status
+  const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
   const { jwtToken, userLogin, logoutInProgress, setTokenAndExpiry } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const stableTranslate = useStableTranslation();
+
+  const refreshToken = async () => {
+    try {
+      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
+      if (response.status === 200 && response.data.accessToken) {
+        setTokenAndExpiry(response.data.accessToken);
+        return true;
+      }
+    } catch (error) {
+      showSnackbar(stableTranslate('invalidOrExpiredToken'), 'warning');
+      navigate('/login');
+    }
+    return false;
+  };
 
   useEffect(() => {
     const verifyAuthentication = async () => {
@@ -21,19 +35,20 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
         return;
       }
 
-      if (!jwtToken) {
+      if (jwtToken) {
         try {
-          const refreshTokenResponse = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
-          if (refreshTokenResponse.status === 200 && refreshTokenResponse.data.accessToken) {
-            setTokenAndExpiry(refreshTokenResponse.data.accessToken);
-          } else {
-            throw new Error('Failed to refresh token');
+          const verifyResponse = await axios.post(`${apiUrl}/verifyToken`, { requiredRole });
+          if (verifyResponse.status === 200) {
+            setIsChecking(false);
+            return;
           }
         } catch (error) {
-          showSnackbar(stableTranslate('invalidOrExpiredToken'), 'warning');
-          navigate('/login');
-          return;
+          const refreshed = await refreshToken();
+          if (!refreshed) return;
         }
+      } else {
+        const refreshed = await refreshToken();
+        if (!refreshed) return;
       }
 
       try {

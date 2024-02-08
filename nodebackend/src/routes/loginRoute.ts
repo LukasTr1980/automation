@@ -56,7 +56,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: isSecureCookie,
-            maxAge: 30 * 24 * 60 * 60,
+            maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
 
         })
@@ -67,7 +67,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         res.cookie('role', encryptedRoleCookie, {
             httpOnly: true,
             secure: isSecureCookie,
-            maxAge: 30 * 24 * 60 * 60,
+            maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
 
