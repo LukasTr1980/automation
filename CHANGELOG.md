@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2024-02-09
+
+### Changed
+- / root in App.tsx is now /home
+- Token refresh now happens in `useCountdown` 10 seconds before expiry
+
+### Removed
+- Removed all refreshtoken validation e verifytoken validation from `LoginPage` to avoid any issues
+
 ## [v16.0.1] - 2024-02-08
+
 ### Added
 - Automatic token refresh attempt in `useCountdown` file.
 

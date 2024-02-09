@@ -92,5 +92,6 @@
     "notLoggedIn": "Nicht eingeloggt",
     "tokenExpiresIn": "Token läuft ab in",
     "expired": "abgelaufen",
-    "validToken": "Gültiger Token"
+    "validToken": "Gültiger Token",
+    "refreshingToken": "Token erneuerung"
 }

@@ -1,65 +1,21 @@
-import { useState, FormEvent, useCallback, useEffect } from 'react';
-import { Box, TextField, Typography, Grid } from '@mui/material';
+import { useState, FormEvent, useEffect } from 'react';
+import { Box, TextField, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../utils/store';
 import useSnackbar from '../utils/useSnackbar';
 import { useTranslation } from 'react-i18next';
-import LoadingSpinner from '../components/LoadingSpinner';
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const { setPreviousLastLogin, setUserLogin, jwtToken, userLogin, hasVisitedBefore, setHasVisitedBefore, setLogoutInProgress, setTokenAndExpiry } = useUserStore();
+  const { setPreviousLastLogin, setUserLogin, setHasVisitedBefore, setLogoutInProgress, setTokenAndExpiry } = useUserStore();
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const [loginButtonLoading, setLoginButtonLoading] = useState<boolean>(false);
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
-
-  const refreshToken = useCallback(async () => {
-    try {
-      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
-      if (response.status === 200 && response.data.accessToken) {
-        setTokenAndExpiry(response.data.accessToken);
-        navigate('/home');
-      }
-    } catch (error) {
-      showSnackbar(t('invalidOrExpiredToken'), 'warning');
-    }
-    setIsLoading(false);
-  }, [apiUrl, navigate, userLogin, setTokenAndExpiry]); //Excluded showSnackbar and t to avoid multiple renderings
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const checkAuthState = async () => {
-      if (hasVisitedBefore) {
-        if (jwtToken) {
-          try {
-            const verifyResponse = await axios.post(`${apiUrl}/verifyToken`);
-            if (verifyResponse.status === 200) {
-              navigate('/home');
-              return;
-            }
-          } catch (error) {
-            await refreshToken();
-          }
-        } else {
-          await refreshToken();
-        }
-      }
-      if (isMounted) setIsLoading(false);
-    };
-
-    checkAuthState();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [jwtToken, refreshToken, navigate, hasVisitedBefore, apiUrl]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -112,11 +68,6 @@ const LoginForm: React.FC = () => {
 
   return (
     <>
-      {isLoading ? (
-        <Grid container>
-          <LoadingSpinner />
-        </Grid>
-      ) : (
         <Box
           component="form"
           onSubmit={handleSubmit}
@@ -165,7 +116,6 @@ const LoginForm: React.FC = () => {
             Login
           </LoadingButton>
         </Box>
-      )}
     </>
   );
 };

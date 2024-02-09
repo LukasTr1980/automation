@@ -20,7 +20,7 @@ function App() {
           <div className="App">
             <header className="App-header">
               <Routes>
-                <Route path='/' element={<LoginPage />} />
+                <Route path='/' element={<AuthGuard><HomePage /></AuthGuard>} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
                 <Route path='/settings' element={<AuthGuard requiredRole='admin'><SettingsPage /></AuthGuard>} />
