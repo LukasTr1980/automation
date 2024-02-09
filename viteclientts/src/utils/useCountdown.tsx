@@ -3,6 +3,7 @@ import { useUserStore } from './store';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import useSnackbar from './useSnackbar';
 
 const useCountdown = () => {
   const { tokenExpiry, userLogin, setTokenAndExpiry, deviceId } = useUserStore();
@@ -11,6 +12,7 @@ const useCountdown = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { showSnackbar } = useSnackbar();
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -47,6 +49,7 @@ const useCountdown = () => {
       }
     } catch (error) {
       console.error('Error refreshing token:', error);
+      showSnackbar(t('invalidOrExpiredToken'), 'warning');
       navigate('/login');
     }
   };
