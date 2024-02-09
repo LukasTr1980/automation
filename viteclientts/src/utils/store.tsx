@@ -9,6 +9,7 @@ const useUserStore = create<UserState>((set) => ({
     hasVisitedBefore: localStorage.getItem('hasVisitedBefore') === 'true',
     tokenExpiry: null,
     logoutInProgress: false,
+    deviceId: localStorage.getItem('deviceId'),
 
     setUserLogin: (userLogin: string | null) => {
         if (userLogin === null) {
@@ -18,6 +19,7 @@ const useUserStore = create<UserState>((set) => ({
         }
         set({ userLogin });
     },
+
     setPreviousLastLogin: (lastLogin: number | null) => {
         if (lastLogin === null) {
             localStorage.removeItem('userLastLogin');
@@ -26,6 +28,7 @@ const useUserStore = create<UserState>((set) => ({
         }
         set({ previousLastLogin: lastLogin });
     },
+
     setTokenAndExpiry: (token: string | null) => {
         if (token) {
             try {
@@ -39,9 +42,11 @@ const useUserStore = create<UserState>((set) => ({
             set({ jwtToken: null, tokenExpiry: undefined });
         }
     },
+
     clearJwtToken: () => {
         set({ jwtToken: null }); // Function to clear jwtToken from the store
     },
+
     setHasVisitedBefore: (visited: boolean | null) => {
         if (visited !== null) {
             localStorage.setItem('hasVisitedBefore', visited.toString());
@@ -50,9 +55,19 @@ const useUserStore = create<UserState>((set) => ({
         }
         set({ hasVisitedBefore: visited });
     },
+
     setLogoutInProgress: (inProgress: boolean) => {
         set({ logoutInProgress: inProgress })
-    }
+    },
+    
+    setDeviceId: (deviceId: string | null) => {
+        if (deviceId === null) {
+            localStorage.removeItem('deviceId');
+        } else {
+            localStorage.setItem('deviceId', deviceId);
+        }
+        set({ deviceId });
+    },
 }));
 
 export { useUserStore };

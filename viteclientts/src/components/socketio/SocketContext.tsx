@@ -13,7 +13,7 @@ export const SocketContext = createContext<{ socket: Socket | null; connected: b
 });
 
 export const SocketProvider = ({ children }: SocketProviderProps) => {
-  const { userLogin, jwtToken, logoutInProgress, setTokenAndExpiry } = useUserStore();
+  const { userLogin, jwtToken, logoutInProgress, setTokenAndExpiry, deviceId } = useUserStore();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const { showSnackbar } = useSnackbar();
@@ -39,7 +39,7 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     if (logoutInProgress) return;
 
     try {
-      const refreshResponse = await axios.post(`${apiUrlOriginal}/refreshToken`, { username: userLogin });
+      const refreshResponse = await axios.post(`${apiUrlOriginal}/refreshToken`, { username: userLogin, deviceId });
       if (refreshResponse.status === 200 && refreshResponse.data.accessToken) {
         setTokenAndExpiry(refreshResponse.data.accessToken);
         connectSocket(refreshResponse.data.accessToken);

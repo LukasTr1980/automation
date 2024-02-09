@@ -15,19 +15,19 @@ interface StoredData {
 const router = express.Router();
 
 router.post('/', async (req, res) => {
-    const { username } = req.body;
+    const { username, deviceId } = req.body;
 
     const refreshTokenFromBody = req.cookies.refreshToken;
     const role = req.cookies.role;
 
-    if (!username || !role || !refreshTokenFromBody) {
-        logger.error('Username, role and refresh token are required');
+    if (!username || !role || !refreshTokenFromBody || !deviceId) {
+        logger.error('Username, role, refresh token and deviceId are required');
         return res.status(400).json({ status: 400, message: 'notLoggedIn', severity: 'warning' });
     }
 
     try {
         const redis = await connectToRedis();
-        const storedDataJson = await redis.get(`refreshToken:${username}`);
+        const storedDataJson = await redis.get(`refreshToken:${username}_${deviceId}`);
 
         await initializeEncryptionKey();
         const decryptedRoleCookie = decrypt(role);
@@ -60,7 +60,7 @@ router.post('/', async (req, res) => {
         const newRefreshToken = crypto.randomBytes(40).toString('hex');
         const refreshTokenData: StoredData = { refreshToken: newRefreshToken, userRole: storedData.userRole }
 
-        await redis.set(`refreshToken:${username}`, JSON.stringify(refreshTokenData), 'EX', 30 * 24 * 60 * 60);
+        await redis.set(`refreshToken:${username}_${deviceId}`, JSON.stringify(refreshTokenData), 'EX', 30 * 24 * 60 * 60);
 
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,

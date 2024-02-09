@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const { setPreviousLastLogin, setUserLogin, setHasVisitedBefore, setLogoutInProgress, setTokenAndExpiry } = useUserStore();
+  const { setPreviousLastLogin, setUserLogin, setHasVisitedBefore, setLogoutInProgress, setTokenAndExpiry, setDeviceId } = useUserStore();
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
@@ -31,6 +31,7 @@ const LoginForm: React.FC = () => {
         setUserLogin(username);
         setTokenAndExpiry(response.data.accessToken);
         setHasVisitedBefore(true);
+        setDeviceId(response.data.deviceId);
         setPreviousLastLogin((response.data.previousLastLogin));
         navigate('/home');
 

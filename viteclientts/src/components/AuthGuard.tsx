@@ -10,14 +10,14 @@ import { useStableTranslation } from '../utils/useStableTranslation';
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
   const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
-  const { jwtToken, userLogin, logoutInProgress, setTokenAndExpiry } = useUserStore();
+  const { jwtToken, userLogin, logoutInProgress, setTokenAndExpiry, deviceId } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const stableTranslate = useStableTranslation();
 
   const refreshToken = async () => {
     try {
-      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
+      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin, deviceId });
       if (response.status === 200 && response.data.accessToken) {
         setTokenAndExpiry(response.data.accessToken);
         return true;

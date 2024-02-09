@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const useCountdown = () => {
-  const { tokenExpiry, userLogin, setTokenAndExpiry } = useUserStore();
+  const { tokenExpiry, userLogin, setTokenAndExpiry, deviceId } = useUserStore();
   const [timeLeft, setTimeLeft] = useState({ value: '', refreshing: false });
   const [attemptRefresh, setAttemptRefresh] = useState(false);
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -38,7 +38,7 @@ const useCountdown = () => {
 
   const updateToken = async () => {
     try {
-      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin });
+      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin, deviceId });
       if (response.status === 200 && response.data.accessToken) {
         setTokenAndExpiry(response.data.accessToken);
         setAttemptRefresh(false); 

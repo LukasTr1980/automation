@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 2024-02-09
 
+### Added
+- Added deviceId localStorage item information to allow multiple devices for one user
+
 ### Changed
 - / root in App.tsx is now /home
 - Token refresh now happens in `useCountdown` 10 seconds before expiry

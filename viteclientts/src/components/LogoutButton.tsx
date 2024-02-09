@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 const LogoutButton: React.FC = () => {
   const navigate = useNavigate();
-  const { setUserLogin, clearJwtToken, setPreviousLastLogin, setHasVisitedBefore, setLogoutInProgress } = useUserStore();
+  const { setUserLogin, clearJwtToken, setPreviousLastLogin, setHasVisitedBefore, setLogoutInProgress, setDeviceId } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const { t } = useTranslation();
@@ -22,6 +22,7 @@ const LogoutButton: React.FC = () => {
       clearJwtToken();
       setPreviousLastLogin(null);
       setHasVisitedBefore(null);
+      setDeviceId(null);
       navigate('/login');
       showSnackbar(t('loggedOut'));
     } catch (error) {

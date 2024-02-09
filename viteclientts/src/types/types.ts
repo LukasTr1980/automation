@@ -180,6 +180,8 @@ export interface UserState {
     logoutInProgress: boolean;
     setLogoutInProgress: (inProgress: boolean) => void;
     setTokenAndExpiry: (token: string | null) => void;
+    deviceId: string | null;
+    setDeviceId: (deviceId: string | null) => void;
 }
 
 export type DaysOfWeekNumbers = {
