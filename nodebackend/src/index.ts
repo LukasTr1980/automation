@@ -14,6 +14,7 @@ import { apiLimiter } from './middleware/rateLimiter';
 import apiRouter from './routes/api';
 import logger from './logger';
 import './utils/markiseBlock';
+import helmet from 'helmet';
 
 const app = express();
 const port = 8523;
@@ -24,6 +25,19 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 app.use(bodyParser.json());
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false,
+  originAgentCluster: false,
+  referrerPolicy: false,
+  xContentTypeOptions: false,
+  xDnsPrefetchControl: false,
+  xDownloadOptions: false,
+  xPermittedCrossDomainPolicies: false
+}));
 app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = ['http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523'];
