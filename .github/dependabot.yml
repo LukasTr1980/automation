@@ -9,13 +9,7 @@ updates:
     directory: "/nodebackend" # Location of package manifests
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-patch"]
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/viteclientts" # Location of package manifests
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-patch"]

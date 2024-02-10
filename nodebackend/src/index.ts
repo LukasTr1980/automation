@@ -43,7 +43,6 @@ io.use(authMiddlewareSocket);
 
 app.use(apiLimiter, express.static(path.join('/usr/src/viteclientts/dist/')));
 
-// Handle all GET requests that do not match the defined routes
 app.get('*', apiLimiter, (req: Request, res: Response) => {
   res.sendFile(path.join('/usr/src/viteclientts/dist/', 'index.html'));
 });
