@@ -9,7 +9,7 @@ async function updateLastLogin(username: string): Promise<void> {
 
         const lastLoginTime = Date.now();
         const updateResult = await userLoginsCollection.updateOne(
-            { username: username },
+            { username: { $eq: username }},
             { $set: { lastLoginTime: lastLoginTime } },
             { upsert: true }
         );
@@ -25,7 +25,7 @@ async function getLastLogin(username: string): Promise<Date | null> {
         const db: Db = await connectToMongo();
         const userLoginsCollection = db.collection('userLogins');
 
-        const userLoginInfo = await userLoginsCollection.findOne({ username: username });
+        const userLoginInfo = await userLoginsCollection.findOne({ username: { $eq: username }});
         
         if (userLoginInfo && userLoginInfo.lastLoginTime) {
             logger.info(`getLastLogin - Retrieved last login for user: ${username}`);
