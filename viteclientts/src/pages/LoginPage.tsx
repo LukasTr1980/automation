@@ -27,7 +27,7 @@ const LoginForm: React.FC = () => {
         password,
       });
 
-      if (response.data.status === 'success') {
+      if (response.status === 200) {
         setUserLogin(username);
         setTokenAndExpiry(response.data.accessToken);
         setHasVisitedBefore(true);

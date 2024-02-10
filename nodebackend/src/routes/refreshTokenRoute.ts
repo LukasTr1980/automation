@@ -6,7 +6,8 @@ import crypto from 'crypto';
 import { isSecureCookie, jwtTokenExpiry } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
 import { initializeEncryptionKey, decrypt, encrypt } from '../utils/enyryptDecrypt';
-
+import { roleCookieValidation, refreshTokenValidation, deviceIdValidation, usernameValidation } from '../utils/inputValidation';
+ 
 interface StoredData {
     refreshToken: string;
     userRole?: string;
@@ -20,9 +21,28 @@ router.post('/', async (req, res) => {
     const refreshTokenFromBody = req.cookies.refreshToken;
     const role = req.cookies.role;
 
-    if (!username || !role || !refreshTokenFromBody || !deviceId) {
-        logger.error('Username, role, refresh token and deviceId are required');
-        return res.status(400).json({ status: 400, message: 'notLoggedIn', severity: 'warning' });
+    const roleValidationResult = roleCookieValidation(role);
+    if (roleValidationResult.error) {
+        logger.error(`role Cookie validation error: ${roleValidationResult.error.details[0].message}`);
+        return res.status(400).json({ message: 'internalServerError' });
+    }
+
+    const refreshTokenValidationResult = refreshTokenValidation(refreshTokenFromBody);
+    if (refreshTokenValidationResult.error) {
+        logger.error(`refreshToken validation error: ${refreshTokenValidationResult.error.details[0].message}`);
+        return res.status(400).json({ message: 'internalServerError' });
+    }
+
+    const deviceIdValidationResult = deviceIdValidation(deviceId);
+    if (deviceIdValidationResult.error) {
+        logger.error(`deviceId validation error: ${deviceIdValidationResult.error.details[0].message}`);
+        return res.status(400).json({ message: 'internalServerError' });
+    }
+
+    const usernameValidationResult = usernameValidation(username);
+    if (usernameValidationResult.error) {
+        logger.error(`username validation error: ${usernameValidationResult.error.details[0].message}`);
+        return res.status(400).json({ message: 'internalServerError' });
     }
 
     try {
@@ -78,8 +98,7 @@ router.post('/', async (req, res) => {
             sameSite: 'lax'
         });
 
-        res.json({ 
-            status: 'success', 
+        res.status(200).json({  
             accessToken: newAccessToken
         });
     } catch (error) {

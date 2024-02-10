@@ -19,7 +19,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
     const { error } = loginValidation(req.body);
     if (error) {
         logger.error(`Login validation error from IP ${clientIp}: ${error.details[0].message}`);
-        return res.status(400).json({ status: 'error', message: error.details[0].message });
+        return res.status(400).json({ message: error.details[0].message });
     }
 
     const { username, password } = req.body;
@@ -32,7 +32,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         if (!userData) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - User not found in Vault`);
-            return res.status(401).json({ status: 'error', message: 'incorrectUserOrPass' });
+            return res.status(401).json({ message: 'incorrectUserOrPass' });
         }
 
         const storedPassword: string = userData.data.password;
@@ -40,7 +40,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         if (password !== storedPassword) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - Incorrect password`);
-            return res.status(401).json({ status: 'error', message: 'incorrectUserOrPass' });
+            return res.status(401).json({ message: 'incorrectUserOrPass' });
         }
 
         const deviceId = generateUniqueId();
@@ -79,14 +79,14 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         await updateLastLogin(username);
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
-        res.status(200).json({ status: 'success', accessToken, deviceId, previousLastLogin: previousLastLogin, message: 'loggedIn' });
+        res.status(200).json({ accessToken, deviceId, previousLastLogin: previousLastLogin, message: 'loggedIn' });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);
-            res.status(500).json({ status: 'error', message: 'internalServerError' });
+            res.status(500).json({ message: 'internalServerError' });
         } else {
             logger.error(`An unexpected error occurred during user login for username: ${username} from IP ${clientIp}`);
-            res.status(500).json({ status: 'error', message: 'internalServerError' });
+            res.status(500).json({ message: 'internalServerError' });
         }
     }
 });
