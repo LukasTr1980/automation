@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage'
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
+import UserPage from './pages/UserPage';
 import VillaAnnaRoutes from './routes/VillaAnnaRoutes';
 import AuthGuard from './components/AuthGuard';
 import NotFoundPage from './pages/404Page';
@@ -24,6 +25,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
                 <Route path='/settings' element={<AuthGuard requiredRole='admin'><SettingsPage /></AuthGuard>} />
+                <Route path='/user' element={<AuthGuard><UserPage /></AuthGuard>} />
                 <Route path='/villa-anna/*' element={<AuthGuard><SocketProvider><VillaAnnaRoutes /></SocketProvider></AuthGuard>} />
                 <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
               </Routes>

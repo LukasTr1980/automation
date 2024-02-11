@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import { UserState } from '../types/types';
 import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
 const useUserStore = create<UserState>((set) => ({
     userLogin: localStorage.getItem('userLogin'),
-    previousLastLogin: localStorage.getItem('userLastLogin') ? Number(localStorage.getItem('userLastLogin')) : null,
     jwtToken: null,
     hasVisitedBefore: localStorage.getItem('hasVisitedBefore') === 'true',
     tokenExpiry: null,
     logoutInProgress: false,
     deviceId: localStorage.getItem('deviceId'),
+    userData: null,
 
     setUserLogin: (userLogin: string | null) => {
         if (userLogin === null) {
@@ -18,15 +19,6 @@ const useUserStore = create<UserState>((set) => ({
             localStorage.setItem('userLogin', userLogin);
         }
         set({ userLogin });
-    },
-
-    setPreviousLastLogin: (lastLogin: number | null) => {
-        if (lastLogin === null) {
-            localStorage.removeItem('userLastLogin');
-        } else {
-            localStorage.setItem('userLastLogin', lastLogin.toString());
-        }
-        set({ previousLastLogin: lastLogin });
     },
 
     setTokenAndExpiry: (token: string | null) => {
@@ -68,6 +60,16 @@ const useUserStore = create<UserState>((set) => ({
         }
         set({ deviceId });
     },
-}));
 
+    fetchUserData: async () => {
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL;
+          const response = await axios.get(`${apiUrl}/userData`);
+          set({ userData: response.data });
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      },
+
+}));
 export { useUserStore };

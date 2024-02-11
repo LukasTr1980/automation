@@ -20,6 +20,7 @@ import markiseStatusRouter from './markiseStatusRoute';
 import refreshTokenRouter from './refreshTokenRoute';
 import logoutRouter from './logoutRoute';
 import verifyTokenRouter from './verifyTokenRoute';
+import userDataRouter from './userDataRoute';
 
 const router = express.Router();
 
@@ -40,5 +41,6 @@ router.use('/getSecrets', apiLimiter, [authMiddleware, requiredRole('admin')], g
 router.use('/updateSecrets', apiLimiter, [authMiddleware, requiredRole('admin')], updateSecretsRouter);
 router.use('/countdown', apiLimiter, authMiddleware, countdownRouter);
 router.use('/markiseStatus', apiLimiter, authMiddleware, markiseStatusRouter);
+router.use('/userData', apiLimiter, authMiddleware, userDataRouter);
 
 export default router;

@@ -5,10 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2024-02-10
+## [v16.3.0] - 2024-11-02
+
+### Added
+- `UserPage` component to display user information.
+- New API endpoint `userData`.
+
+### Removed
+- State variable `previousLastLogin` stored in localStorage.
 
 ### Fixed
-- Added $eq operator to mongodb queries
+- Added `$eq` operator to MongoDB queries.
 
 ## [v16.2.1] - 2024-02-10
 

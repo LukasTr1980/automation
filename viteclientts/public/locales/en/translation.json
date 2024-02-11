@@ -93,5 +93,7 @@
     "tokenExpiresIn": "Token expires in",
     "expired": "expired",
     "validToken": "Valid Token",
-    "refreshingToken": "Refreshing Token"
+    "refreshingToken": "Refreshing Token",
+    "userInfo": "User Information",
+    "notAvailable": "Not available"
 }

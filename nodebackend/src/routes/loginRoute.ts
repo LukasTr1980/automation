@@ -4,7 +4,7 @@ import { connectToRedis } from '../clients/redisClient';
 import crypto from 'crypto';
 import * as vaultClient from '../clients/vaultClient'; // Import your Vault client
 import logger from '../logger';
-import { updateLastLogin, getLastLogin } from '../utils/useLoginsModule';
+import { updateLastLogin } from '../utils/useLoginsModule';
 import jwt from 'jsonwebtoken';
 import { isSecureCookie, jwtTokenExpiry } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
@@ -74,12 +74,10 @@ router.post('/', async (req: express.Request, res: express.Response) => {
             sameSite: 'lax'
         });
 
-        const previousLastLogin = await getLastLogin(username);
-
         await updateLastLogin(username);
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
 
-        res.status(200).json({ accessToken, deviceId, previousLastLogin: previousLastLogin, message: 'loggedIn' });
+        res.status(200).json({ accessToken, deviceId, message: 'loggedIn' });
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Error during user login for username: ${username} from IP ${clientIp} - ${error.message}`);

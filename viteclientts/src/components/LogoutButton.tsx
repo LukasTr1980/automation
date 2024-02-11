@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 const LogoutButton: React.FC = () => {
   const navigate = useNavigate();
-  const { setUserLogin, clearJwtToken, setPreviousLastLogin, setHasVisitedBefore, setLogoutInProgress, setDeviceId } = useUserStore();
+  const { setUserLogin, clearJwtToken, setHasVisitedBefore, setLogoutInProgress, setDeviceId } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const { t } = useTranslation();
@@ -20,7 +20,6 @@ const LogoutButton: React.FC = () => {
       await axios.post(`${apiUrl}/logout`, {});
       setUserLogin(null);
       clearJwtToken();
-      setPreviousLastLogin(null);
       setHasVisitedBefore(null);
       setDeviceId(null);
       navigate('/login');

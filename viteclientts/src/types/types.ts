@@ -170,8 +170,6 @@ export type SocketProviderProps = {
 export interface UserState {
     userLogin: string | null;
     setUserLogin: (userLogin: string | null) => void;
-    previousLastLogin: number | null;
-    setPreviousLastLogin: (lastLogin: number | null) => void;
     jwtToken: string | null;
     clearJwtToken: () => void;
     hasVisitedBefore: boolean | null;
@@ -182,6 +180,8 @@ export interface UserState {
     setTokenAndExpiry: (token: string | null) => void;
     deviceId: string | null;
     setDeviceId: (deviceId: string | null) => void;
+    fetchUserData: () => Promise<void>;
+    userData: { lastLogin: number | null } | null;
 }
 
 export type DaysOfWeekNumbers = {

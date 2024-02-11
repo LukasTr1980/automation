@@ -11,7 +11,6 @@ import LoadingSpinner from './components/LoadingSpinner';
 import logo from './images/logo-512x512.png';
 import { LayoutProps } from './types/types';
 import { useUserStore } from './utils/store';
-import { convertToGermanDate } from './utils/dateUtils';
 import { useTranslation } from 'react-i18next';
 import useCountdown from './utils/useCountdown';
 
@@ -24,8 +23,7 @@ const Layout: React.FC<LayoutProps> = ({
   showNavMenu = true,
   showLogo = false
 }) => {
-  const { previousLastLogin, userLogin } = useUserStore();
-  const germanDate = convertToGermanDate(previousLastLogin);
+  const { userLogin } = useUserStore();
   const { value: countdownTime, refreshing } = useCountdown();
   const { t } = useTranslation();
 
@@ -80,9 +78,6 @@ const Layout: React.FC<LayoutProps> = ({
       }}>
         <Typography variant='body2' color='black' fontWeight='bold'>
           Version: {appVersion}
-        </Typography>
-        <Typography variant='body2' color='black' fontWeight='bold'>
-          {t('lastLogin')}: {germanDate}
         </Typography>
         {userLogin === 'admin' &&
           <Typography variant='body2' color='black' fontWeight='bold'>

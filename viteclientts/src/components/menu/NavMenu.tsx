@@ -21,12 +21,22 @@ const NavMenu: React.FC = () => {
 
   const userInfoDisplay = userLogin ? (
     <div style={{ marginLeft: 'auto', paddingRight: 2 }}>
-      <Typography textTransform='capitalize'>
-        {t('user')}: <strong>{userLogin}</strong>
-      </Typography>
+      <Button
+        sx={{ color: 'white', '&:hover': { backgroundColor: '#1871CA', color: 'white' } }}
+        component={NavLink}
+        to="/user"
+      >
+        <Typography textTransform='capitalize'>
+          {userLogin}
+        </Typography>
+      </Button>
 
     </div>
-  ) : null
+  ) : (
+    <div style={{ marginLeft: 'auto', paddingRight: 2 }}>
+      <Typography>{t('notAvailable')}</Typography>
+    </div>
+  );
 
   const drawer = (
     <div>

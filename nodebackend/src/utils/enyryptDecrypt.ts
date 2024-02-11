@@ -43,14 +43,4 @@ function decrypt(text: string): string {
     return decrypted.toString();
 }
 
-// It is important to call initializeEncryptionKey() and ensure SECRET_KEY is set before using encrypt/decrypt functions.
-// Example usage:
-// (async () => {
-//     await initializeEncryptionKey();
-//     const encrypted = encrypt('Hello, world!');
-//     console.log(encrypted);
-//     const decrypted = decrypt(encrypted);
-//     console.log(decrypted);
-// })();
-
 export { encrypt, decrypt, initializeEncryptionKey };
