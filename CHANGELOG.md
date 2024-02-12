@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.4.0] - 2024-02-12
+
+### Added
+- New endpoint `forwardAuth` for Traefik forward authentication support.
+
+### Changed
+- Updated the ChatGPT model to enhance performance and accuracy.
+
 ## [v16.3.0] - 2024-11-02
 
 ### Added

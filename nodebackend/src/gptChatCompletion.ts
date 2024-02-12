@@ -47,7 +47,7 @@ async function createChatCompletion(): Promise<CompletionResponse> {
     const openai = await getOpenAI();
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-1106",
+      model: "gpt-3.5-turbo-0125",
       messages: [
         { "role": "system", "content": "You are a condition evaluator." },
         { "role": "user", "content": formattedGptRequest }

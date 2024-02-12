@@ -21,6 +21,7 @@ import refreshTokenRouter from './refreshTokenRoute';
 import logoutRouter from './logoutRoute';
 import verifyTokenRouter from './verifyTokenRoute';
 import userDataRouter from './userDataRoute';
+import forwardAuthRouter from './forwardAuthRoute';
 
 const router = express.Router();
 
@@ -42,5 +43,6 @@ router.use('/updateSecrets', apiLimiter, [authMiddleware, requiredRole('admin')]
 router.use('/countdown', apiLimiter, authMiddleware, countdownRouter);
 router.use('/markiseStatus', apiLimiter, authMiddleware, markiseStatusRouter);
 router.use('/userData', apiLimiter, authMiddleware, userDataRouter);
+router.use('/forwardAuth', apiLimiter, [authMiddleware, requiredRole('admin')], forwardAuthRouter);
 
 export default router;
