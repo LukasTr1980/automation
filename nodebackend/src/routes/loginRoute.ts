@@ -6,7 +6,7 @@ import * as vaultClient from '../clients/vaultClient'; // Import your Vault clie
 import logger from '../logger';
 import { updateLastLogin } from '../utils/useLoginsModule';
 import jwt from 'jsonwebtoken';
-import { isSecureCookie, jwtTokenExpiry } from '../envSwitcher';
+import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
 import { initializeEncryptionKey, encrypt } from '../utils/enyryptDecrypt';
 import generateUniqueId from '../utils/generateUniqueId';
@@ -60,6 +60,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: isSecureCookie,
+            domain: isSubDomainCookie,
             maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
 
@@ -71,6 +72,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         res.cookie('role', encryptedRoleCookie, {
             httpOnly: true,
             secure: isSecureCookie,
+            domain: isSubDomainCookie,
             maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
@@ -78,7 +80,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         res.cookie('forwardAuthToken', forwardAuthToken, {
             httpOnly: true,
             secure: isSecureCookie,
-            domain: 'charts.cx',
+            domain: isDomainCookie,
             maxAge: expiresIn * 1000,
             sameSite: 'lax'
         })

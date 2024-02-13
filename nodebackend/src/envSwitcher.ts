@@ -19,6 +19,8 @@ interface Config {
     vaultUrl: string;
     isSecureCookie: boolean;
     jwtTokenExpiry: number;
+    isDomainCookie: string;
+    isSubDomainCookie: string;
 }
 
 const devConfig: Config = {
@@ -30,7 +32,9 @@ const devConfig: Config = {
     mosquittoUrl: 'mqtt://10.25.159.4:1883',
     vaultUrl: 'http://10.25.159.4:8200',
     isSecureCookie: false,
-    jwtTokenExpiry: 60
+    jwtTokenExpiry: 60,
+    isSubDomainCookie: 'localhost',
+    isDomainCookie: 'localhost'
 }
 
 const prodConfig: Config = {
@@ -42,7 +46,9 @@ const prodConfig: Config = {
     mosquittoUrl: 'mqtt://mosquitto_container:1883',
     vaultUrl: 'http://vault_container:8200',
     isSecureCookie: true,
-    jwtTokenExpiry: 60 * 30
+    jwtTokenExpiry: 60 * 30,
+    isSubDomainCookie: 'automation.charts.cx',
+    isDomainCookie: 'charts.cx'
 }
 
 const selectedConfig: Config = isDev ? devConfig : prodConfig;
@@ -56,7 +62,9 @@ export const {
     mosquittoUrl,
     vaultUrl,
     isSecureCookie,
-    jwtTokenExpiry
+    jwtTokenExpiry,
+    isDomainCookie,
+    isSubDomainCookie
 } = selectedConfig;
 
 export { isDev };

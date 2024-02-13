@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { connectToRedis } from '../clients/redisClient';
 import logger from '../logger';
 import crypto from 'crypto';
-import { isSecureCookie, jwtTokenExpiry } from '../envSwitcher';
+import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
 import { initializeEncryptionKey, decrypt, encrypt } from '../utils/enyryptDecrypt';
 import { roleCookieValidation, refreshTokenValidation, deviceIdValidation, usernameValidation } from '../utils/inputValidation';
@@ -86,6 +86,7 @@ router.post('/', async (req, res) => {
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             secure: isSecureCookie,
+            domain: isSubDomainCookie,
             maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
@@ -95,6 +96,7 @@ router.post('/', async (req, res) => {
         res.cookie('role', encryptedRoleCookie, {
             httpOnly: true,
             secure: isSecureCookie,
+            domain: isSubDomainCookie,
             maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
@@ -102,7 +104,7 @@ router.post('/', async (req, res) => {
         res.cookie('forwardAuthToken', newForwardAuthToken, {
             httpOnly: true,
             secure: isSecureCookie,
-            domain: 'charts.cx',
+            domain: isDomainCookie,
             maxAge: expiresIn * 1000,
             sameSite: 'lax'
         })
