@@ -9,10 +9,11 @@ interface TokenPayload {
   role: string;
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: TokenPayload;
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: {
+      username: string;
+      role: string;
     }
   }
 }
@@ -43,7 +44,7 @@ const authMiddlewareForwardAuth = async (req: Request, res: Response, next: Next
       next(); // Proceed to the next middleware if the token is valid
     });
   } catch (error) {
-    logger.error(`Error in authentication middleware: ${error.message || 'Unknown error'}`);
+    logger.error(`Error in authentication middleware: ${error}`);
     return res.status(500).send("Internal server error");
   }
 };
