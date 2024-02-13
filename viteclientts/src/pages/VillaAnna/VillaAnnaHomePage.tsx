@@ -4,6 +4,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import IrrigationButtonImage from '../../images/IrrigationButton.jpg';
 import AwningButtonImage from '../../images/AwningButton.jpg';
 import IrrigationCountdownButtonImage from '../../images/IrrigationCountdownButton.jpg';
+import HeatingButtonImage from '../../images/HeatingButtonImage.webp';
 
 const HomePage = () => {
   return (
@@ -62,6 +63,24 @@ const HomePage = () => {
               </CardActionArea>
             </Card>
           </RouterLink>
+        </Grid>
+        <Grid item>
+          <a href="https://charts.cx/heating-system/" style={{ textDecoration: 'none' }} target="_blank" >
+            <Card sx={{ maxWidth: '200px' }} variant='outlined'>
+              <CardActionArea>
+                <CardMedia
+                  component='img'
+                  image={HeatingButtonImage}
+                  alt='Heating Button'
+                />
+                <CardContent>
+                  <Typography gutterBottom variant="h6" component="div">
+                    Heizung
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </a>
         </Grid>
       </Grid>
     </Layout>
