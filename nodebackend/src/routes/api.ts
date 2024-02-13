@@ -2,6 +2,7 @@ import express from 'express';
 import { apiLimiter, loginLimiter } from '../middleware/rateLimiter';
 import authMiddleware from '../middleware/authMiddleware';
 import requiredRole from '../middleware/roleMiddleware';
+import authMiddlewareForwardAuth from '../middleware/authMiddlewareForwardAuth';
 
 import loginRouter from './loginRoute';
 import mqttRouter from './mqttRoute';
@@ -43,6 +44,6 @@ router.use('/updateSecrets', apiLimiter, [authMiddleware, requiredRole('admin')]
 router.use('/countdown', apiLimiter, authMiddleware, countdownRouter);
 router.use('/markiseStatus', apiLimiter, authMiddleware, markiseStatusRouter);
 router.use('/userData', apiLimiter, authMiddleware, userDataRouter);
-router.use('/forwardAuth', apiLimiter, [authMiddleware, requiredRole('admin')], forwardAuthRouter);
+router.use('/forwardAuth', apiLimiter, [authMiddlewareForwardAuth, requiredRole('admin')], forwardAuthRouter);
 
 export default router;

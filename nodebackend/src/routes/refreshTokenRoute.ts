@@ -76,6 +76,7 @@ router.post('/', async (req, res) => {
         const expiresIn = jwtTokenExpiry;
 
         const newAccessToken = jwt.sign({ username: username, role: storedData.userRole }, jwtSecret, { expiresIn });
+        const newForwardAuthToken = jwt.sign({ username: username, role: storedData.userRole }, jwtSecret, {expiresIn});
 
         const newRefreshToken = crypto.randomBytes(40).toString('hex');
         const refreshTokenData: StoredData = { refreshToken: newRefreshToken, userRole: storedData.userRole }
@@ -97,6 +98,14 @@ router.post('/', async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
+
+        res.cookie('forwardAuthToken', newForwardAuthToken, {
+            httpOnly: true,
+            secure: isSecureCookie,
+            domain: 'charts.cx',
+            maxAge: expiresIn * 1000,
+            sameSite: 'lax'
+        })
 
         res.status(200).json({  
             accessToken: newAccessToken
