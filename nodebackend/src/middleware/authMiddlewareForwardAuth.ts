@@ -1,19 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken'; // Note the JwtPayload import for typing
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import logger from '../logger';
 import { getJwtAccessTokenSecret } from '../configs';
 
 interface TokenPayload extends JwtPayload {
   username: string;
   role: string;
-}
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: TokenPayload;
-    }
-  }
 }
 
 const authMiddlewareForwardAuth = async (req: Request, res: Response, next: NextFunction) => {
@@ -29,23 +21,22 @@ const authMiddlewareForwardAuth = async (req: Request, res: Response, next: Next
 
     const jwtSecret = await getJwtAccessTokenSecret();
 
-    jwt.verify(token, jwtSecret, (err: Error | null, decoded: object | undefined) => {
+    jwt.verify(token, jwtSecret, (err: Error | null, decoded: JwtPayload | undefined) => {
       if (err) {
-        logger.warn(`Invalid JWT token from IP ${clientIp}`);
-        return res.status(401).send("Authentication failed: Invalid token");
+        logger.warn(`Invalid forwardAuthToken token from IP ${clientIp}`);
+        return res.status(401).send("Authentication failed: Invalid forwardAuthToken");
       }
 
-      // Ensure 'decoded' is not undefined and is a TokenPayload
-      if (decoded && typeof decoded === 'object') {
-        const payload = decoded as TokenPayload;
-        req.user = payload;
-        next();
-      } else {
-        return res.status(401).send("Authentication failed: Decoding failed");
+      const payload = decoded as TokenPayload;
+      if (!payload.username || !payload.role) {
+        return res.status(401).send("Authentication failed: forwardAuthToken is missing required claims");
       }
+
+      req.user = payload;
+      next();
     });
   } catch (error) {
-    logger.error(`Error in authentication middleware: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error(`Error in forwardAuthToken authentication middleware: ${error}`);
     return res.status(500).send("Internal server error");
   }
 };
