@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.5.1] - 2024-02-14
+
+### Changed
+- Changed the duration of JWT tokens in the production environment to 24 hours.
+- Modified the behavior of clicking the "Heizung" link to call the refreshToken route for a fresh forward-auth token.
+
 ## [v16.5.0] - 2024-02-13
 
 ### Added

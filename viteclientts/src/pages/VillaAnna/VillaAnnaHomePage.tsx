@@ -5,8 +5,32 @@ import IrrigationButtonImage from '../../images/IrrigationButton.jpg';
 import AwningButtonImage from '../../images/AwningButton.jpg';
 import IrrigationCountdownButtonImage from '../../images/IrrigationCountdownButton.jpg';
 import HeatingButtonImage from '../../images/HeatingButtonImage.webp';
+import axios from 'axios';
+import { useUserStore } from '../../utils/store';
+import useSnackbar from '../../utils/useSnackbar';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const { userLogin, deviceId, setTokenAndExpiry } = useUserStore();
+  const { showSnackbar } = useSnackbar();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const refreshToken = async () => {
+    try {
+      const response = await axios.post(`${apiUrl}/refreshToken`, {username: userLogin, deviceId});
+      if (response.status === 200 && response.data.accessToken) {
+        setTokenAndExpiry(response.data.accessToken);
+        window.open("https://charts.cx/heating-system/", "_blank");
+      }
+    } catch (error) {
+      showSnackbar(t('invalidOrExpiredToken'), 'warning');
+      navigate('/login');
+    }
+  };
+
   return (
     <Layout title='Villa Anna Automation'>
       <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
@@ -65,9 +89,8 @@ const HomePage = () => {
           </RouterLink>
         </Grid>
         <Grid item>
-          <a href="https://charts.cx/heating-system/" style={{ textDecoration: 'none' }} target="_blank" >
             <Card sx={{ maxWidth: '200px' }} variant='outlined'>
-              <CardActionArea>
+              <CardActionArea onClick={refreshToken}>
                 <CardMedia
                   component='img'
                   image={HeatingButtonImage}
@@ -80,7 +103,6 @@ const HomePage = () => {
                 </CardContent>
               </CardActionArea>
             </Card>
-          </a>
         </Grid>
       </Grid>
     </Layout>

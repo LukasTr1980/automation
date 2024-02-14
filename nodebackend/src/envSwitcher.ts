@@ -46,7 +46,7 @@ const prodConfig: Config = {
     mosquittoUrl: 'mqtt://mosquitto_container:1883',
     vaultUrl: 'http://vault_container:8200',
     isSecureCookie: true,
-    jwtTokenExpiry: 60 * 30,
+    jwtTokenExpiry: 60 * 60 * 24,
     isSubDomainCookie: 'automation.charts.cx',
     isDomainCookie: 'charts.cx'
 }
