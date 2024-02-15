@@ -5,6 +5,7 @@ import IrrigationButtonImage from '../../images/IrrigationButton.jpg';
 import AwningButtonImage from '../../images/AwningButton.jpg';
 import IrrigationCountdownButtonImage from '../../images/IrrigationCountdownButton.jpg';
 import HeatingButtonImage from '../../images/HeatingButtonImage.webp';
+import VentilationButtonImage from '../../images/VentilationButton.webp';
 import axios from 'axios';
 import { useUserStore } from '../../utils/store';
 import useSnackbar from '../../utils/useSnackbar';
@@ -18,18 +19,28 @@ const HomePage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const refreshToken = async () => {
+  const refreshToken = async (url: string) => {
     try {
-      const response = await axios.post(`${apiUrl}/refreshToken`, {username: userLogin, deviceId});
+      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin, deviceId });
       if (response.status === 200 && response.data.accessToken) {
         setTokenAndExpiry(response.data.accessToken);
-        window.open("https://charts.cx/heating-system/", "_blank");
+        window.open(url, "_blank");
       }
     } catch (error) {
       showSnackbar(t('invalidOrExpiredToken'), 'warning');
       navigate('/login');
     }
   };
+
+  const openHeatingSystemUrl = () => {
+    const heatingSystemUrl = 'https://charts.cx/heating-system/';
+    refreshToken(heatingSystemUrl);
+  };
+
+  const openVentilationSystemUrl = () => {
+    const ventilationSystemUrl = 'https://charts.cx/ventilation-system/';
+    refreshToken(ventilationSystemUrl);
+  }
 
   return (
     <Layout title='Villa Anna Automation'>
@@ -89,20 +100,36 @@ const HomePage = () => {
           </RouterLink>
         </Grid>
         <Grid item>
-            <Card sx={{ maxWidth: '200px' }} variant='outlined'>
-              <CardActionArea onClick={refreshToken}>
-                <CardMedia
-                  component='img'
-                  image={HeatingButtonImage}
-                  alt='Heating Button'
-                />
-                <CardContent>
-                  <Typography gutterBottom variant="h6" component="div">
-                    Heizung
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
+          <Card sx={{ maxWidth: '200px' }} variant='outlined'>
+            <CardActionArea onClick={openHeatingSystemUrl}>
+              <CardMedia
+                component='img'
+                image={HeatingButtonImage}
+                alt='Heating Button'
+              />
+              <CardContent>
+                <Typography gutterBottom variant="h6" component="div">
+                  Heizung
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </Card>
+          </Grid>
+          <Grid item>
+          <Card sx={{ maxWidth: '200px' }} variant='outlined'>
+            <CardActionArea onClick={openVentilationSystemUrl}>
+              <CardMedia
+                component='img'
+                image={VentilationButtonImage}
+                alt='Ventilation Button'
+              />
+              <CardContent>
+                <Typography gutterBottom variant="h6" component="div">
+                  Lüftung
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </Card>
         </Grid>
       </Grid>
     </Layout>

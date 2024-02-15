@@ -16,9 +16,6 @@ const MarkisePage = () => {
     const { jwtToken } = useUserStore();
     const [markiseStatus, setMarkiseStatus] = useState<MarkiseStatus>({});
     const { socket, connected } = useContext(SocketContext);
-    const [switchesLoaded, setSwitchesLoaded] = useState(false);
-    const [tasksLoaded, setTasksLoaded] = useState(false);
-    const isLoading = !(switchesLoaded && tasksLoaded);
     const [markiseState, setMarkiseState] = useState(null);
     const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
     const [reloadTasks, setReloadTasks] = useState(false);
@@ -39,12 +36,10 @@ const MarkisePage = () => {
             if (data.type === 'switchState') {
                 if (data.topic && data.topic === 'markise/switch/haupt') {
                     setMarkiseState(data.state);
-                    setSwitchesLoaded(true);
                 }
 
                 else if (data.latestStates && data.latestStates['markise/switch/haupt'] !== undefined) {
                     setMarkiseState(data.latestStates['markise/switch/haupt']);
-                    setSwitchesLoaded(true);
                 }
             }
         };
@@ -60,7 +55,6 @@ const MarkisePage = () => {
                 const tasksArray = Object.entries(response.data).flatMap(([key, tasks]) => tasks.map(task => ({ topic: key, ...task })));
                 const markiseTasks = tasksArray.filter(task => task.topic === 'markise/switch/haupt/set');
                 setScheduledTasks(markiseTasks as ScheduledTask[]);
-                setTasksLoaded(true);
             })
             .catch(error => console.error('Error:', error));
     }, [reloadTasks, apiUrl]);
@@ -119,7 +113,7 @@ const MarkisePage = () => {
     }, [socket, fetchCurrentMarkiseStatus, connected]);  // Include connected in dependencies    
 
     return (
-        <Layout title={title} loading={isLoading}>
+        <Layout title={title}>
             <>
                 <Grid item xs={12} paddingTop={1} paddingBottom={1}>
                     <Card variant='outlined'>

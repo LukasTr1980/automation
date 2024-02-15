@@ -1,14 +1,22 @@
 import Layout from '../Layout';
 import { Grid, Card, CardActionArea, CardMedia, CardContent, Typography } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import VillaAnnaButtonImage from '../images/VillaAnnaButton.jpeg';
 import SettingsButtonImage from '../images/SettingsButton.jpg';
 import { useUserStore } from '../utils/store';
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
 
 const HomePage: React.FC = () => {
   const { userLogin } = useUserStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (userLogin === 'test') {
+      navigate('/villa-anna/home');
+    }
+  },[userLogin, navigate]);
 
   return (
     <Layout title="Automation">
