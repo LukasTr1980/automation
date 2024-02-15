@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { AlertColor } from '@mui/material/Alert';
+import { SxProps } from '@mui/material';
 
 export interface SchedulerCardProps {
     setReloadTasks: React.Dispatch<React.SetStateAction<boolean>>;
@@ -202,4 +203,8 @@ export interface ErrorResponse {
 export type TokenExpiryCountdown = {
     value: string;
     expired: boolean;
+}
+
+export interface CopyrightProps {
+    sx?: SxProps
 }

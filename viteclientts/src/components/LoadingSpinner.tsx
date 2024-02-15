@@ -3,7 +3,16 @@ import React from 'react';
 import { LoadingSpinnerProps } from '../types/types';
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 50 }) => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+  <Box sx={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    width: '100%'
+  }}>
     <CircularProgress size={size} />
   </Box>
 );

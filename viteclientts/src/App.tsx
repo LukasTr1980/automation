@@ -11,12 +11,14 @@ import { SnackbarProvider } from './components/snackbar/SnackbarContext';
 import CentralizedSnackbar from './components/snackbar/CentralizedSnackbar';
 import { SocketProvider } from './components/socketio/SocketContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import CssBaseline from '@mui/material/CssBaseline';
 
 function App() {
 
   return (
     <SnackbarProvider>
       <ErrorBoundary>
+        <CssBaseline />
         <Router>
           <div className="App">
             <header className="App-header">

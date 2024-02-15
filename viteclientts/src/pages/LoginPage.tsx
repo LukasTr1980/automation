@@ -1,11 +1,13 @@
 import { useState, FormEvent, useEffect } from 'react';
-import { Box, TextField, Typography } from '@mui/material';
+import { Avatar, Box, Container, TextField, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../utils/store';
 import useSnackbar from '../utils/useSnackbar';
 import { useTranslation } from 'react-i18next';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { CopyrightProps } from '../types/types';
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
@@ -16,6 +18,18 @@ const LoginForm: React.FC = () => {
   const { showSnackbar } = useSnackbar();
   const [loginButtonLoading, setLoginButtonLoading] = useState<boolean>(false);
   const { t } = useTranslation();
+
+  function Copyright(props: CopyrightProps) {
+    return (
+      <Typography variant="body2" color="text.secondary" align="center" sx={props.sx}>
+        {'Copyright © '}
+        Lukas Tröbinger
+        {' '}
+        {new Date().getFullYear()}
+        {'.'}
+      </Typography>
+    );
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -67,56 +81,66 @@ const LoginForm: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <Container component='main' maxWidth="xs">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}
+      >
+        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+          <LockOutlinedIcon />
+        </Avatar>
+        <Typography component='h1' variant='h5'>
+          Login Automation
+        </Typography>
         <Box
           component="form"
           onSubmit={handleSubmit}
-          border={1}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            maxWidth: '300px',
-            margin: '0 auto',
-            p: 2,
-            gap: 2,
-          }}
+          sx={{ mt: 1 }}
           noValidate
-          autoComplete="off"
         >
-          <Typography variant="h5">Login Villa Anna Automation</Typography>
           <TextField
+            margin='normal'
+            fullWidth
             label="Username"
-            variant="outlined"
-            spellCheck={false}
+            id='username'
+            name='username'
+            autoComplete='username'
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
-            InputLabelProps={{
-              shrink: true,
-              style: { transition: "none" },
-            }}
+            autoFocus
+            spellCheck={false}
           />
           <TextField
+            margin='normal'
+            name='password'
+            id='password'
+            fullWidth
             label="Password"
-            variant="outlined"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            InputLabelProps={{
-              shrink: true,
-              style: { transition: "none" },
-            }}
+            autoComplete='password'
+            spellCheck={false}
           />
           <LoadingButton
             type="submit"
+            fullWidth
             variant='contained'
             loading={loginButtonLoading}
+            sx={{ mt: 3, mb: 2 }}
           >
             Login
           </LoadingButton>
         </Box>
-    </>
+      </Box>
+      <Copyright sx={{ mt: 8, mb: 4 }} />
+    </Container>
   );
 };
 
