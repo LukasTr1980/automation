@@ -21,17 +21,15 @@ function App() {
         <CssBaseline />
         <Router>
           <div className="App">
-            <header className="App-header">
-              <Routes>
-                <Route path='/' element={<AuthGuard><HomePage /></AuthGuard>} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
-                <Route path='/settings' element={<AuthGuard requiredRole='admin'><SettingsPage /></AuthGuard>} />
-                <Route path='/user' element={<AuthGuard><UserPage /></AuthGuard>} />
-                <Route path='/villa-anna/*' element={<AuthGuard><SocketProvider><VillaAnnaRoutes /></SocketProvider></AuthGuard>} />
-                <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
-              </Routes>
-            </header>
+            <Routes>
+              <Route path='/' element={<AuthGuard><HomePage /></AuthGuard>} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path='/home' element={<AuthGuard><HomePage /></AuthGuard>} />
+              <Route path='/settings' element={<AuthGuard requiredRole='admin'><SettingsPage /></AuthGuard>} />
+              <Route path='/user' element={<AuthGuard><UserPage /></AuthGuard>} />
+              <Route path='/villa-anna/*' element={<AuthGuard><SocketProvider><VillaAnnaRoutes /></SocketProvider></AuthGuard>} />
+              <Route path='*' element={<AuthGuard><NotFoundPage /></AuthGuard>} />
+            </Routes>
             <CentralizedSnackbar />
           </div>
         </Router>

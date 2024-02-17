@@ -84,13 +84,13 @@ const LoginForm: React.FC = () => {
     <Container component='main' maxWidth="xs">
       <Box
         sx={{
-          marginTop: 8,
+          marginTop: 0,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+        <Avatar sx={{ m: 1, bgcolor: 'secondary.main', marginTop: 8 }}>
           <LockOutlinedIcon />
         </Avatar>
         <Typography component='h1' variant='h5'>
