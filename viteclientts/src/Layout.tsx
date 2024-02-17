@@ -25,7 +25,6 @@ const Layout: React.FC<LayoutProps> = ({
   const { userLogin } = useUserStore();
   const { value: countdownTime, refreshing } = useCountdown();
   const { t } = useTranslation();
-  const containerPaddingBottom = userLogin === 'admin' ? '130px' : '110px';
   const countdownDisplay = refreshing ? t('refreshingToken') : countdownTime;
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -45,7 +44,7 @@ const Layout: React.FC<LayoutProps> = ({
   return (
     <>
       {showNavMenu && <NavMenu />}
-      <Container component='main' sx={{ pt: isSmallScreen ? '64px' : '64px', paddingBottom: containerPaddingBottom }} style={{ maxWidth: '700px' }}>
+      <Container component='main' sx={{ pt: isSmallScreen ? '64px' : '64px', paddingBottom: 2 }} style={{ maxWidth: '700px' }}>
         <Grid container paddingTop={isSmallScreen ? 2 : 4}>
           <Grid item xs={12} sx={{ paddingBottom: { xs: 1, sm: 4 } }}>
             <Typography align="center" textTransform='uppercase' sx={{ fontSize: { xs: '1.3em', sm: '2em' } }}>{title}</Typography>
