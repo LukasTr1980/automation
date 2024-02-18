@@ -2,13 +2,18 @@ import { Db } from "mongodb";
 import { connectToMongo } from "../clients/mongoClient";
 import logger from "../logger";
 
+interface User {
+    username: string;
+    [key: string]: unknown;
+}
+
 async function updateLastLogin(username: string): Promise<void> {
     try {
         const db: Db = await connectToMongo();
-        const userLoginsCollection = db.collection('userLogins');
+        const userCollection = db.collection('users');
 
         const lastLoginTime = Date.now();
-        const updateResult = await userLoginsCollection.updateOne(
+        const updateResult = await userCollection.updateOne(
             { username: { $eq: username }},
             { $set: { lastLoginTime: lastLoginTime } },
             { upsert: true }
@@ -20,24 +25,30 @@ async function updateLastLogin(username: string): Promise<void> {
     }
 }
 
-async function getLastLogin(username: string): Promise<Date | null> {
+async function getUserData(username: string): Promise<User | User[] | null> {
     try {
         const db: Db = await connectToMongo();
-        const userLoginsCollection = db.collection('userLogins');
+        const userCollection = db.collection<User>('users');
 
-        const userLoginInfo = await userLoginsCollection.findOne({ username: { $eq: username }});
-        
-        if (userLoginInfo && userLoginInfo.lastLoginTime) {
-            logger.info(`getLastLogin - Retrieved last login for user: ${username}`);
-            return userLoginInfo.lastLoginTime;
+        const userInfo = await userCollection.findOne({ username: { $eq: username }});
+
+        if (userInfo) {
+            if (userInfo.username === 'admin') {
+                logger.info(`getUserData - ${username} retrieving all user data`);
+                const allUsers = await userCollection.find({}).toArray();
+                return allUsers;
+            } else {
+                logger.info(`getUserData - Retrieved data for user: ${username}`);
+                return userInfo;
+            }
         } else {
-            logger.info(`getLastLogin - No last login found for user: ${username}`);
+            logger.info(`getUserData - No user found with username: ${username}`);
             return null;
         }
     } catch (error) {
-        logger.error(`getLastLogin Error - User: ${username}, Error: ${error}`);
+        logger.error(`getUserData Error - User: ${username}, Error: ${error}`);
         return null;
     }
 }
 
-export { updateLastLogin, getLastLogin }
+export { updateLastLogin, getUserData }

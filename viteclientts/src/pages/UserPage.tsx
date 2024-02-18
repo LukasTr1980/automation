@@ -1,23 +1,22 @@
+import React from "react";
 import Layout from "../Layout";
 import { useTranslation } from "react-i18next";
-import { convertToGermanDate } from "../utils/dateUtils";
-import { useUserStore } from "../utils/store";
 import { useEffect } from "react";
-import { List, ListItem, ListItemText, Divider, Grid } from '@mui/material'
+import { List, ListItem, ListItemText, Divider, Grid } from '@mui/material';
+import { useUserStore } from "../utils/store";
+import { UserType } from "../types/types";
+import { convertToGermanDate } from "../utils/dateUtils";
 
 const UserPage: React.FC = () => {
     const { t } = useTranslation();
     const fetchUserData = useUserStore(state => state.fetchUserData);
-    const userData = useUserStore(state => state.userData);
-    const userLogin = useUserStore((state) => state.userLogin);
+    // Directly accessing userData.userData based on your data structure
+    const userDataContainer = useUserStore(state => state.userData);
+    const usersData = userDataContainer ? userDataContainer.userData : null;
 
     useEffect(() => {
-        if (!userData) {
-            fetchUserData();
-        }
-    }, [fetchUserData, userData]);
-
-    const lastLogin = userData ? convertToGermanDate(userData.lastLogin) : '';
+        fetchUserData();
+    }, [fetchUserData]);
 
     const style = {
         py: 0,
@@ -28,27 +27,41 @@ const UserPage: React.FC = () => {
         backgroundColor: 'background.paper',
     };
 
+    // Helper function to render user data
+    const renderUserData = (user: UserType) => (
+        <>
+            <ListItem>
+                <ListItemText primary={t('username')} secondary={user.username ?? t('notAvailable')} />
+            </ListItem>
+            <ListItem>
+                <ListItemText primary={t('lastLogin')} secondary={user.lastLoginTime ? convertToGermanDate(user.lastLoginTime) : t('notAvailable')} />
+            </ListItem>
+            <Divider component="li" />
+        </>
+    );
+
     return (
         <Layout title={t('userInfo')}>
             <Grid item paddingTop={1} xs={12}>
                 <List sx={style}>
-                    <ListItem>
-                        <ListItemText primary={t('user')} secondary={userLogin ?? t('notAvailable')} />
-                    </ListItem>
-                    <Divider component="li" />
-                    {userData && (
-                        <>
-                            <ListItem>
-                                <ListItemText primary={t('lastLogin')} secondary={lastLogin} />
-                            </ListItem>
-                            <Divider component="li" />
-                        </>
+                    {Array.isArray(usersData) ? (
+                        usersData.map(user => (
+                            <React.Fragment key={user._id}>
+                                {renderUserData(user)}
+                            </React.Fragment>
+                        ))
+                    ) : usersData ? (
+                        // Handling the single user object case
+                        renderUserData(usersData)
+                    ) : (
+                        <ListItem>
+                            <ListItemText primary={t('noUserDataAvailable')} />
+                        </ListItem>
                     )}
                 </List>
             </Grid>
         </Layout>
     );
-
 };
 
 export default UserPage;

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLastLogin } from '../utils/useLoginsModule'; 
+import { getUserData } from '../utils/useLoginsModule'; 
 import logger from '../logger';
 
 const router = express.Router();
@@ -11,11 +11,10 @@ router.get('/', async (req: express.Request, res: express.Response) => {
     }
 
     try {
-        const lastLogin = await getLastLogin(username);
+        const userData = await getUserData(username);
 
-        if (lastLogin) {
-            logger.info(`Retrieved last login for user ${username} `, lastLogin);
-            res.json({ lastLogin });
+        if (userData) {
+            res.json({ userData });
         } else {
             res.status(404).json({ message: 'No login information found for the user' });
         }

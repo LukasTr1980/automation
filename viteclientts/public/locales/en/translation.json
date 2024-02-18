@@ -95,5 +95,7 @@
     "validToken": "Valid Token",
     "refreshingToken": "Refreshing Token",
     "userInfo": "User Information",
-    "notAvailable": "Not available"
+    "notAvailable": "Not available",
+    "noUserDataAvailable": "No user data available",
+    "username": "Username"
 }

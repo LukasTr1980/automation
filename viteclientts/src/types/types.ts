@@ -167,6 +167,12 @@ export type SocketProviderProps = {
     children: ReactNode;
 };
 
+export type UserType = {
+    _id: string;
+    username: string;
+    lastLoginTime: number;
+}
+
 export interface UserState {
     userLogin: string | null;
     setUserLogin: (userLogin: string | null) => void;
@@ -181,7 +187,7 @@ export interface UserState {
     deviceId: string | null;
     setDeviceId: (deviceId: string | null) => void;
     fetchUserData: () => Promise<void>;
-    userData: { lastLogin: number | null } | null;
+    userData: { userData: UserType[] } | null;
 }
 
 export type DaysOfWeekNumbers = {
