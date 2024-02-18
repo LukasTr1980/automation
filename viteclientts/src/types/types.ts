@@ -214,3 +214,8 @@ export type TokenExpiryCountdown = {
 export interface CopyrightProps {
     sx?: SxProps
 }
+
+export interface ImagePreloaderProps {
+    imageUrls: string[];
+    children: React.ReactNode;
+}

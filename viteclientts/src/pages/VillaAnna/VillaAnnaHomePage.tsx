@@ -1,9 +1,9 @@
 import { Card, CardActionArea, CardContent, CardMedia, Grid, Typography } from '@mui/material';
 import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
-import IrrigationButtonImage from '../../images/IrrigationButton.jpg';
-import AwningButtonImage from '../../images/AwningButton.jpg';
-import IrrigationCountdownButtonImage from '../../images/IrrigationCountdownButton.jpg';
+import IrrigationButtonImage from '../../images/IrrigationButton.webp';
+import AwningButtonImage from '../../images/AwningButton.webp';
+import IrrigationCountdownButtonImage from '../../images/IrrigationCountdownButton.webp';
 import HeatingButtonImage from '../../images/HeatingButtonImage.webp';
 import VentilationButtonImage from '../../images/VentilationButton.webp';
 import axios from 'axios';
@@ -11,6 +11,7 @@ import { useUserStore } from '../../utils/store';
 import useSnackbar from '../../utils/useSnackbar';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import ImagePreloader from '../../utils/imagePreloader';
 
 const HomePage = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -42,7 +43,10 @@ const HomePage = () => {
     refreshToken(ventilationSystemUrl);
   }
 
+  const imageUrls = [IrrigationButtonImage, AwningButtonImage, IrrigationCountdownButtonImage, HeatingButtonImage, VentilationButtonImage];
+
   return (
+    <ImagePreloader imageUrls={imageUrls}>
     <Layout title='Villa Anna Automation'>
       <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
         <Grid item>
@@ -52,7 +56,9 @@ const HomePage = () => {
                 <CardMedia
                   component='img'
                   image={IrrigationButtonImage}
-                  alt='Irrigation Button'
+                  alt='Irrigation'
+                  width='200px'
+                  height='200px'
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div">
@@ -70,7 +76,9 @@ const HomePage = () => {
                 <CardMedia
                   component='img'
                   image={AwningButtonImage}
-                  alt='Irrigation Button'
+                  alt='Awning'
+                  width='200px'
+                  height='200px'
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div">
@@ -88,7 +96,9 @@ const HomePage = () => {
                 <CardMedia
                   component='img'
                   image={IrrigationCountdownButtonImage}
-                  alt='Irrigation Button'
+                  alt='Irrigation Countdown'
+                  width='200px'
+                  height='200px'
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div">
@@ -105,7 +115,9 @@ const HomePage = () => {
               <CardMedia
                 component='img'
                 image={HeatingButtonImage}
-                alt='Heating Button'
+                alt='Heating'
+                width='200px'
+                height='200px'
               />
               <CardContent>
                 <Typography gutterBottom variant="h6" component="div">
@@ -121,7 +133,9 @@ const HomePage = () => {
               <CardMedia
                 component='img'
                 image={VentilationButtonImage}
-                alt='Ventilation Button'
+                alt='Ventilation'
+                width='200px'
+                height='200px'
               />
               <CardContent>
                 <Typography gutterBottom variant="h6" component="div">
@@ -133,6 +147,7 @@ const HomePage = () => {
         </Grid>
       </Grid>
     </Layout>
+    </ImagePreloader>
   );
 };
 

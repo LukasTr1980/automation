@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.9.0] - 2024-02-18
+
+### Added
+- Added an image preloader with hook and useEffect to preload images, showing a loading spinner while images are preloading.
+
+### Changed
+- Specified image sizes everywhere.
+- Changed all image formats from PNG or JPG to WebP.
+- Updated color design of the page to align with logo colors.
+
 ## [v16.8.0] - 2024-02-18
 
 ### Added

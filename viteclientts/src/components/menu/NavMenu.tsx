@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { Button, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme, Typography, AppBar, Grid } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import logo from '../../images/logo-192x192.png';
+import logo from '../../images/logo-40x40.webp';
 import { useUserStore } from '../../utils/store';
 import { useTranslation } from 'react-i18next';
 import LogoutButton from '../LogoutButton';
@@ -22,7 +22,7 @@ const NavMenu: React.FC = () => {
   const userInfoDisplay = userLogin ? (
     <div style={{ marginLeft: 'auto', paddingRight: 2 }}>
       <Button
-        sx={{ color: '#1565C0', '&:hover': { backgroundColor: '#DFE9F4', color: '#1565C0' } }}
+        sx={{ color: '#1565C0', '&:hover': { backgroundColor: '#D2E9F0', color: '#1565C0' } }}
         component={NavLink}
         to="/user"
       >
@@ -48,7 +48,7 @@ const NavMenu: React.FC = () => {
         borderBottom: '1px solid lightgrey'
       }}>
         <NavLink to='/home' style={{ display: 'inline-flex', alignItems: 'center' }}>
-          <img src={logo} alt='Logo' style={{ height: '40px' }} />
+          <img src={logo} alt='Logo' width='40px' height='40px' />
         </NavLink>
         <IconButton
           edge='end'
@@ -92,7 +92,7 @@ const NavMenu: React.FC = () => {
         <Grid container alignItems='center' justifyContent='center'>
           <Toolbar
             sx={{
-              backgroundColor: '#E7F2FE',
+              backgroundColor: '#EFF7F9',
               maxWidth: '700px',
               width: '100%',
               border: 1,
@@ -108,7 +108,7 @@ const NavMenu: React.FC = () => {
                   <MenuIcon />
                 </IconButton>
                 <NavLink to='/home' style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  <img src={logo} alt='Logo' style={{ height: '40px' }} />
+                  <img src={logo} alt='Logo' width='40px' height='40px' />
                 </NavLink>
                 <Drawer
                   anchor="left"
@@ -122,17 +122,17 @@ const NavMenu: React.FC = () => {
             ) : (
               <>
                 <NavLink to='/home' style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-                  <img src={logo} alt='Logo' style={{ height: '40px', marginRight: '25px' }} />
+                  <img src={logo} alt='Logo' width='40px' height='40px' style={{ marginRight: '25px' }} />
                 </NavLink>
                 <Button
-                  sx={{ color: 'black', '&:hover': { backgroundColor: '#DFE9F4', color: 'black' } }}
+                  sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}
                   component={NavLink}
                   to="/home"
                 >
                   Home
                 </Button>
                 <Button
-                  sx={{ color: 'black', '&:hover': { backgroundColor: '#DFE9F4', color: 'black' } }}
+                  sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}
                   component={NavLink}
                   to="/villa-anna/home"
                 >
@@ -140,7 +140,7 @@ const NavMenu: React.FC = () => {
                 </Button>
                 {userLogin === 'admin' && (
                   <Button
-                    sx={{ color: 'black', '&:hover': { backgroundColor: '#DFE9F4', color: 'black' } }}
+                    sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}
                     component={NavLink}
                     to="/settings"
                   >

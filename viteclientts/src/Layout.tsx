@@ -9,7 +9,7 @@ import {
   useTheme
 } from '@mui/material';
 import NavMenu from './components/menu/NavMenu';
-import logo from './images/logo-512x512.png';
+import logo from './images/logo-512x512.webp';
 import { LayoutProps, CopyrightProps } from './types/types';
 import { useUserStore } from './utils/store';
 import { useTranslation } from 'react-i18next';
@@ -45,8 +45,8 @@ const Layout: React.FC<LayoutProps> = ({
     <>
       {showNavMenu && <NavMenu />}
       <Container component='main' sx={{ pt: isSmallScreen ? '64px' : '64px', paddingBottom: 2 }} style={{ maxWidth: '700px' }}>
-        <Grid container paddingTop={isSmallScreen ? 2 : 4}>
-          <Grid item xs={12} sx={{ paddingBottom: { xs: 1, sm: 4 } }}>
+        <Grid container paddingTop={isSmallScreen ? 3 : 6}>
+          <Grid item xs={12} sx={{ paddingBottom: { xs: 1, sm: 2 } }}>
             <Typography align="center" textTransform='uppercase' sx={{ fontSize: { xs: '1.3em', sm: '2em' } }}>{title}</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {showLogo && (

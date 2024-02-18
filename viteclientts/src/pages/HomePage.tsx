@@ -1,11 +1,12 @@
 import Layout from '../Layout';
 import { Grid, Card, CardActionArea, CardMedia, CardContent, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import VillaAnnaButtonImage from '../images/VillaAnnaButton.jpeg';
-import SettingsButtonImage from '../images/SettingsButton.jpg';
+import VillaAnnaButtonImage from '../images/VillaAnnaButton.webp';
+import SettingsButtonImage from '../images/SettingsButton.webp';
 import { useUserStore } from '../utils/store';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
+import ImagePreloader from '../utils/imagePreloader';
 
 const HomePage: React.FC = () => {
   const { userLogin } = useUserStore();
@@ -18,7 +19,10 @@ const HomePage: React.FC = () => {
     }
   },[userLogin, navigate]);
 
+  const imageUrls = [VillaAnnaButtonImage, SettingsButtonImage];
+
   return (
+    <ImagePreloader imageUrls={imageUrls}>
     <Layout title="Automation">
       <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
         <Grid item>
@@ -28,7 +32,9 @@ const HomePage: React.FC = () => {
                 <CardMedia
                   component='img'
                   image={VillaAnnaButtonImage}
-                  alt='Irrigation Button'
+                  alt='Villa Anna'
+                  width='200px'
+                  height='200px'
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div">
@@ -47,7 +53,9 @@ const HomePage: React.FC = () => {
                 <CardMedia
                   component='img'
                   image={SettingsButtonImage}
-                  alt='Irrigation Button'
+                  alt='Settings'
+                  width='200px'
+                  height='200px'
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div">
@@ -61,6 +69,7 @@ const HomePage: React.FC = () => {
         )}
       </Grid>
     </Layout>
+    </ImagePreloader>
   );
 };
 
