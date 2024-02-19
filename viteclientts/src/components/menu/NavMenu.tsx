@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { Button, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme, Typography, AppBar, Grid } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import logo from '../../images/logo-40x40.webp';
+import logo from '../../images/logo-60x60.webp';
 import { useUserStore } from '../../utils/store';
 import { useTranslation } from 'react-i18next';
 import LogoutButton from '../LogoutButton';
@@ -44,11 +44,11 @@ const NavMenu: React.FC = () => {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '8px',
+        paddingRight: '10px',
         borderBottom: '1px solid lightgrey'
       }}>
         <NavLink to='/home' style={{ display: 'inline-flex', alignItems: 'center' }}>
-          <img src={logo} alt='Logo' width='40px' height='40px' />
+          <img src={logo} alt='Logo' width='60px' height='60px' />
         </NavLink>
         <IconButton
           edge='end'
@@ -97,9 +97,8 @@ const NavMenu: React.FC = () => {
               width: '100%',
               border: 1,
               borderColor: 'lightgrey',
-              borderRadius: 8,
               marginLeft: 1,
-              marginRight: 1
+              marginRight: 1,
             }}>
 
             {isSmallScreen ? (
@@ -108,7 +107,7 @@ const NavMenu: React.FC = () => {
                   <MenuIcon />
                 </IconButton>
                 <NavLink to='/home' style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  <img src={logo} alt='Logo' width='40px' height='40px' />
+                  <img src={logo} alt='Logo' width='60px' height='60px' />
                 </NavLink>
                 <Drawer
                   anchor="left"
@@ -122,7 +121,7 @@ const NavMenu: React.FC = () => {
             ) : (
               <>
                 <NavLink to='/home' style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-                  <img src={logo} alt='Logo' width='40px' height='40px' style={{ marginRight: '25px' }} />
+                  <img src={logo} alt='Logo' width='60px' height='60px' />
                 </NavLink>
                 <Button
                   sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}

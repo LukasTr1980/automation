@@ -10,7 +10,7 @@ import { useStableTranslation } from '../utils/useStableTranslation';
 const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ children, requiredRole }) => {
   const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
-  const { jwtToken, userLogin, logoutInProgress, setTokenAndExpiry, deviceId } = useUserStore();
+  const { jwtToken, userLogin, logoutInProgress, setTokenAndExpiry, deviceId, hasVisitedBefore } = useUserStore();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
   const stableTranslate = useStableTranslation();
@@ -46,20 +46,24 @@ const AuthGuard: React.FC<AuthGuardProps & { requiredRole?: string }> = ({ child
           const refreshed = await refreshToken();
           if (!refreshed) return;
         }
-      } else {
+      } else if (hasVisitedBefore) {
         const refreshed = await refreshToken();
         if (!refreshed) return;
       }
 
-      try {
-        const verifyResponse = await axios.post(`${apiUrl}/verifyToken`, { requiredRole });
-        if (verifyResponse.status === 200) {
-          setIsChecking(false);
-        } else {
-          throw new Error('Unauthorized');
+      if (hasVisitedBefore) {
+        try {
+          const verifyResponse = await axios.post(`${apiUrl}/verifyToken`, { requiredRole });
+          if (verifyResponse.status === 200) {
+            setIsChecking(false);
+          } else {
+            throw new Error('Unauthorized');
+          }
+        } catch (error) {
+          showSnackbar(stableTranslate('forbiddenYouDontHavePermission'), 'warning');
+          navigate('/login');
         }
-      } catch (error) {
-        showSnackbar(stableTranslate('forbiddenYouDontHavePermission'), 'warning');
+      } else {
         navigate('/login');
       }
     };

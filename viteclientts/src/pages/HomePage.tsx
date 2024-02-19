@@ -14,7 +14,7 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (userLogin === 'test') {
+    if (userLogin === 'Stefan') {
       navigate('/villa-anna/home');
     }
   },[userLogin, navigate]);

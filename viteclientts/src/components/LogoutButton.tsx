@@ -30,7 +30,7 @@ const LogoutButton: React.FC = () => {
   };
 
   return (
-    <IconButton edge='end' onClick={handleLogout} sx={{ color: '#1565C0', '&:hover': { backgroundColor: '#D2E9F0' } }}>
+    <IconButton onClick={handleLogout} sx={{ color: '#1565C0', '&:hover': { backgroundColor: '#D2E9F0' } }}>
       <ExitToApp />
     </IconButton>
   );
