@@ -174,6 +174,14 @@ export type UserType = {
 }
 
 export interface UserState {
+    browserName: string;
+    browserVersion: string;
+    osName: string;
+    osVersion: string;
+    deviceModel: string;
+    deviceType: string;
+    deviceVendor: string;
+    ua: string;
     userLogin: string | null;
     setUserLogin: (userLogin: string | null) => void;
     jwtToken: string | null;
@@ -188,6 +196,7 @@ export interface UserState {
     setDeviceId: (deviceId: string | null) => void;
     fetchUserData: () => Promise<void>;
     userData: { userData: UserType[] } | null;
+    setBrowserInfo: () => void;
 }
 
 export type DaysOfWeekNumbers = {

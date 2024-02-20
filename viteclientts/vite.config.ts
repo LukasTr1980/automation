@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     cors: {
-      origin: ['http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523', 'https://charts.cx', 'http://192.168.1.83'],
+      origin: ['http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523', 'https://charts.cx'],
       allowedHeaders: 'Content-Type,Authorization',
       credentials: true
     }

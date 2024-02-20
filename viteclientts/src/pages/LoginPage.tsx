@@ -12,7 +12,7 @@ import { CopyrightProps } from '../types/types';
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const { setUserLogin, setHasVisitedBefore, setLogoutInProgress, setTokenAndExpiry, setDeviceId } = useUserStore();
+  const { setUserLogin, setHasVisitedBefore, setLogoutInProgress, setTokenAndExpiry, setDeviceId, setBrowserInfo } = useUserStore();
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
   const { showSnackbar } = useSnackbar();
@@ -46,6 +46,7 @@ const LoginForm: React.FC = () => {
         setTokenAndExpiry(response.data.accessToken);
         setHasVisitedBefore(true);
         setDeviceId(response.data.deviceId);
+        setBrowserInfo();
         navigate('/home');
 
         const backendMessageKey = response.data.message;

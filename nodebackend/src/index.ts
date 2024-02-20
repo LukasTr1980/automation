@@ -40,7 +40,7 @@ app.use(helmet({
 }));
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = ['http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523', 'https://charts.cx', 'http://192.168.1.83'];
+    const allowedOrigins = ['http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523', 'https://charts.cx'];
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {

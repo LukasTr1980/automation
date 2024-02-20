@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { UserState } from '../types/types';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import UAParser from 'ua-parser-js';
 
 const useUserStore = create<UserState>((set) => ({
     userLogin: localStorage.getItem('userLogin'),
@@ -11,6 +12,14 @@ const useUserStore = create<UserState>((set) => ({
     logoutInProgress: false,
     deviceId: localStorage.getItem('deviceId'),
     userData: null,
+    browserName: '',
+    browserVersion: '',
+    osName: '',
+    osVersion: '',
+    deviceModel: '',
+    deviceType: '',
+    deviceVendor: '',
+    ua: '',
 
     setUserLogin: (userLogin: string | null) => {
         if (userLogin === null) {
@@ -51,7 +60,7 @@ const useUserStore = create<UserState>((set) => ({
     setLogoutInProgress: (inProgress: boolean) => {
         set({ logoutInProgress: inProgress })
     },
-    
+
     setDeviceId: (deviceId: string | null) => {
         if (deviceId === null) {
             localStorage.removeItem('deviceId');
@@ -63,13 +72,28 @@ const useUserStore = create<UserState>((set) => ({
 
     fetchUserData: async () => {
         try {
-          const apiUrl = import.meta.env.VITE_API_URL;
-          const response = await axios.get(`${apiUrl}/userData`);
-          set({ userData: response.data });
+            const apiUrl = import.meta.env.VITE_API_URL;
+            const response = await axios.get(`${apiUrl}/userData`);
+            set({ userData: response.data });
         } catch (error) {
-          console.error('Error fetching user data:', error);
+            console.error('Error fetching user data:', error);
         }
-      },
+    },
+
+    setBrowserInfo: () => {
+        const parser = new UAParser();
+        const result = parser.getResult();
+        set({
+            browserName: result.browser.name || '',
+            browserVersion: result.browser.version || '',
+            osName: result.os.name || '',
+            osVersion: result.os.version || '',
+            deviceModel: result.device.model || '',
+            deviceType: result.device.type || '',
+            deviceVendor: result.device.vendor || '',
+            ua: result.ua || ''
+        });
+    },
 
 }));
 export { useUserStore };
