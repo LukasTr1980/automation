@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../logger';
 
-const requiredRole = (requiredRole: string) => {
+const requiredRole = (requiredRoles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        if (req.user && req.user.role === requiredRole) {
+        if (req.user && requiredRoles.includes(req.user.role)) {
             next();
         } else {
-            res.status(403).json({ message: 'forbiddenYouDontHavePermission', severity: 'warning' })
+            logger.warn('Role middleware verification, forbidden you dont have permission');
+            res.status(403).json({ message: 'forbiddenYouDontHavePermission', severity: 'warning' });
         }
     };
 };
