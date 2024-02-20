@@ -83,9 +83,10 @@ const useUserStore = create<UserState>((set) => ({
     setBrowserInfo: () => {
         const parser = new UAParser();
         const result = parser.getResult();
+        const browserVersionMajor = result.browser.version?.split('.')[0];
         set({
             browserName: result.browser.name || '',
-            browserVersion: result.browser.version || '',
+            browserVersion: browserVersionMajor || '',
             osName: result.os.name || '',
             osVersion: result.os.version || '',
             deviceModel: result.device.model || '',

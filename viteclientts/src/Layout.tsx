@@ -1,5 +1,5 @@
 // File: Layout.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Container,
   Grid,
@@ -22,12 +22,16 @@ const Layout: React.FC<LayoutProps> = ({
   showNavMenu = true,
   showLogo = false
 }) => {
-  const { userLogin } = useUserStore();
+  const { userLogin, setBrowserInfo, osName, osVersion, browserName, browserVersion } = useUserStore();
   const { value: countdownTime, refreshing } = useCountdown();
   const { t } = useTranslation();
   const countdownDisplay = refreshing ? t('refreshingToken') : countdownTime;
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    setBrowserInfo();
+  }, [setBrowserInfo]);
 
   function Copyright(props: CopyrightProps) {
     return (
@@ -89,6 +93,9 @@ const Layout: React.FC<LayoutProps> = ({
             </span>
           </Typography>
         }
+        <Typography variant='body1' color='black'>
+          Client Details: {osName} {osVersion}, {browserName} {browserVersion}
+        </Typography>
         <Copyright />
       </Box>
     </>
