@@ -22,7 +22,7 @@ const Layout: React.FC<LayoutProps> = ({
   showNavMenu = true,
   showLogo = false
 }) => {
-  const { userLogin, setBrowserInfo, osName, osVersion, browserName, browserVersion } = useUserStore();
+  const { userLogin, setBrowserInfo, osName, browserName, browserVersion } = useUserStore();
   const { value: countdownTime, refreshing } = useCountdown();
   const { t } = useTranslation();
   const countdownDisplay = refreshing ? t('refreshingToken') : countdownTime;
@@ -94,7 +94,7 @@ const Layout: React.FC<LayoutProps> = ({
           </Typography>
         }
         <Typography variant='body1' color='black'>
-          Client Details: {osName} {osVersion}, {browserName} {browserVersion}
+          Client Details: {osName} , {browserName} {browserVersion}
         </Typography>
         <Copyright />
       </Box>
