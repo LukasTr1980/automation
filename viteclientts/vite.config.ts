@@ -19,7 +19,8 @@ export default defineConfig({
           {
             "src": "android-chrome-192x192.webp",
             "type": "image/webp",
-            "sizes": "192x192"
+            "sizes": "192x192",
+            "purpose": "maskable"
           },
           {
             "src": "android-chrome-512x512.webp",
@@ -45,17 +46,6 @@ export default defineConfig({
             "src": "mstile-150x150.webp",
             "type": "image/webp",
             "sizes": "150x150"
-          },
-          {
-            "src": "pwa-512x512.png",
-            "type": "image/png",
-            "sizes": "512x512"
-          },
-          {
-            "src": "logo-maskable-192x192.png",
-            "type": "image/png",
-            "sizes": "192x192",
-            "purpose": "maskable"
           }
         ],
         "start_url": "/",
