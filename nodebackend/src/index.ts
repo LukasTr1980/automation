@@ -15,10 +15,9 @@ import apiRouter from './routes/api';
 import logger from './logger';
 import './utils/markiseBlock';
 import helmet from 'helmet';
-import { expressHost, isDev } from './envSwitcher';
+import { isDev } from './envSwitcher';
 
 const app = express();
-const host = expressHost;
 const port = 8523;
 const clientAppDistPath = isDev ? path.join(__dirname, '..', 'viteclientts', 'dist') : '/usr/src/viteclientts/dist/';
 
@@ -64,9 +63,18 @@ app.get('*', apiLimiter, (req: Request, res: Response) => {
   res.sendFile(path.join(clientAppDistPath, 'index.html'));
 });
 
-httpServer.listen(port, host, async () => {
-  logger.info(`APIs are listening on port ${port}`);
-  loadScheduledTasks().catch(logger.error);
+if (isDev) {
+  httpServer.listen(port, '192.168.1.185', async () => {
+    logger.info(`APIs are listening on port ${port}`);
+    loadScheduledTasks().catch(logger.error);
 
-  await subscribeToRedisKey(io);
-});
+    await subscribeToRedisKey(io);
+  });
+} else {
+  httpServer.listen(port, async () => {
+    logger.info(`APIs are listening on port ${port}`);
+    loadScheduledTasks().catch(logger.error);
+
+    await subscribeToRedisKey(io);
+  });
+}
