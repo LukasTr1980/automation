@@ -24,7 +24,8 @@ export default defineConfig({
           {
             "src": "android-chrome-512x512.webp",
             "type": "image/webp",
-            "sizes": "512x512"
+            "sizes": "512x512",
+            "purpose": "maskable"
           },
           {
             "src": "apple-touch-icon.webp",
@@ -49,7 +50,8 @@ export default defineConfig({
           {
             "src": "logo-512x512.png",
             "type": "image/png",
-            "sizes": "512x512"
+            "sizes": "512x512",
+            "purpose": "maskable"
           }
         ],
         "start_url": "/",
