@@ -15,9 +15,12 @@ import apiRouter from './routes/api';
 import logger from './logger';
 import './utils/markiseBlock';
 import helmet from 'helmet';
+import { expressHost } from './envSwitcher';
 
 const app = express();
+const host = expressHost;
 const port = 8523;
+const clientAppDistPath = path.join(__dirname, '..', 'viteclientts', 'dist');
 
 app.set('trust proxy', 1);
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -40,7 +43,7 @@ app.use(helmet({
 }));
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = ['http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523', 'https://charts.cx'];
+    const allowedOrigins = ['http://192.168.1.185:5173', 'http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523', 'https://charts.cx'];
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -55,13 +58,13 @@ const httpServer = http.createServer(app);
 const io = configureSocket(httpServer);
 io.use(authMiddlewareSocket);
 
-app.use(apiLimiter, express.static(path.join('/usr/src/viteclientts/dist/')));
+app.use(apiLimiter, express.static(path.join(clientAppDistPath)));
 
 app.get('*', apiLimiter, (req: Request, res: Response) => {
-  res.sendFile(path.join('/usr/src/viteclientts/dist/', 'index.html'));
+  res.sendFile(path.join(clientAppDistPath, 'index.html'));
 });
 
-httpServer.listen(port, async () => {
+httpServer.listen(port, host, async () => {
   logger.info(`APIs are listening on port ${port}`);
   loadScheduledTasks().catch(logger.error);
 

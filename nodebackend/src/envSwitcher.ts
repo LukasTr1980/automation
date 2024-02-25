@@ -21,6 +21,7 @@ interface Config {
     jwtTokenExpiry: number;
     isDomainCookie: string;
     isSubDomainCookie: string;
+    expressHost: string,
 }
 
 const devConfig: Config = {
@@ -33,8 +34,9 @@ const devConfig: Config = {
     vaultUrl: 'http://10.25.159.4:8200',
     isSecureCookie: false,
     jwtTokenExpiry: 60,
-    isSubDomainCookie: 'localhost',
-    isDomainCookie: 'localhost'
+    isSubDomainCookie: '192.168.1.185',
+    isDomainCookie: '192.168.1.185',
+    expressHost: '192.168.1.185'
 }
 
 const prodConfig: Config = {
@@ -48,7 +50,8 @@ const prodConfig: Config = {
     isSecureCookie: true,
     jwtTokenExpiry: 60 * 60 * 24,
     isSubDomainCookie: 'automation.charts.cx',
-    isDomainCookie: 'charts.cx'
+    isDomainCookie: 'charts.cx',
+    expressHost: 'localhost'
 }
 
 const selectedConfig: Config = isDev ? devConfig : prodConfig;
@@ -64,7 +67,8 @@ export const {
     isSecureCookie,
     jwtTokenExpiry,
     isDomainCookie,
-    isSubDomainCookie
+    isSubDomainCookie,
+    expressHost
 } = selectedConfig;
 
 export { isDev };
