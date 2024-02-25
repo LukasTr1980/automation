@@ -15,12 +15,12 @@ import apiRouter from './routes/api';
 import logger from './logger';
 import './utils/markiseBlock';
 import helmet from 'helmet';
-import { expressHost } from './envSwitcher';
+import { expressHost, isDev } from './envSwitcher';
 
 const app = express();
 const host = expressHost;
 const port = 8523;
-const clientAppDistPath = path.join(__dirname, '..', 'viteclientts', 'dist');
+const clientAppDistPath = isDev ? path.join(__dirname, '..', 'viteclientts', 'dist') : '/usr/src/viteclientts/dist/';
 
 app.set('trust proxy', 1);
 app.use((req: Request, res: Response, next: NextFunction) => {
