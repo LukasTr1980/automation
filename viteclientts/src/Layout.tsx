@@ -31,6 +31,21 @@ const Layout: React.FC<LayoutProps> = ({
 
   useEffect(() => {
     setBrowserInfo();
+
+    const adjustViewportHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    adjustViewportHeight();
+    window.addEventListener('resize', adjustViewportHeight);
+    window.addEventListener('orientationchange', adjustViewportHeight);
+
+    return () => {
+      window.removeEventListener('resize', adjustViewportHeight);
+      window.removeEventListener('orientationchange', adjustViewportHeight);
+    }
+
   }, [setBrowserInfo]);
 
   function Copyright(props: CopyrightProps) {

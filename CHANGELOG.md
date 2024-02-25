@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.11.8] - 2024-02-25
+
+### Changed
+- Height in `app.css` and `index.css` is now calculated dynamically instead of being fixed to `100vh`.
+
 ## [v16.11.7] - 2024-02-25
 
 ### Changed
