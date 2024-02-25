@@ -6,11 +6,11 @@ import AwningButtonImage from '../../images/AwningButton.webp';
 import IrrigationCountdownButtonImage from '../../images/IrrigationCountdownButton.webp';
 import HeatingButtonImage from '../../images/HeatingButtonImage.webp';
 import VentilationButtonImage from '../../images/VentilationButton.webp';
-import IrrigationButtonImageSmall from '../../images/IrrigationButton100x100.webp';
-import AwningButtonImageSmall from '../../images/AwningButton100x100.webp';
-import HeatingButtonImageSmall from '../../images/HeatingButton100x100.webp';
-import IrrigationCountdownButtonImageSmall from '../../images/IrrigationCountdownButton100x100.webp';
-import VentilationButtonImageSmall from '../../images/VentilationButton100x100.webp';
+import IrrigationButtonImageSmall from '../../images/IrrigationButton160x160.webp';
+import AwningButtonImageSmall from '../../images/AwningButton160x160.webp';
+import HeatingButtonImageSmall from '../../images/HeatingButton160x160.webp';
+import IrrigationCountdownButtonImageSmall from '../../images/IrrigationCountdownButton160x160.webp';
+import VentilationButtonImageSmall from '../../images/VentilationButton160x160.webp';
 import axios from 'axios';
 import { useUserStore } from '../../utils/store';
 import useSnackbar from '../../utils/useSnackbar';
@@ -64,15 +64,15 @@ const HomePage = () => {
     VentilationButtonImage
   ];
 
-  const cardMaxwidth = isSmallScreen ? { maxWidth: '100px' } : { maxWidth: '200px' };
-  const cardMediaWidth = isSmallScreen ? '100px' : '200px';
-  const cardMediaHeight = isSmallScreen ? '100px' : '200px';
-  const typographyFontSize = isSmallScreen ? 12 : 20;
+  const cardMaxwidth = isSmallScreen ? { maxWidth: '160px' } : { maxWidth: '200px' };
+  const cardMediaWidth = isSmallScreen ? '160px' : '200px';
+  const cardMediaHeight = isSmallScreen ? '160px' : '200px';
+  const typographyFontSize = isSmallScreen ? 16 : 20;
 
   return (
     <ImagePreloader imageUrls={imageUrls}>
       <Layout title='Villa Anna Automation'>
-        <Grid container spacing={isSmallScreen ? 3 : 2} justifyContent="center" alignItems="center" paddingTop={1}>
+        <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
           <Grid item>
             <RouterLink to="/villa-anna/bewaesserung" style={{ textDecoration: 'none' }}>
               <Card sx={cardMaxwidth} variant='outlined'>

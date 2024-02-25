@@ -2,8 +2,8 @@ import Layout from '../Layout';
 import { Grid, Card, CardActionArea, CardMedia, CardContent, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import VillaAnnaButtonImage from '../images/VillaAnnaButton.webp';
-import VillaAnnaButtonImageSmall from '../images/VillaAnnaButton100x100.webp';
-import SettingsButtonImageSmall from '../images/SettingsButton100x100.webp';
+import VillaAnnaButtonImageSmall from '../images/VillaAnnaButton160x160.webp';
+import SettingsButtonImageSmall from '../images/SettingsButton160x160.webp';
 import SettingsButtonImage from '../images/SettingsButton.webp';
 import { useUserStore } from '../utils/store';
 import { useTranslation } from 'react-i18next';
@@ -25,15 +25,15 @@ const HomePage: React.FC = () => {
 
   const imageUrls = isSmallScreen ? [VillaAnnaButtonImageSmall, SettingsButtonImageSmall] : [VillaAnnaButtonImage, SettingsButtonImage];
 
-  const cardMaxwidth = isSmallScreen ? { maxWidth: '100px' } : { maxWidth: '200px' };
-  const cardMediaWidth = isSmallScreen ? '100px' : '200px';
-  const cardMediaHeight = isSmallScreen ? '100px' : '200px';
-  const typographyFontSize = isSmallScreen ? 12 : 20;
+  const cardMaxwidth = isSmallScreen ? { maxWidth: '160px' } : { maxWidth: '200px' };
+  const cardMediaWidth = isSmallScreen ? '160px' : '200px';
+  const cardMediaHeight = isSmallScreen ? '160px' : '200px';
+  const typographyFontSize = isSmallScreen ? 16 : 20;
 
   return (
     <ImagePreloader imageUrls={imageUrls}>
     <Layout title="Automation">
-      <Grid container spacing={ isSmallScreen ? 4 : 2 } justifyContent="center" alignItems="center" paddingTop={1}>
+      <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
         <Grid item>
           <RouterLink to="/villa-anna/home" style={{ textDecoration: 'none' }}>
             <Card sx={ cardMaxwidth} variant='outlined'>
