@@ -27,7 +27,7 @@
     "socket.io-client": "^4.7.5",
     "ua-parser-js": "^1.0.38",
     "vite-plugin-pwa": "^0.20.0",
-    "zustand": "^4.5.3"
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
