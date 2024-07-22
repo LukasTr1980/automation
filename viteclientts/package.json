@@ -14,7 +14,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.20",
     "@mui/lab": "^5.0.0-alpha.166",
-    "@mui/material": "^5.15.20",
+    "@mui/material": "^5.16.4",
     "axios": "^1.7.2",
     "i18next": "^23.11.5",
     "i18next-http-backend": "^2.5.2",
