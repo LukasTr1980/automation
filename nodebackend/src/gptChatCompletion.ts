@@ -47,7 +47,7 @@ async function createChatCompletion(): Promise<CompletionResponse> {
     const openai = await getOpenAI();
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-0125",
+      model: "gpt-4o-mini",
       messages: [
         { "role": "system", "content": "You are a condition evaluator." },
         { "role": "user", "content": formattedGptRequest }
@@ -61,13 +61,13 @@ async function createChatCompletion(): Promise<CompletionResponse> {
     }
 
     const response = completion.choices[0].message.content || "Die Antwort ist leer";
-    if (/result is true/i.test(response)) {
+    if (/Das Ergebnis ist wahr/i.test(response)) {
       return {
         result: true,
         response: response,
         formattedEvaluation: null
       };
-    } else if (/result is false/i.test(response)) {
+    } else if (/Das Ergebnis ist falsch/i.test(response)) {
       return {
         result: false,
         response: response,
@@ -79,8 +79,8 @@ async function createChatCompletion(): Promise<CompletionResponse> {
       const traditionalEvaluation = evaluateConditions(results);
       const allConditionsMet = Object.values(traditionalEvaluation.evaluations).every(condition => condition);
       const traditionalResponse = allConditionsMet ?
-        'GPT-3 gibt keine klare Antwort, überprüfe traditionell...'
-        : 'GPT-3 gibt keine klare Antwort, überprüfe traditionell...';
+        'GPT gibt keine klare Antwort, überprüfe traditionell...'
+        : 'GPT gibt keine klare Antwort, überprüfe traditionell...';
       const formattedEvaluation = generateEvaluationSentences(results);
 
       return {

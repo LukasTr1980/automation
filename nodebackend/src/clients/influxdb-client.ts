@@ -19,6 +19,7 @@ interface DataRow {
 async function querySingleData(fluxQuery: ParameterizedQuery): Promise<DataRow[]> {
     const queryApi = (await getInfluxDbClientAI()).getQueryApi(org);
     const result: DataRow[] = [];
+    logger.info(`Executing query: ${fluxQuery.toString()}`);
     return new Promise((resolve, reject) => {
         queryApi.queryRows(fluxQuery, {
             next(row, tableMeta) {
@@ -26,9 +27,11 @@ async function querySingleData(fluxQuery: ParameterizedQuery): Promise<DataRow[]
                 result.push(o);
             },
             error(error) {
+                logger.error(`Error executing query: ${fluxQuery.toString()}`, error);
                 reject(error);
             },
             complete() {
+                logger.info(`Query complete: ${fluxQuery.toString()}`);
                 resolve(result);
             },
         });
@@ -46,6 +49,7 @@ interface WeatherData {
 
 async function queryAllData(): Promise<WeatherData> {
     try {
+        logger.info('Querying all data from InfluxDB');
         const outTempResults = await querySingleData(outTempQuery);
         const windResults = await querySingleData(windQuery);
         const humidityResults = await querySingleData(humidityQuery);
@@ -53,7 +57,7 @@ async function queryAllData(): Promise<WeatherData> {
         const rainTodayResults = await querySingleData(rainTodayQuery);
         const rainrateResults = await querySingleData(rainrate);
 
-        return {
+        const weatherData = {
             outTemp: outTempResults.length > 0 ? +outTempResults[0]._value.toFixed(2) : 0,
             wind: windResults.length > 0 ? +windResults[0]._value.toFixed(2) : 0,
             humidity: humidityResults.length > 0 ? +humidityResults[0]._value.toFixed(2) : 0,
@@ -61,6 +65,9 @@ async function queryAllData(): Promise<WeatherData> {
             rainToday: rainTodayResults.length > 0 ? +rainTodayResults[0]._value.toFixed(2) : 0,
             rainRate: rainrateResults.length > 0 ? +(rainrateResults[0]._value / 10).toFixed(2) : 0
         };
+
+        logger.info('Successfully queried all data from InfluxDB');
+        return weatherData;
     } catch (error) {
         logger.error('Error querying data from InfluxDB', error);
         throw error;
