@@ -11,9 +11,8 @@ const computeDateFourDaysAgo = (): string => {
     return currentDate.toISOString();
 }
 
-const startDate: string = computeDateFourDaysAgo();
-
-const constructRainSumQuery = (startDate: string): string => {
+const constructRainSumQuery = (): string => {
+    const startDate = computeDateFourDaysAgo();
     return `
         from(bucket: "${bucket}")
           |> range(start: time(v: "${startDate}"), stop: now())
@@ -24,7 +23,7 @@ const constructRainSumQuery = (startDate: string): string => {
     `;
 }
 
-const rainsumQuery: string = constructRainSumQuery(startDate);
+const rainsumQuery: string = constructRainSumQuery();
 
 const outTempQuery = flux`
     from(bucket: "${bucket}")
