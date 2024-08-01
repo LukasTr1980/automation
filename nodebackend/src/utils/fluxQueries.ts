@@ -23,8 +23,6 @@ const constructRainSumQuery = (): string => {
     `;
 }
 
-const rainsumQuery: string = constructRainSumQuery();
-
 const outTempQuery = flux`
     from(bucket: "${bucket}")
       |> range(start: -7d)
@@ -71,7 +69,7 @@ export {
     outTempQuery,
     windQuery,
     humidityQuery,
-    rainsumQuery,
+    constructRainSumQuery,
     rainTodayQuery,
     rainrate
 };

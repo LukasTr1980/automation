@@ -5,7 +5,7 @@ import {
     outTempQuery,
     windQuery,
     humidityQuery,
-    rainsumQuery,
+    constructRainSumQuery,
     rainTodayQuery,
     rainrate
 } from '../utils/fluxQueries';
@@ -53,7 +53,7 @@ async function queryAllData(): Promise<WeatherData> {
         const outTempResults = await querySingleData(outTempQuery);
         const windResults = await querySingleData(windQuery);
         const humidityResults = await querySingleData(humidityQuery);
-        const rainsumResults = await querySingleData(rainsumQuery);
+        const rainsumResults = await querySingleData(constructRainSumQuery());
         const rainTodayResults = await querySingleData(rainTodayQuery);
         const rainrateResults = await querySingleData(rainrate);
 
