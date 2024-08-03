@@ -68,5 +68,8 @@ export default defineConfig({
       allowedHeaders: 'Content-Type,Authorization',
       credentials: true
     }
-  }
+  },
+  build: {
+    assetsInlineLimit: 0
+  },
 })
