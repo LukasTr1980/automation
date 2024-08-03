@@ -37,7 +37,7 @@ const cspDirectives = {
   fontSrc: ["'self'"],
   objectSrc: ["'none'"],
   upgradeInsecureRequests: [],
-  reportUri: '/csp-violation-report'
+  reportUri: '/api/csp-violation-report'
 };
 
 if (isDev) {
