@@ -69,4 +69,7 @@ export default defineConfig({
       credentials: true
     }
   },
+  build: {
+    assetsInlineLimit: 0
+  },
 })

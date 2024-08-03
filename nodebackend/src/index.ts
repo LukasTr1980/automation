@@ -30,7 +30,7 @@ app.use(bodyParser.json());
 
 const cspDirectives = {
   defaultSrc: ["'self'"],
-  scriptSrc: ["'self'", "'unsafe-inline'"],
+  scriptSrc: ["'self'"],
   styleSrc: ["'self'", "'unsafe-inline'"],
   imgSrc: ["'self'"],
   connectSrc: ["'self'", "ws:", "wss:"],
