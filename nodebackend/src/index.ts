@@ -28,8 +28,26 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 app.use(bodyParser.json());
 
+const cspDirectives = {
+  defaultSrc: ["'self'"],
+  scriptSrc: ["'self'"],
+  styleSrc: ["'self'"],
+  imgSrc: ["'self'"],
+  connectSrc: ["'self'"],
+  fontSrc: ["'self'"],
+  objectSrc: ["'none'"],
+  upgradeInsecureRequests: [],
+  reportUri: '/csp-violation-report'
+};
+
+if (isDev) {
+  logger.debug('CSP Directives:', cspDirectives);
+}
+
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: cspDirectives,
+  },
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy: false,
   crossOriginResourcePolicy: false,
@@ -40,6 +58,7 @@ app.use(helmet({
   xDownloadOptions: false,
   xPermittedCrossDomainPolicies: false
 }));
+
 app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = ['http://192.168.1.185:5173', 'http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523', 'https://charts.cx'];

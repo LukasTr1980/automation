@@ -23,6 +23,7 @@ import logoutRouter from './logoutRoute';
 import verifyTokenRouter from './verifyTokenRoute';
 import userDataRouter from './userDataRoute';
 import forwardAuthRouter from './forwardAuthRoute';
+import cspReportRouter from './cspReportRoute';
 
 const router = express.Router();
 
@@ -45,5 +46,6 @@ router.use('/countdown', apiLimiter, authMiddleware, countdownRouter);
 router.use('/markiseStatus', apiLimiter, authMiddleware, markiseStatusRouter);
 router.use('/userData', apiLimiter, authMiddleware, userDataRouter);
 router.use('/forwardAuth', apiLimiter, [authMiddlewareForwardAuth, requiredRole(['admin', 'stefan'])], forwardAuthRouter);
+router.use('/csp-violation-report', apiLimiter, cspReportRouter);
 
 export default router;
