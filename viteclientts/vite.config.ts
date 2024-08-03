@@ -68,5 +68,11 @@ export default defineConfig({
       allowedHeaders: 'Content-Type,Authorization',
       credentials: true
     }
+  },
+  build: {
+    assetsInlineLimit: 0
+  },
+  html: {
+    cspNonce: 'PLACEHOLDER'
   }
-})
+});
