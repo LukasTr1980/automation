@@ -23,7 +23,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^14.1.2",
-    "react-router-dom": "^6.24.0",
+    "react-router-dom": "^6.26.1",
     "socket.io-client": "^4.7.5",
     "ua-parser-js": "^1.0.38",
     "vite-plugin-pwa": "^0.20.0",
