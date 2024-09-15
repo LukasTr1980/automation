@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.13.9] - 2024-09-15
+
+### Changed
+- Updated dependencies for improved performance and security.
+
+
 ## [v16.13.8] - 2024-09-14
 
 ### Changed
