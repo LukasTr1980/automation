@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.13.11] - 2024-10-10
+
+### Changed
+- Updated dependencies for improved performance and security.
+- Updated cookie handling by switching from default import of cookie to a named import cookieParse from the cookie module.
+- Refactored the middleware function to use cookieParse instead of cookie.parse(), improving clarity and modularity in index.ts.
+- Removed unused useEffect hook that navigated users with login name "Stefan" to /villa-anna/home.
+- Cleaned up code by removing the unused import of useEffect.
+
+### Removed
+- Removed redirection of user.
+- Removed the conditional navigation logic based on userLogin === 'Stefan' from HomePage.tsx.
+
 ## [v16.13.10] - 2024-09-19
 
 ### Changed

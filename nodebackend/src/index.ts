@@ -2,7 +2,7 @@
 import './dotenvConfig'; //To make env variables immediately available
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
-import cookie from 'cookie';
+import { parse as cookieParse } from 'cookie';
 import cors from 'cors';
 import path from 'path';
 import http from 'http';
@@ -23,7 +23,7 @@ const clientAppDistPath = isDev ? path.join(__dirname, '..', 'viteclientts', 'di
 
 app.set('trust proxy', 1);
 app.use((req: Request, res: Response, next: NextFunction) => {
-  req.cookies = cookie.parse(req.headers.cookie || '');
+  req.cookies = cookieParse(req.headers.cookie || '');
   next();
 });
 app.use(bodyParser.json());

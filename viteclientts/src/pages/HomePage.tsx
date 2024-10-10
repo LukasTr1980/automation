@@ -9,7 +9,6 @@ import ChatgptButtonImage from '../images/ChatgptButton-200x200.webp';
 import ChatgptButtonImageSmall from '../images/ChatgptButton-160x160.webp';
 import { useUserStore } from '../utils/store';
 import { useTranslation } from 'react-i18next';
-import { useEffect } from 'react';
 import ImagePreloader from '../utils/imagePreloader';
 import axios from 'axios';
 import useSnackbar from '../utils/useSnackbar';
@@ -22,12 +21,6 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-
-  useEffect(() => {
-    if (userLogin === 'Stefan') {
-      navigate('/villa-anna/home');
-    }
-  }, [userLogin, navigate]);
 
   const refreshToken = async (url: string) => {
     try {
