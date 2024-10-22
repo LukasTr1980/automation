@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.13.12] - 2024-10-22
+### Changed
+- Dependency updates:
+- Upgraded @babel/code-frame from 7.25.7 to 7.25.9.
+- Upgraded @babel/compat-data from 7.25.8 to 7.25.9.
+- Upgraded @babel/core, @babel/generator, and various Babel helpers to 7.25.9.
+- Upgraded @typescript-eslint/eslint-plugin and @typescript-eslint/parser from 8.8.1 to 8.11.0.
+- Updated eslint from 9.12.0 to 9.13.0, along with related plugins.
+- Upgraded mongodb from 6.9.0 to 6.10.0.
+- Various other dependency updates including openai, tslib, and browserslist.
+### Added
+- Vault credential handling in production:
+- Added logic to read Vault credentials (vaultRoleId and vaultSecretId) from Docker secrets in production environments.
+- Fixed
+- Improved error handling for Vault credentials loading, logging detailed errors when secrets cannot be read from Docker
+
 ## [v16.13.11] - 2024-10-10
 
 ### Changed

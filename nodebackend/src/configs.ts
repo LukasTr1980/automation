@@ -3,6 +3,8 @@ import { InfluxDB } from '@influxdata/influxdb-client';
 import * as envSwitcher from './envSwitcher';
 import * as vaultClient from './clients/vaultClient';
 import logger from './logger';
+import fs from 'fs';
+import { isDev } from './envSwitcher';
 
 let openai: OpenAI | undefined;
 let influxDbClientAI: InfluxDB | undefined;
@@ -11,6 +13,8 @@ let openaiApiKey: string | undefined;
 let influxDbTokenAI: string | undefined;
 let influxDbTokenAutomation: string | undefined;
 let jwtAccessTokenSecret: string | undefined;
+let vaultRoleId: string;
+let vaultSecretId: string;
 
 async function initializeOpenAIConfig(): Promise<void> {
     try {
@@ -132,13 +136,24 @@ async function getJwtAccessTokenSecret(): Promise<string> {
     return jwtAccessTokenSecret;
 }
 
-
-export const vaultRoleId = process.env.VAULT_ROLE_ID!;
-export const vaultSecretId = process.env.VAULT_SECRET_ID!;
+if (!isDev) {
+    try {
+        vaultRoleId = fs.readFileSync('/run/secrets/automation_vault_role_id', 'utf-8').trim();
+        vaultSecretId = fs.readFileSync('/run/secrets/automation_vault_secret_id', 'utf-8').trim();
+    } catch (error) {
+        console.error('Error reading Vault credentials from Docker secrets:', error);
+        throw error;
+    }
+} else {
+    vaultRoleId = process.env.VAULT_ROLE_ID || '';
+    vaultSecretId = process.env.VAULT_SECRET_ID || '';
+}
 
 export {
     getOpenAI,
     getInfluxDbClientAI,
     getInfluxDbClientAutomation,
-    getJwtAccessTokenSecret
+    getJwtAccessTokenSecret,
+    vaultRoleId,
+    vaultSecretId,
 };
