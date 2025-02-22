@@ -7,7 +7,7 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    Grid,
+    Grid2,
     Card,
     CardContent,
     CardHeader,
@@ -106,12 +106,12 @@ const VillaAnnacountdownPage = () => {
 
     return (
         <Layout title="Villa Anna Countdown">
-            <Grid item xs={12} paddingTop={1} paddingBottom={1}>
+            <Grid2 size={12} paddingTop={1} paddingBottom={1}>
                 <Card variant='outlined'>
                     <CardHeader title={t('setCountdown')} />
                     <CardContent>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12}>
+                        <Grid2 container spacing={2}>
+                            <Grid2 size={12}>
                                 <FormControl fullWidth>
                                     <InputLabel id="zone-select-label" shrink={false}>{t('zone')}</InputLabel>
                                     <Select
@@ -126,8 +126,8 @@ const VillaAnnacountdownPage = () => {
                                         ))}
                                     </Select>
                                 </FormControl>
-                            </Grid>
-                            <Grid item xs={6}>
+                            </Grid2>
+                            <Grid2 size={6}>
                                 <HourField
                                     selectedHour={selectedHour}
                                     setSelectedHour={setSelectedHour}
@@ -135,8 +135,8 @@ const VillaAnnacountdownPage = () => {
                                     min={0}
                                     max={99}
                                 />
-                            </Grid>
-                            <Grid item xs={6}>
+                            </Grid2>
+                            <Grid2 size={6}>
                                 <MinuteField
                                     selectedMinute={selectedMinute}
                                     setSelectedMinute={setSelectedMinute}
@@ -144,27 +144,27 @@ const VillaAnnacountdownPage = () => {
                                     min={0}
                                     max={99}
                                 />
-                            </Grid>
-                            <Grid item xs={12}>
+                            </Grid2>
+                            <Grid2 size={12}>
                                 <Button variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
                                     Start
                                 </Button>
-                            </Grid>
-                            <Grid item xs={12}>
+                            </Grid2>
+                            <Grid2 size={12}>
                                 <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
                                     Stop
                                 </Button>
-                            </Grid>
-                            <Grid item xs={12}>
+                            </Grid2>
+                            <Grid2 size={12}>
                                 <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
                                     Reset
                                 </Button>
-                            </Grid>
-                        </Grid>
+                            </Grid2>
+                        </Grid2>
                     </CardContent>
                 </Card>
-            </Grid>
-            <Grid item xs={12} paddingBottom={1}>
+            </Grid2>
+            <Grid2 size={12} paddingBottom={1}>
                 <Card variant='outlined'>
                     <CardHeader title='Countdowns' />
                     <CardContent>
@@ -178,7 +178,7 @@ const VillaAnnacountdownPage = () => {
                         })}
                     </CardContent>
                 </Card>
-            </Grid>
+            </Grid2>
         </Layout>
     );
 };

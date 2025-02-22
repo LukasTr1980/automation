@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Button, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme, Typography, AppBar, Grid } from '@mui/material';
+import { Button, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuery, useTheme, Typography, AppBar, Grid2 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import logo from '../../images/logo-60x60.webp';
@@ -89,7 +89,7 @@ const NavMenu: React.FC = () => {
         boxShadow: 'none',
         marginTop: 2
       }}>
-        <Grid container alignItems='center' justifyContent='center'>
+        <Grid2 container alignItems='center' justifyContent='center'>
           <Toolbar
             sx={{
               backgroundColor: '#EFF7F9',
@@ -151,7 +151,7 @@ const NavMenu: React.FC = () => {
             {userInfoDisplay}
             <LogoutButton />
           </Toolbar>
-        </Grid>
+        </Grid2>
       </AppBar>
     </>
   );

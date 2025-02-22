@@ -29,7 +29,8 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
 
     if (!token) {
       logger.warn(`Authentication failed from IP ${clientIp}: No JWT token provided`);
-      return res.status(401).send("Authentication failed: No token provided");
+      res.status(401).send("Authentication failed: No token provided");
+      return;
     }
 
     const jwtSecret = await getJwtAccessTokenSecret();
@@ -37,7 +38,8 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
     jwt.verify(token, jwtSecret, (err, decoded) => {
       if (err) {
         logger.warn(`Invalid JWT token from IP ${clientIp}`);
-        return res.status(401).send("Authentication failed: Invalid token");
+        res.status(401).send("Authentication failed: Invalid token");
+        return;
       }
 
       const payload = decoded as TokenPayload;
@@ -47,7 +49,8 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
     });
   } catch (error) {
     logger.error(`Error in authentication middleware: ${error}`);
-    return res.status(500).send("Internal server error");
+    res.status(500).send("Internal server error");
+    return;
   }
 };
 

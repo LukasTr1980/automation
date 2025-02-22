@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { UserState } from '../types/types';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
-import UAParser from 'ua-parser-js';
+import { UAParser } from 'ua-parser-js';
 
 const useUserStore = create<UserState>((set) => ({
     userLogin: localStorage.getItem('userLogin'),

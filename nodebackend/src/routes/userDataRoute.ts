@@ -7,7 +7,8 @@ const router = express.Router();
 router.get('/', async (req: express.Request, res: express.Response) => {
     const username = req.user?.username;
     if (!username) {
-        return res.status(401).send('Unauthorized: User information not available');
+        res.status(401).send('Unauthorized: User information not available');
+        return;
     }
 
     try {

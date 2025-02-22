@@ -18,7 +18,7 @@ const HourField: React.FC<HourFieldProps> = ({ selectedHour, setSelectedHour, er
     <TextField
       label={t('hour')}
       type="number"
-      InputProps={{ inputProps: { min, max } }}
+      slotProps={{ input: { inputProps: { min, max } } }}
       value={selectedHour}
       onChange={handleHourChange}
       variant="outlined"

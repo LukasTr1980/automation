@@ -18,7 +18,7 @@ const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMi
     <TextField
       label={t('minute')}
       type="number"
-      InputProps={{ inputProps: { min, max } }}
+      slotProps={{ input: { inputProps: { min, max } } }}
       value={selectedMinute}
       onChange={handleMinuteChange}
       variant="outlined"

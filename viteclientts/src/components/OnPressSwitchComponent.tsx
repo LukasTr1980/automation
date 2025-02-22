@@ -1,6 +1,6 @@
 // OnPressSwitchComponent.tsx
 import { useEffect, useState } from 'react';
-import { Button, Grid } from '@mui/material';
+import { Button, Grid2 } from '@mui/material';
 import { OnPressSwitchComponentProps } from '../types/types';
 
 const OnPressSwitchComponent: React.FC<OnPressSwitchComponentProps> = ({ markiseState, onSend }) => {
@@ -38,8 +38,8 @@ const OnPressSwitchComponent: React.FC<OnPressSwitchComponentProps> = ({ markise
   const handlePause = () => stopSendingValue();
 
   return (
-    <Grid container spacing={2}>
-        <Grid item xs={12}>
+    <Grid2 container spacing={2}>
+        <Grid2 size={12}>
           <Button
             variant={pressedButton === 'up' ? 'contained' : 'outlined'}
             onMouseDown={handlePressUp}
@@ -47,8 +47,8 @@ const OnPressSwitchComponent: React.FC<OnPressSwitchComponentProps> = ({ markise
           >
             Ausfahren
           </Button>
-        </Grid>
-        <Grid item xs={12}>
+        </Grid2>
+        <Grid2 size={12}>
           <Button
             variant={pressedButton === 'pause' ? 'contained' : 'outlined'}
             onClick={handlePause}
@@ -56,8 +56,8 @@ const OnPressSwitchComponent: React.FC<OnPressSwitchComponentProps> = ({ markise
           >
             Pause
           </Button>
-        </Grid>
-        <Grid item xs={12}>
+        </Grid2>
+        <Grid2 size={12}>
           <Button
             variant={pressedButton === 'down' ? 'contained' : 'outlined'}
             onMouseDown={handlePressDown}
@@ -65,8 +65,8 @@ const OnPressSwitchComponent: React.FC<OnPressSwitchComponentProps> = ({ markise
           >
             Einfahren
           </Button>
-        </Grid>
-        </Grid>
+        </Grid2>
+        </Grid2>
   );
 };
 

@@ -24,25 +24,29 @@ router.post('/', async (req, res) => {
     const roleValidationResult = roleCookieValidation(role);
     if (roleValidationResult.error) {
         logger.error(`role Cookie validation error: ${roleValidationResult.error.details[0].message}`);
-        return res.status(400).json({ message: 'internalServerError' });
+        res.status(400).json({ message: 'internalServerError' });
+        return;
     }
 
     const refreshTokenValidationResult = refreshTokenValidation(refreshTokenFromBody);
     if (refreshTokenValidationResult.error) {
         logger.error(`refreshToken validation error: ${refreshTokenValidationResult.error.details[0].message}`);
-        return res.status(400).json({ message: 'internalServerError' });
+        res.status(400).json({ message: 'internalServerError' });
+        return;
     }
 
     const deviceIdValidationResult = deviceIdValidation(deviceId);
     if (deviceIdValidationResult.error) {
         logger.error(`deviceId validation error: ${deviceIdValidationResult.error.details[0].message}`);
-        return res.status(400).json({ message: 'internalServerError' });
+        res.status(400).json({ message: 'internalServerError' });
+        return;
     }
 
     const usernameValidationResult = usernameValidation(username);
     if (usernameValidationResult.error) {
         logger.error(`username validation error: ${usernameValidationResult.error.details[0].message}`);
-        return res.status(400).json({ message: 'internalServerError' });
+        res.status(400).json({ message: 'internalServerError' });
+        return;
     }
 
     try {
@@ -58,18 +62,21 @@ router.post('/', async (req, res) => {
                 storedData = JSON.parse(storedDataJson);
             } catch (error) {
                 logger.error('Failed to parse stored refresh token data');
-                return res.status(500).json({ message: 'internalServerError', severity: 'error' })
+                res.status(500).json({ message: 'internalServerError', severity: 'error' });
+                return;
             }
         }
 
         if (!storedDataJson || storedData.refreshToken !== refreshTokenFromBody) {
             logger.warn('Invalid refresh token');
-            return res.status(401).json({ message: 'invalidOrExpiredToken', severity: 'warning' });
+            res.status(401).json({ message: 'invalidOrExpiredToken', severity: 'warning' });
+            return;
         }
 
         if (!storedDataJson || storedData.userRole !== decryptedRoleCookie) {
             logger.warn('Invalid user')
-            return res.status(403).json({ message: 'forbiddenYouDontHavePermission', severity: 'warning' })
+            res.status(403).json({ message: 'forbiddenYouDontHavePermission', severity: 'warning' });
+            return;
         }
 
         const jwtSecret = await getJwtAccessTokenSecret();

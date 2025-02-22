@@ -16,7 +16,8 @@ router.delete('/', async (req: Request<Record<string, never>, unknown, RequestBo
   
     if (!taskId || !zone) {
       logger.warn('Missing required parameters: taskId, zone');
-      return res.status(400).send('anErrorOccurred');
+      res.status(400).send('anErrorOccurred');
+      return;
     }
 
     const jobKey = `${zone}_${taskId}`;

@@ -19,7 +19,8 @@ router.post('/', async (req: express.Request, res: express.Response) => {
     const { error } = loginValidation(req.body);
     if (error) {
         logger.error(`Login validation error from IP ${clientIp}: ${error.details[0].message}`);
-        return res.status(400).json({ message: error.details[0].message });
+        res.status(400).json({ message: error.details[0].message });
+        return;
     }
 
     const { username, password } = req.body;
@@ -32,7 +33,8 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         if (!userData) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - User not found in Vault`);
-            return res.status(401).json({ message: 'incorrectUserOrPass' });
+            res.status(401).json({ message: 'incorrectUserOrPass' });
+            return;
         }
 
         const storedPassword: string = userData.data.password;
@@ -40,7 +42,8 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         if (password !== storedPassword) {
             logger.warn(`Login failed for username: ${username} from IP ${clientIp} - Incorrect password`);
-            return res.status(401).json({ message: 'incorrectUserOrPass' });
+            res.status(401).json({ message: 'incorrectUserOrPass' });
+            return;
         }
 
         const deviceId = generateUniqueId();

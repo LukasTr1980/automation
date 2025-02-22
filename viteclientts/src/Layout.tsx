@@ -2,11 +2,11 @@
 import React, { useEffect } from 'react';
 import {
   Container,
-  Grid,
   Box,
   Typography,
   useMediaQuery,
-  useTheme
+  useTheme,
+  Grid2
 } from '@mui/material';
 import NavMenu from './components/menu/NavMenu';
 import logo from './images/logo-512x512.webp';
@@ -64,8 +64,8 @@ const Layout: React.FC<LayoutProps> = ({
     <>
       {showNavMenu && <NavMenu />}
       <Container component='main' sx={{ pt: isSmallScreen ? '64px' : '64px', paddingBottom: 2 }} style={{ maxWidth: '700px' }}>
-        <Grid container paddingTop={isSmallScreen ? 3 : 6}>
-          <Grid item xs={12} sx={{ paddingBottom: { xs: 1, sm: 2 } }}>
+        <Grid2 container paddingTop={isSmallScreen ? 3 : 6}>
+          <Grid2 component="div" size={12} sx={{ paddingBottom: { xs: 1, sm: 2 } }}>
             <Typography align="center" textTransform='uppercase' sx={{ fontSize: { xs: '1.3em', sm: '2em' } }}>{title}</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {showLogo && (
@@ -80,9 +80,9 @@ const Layout: React.FC<LayoutProps> = ({
                 />
               )}
             </Box>
-          </Grid>
+          </Grid2>
           {children}
-        </Grid>
+        </Grid2>
       </Container>
 
       <Box

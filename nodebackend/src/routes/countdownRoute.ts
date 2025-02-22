@@ -50,7 +50,8 @@ router.post('/setCountdown', async (req: Request, res: Response) => {
 
     if (!topic || (action !== 'start' && action !== 'stop' && action !== 'reset')) {
         logger.warn('Invalid parameters: topic and action are required, action must be start, stop, or reset');
-        return res.status(400).send('anErrorOccurred');
+        res.status(400).send('anErrorOccurred');
+        return;
     }
 
     const countdownPrefix = 'countdown:';

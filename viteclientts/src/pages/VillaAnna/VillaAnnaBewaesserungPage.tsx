@@ -7,7 +7,7 @@ import SchedulerCard from '../../components/SchedulerCard';
 import {
   Box,
   Typography,
-  Grid,
+  Grid2,
   Card,
   CardContent,
   CardHeader,
@@ -143,16 +143,16 @@ const BewaesserungPage = () => {
 
   return (
     <Layout title={title}>
-      <Grid item xs={12} paddingTop={1} paddingBottom={1}>
+      <Grid2 size={12} paddingTop={1} paddingBottom={1}>
         <Card variant='outlined'>
           <CardHeader title={t('switches')} />
           <CardContent>
             {switchesLoading ? (
               <LoadingSpinner />
             ) : (
-              <Grid container spacing={2} justifyContent="space-between">
+              <Grid2 container spacing={2} justifyContent="space-between">
                 {switches.map((val, i) => (
-                  <Grid item key={i}>
+                  <Grid2 key={i}>
                     <SwitchComponent
                       checked={val}
                       label={switchDescriptions[i]}
@@ -160,23 +160,23 @@ const BewaesserungPage = () => {
                       id={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
                       name={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
                     />
-                  </Grid>
+                  </Grid2>
                 ))}
-              </Grid>
+              </Grid2>
             )}
           </CardContent>
         </Card>
-      </Grid>
+      </Grid2>
 
-      <Grid item xs={12} paddingBottom={1}>
+      <Grid2 size={12} paddingBottom={1}>
         <Card variant='outlined'>
           <CardHeader title={t('aiDecision')} />
           <CardContent>
             {aiLoading ? (
               <SkeletonLoader />
             ) : (
-              <Grid container spacing={2} justifyContent="space-between">
-                <Grid item xs={12}>
+              <Grid2 container spacing={2} justifyContent="space-between">
+                <Grid2 size={12}>
                   <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
                     <SwitchComponent
                       checked={!irrigationNeededSwitch}
@@ -187,8 +187,8 @@ const BewaesserungPage = () => {
                       name="switch-ai-block"
                     />
                   </Box>
-                </Grid>
-                <Grid item xs={12}>
+                </Grid2>
+                <Grid2 size={12}>
                   <Button
                     variant='contained'
                     onClick={handleOpenDialog}
@@ -197,7 +197,7 @@ const BewaesserungPage = () => {
                   >
                     {t('aiResponse')}
                   </Button>
-                </Grid>
+                </Grid2>
                 <DialogFullScreen
                   title={t('aiResponse')}
                   open={isAiResponseDialogOpen}
@@ -210,23 +210,23 @@ const BewaesserungPage = () => {
                     {formattedEvaluation && `\n\n${formattedEvaluation}`}
                   </Typography>
                 </DialogFullScreen>
-              </Grid>
+              </Grid2>
             )}
           </CardContent>
         </Card>
-      </Grid>
+      </Grid2>
 
       {/* Use the SchedulerCard component */}
-      <Grid item xs={12} paddingBottom={1}>
+      <Grid2 size={12} paddingBottom={1}>
         <SchedulerCard
           setReloadTasks={setReloadTasks}
           scheduledTasks={scheduledTasks}
           setScheduledTasks={setScheduledTasks}
           taskToCopy={copiedTask}
         />
-      </Grid>
+      </Grid2>
 
-      <Grid item xs={12}>
+      <Grid2 size={12}>
         <Card variant='outlined'>
           <CardHeader title={t("scheduledPlans")} />
           <CardContent>
@@ -272,7 +272,7 @@ const BewaesserungPage = () => {
             )}
           </CardContent>
         </Card>
-      </Grid>
+      </Grid2>
     </Layout>
   );
 };

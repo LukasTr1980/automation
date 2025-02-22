@@ -1,5 +1,5 @@
 import Layout from '../Layout';
-import { Grid, Card, CardActionArea, CardMedia, CardContent, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Grid2, Card, CardActionArea, CardMedia, CardContent, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import VillaAnnaButtonImage from '../images/VillaAnnaButton.webp';
 import VillaAnnaButtonImageSmall from '../images/VillaAnnaButton160x160.webp';
@@ -36,7 +36,7 @@ const HomePage: React.FC = () => {
   };
 
   const openChatbotUrl = () => {
-    const chatbotUrl = 'https://chatbot.charts.cx';
+    const chatbotUrl = 'https://nextchat.charts.cx';
     refreshToken(chatbotUrl);
   }
 
@@ -50,8 +50,8 @@ const HomePage: React.FC = () => {
   return (
     <ImagePreloader imageUrls={imageUrls}>
       <Layout title="Automation">
-        <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
-          <Grid item>
+        <Grid2 container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
+          <Grid2>
             <RouterLink to="/villa-anna/home" style={{ textDecoration: 'none' }}>
               <Card sx={cardMaxwidth} variant='outlined'>
                 <CardActionArea>
@@ -70,8 +70,8 @@ const HomePage: React.FC = () => {
                 </CardActionArea>
               </Card>
             </RouterLink>
-          </Grid>
-          <Grid item>
+          </Grid2>
+          <Grid2>
             <Card sx={cardMaxwidth} variant='outlined'>
               <CardActionArea onClick={openChatbotUrl}>
                 <CardMedia
@@ -88,9 +88,9 @@ const HomePage: React.FC = () => {
                 </CardContent>
               </CardActionArea>
             </Card>
-          </Grid>
+          </Grid2>
           {userLogin === 'admin' && (
-            <Grid item>
+            <Grid2>
               <RouterLink to="/settings" style={{ textDecoration: 'none' }}>
                 <Card sx={cardMaxwidth} variant='outlined'>
                   <CardActionArea>
@@ -109,9 +109,9 @@ const HomePage: React.FC = () => {
                   </CardActionArea>
                 </Card>
               </RouterLink>
-            </Grid>
+            </Grid2>
           )}
-        </Grid>
+        </Grid2>
       </Layout>
     </ImagePreloader>
   );

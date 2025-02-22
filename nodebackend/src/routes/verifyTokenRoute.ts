@@ -16,7 +16,8 @@ router.post('/', async (req: Request, res: Response) => {
 
   if (!token) {
     logger.error('No token provided.');
-    return res.status(401).json({ message: 'tokenMissing', severity: 'warning' });
+    res.status(401).json({ message: 'tokenMissing', severity: 'warning' });
+    return;
   }
 
   try {

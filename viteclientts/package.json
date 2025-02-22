@@ -16,22 +16,22 @@
     "@mui/lab": "^6.0.0-beta.9",
     "@mui/material": "^6.1.0",
     "axios": "^1.7.2",
-    "i18next": "^23.11.5",
-    "i18next-http-backend": "^2.5.2",
+    "i18next": "^24",
+    "i18next-http-backend": "^3",
     "jwt-decode": "^4.0.0",
     "moment": "^2.30.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19",
+    "react-dom": "^19",
     "react-i18next": "^15.0.2",
-    "react-router-dom": "^6.24.0",
+    "react-router-dom": "^7",
     "socket.io-client": "^4.7.5",
-    "ua-parser-js": "^1.0.38",
-    "vite-plugin-pwa": "^0.20.0",
-    "zustand": "^4.5.3"
+    "ua-parser-js": "^2",
+    "vite-plugin-pwa": "^0.21",
+    "zustand": "^5"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.2.19",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "@types/ua-parser-js": "^0.7.39",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
@@ -40,6 +40,6 @@
     "eslint-plugin-react-hooks": "^5",
     "eslint-plugin-react-refresh": "^0.4.7",
     "typescript": "^5.5.2",
-    "vite": "^5.3.1"
+    "vite": "^6"
   }
 }

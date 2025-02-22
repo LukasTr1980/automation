@@ -2,7 +2,7 @@ import React from "react";
 import Layout from "../Layout";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
-import { List, ListItem, ListItemText, Divider, Grid } from '@mui/material';
+import { List, ListItem, ListItemText, Divider, Grid2 } from '@mui/material';
 import { useUserStore } from "../utils/store";
 import { UserType } from "../types/types";
 import { convertToGermanDate } from "../utils/dateUtils";
@@ -42,7 +42,7 @@ const UserPage: React.FC = () => {
 
     return (
         <Layout title={t('userInfo')}>
-            <Grid item paddingTop={1} xs={12}>
+            <Grid2 paddingTop={1} size={12}>
                 <List sx={style}>
                     {Array.isArray(usersData) ? (
                         usersData.map(user => (
@@ -59,7 +59,7 @@ const UserPage: React.FC = () => {
                         </ListItem>
                     )}
                 </List>
-            </Grid>
+            </Grid2>
         </Layout>
     );
 };
