@@ -89,7 +89,7 @@ const NavMenu: React.FC = () => {
         boxShadow: 'none',
         marginTop: 2
       }}>
-        <Grid2 container alignItems='center' justifyContent='center'>
+        <Grid2 container width='100%' alignItems='center' justifyContent='center'>
           <Toolbar
             sx={{
               backgroundColor: '#EFF7F9',
@@ -113,7 +113,7 @@ const NavMenu: React.FC = () => {
                   anchor="left"
                   open={drawerOpen}
                   onClose={handleDrawerToggle}
-                  PaperProps={{ style: { width: '60%' } }}
+                  slotProps={{ paper: { sx: { width: '60%' } } }}
                 >
                   {drawer}
                 </Drawer>
