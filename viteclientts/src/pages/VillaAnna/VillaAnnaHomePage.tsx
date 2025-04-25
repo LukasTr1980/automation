@@ -1,4 +1,4 @@
-import { Card, CardActionArea, CardContent, CardMedia, Grid2, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Card, CardActionArea, CardContent, CardMedia, Grid, Typography, useMediaQuery, useTheme } from '@mui/material';
 import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
 import IrrigationButtonImage from '../../images/IrrigationButton.webp';
@@ -72,8 +72,8 @@ const HomePage = () => {
   return (
     <ImagePreloader imageUrls={imageUrls}>
       <Layout title='Villa Anna Automation'>
-        <Grid2 container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
-          <Grid2>
+        <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
+          <Grid>
             <RouterLink to="/villa-anna/bewaesserung" style={{ textDecoration: 'none' }}>
               <Card sx={cardMaxwidth} variant='outlined'>
                 <CardActionArea>
@@ -92,8 +92,8 @@ const HomePage = () => {
                 </CardActionArea>
               </Card>
             </RouterLink>
-          </Grid2>
-          <Grid2>
+          </Grid>
+          <Grid>
             <RouterLink to="/villa-anna/markise" style={{ textDecoration: 'none' }}>
               <Card sx={cardMaxwidth} variant='outlined'>
                 <CardActionArea>
@@ -112,8 +112,8 @@ const HomePage = () => {
                 </CardActionArea>
               </Card>
             </RouterLink>
-          </Grid2>
-          <Grid2>
+          </Grid>
+          <Grid>
             <RouterLink to="/villa-anna/countdown" style={{ textDecoration: 'none' }}>
               <Card sx={cardMaxwidth} variant='outlined'>
                 <CardActionArea>
@@ -132,8 +132,8 @@ const HomePage = () => {
                 </CardActionArea>
               </Card>
             </RouterLink>
-          </Grid2>
-          <Grid2>
+          </Grid>
+          <Grid>
             <Card sx={cardMaxwidth} variant='outlined'>
               <CardActionArea onClick={openHeatingSystemUrl}>
                 <CardMedia
@@ -150,8 +150,8 @@ const HomePage = () => {
                 </CardContent>
               </CardActionArea>
             </Card>
-          </Grid2>
-          <Grid2>
+          </Grid>
+          <Grid>
             <Card sx={cardMaxwidth} variant='outlined'>
               <CardActionArea onClick={openVentilationSystemUrl}>
                 <CardMedia
@@ -168,8 +168,8 @@ const HomePage = () => {
                 </CardContent>
               </CardActionArea>
             </Card>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       </Layout>
     </ImagePreloader>
   );

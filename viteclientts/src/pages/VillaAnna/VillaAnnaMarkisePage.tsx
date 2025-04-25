@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
-import { Typography, Grid2, Card, CardHeader, CardContent, Box } from '@mui/material';
+import { Typography, Grid, Card, CardHeader, CardContent, Box } from '@mui/material';
 import OnPressSwitchComponent from '../../components/OnPressSwitchComponent';
 import SchedulerCard from '../../components/SchedulerCard';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
@@ -115,7 +115,7 @@ const MarkisePage = () => {
     return (
         <Layout title={title}>
             <>
-                <Grid2 size={12} paddingTop={1} paddingBottom={1}>
+                <Grid size={12} paddingTop={1} paddingBottom={1}>
                     <Card variant='outlined'>
                         <CardHeader title={t('controlAwning')} />
                         <CardContent>
@@ -124,8 +124,8 @@ const MarkisePage = () => {
 
                         </CardContent>
                     </Card>
-                </Grid2>
-                <Grid2 size={12} paddingBottom={1}>
+                </Grid>
+                <Grid size={12} paddingBottom={1}>
                     <Card variant='outlined'>
                         <CardHeader title={t('weatherBlock')} />
                         <CardContent>
@@ -160,8 +160,8 @@ const MarkisePage = () => {
                             </Box>
                         </CardContent>
                     </Card>
-                </Grid2>
-                <Grid2 size={12} paddingBottom={1}>
+                </Grid>
+                <Grid size={12} paddingBottom={1}>
                     <SchedulerCard
                         initialTopic="markise/switch/haupt/set"
                         mqttTopics={["markise/switch/haupt/set"]}
@@ -171,8 +171,8 @@ const MarkisePage = () => {
                         setReloadTasks={setReloadTasks}
                         taskToCopy={copiedTask}
                     />
-                </Grid2>
-                <Grid2 size={12}>
+                </Grid>
+                <Grid size={12}>
                     <Card variant='outlined'>
                         <CardHeader title={t("scheduledPlans")} />
                         <CardContent>
@@ -190,7 +190,7 @@ const MarkisePage = () => {
                             )}
                         </CardContent>
                     </Card>
-                </Grid2>
+                </Grid>
             </>
         </Layout>
     );

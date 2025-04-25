@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Layout from '../Layout';
 import axios from 'axios';
 import {
-    Grid2,
+    Grid,
     Card,
     CardContent,
     CardHeader,
@@ -103,7 +103,7 @@ const SettingsPage: React.FC = () => {
 
     return (
         <Layout title={t('settings')}>
-            <Grid2 size={12} paddingTop={1} paddingBottom={1}>
+            <Grid size={12} paddingTop={1} paddingBottom={1}>
                 <Card variant='outlined'>
                     <CardHeader title={t("editGptRequest")} />
                     <CardContent>
@@ -136,9 +136,9 @@ const SettingsPage: React.FC = () => {
                         </Button>
                     </CardContent>
                 </Card>
-            </Grid2>
+            </Grid>
 
-            <Grid2 size={12}>
+            <Grid size={12}>
                 <Card variant='outlined'>
                     <CardHeader title={t("editSecrets")} />
                     <CardContent>
@@ -193,7 +193,7 @@ const SettingsPage: React.FC = () => {
                         />
                     </CardContent>
                 </Card>
-            </Grid2>
+            </Grid>
         </Layout>
     );
 };

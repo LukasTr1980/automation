@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.13.17] - 2025-04-25
+### Changed
+- Update MUI components and dependencies; replace Grid2 with Grid
+- Updated MUI dependencies to version 7.0.2 for icons and material, and 7.0.0-beta.11 for lab.
+- Replaced all instances of Grid2 with Grid across various components and pages for consistency with the updated MUI version.
+- Adjusted layout components in Layout.tsx, OnPressSwitchComponent.tsx, SchedulerCard.tsx, NavMenu.tsx, and multiple pages to ensure proper rendering and functionality.
+
 ## [v16.13.16] - 2025-03-01
 ### Changed
 - Various dependency updates.

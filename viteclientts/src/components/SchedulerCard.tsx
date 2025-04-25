@@ -8,7 +8,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Grid2,
+  Grid,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -153,8 +153,8 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
     <Card variant='outlined'>
       <CardHeader title={t("createSchedule")} />
       <CardContent>
-        <Grid2 container spacing={2}>
-          <Grid2 size={12}>
+        <Grid container spacing={2}>
+          <Grid size={12}>
             <FormControl fullWidth>
               <InputLabel id="mqtt-topic-label" shrink={false}>{t('zone')}</InputLabel>
               <Select
@@ -169,8 +169,8 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
                 ))}
               </Select>
             </FormControl>
-          </Grid2>
-          <Grid2 size={12}>
+          </Grid>
+          <Grid size={12}>
             <FormControlLabel
               control={
                 <SwitchComponent
@@ -181,14 +181,14 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
               }
               label="" // Since the label is handled inside the custom component, we leave it empty here.
             />
-          </Grid2>
-          <Grid2 size={6}>
+          </Grid>
+          <Grid size={6}>
             <HourField selectedHour={selectedHour} setSelectedHour={setSelectedHour} error={!fieldValidity.hour} />
-          </Grid2>
-          <Grid2 size={6}>
+          </Grid>
+          <Grid size={6}>
             <MinuteField selectedMinute={selectedMinute} setSelectedMinute={setSelectedMinute} error={!fieldValidity.minute} />
-          </Grid2>
-          <Grid2 size={12}>
+          </Grid>
+          <Grid size={12}>
             <Button
               variant="contained"
               color={!fieldValidity.day ? "error" : "primary"}
@@ -203,12 +203,12 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             onClose={() => setWeekDaysDialogOpen(false)}
             title={t('select')}
             >
-              <Grid2 size={12}>
+              <Grid size={12}>
                 <WeekdaysSelect selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
-              </Grid2>
+              </Grid>
             </DialogFullScreen>
-          </Grid2>
-          <Grid2 size={12}>
+          </Grid>
+          <Grid size={12}>
             <Button
               variant="contained"
               color={!fieldValidity.day ? "error" : "primary"}
@@ -223,17 +223,17 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             onClose={() => setMonthDialogOpen(false)}
             title={t('select')}
             >
-              <Grid2 size={12}>
+              <Grid size={12}>
                 <MonthsSelect selectedMonths={selectedMonths} setSelectedMonths={setSelectedMonths} />
-              </Grid2>
+              </Grid>
             </DialogFullScreen>
-          </Grid2>
-          <Grid2 size={12}>
+          </Grid>
+          <Grid size={12}>
             <Button variant="contained" color="primary" fullWidth onClick={handleSchedule}>
               Planen
             </Button>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       </CardContent>
     </Card>
   );
