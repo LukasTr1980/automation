@@ -2,16 +2,16 @@
 FROM node:22-slim AS nodebackend-build
 WORKDIR /usr/src/nodebackend
 COPY ./nodebackend/package*.json ./nodebackend/tsconfig.json ./
-RUN npm install --only=production
-RUN npm install typescript
+RUN npm ci
 COPY ./nodebackend .
 RUN npm run build
+RUN npm prune --omit=dev
 
 # Build the React app
 FROM node:22-slim AS client-build
 WORKDIR /usr/src/viteclientts
 COPY ./viteclientts/package*.json ./
-RUN npm install
+RUN npm ci
 COPY ./viteclientts .
 ARG VERSION
 RUN echo "VITE_APP_VERSION=${VERSION}" > .env
