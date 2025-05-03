@@ -28,4 +28,8 @@ jobs:
         context: .
         push: true
         tags: mustaman/automation:${{ github.ref_name }}
+        platforms: linux/amd64
+        provenance: false
+        sbom: false
+        outputs: type=registry,oci-mediatypes=false
         build-args: VERSION=${{ github.ref_name }}
