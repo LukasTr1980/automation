@@ -1,5 +1,4 @@
 import schedule from 'node-schedule';
-import { promisify } from 'util';
 import { connectToRedis } from './clients/redisClient';
 import isIrrigationNeeded from './gptChatIrrigation';
 import getTaskEnabler from './utils/getTaskEnabler';
@@ -113,23 +112,20 @@ async function scheduleTask(topic: string, state: boolean, recurrenceRule: Recur
   jobs[jobKey] = schedule.scheduleJob(recurrenceRule, task);
 
   const client = await connectToRedis();
-  const setAsync = promisify(client.set).bind(client);
   const jobData = JSON.stringify({ id: uniqueID, state, recurrenceRule });
-  await setAsync(jobKey, jobData);
+  await client.set(jobKey, jobData);
 }
 
 async function loadScheduledTasks(): Promise<void> {
   const patterns = ['bewaesserung*', 'markise*'];
   const client = await connectToRedis();
-  const keysAsync = promisify(client.keys).bind(client);
-  const getAsync = promisify(client.get).bind(client);
 
   for (const pattern of patterns) {
-    const jobKeys = await keysAsync(pattern);
+    const jobKeys = await client.keys(pattern);
 
     if (jobKeys) {
       for (const jobKey of jobKeys) {
-        const data = await getAsync(jobKey);
+        const data = await client.get(jobKey);
         if (data) {
           const { state, recurrenceRule } = JSON.parse(data);
 
@@ -156,17 +152,15 @@ interface TasksByTopic {
 async function getScheduledTasks(): Promise<TasksByTopic> {
   const patterns = ['bewaesserung*', 'markise*'];
   const client = await connectToRedis();
-  const keysAsync = promisify(client.keys).bind(client);
-  const getAsync = promisify(client.get).bind(client);
 
   const tasksByTopic: TasksByTopic = {};
 
   for (const pattern of patterns) {
-    const jobKeys = await keysAsync(pattern);
+    const jobKeys = await client.keys(pattern);
 
     if (jobKeys) {
       for (const jobKey of jobKeys) {
-        const data = await getAsync(jobKey);
+        const data = await client.get(jobKey);
 
         if (data) {
           const { id, state, recurrenceRule } = JSON.parse(data);
