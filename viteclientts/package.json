@@ -16,7 +16,7 @@
     "@mui/lab": "7.0.0-beta.11",
     "@mui/material": "7.0.2",
     "axios": "^1.7.2",
-    "i18next": "^24",
+    "i18next": "^25",
     "i18next-http-backend": "^3",
     "jwt-decode": "^4.0.0",
     "moment": "^2.30.1",
