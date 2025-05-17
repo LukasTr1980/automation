@@ -27,7 +27,7 @@
     "react-router-dom": "^7",
     "socket.io-client": "^4.7.5",
     "ua-parser-js": "^2",
-    "vite-plugin-pwa": "^0.21",
+    "vite-plugin-pwa": "^1.0",
     "zustand": "^5"
   },
   "devDependencies": {
