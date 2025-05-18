@@ -74,11 +74,12 @@ async function queryAllData(): Promise<WeatherData> {
     }
 }
 
-async function writeToInflux(topic: string, message: string): Promise<void> {
+async function writeToInflux(topic: string, message: string, measurement = 'mqtt_data', bucket = 'automation'): Promise<void> {
     const influxDbClient = await getInfluxDbClientAutomation();
-    const writeApi = influxDbClient.getWriteApi('villaanna', 'automation');
+    const writeApi = influxDbClient.getWriteApi('villaanna', bucket);
 
-    const point = new Point('mqtt_data').tag('topic', topic);
+    const point = new Point(measurement);
+    if (topic) point.tag('topic', topic);
 
     if (message.toLowerCase() === 'true' || message.toLowerCase() === 'false') {
         const booleanValue = message.toLowerCase() === 'true';
@@ -103,4 +104,4 @@ async function writeToInflux(topic: string, message: string): Promise<void> {
     }
 }
 
-export { queryAllData, WeatherData, writeToInflux };
+export { queryAllData, WeatherData, writeToInflux, querySingleData };

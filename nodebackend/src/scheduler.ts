@@ -6,6 +6,7 @@ import { sharedState } from './utils/sharedState';
 import generateUniqueId from './utils/generateUniqueId';
 import { topicToTaskEnablerKey } from './utils/constants';
 import MqttPublisher from './utils/mqttPublisher';
+import { computeTodayET0 } from './utils/evapotranspiration';
 import logger from './logger';
 
 const publisher = new MqttPublisher();
@@ -15,6 +16,15 @@ interface Job {
 }
 
 const jobs: Job = {};
+
+schedule.scheduleJob('55 23 * * *', async () => {
+  try {
+    const val = await computeTodayET0();
+    logger.info(`ET₀ Scheduler-Run: ${val} mm`);
+  } catch (error) {
+    logger.error('ET₀ scheduler run failed:', error);
+  }
+});
 
 async function createTask(topic: string, state: boolean): Promise<() => Promise<void>> {
   return async function () {

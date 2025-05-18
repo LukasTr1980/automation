@@ -15,6 +15,7 @@ import apiRouter from './routes/api';
 import logger from './logger';
 import './utils/markiseBlock';
 import helmet from 'helmet';
+import { computeTodayET0 } from './utils/evapotranspiration';
 import { isDev } from './envSwitcher';
 
 const app = express();
@@ -86,8 +87,14 @@ if (isDev) {
   httpServer.listen(port, '192.168.1.185', async () => {
     logger.info(`APIs are listening on port ${port}`);
     loadScheduledTasks().catch(logger.error);
-
     await subscribeToRedisKey(io);
+
+    try {
+      const val = await computeTodayET0();
+      logger.info(`ET₀ (Dev-Run): ${val} mm`);
+    } catch (error) {
+      logger.error('Error computing ET₀', error);	
+    }
   });
 } else {
   httpServer.listen(port, async () => {
