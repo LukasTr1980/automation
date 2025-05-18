@@ -7,6 +7,7 @@ import generateUniqueId from './utils/generateUniqueId';
 import { topicToTaskEnablerKey } from './utils/constants';
 import MqttPublisher from './utils/mqttPublisher';
 import { computeTodayET0 } from './utils/evapotranspiration';
+import { recordCurrentCloudCover } from './utils/cloudCoverRecorder';
 import logger from './logger';
 
 const publisher = new MqttPublisher();
@@ -23,6 +24,16 @@ schedule.scheduleJob('55 23 * * *', async () => {
     logger.info(`ET₀ Scheduler-Run: ${val} mm`);
   } catch (error) {
     logger.error('ET₀ scheduler run failed:', error);
+  }
+});
+
+// Schedule the task to run every 5 minutes
+schedule.scheduleJob('*/5 * * * *', async () => {
+  try {
+    const val = await recordCurrentCloudCover();
+    logger.info(`CloudCover Scheduler-Run: ${val} %`);
+  } catch (error) {
+    logger.error('CloudCover scheduler run failed:', error);
   }
 });
 
