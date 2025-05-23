@@ -2,11 +2,12 @@ import { getOpenAI } from "./configs";
 import { queryAllData } from "./clients/influxdb-client";
 import type { WeatherData } from "./clients/influxdb-client";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import logger from "./logger";
 
 // ---------- FE-Interface -----------------------------------------------------
 export interface CompletionResponse {
-  result: boolean;             // = irrigationNeeded
-  response: string;            // kurze Erklärung inkl. confidence
+  result: boolean;          // = irrigationNeeded
+  response: string;         // kurze Erklärung inkl. confidence
   formattedEvaluation: string; // Bullet-Liste der geprüften Fakten
 }
 
@@ -18,24 +19,23 @@ interface LlmDecision {
   recommended_mm: number;  // 0 falls irrigationNeeded=false
 }
 
-// ---------- Few-shot-Beispiele ----------------------------------------------
+// ---------- Few-shot-Beispiele (gekürzt) -------------------------------------
 const EXAMPLES = [
   {
     metrics: {
       outTemp_avg7: 12,
       humidity_avg7: 55,
-      rainSum7: 10,
+      rainSum7: 8,
       rainToday: 0,
       rainRate: 0,
       et0_week: 32,
-      rainForecast24: 0,
-      deficit_mm: 22
+      rainForecast24: 0
     },
     answer: {
       irrigationNeeded: true,
-      confidence: 0.9,
-      reasoning: "Defizit 22 mm, keine Regen­prognose.",
-      recommended_mm: 20
+      confidence: 0.83,
+      reasoning: "Wasserdefizit ~24 mm (32 – 8), keine Regenprognose.",
+      recommended_mm: 15
     }
   },
   {
@@ -46,13 +46,12 @@ const EXAMPLES = [
       rainToday: 4,
       rainRate: 2,
       et0_week: 18,
-      rainForecast24: 12,
-      deficit_mm: -24
+      rainForecast24: 12
     },
     answer: {
       irrigationNeeded: false,
       confidence: 0.9,
-      reasoning: "Boden gesättigt: Regen + Prognose decken ET₀ locker.",
+      reasoning: "Boden gesättigt: 42 mm + 12 mm Forecast > 18 mm ET₀.",
       recommended_mm: 0
     }
   }
@@ -60,22 +59,12 @@ const EXAMPLES = [
 
 // ---------- Prompt-Builder ---------------------------------------------------
 function buildSystemPrompt(): string {
-  return `You are an agronomic irrigation advisor for a short‑cut lawn in South Tyrol.
+  return `You are an agronomic irrigation advisor for a short-cut lawn.
 Return ONLY valid JSON with this exact shape:
 { irrigationNeeded:boolean, confidence:number, reasoning:string, recommended_mm:number }
-Input metrics:
-- outTemp_avg7  (°C)
-- humidity_avg7 (%)
-- rainSum7      (mm, last 7 days)
-- rainToday     (mm)
-- rainRate      (mm/h)
-- et0_week      (mm, last 7 days)
-- rainForecast24 (mm, next 24 h)
-- deficit_mm     (et0_week – rainSum7, mm)
-
-Decision rules:
-• If irrigationNeeded is false, recommended_mm MUST be 0.
-• Otherwise recommended_mm = round(clamp(deficit_mm * 1.2, 0, 20)).`;
+Compute deficit_mm = et0_week - rainSum7.
+recommended_mm = round(clamp(deficit_mm*1.2,0,20)).
+recommended_mm = 0 if irrigationNeeded is false.`;
 }
 
 function exampleMessages(): ChatCompletionMessageParam[] {
@@ -98,6 +87,7 @@ function buildFormattedEvaluation(d: WeatherData & { et0_week?: number }) {
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate   ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
     `Fc 24 h     ${fmt(d.rainForecast24)} mm`,
+    d.et0_week != null && `ET₀ 7 T     ${fmt(d.et0_week)} mm`,
     deficit != null && `ET₀-Defizit  ${fmt(deficit)} mm`
   ].filter(Boolean).join("\n");
 }
@@ -107,28 +97,33 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // 1) aktuelle Daten holen
   const d = await queryAllData();   // enthält rainForecast24 & et0_week
 
-  /* ---------- Hard‑Rules ----------------------------------------------------
+  /* ---------- Hard-Rules ----------------------------------------------------
    *  Wenn eine Regel zutrifft → Bewässerung blockieren (result=false).
    * -------------------------------------------------------------------------*/
   const blockers: string[] = [];
 
-  const deficit = d.et0_week != null ? d.et0_week - d.rainSum : undefined;
-
   if (d.outTemp <= 10) blockers.push(`ØTemp 7 d ≤ 10 °C (${fmt(d.outTemp)} °C)`);
-  if (d.humidity >= 80) blockers.push(`ØRH 7 d ≥ 80 % (${fmt(d.humidity)} %)`);
-  if (d.rainSum >= 25) blockers.push(`Regen 7 d ≥ 25 mm (${fmt(d.rainSum)} mm)`);
-  if (d.rainToday >= 3) blockers.push(`Regen heute ≥ 3 mm (${fmt(d.rainToday)} mm)`);
-  if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
-  if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
-  if (deficit != null && deficit < 5)
-    blockers.push(`Defizit < 5 mm (${fmt(deficit)} mm)`);
+  if (d.humidity >= 80) blockers.push(`ØRH 7 d ≥ 80 % (${fmt(d.humidity)} %)`);
+  if (d.rainSum >= 25) blockers.push(`Regen 7 d ≥ 25 mm (${fmt(d.rainSum)} mm)`);
+  if (d.rainToday >= 3) blockers.push(`Regen heute ≥ 3 mm (${fmt(d.rainToday)} mm)`);
+  if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
+  if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
+
+  const deficit = d.et0_week != null ? d.et0_week - d.rainSum : 0;
+  if (deficit < 5) blockers.push(`Defizit < 5 mm (${fmt(deficit)} mm)`);
+
+  // Hilfsfunktion zum einheitlichen Loggen & Rückgeben
+  const finalize = (res: CompletionResponse): CompletionResponse => {
+    logger.info(`[IrrigationDecision] ${res.result ? "ON" : "OFF"} | "${res.response}"\n${res.formattedEvaluation}\n------------`);
+    return res;
+  };
 
   if (blockers.length) {
-    return {
+    return finalize({
       result: false,
       response: `Blockiert: ${blockers.join("; ")}`,
       formattedEvaluation: buildFormattedEvaluation(d)
-    };
+    });
   }
 
   /* ---------- KI-Entscheidung ---------------------------------------------*/
@@ -139,8 +134,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     rainToday: d.rainToday,
     rainRate: d.rainRate,
     et0_week: d.et0_week ?? 0,
-    rainForecast24: d.rainForecast24,
-    deficit_mm: deficit ?? 0
+    rainForecast24: d.rainForecast24
   };
 
   const openai = await getOpenAI();
@@ -168,15 +162,15 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     typeof p.recommended_mm === "number";
 
   if (!valid) {
-    // Bei Parse‑Fehler → Vorsichtshalber NICHT bewässern
+    // Bei Parse-Fehler → Vorsichtshalber NICHT bewässern
     p = { irrigationNeeded: false, confidence: 0.25, reasoning: "LLM-Parse-Error", recommended_mm: 0 };
   }
 
-  return {
+  return finalize({
     result: p.irrigationNeeded!,
     response:
-      `${p.reasoning} (confidence ${(p.confidence! * 100).toFixed(0)} %, ` +
-      `empfohlen ${p.recommended_mm} mm)`,
+      `${p.reasoning} (confidence ${(p.confidence! * 100).toFixed(0)} %, ` +
+      `empfohlen ${p.recommended_mm} mm)`,
     formattedEvaluation: buildFormattedEvaluation(d)
-  };
+  });
 }

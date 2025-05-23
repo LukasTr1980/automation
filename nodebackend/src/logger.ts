@@ -1,31 +1,54 @@
-import winston from 'winston';
-import { isDev } from './envSwitcher'; // Assuming you have this module to determine the environment
+import winston from "winston";
+import { isDev } from "./envSwitcher";
 
-// Custom formatting function
-const customFormat = winston.format.printf(({ level, message, timestamp }) => {
-  return `${timestamp} [${level}]: ${message}`;
+/*
+ * Automation‑wide Winston logger
+ * – Zeitstempel vorn (YYYY-MM-DD HH:mm:ss)
+ * – Level in Großbuchstaben, farbig (Console)
+ * – Multiline‑Nachrichten sauber eingerückt
+ * – Default‑Label "Automation"; Module können logger.child({ label: "Foo" }) nutzen
+ */
+
+// ---------- Helper: indent multi‑line messages -----------------------------
+const indentMultiline = (input: unknown): string => {
+  const str = typeof input === "string" ? input : JSON.stringify(input);
+  return str
+    .split("\n")
+    .map((l, i) => (i === 0 ? l : "  " + l))
+    .join("\n");
+};
+
+// ---------- Custom formatter ----------------------------------------------
+const customFormat = winston.format.printf(info => {
+  const lvl  = info.level.padEnd(5);               // already upper‑cased below
+  const tag  = info.label ? `[${info.label}] ` : "";
+  const msg  = indentMultiline(info.message);
+  return `${info.timestamp} ${lvl} ${tag}${msg}`;
 });
 
-// Determine the log level based on the environment
-const logLevel = isDev ? 'debug' : 'info';
+// ---------- Upper‑case transform (before colorize) ------------------------
+const upperCaseLevel = winston.format(info => {
+  info.level = info.level.toUpperCase();
+  return info;
+});
 
-// Create a Winston logger
+// ---------- Logger instance ----------------------------------------------
 const logger = winston.createLogger({
-  level: logLevel, // Log only if level is less than or equal to this level
+  level: isDev ? "debug" : "info",
   format: winston.format.combine(
-    winston.format.timestamp({
-      format: 'DD-MM-YYYY HH:mm:ss'
-    }),
-    customFormat // use custom format here
+    upperCaseLevel(),
+    winston.format.label({ label: "Automation" }),
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    customFormat
   ),
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple(),
-        winston.format.timestamp({
-          format: 'DD-MM-YYYY HH:mm:ss'
-        })
+        upperCaseLevel(),                        // make sure console level is capped too
+        winston.format.colorize({ level: true }),// color only level token
+        winston.format.label({ label: "Automation" }),
+        winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        customFormat
       )
     })
   ]
