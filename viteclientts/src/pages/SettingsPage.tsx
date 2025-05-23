@@ -1,195 +1,142 @@
-import { useEffect, useState } from 'react';
-import Layout from '../Layout';
-import axios from 'axios';
+// src/pages/SettingsPage.tsx
+import { useEffect, useState } from "react";
+import Layout from "../Layout";
+import axios from "axios";
 import {
     Grid,
     Card,
     CardContent,
     CardHeader,
-    TextField,
-    TextareaAutosize,
-    Button
-} from '@mui/material';
-import SecretField from '../components/SecretField';
-import useSnackbar from '../utils/useSnackbar';
-import { useTranslation } from 'react-i18next';
+} from "@mui/material";
+import SecretField from "../components/SecretField";
+import useSnackbar from "../utils/useSnackbar";
+import { useTranslation } from "react-i18next";
 
 const SettingsPage: React.FC = () => {
-    const TextareaAutosizeComponent: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = TextareaAutosize;
     const { showSnackbar } = useSnackbar();
-    const [gptRequest, setGptRequest] = useState<string>('');
-    const [influxDbAiToken, setInfluxDbAiToken] = useState<string>('');
-    const [influxDbAutomationToken, setInfluxDbAutomationToken] = useState<string>('');
-    const [openAiApiToken, setOpenAiApiToken] = useState<string>('');
-    const [newPassword, setNewPassword] = useState<string>('');
-    const [influxDbAiTokenExists, setInfluxDbAiTokenExists] = useState<boolean>(false);
-    const [influxDbAutomationTokenExists, setInfluxDbAutomationTokenExists] = useState<boolean>(false);
-    const [openAiApiTokenExists, setOpenAiApiTokenExists] = useState<boolean>(false);
-    const [passwordExists, setPasswordExists] = useState<boolean>(false);
     const { t } = useTranslation();
-    const [isFocused, setIsFocused] = useState<{ [key: string]: boolean }>({
+    const apiUrl = import.meta.env.VITE_API_URL;
+
+    // ─── secret states ───────────────────────────────────────────
+    const [influxDbAiToken, setInfluxDbAiToken] = useState("");
+    const [influxDbAutomationToken, setInfluxDbAutomationToken] = useState("");
+    const [openAiApiToken, setOpenAiApiToken] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+
+    const [exists, setExists] = useState({
         influxDbAiToken: false,
         influxDbAutomationToken: false,
         openAiApiToken: false,
-        newPassword: false
+        password: false,
     });
-    const [fieldValidity, setFieldValidity] = useState<{ [key: string]: boolean }>({
+
+    const [focused, setFocused] = useState({
+        influxDbAiToken: false,
+        influxDbAutomationToken: false,
+        openAiApiToken: false,
+        newPassword: false,
+    });
+
+    const [valid, setValid] = useState({
         influxDbAiToken: true,
         influxDbAutomationToken: true,
         openAiApiToken: true,
-        newPassword: true
+        newPassword: true,
     });
-    const apiUrl = import.meta.env.VITE_API_URL;
 
+    // ─── initial existence flags ─────────────────────────────────
     useEffect(() => {
-        axios.get(`${apiUrl}/getGptRequest`)
-            .then(response => {
-                setGptRequest(response.data.gptRequest);
-            })
-            .catch(error => {
-                console.error('Error fetching GPT request:', error);
-            });
+        axios
+            .get(`${apiUrl}/getSecrets`)
+            .then(({ data }) =>
+                setExists({
+                    influxDbAiToken: data.influxDbAiTokenExists,
+                    influxDbAutomationToken: data.influxDbAutomationTokenExists,
+                    openAiApiToken: data.openAiApiTokenExists,
+                    password: data.passwordExists,
+                })
+            )
+            .catch(console.error);
     }, [apiUrl]);
 
-    const handleUpdate = () => {
-        axios.post(`${apiUrl}/updateGptRequest`, { newGptRequest: gptRequest })
-            .then((response) => {
-                const backendMessageKey = response.data;
-                const translatedMessage = t(backendMessageKey);
-                showSnackbar(translatedMessage);
-            })
-            .catch(error => {
-                console.error('Error updating GPT request:', error);
-            });
+    // ─── handlers ────────────────────────────────────────────────
+    const handleUpdateSecret = (key: string, value: string) => {
+        const isValid = value.trim() !== "";
+        setValid((s) => ({ ...s, [key]: isValid }));
+        if (!isValid) return;
+
+        axios
+            .post(`${apiUrl}/updateSecrets`, { [key]: value })
+            .then(({ data }) => showSnackbar(t(data)))
+            .catch(console.error);
     };
 
-    useEffect(() => {
-        axios.get(`${apiUrl}/getSecrets`)
-            .then(response => {
-                setInfluxDbAiTokenExists(response.data.influxDbAiTokenExists);
-                setInfluxDbAutomationTokenExists(response.data.influxDbAutomationTokenExists);
-                setOpenAiApiTokenExists(response.data.openAiApiTokenExists);
-                setPasswordExists(response.data.passwordExists);
-            })
-            .catch(error => {
-                console.error('Error fetching secrets:', error);
-            });
-    }, [apiUrl]);
+    const setFocus = (key: string, on: boolean) =>
+        setFocused((s) => ({ ...s, [key]: on }));
 
-    const handleUpdateSecret = (secretType: string, value: string) => {
-        const isValid = value !== '';
-        setFieldValidity({ ...fieldValidity, [secretType]: isValid });
-
-        const payload = { [secretType]: value };
-
-        axios.post(`${apiUrl}/updateSecrets`, payload)
-            .then((response) => {
-                const backendMessageKey = response.data;
-                const translatedMessage = t(backendMessageKey);
-                showSnackbar(translatedMessage);
-            })
-            .catch(error => {
-                console.error(`Error updating ${secretType}:`, error);
-            });
-    };
-
-    const handleFocus = (field: string) => {
-        setIsFocused({ ...isFocused, [field]: true });
-    };
-
-    const handleBlur = (field: string) => {
-        setIsFocused({ ...isFocused, [field]: false });
-    };
+    // ─── UI ──────────────────────────────────────────────────────
+    const title = `Villa Anna ${t("settings")}`;
 
     return (
-        <Layout title={t('settings')}>
-            <Grid size={12} paddingTop={1} paddingBottom={1}>
-                <Card variant='outlined'>
-                    <CardHeader title={t("editGptRequest")} />
-                    <CardContent>
-                        <TextField
-                            id="textFieldGptRequest"
-                            name="textFieldGptRequest"
-                            label="GPT Request"
-                            variant="outlined"
-                            fullWidth
-                            multiline
-                            rows={3}
-                            slotProps={{
-                                input: {
-                                    inputComponent: TextareaAutosizeComponent,
-                                    inputProps: {
-                                        minRows: 3,
-                                        value: gptRequest,
-                                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => setGptRequest(e.target.value),
-                                        spellCheck: false
-                                    }
-                                }
-                            }}
-                        />
-                        <Button
-                            onClick={handleUpdate}
-                            variant='contained'
-                            sx={{ width: '300px', my: 2 }}
-                        >
-                            Update
-                        </Button>
-                    </CardContent>
-                </Card>
-            </Grid>
-
+        <Layout title={title}>
             <Grid size={12}>
-                <Card variant='outlined'>
+                <Card variant="outlined">
                     <CardHeader title={t("editSecrets")} />
                     <CardContent>
                         <SecretField
                             label="InfluxDB AI Token"
                             secretValue={influxDbAiToken}
-                            placeholder={influxDbAiTokenExists}
-                            isFocused={isFocused.influxDbAiToken}
-                            isValid={fieldValidity.influxDbAiToken}
-                            onFocus={() => handleFocus('influxDbAiToken')}
-                            onBlur={() => handleBlur('influxDbAiToken')}
-                            onChange={(value: string) => setInfluxDbAiToken(value)}
-                            onUpdate={() => handleUpdateSecret('influxDbAiToken', influxDbAiToken)}
-                            autoComplete='off'
+                            placeholder={exists.influxDbAiToken}
+                            isFocused={focused.influxDbAiToken}
+                            isValid={valid.influxDbAiToken}
+                            onFocus={() => setFocus("influxDbAiToken", true)}
+                            onBlur={() => setFocus("influxDbAiToken", false)}
+                            onChange={setInfluxDbAiToken}
+                            onUpdate={() =>
+                                handleUpdateSecret("influxDbAiToken", influxDbAiToken)
+                            }
                         />
                         <SecretField
                             label="InfluxDB Automation Token"
                             secretValue={influxDbAutomationToken}
-                            placeholder={influxDbAutomationTokenExists}
-                            isFocused={isFocused.influxDbAutomationToken}
-                            isValid={fieldValidity.influxDbAutomationToken}
-                            onFocus={() => handleFocus('influxDbAutomationToken')}
-                            onBlur={() => handleBlur('influxDbAutomationToken')}
-                            onChange={(value: string) => setInfluxDbAutomationToken(value)}
-                            onUpdate={() => handleUpdateSecret('influxDbAutomationToken', influxDbAutomationToken)}
-                            autoComplete='off'
+                            placeholder={exists.influxDbAutomationToken}
+                            isFocused={focused.influxDbAutomationToken}
+                            isValid={valid.influxDbAutomationToken}
+                            onFocus={() => setFocus("influxDbAutomationToken", true)}
+                            onBlur={() => setFocus("influxDbAutomationToken", false)}
+                            onChange={setInfluxDbAutomationToken}
+                            onUpdate={() =>
+                                handleUpdateSecret(
+                                    "influxDbAutomationToken",
+                                    influxDbAutomationToken
+                                )
+                            }
                         />
                         <SecretField
                             label="OpenAI API Token"
                             secretValue={openAiApiToken}
-                            placeholder={openAiApiTokenExists}
-                            isFocused={isFocused.openAiApiToken}
-                            isValid={fieldValidity.openAiApiToken}
-                            onFocus={() => handleFocus('openAiApiToken')}
-                            onBlur={() => handleBlur('openAiApiToken')}
-                            onChange={(value: string) => setOpenAiApiToken(value)}
-                            onUpdate={() => handleUpdateSecret('openAiApiToken', openAiApiToken)}
-                            autoComplete='off'
+                            placeholder={exists.openAiApiToken}
+                            isFocused={focused.openAiApiToken}
+                            isValid={valid.openAiApiToken}
+                            onFocus={() => setFocus("openAiApiToken", true)}
+                            onBlur={() => setFocus("openAiApiToken", false)}
+                            onChange={setOpenAiApiToken}
+                            onUpdate={() =>
+                                handleUpdateSecret("openAiApiToken", openAiApiToken)
+                            }
                         />
                         <SecretField
                             label="Password"
-                            type='password'
+                            type="password"
                             secretValue={newPassword}
-                            placeholder={passwordExists}
-                            isFocused={isFocused.newPassword}
-                            isValid={fieldValidity.newPassword}
-                            onFocus={() => handleFocus('newPassword')}
-                            onBlur={() => handleBlur('newPassword')}
-                            onChange={(value: string) => setNewPassword(value)}
-                            onUpdate={() => handleUpdateSecret('newPassword', newPassword)}
-                            autoComplete='new-password'
+                            placeholder={exists.password}
+                            isFocused={focused.newPassword}
+                            isValid={valid.newPassword}
+                            onFocus={() => setFocus("newPassword", true)}
+                            onBlur={() => setFocus("newPassword", false)}
+                            onChange={setNewPassword}
+                            onUpdate={() => handleUpdateSecret("newPassword", newPassword)}
+                            autoComplete="new-password"
                         />
                     </CardContent>
                 </Card>

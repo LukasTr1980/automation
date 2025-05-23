@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v16.15.0] - 2025-05-23
+### Changed
+Refactor irrigation decision logic and remove unused routes
+
+- Updated gptChatCompletion.ts to implement a new irrigation decision-making process using LLM.
+- Removed traditional evaluation methods and related imports.
+- Simplified the API for checking irrigation needs in gptChatIrrigation.ts.
+- Deleted unused routes for getting and updating GPT requests.
+- Cleaned up the SettingsPage.tsx by removing GPT request handling and updating secret management logic.
+- Enhanced cloud cover recording functionality to include 24-hour rain sum.
+- Added ET₀ weekly sum query to fluxQueries.ts for improved data handling.
+
 ## [v16.14.2] - 2025-05-19
 ### Changed
 - fix: improve error handling and logging for ET₀ computation, calculation of cloud cover and calculation of FAO-56 Penman-Monteith

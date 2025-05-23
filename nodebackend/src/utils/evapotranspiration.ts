@@ -14,6 +14,7 @@
 
 import { querySingleData, writeToInflux } from "../clients/influxdb-client";
 import logger from "../logger";
+import { isDev } from "../envSwitcher";
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
 const LAT = Number(process.env.LAT ?? 46.5668);
@@ -133,8 +134,14 @@ export async function computeTodayET0() {
         const et0 = (0.408 * Δ * Rn + γ * 900 / (Tavg + 273.15) * u2 * (svp(Tavg) - ea)) /
             (Δ + γ * (1 + 0.34 * u2));
 
-        await writeToInflux("", et0.toFixed(2), "et0");   // (measurement, value, field)
-        logger.info(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud}% | P:${P_hPa} hPa`);
+        if (!isDev) {
+            // ET₀ nur in Produktion in InfluxDB schreiben
+            await writeToInflux("", et0.toFixed(2), "et0");   // (measurement, value, field)
+            logger.info(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud}% | P:${P_hPa} hPa`);
+        } else {
+            // Debug‑Log in Dev
+            logger.debug(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud}% | P:${P_hPa} hPa`);
+        }
         return +et0.toFixed(2);
 
     } catch (err) {
