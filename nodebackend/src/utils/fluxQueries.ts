@@ -81,7 +81,7 @@ export const et0WeekQuery = flux`
 export const rainForecast24hQuery = flux`
   from(bucket:"${et0Bucket}")
     |> range(start: -2h)
-    |> filter(fn:(r)=>r._measurement=="openweather.rain24h")
+    |> filter(fn:(r)=>r._measurement=="dwd.rain24h")
     |> filter(fn:(r)=>r._field=="value_numeric")
     |> last()
 `;

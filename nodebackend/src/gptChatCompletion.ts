@@ -59,12 +59,11 @@ const EXAMPLES = [
 
 // ---------- Prompt-Builder ---------------------------------------------------
 function buildSystemPrompt(): string {
-  return `You are an agronomic irrigation advisor for a short-cut lawn.
-Return ONLY valid JSON with this exact shape:
-{ irrigationNeeded:boolean, confidence:number, reasoning:string, recommended_mm:number }
-Compute deficit_mm = et0_week - rainSum7.
-recommended_mm = round(clamp(deficit_mm*1.2,0,20)).
-recommended_mm = 0 if irrigationNeeded is false.`;
+  return `You are an agronomic irrigation advisor for a short-cut lawn.\n` +
+    `Return ONLY valid JSON with this exact shape:\n` +
+    `{ irrigationNeeded:boolean, confidence:number, reasoning:string, recommended_mm:number }\n` +
+    `recommended_mm = 0 if irrigationNeeded is false, else round(clamp(deficit_mm*1.2,0,20)).\n` +
+    `deficit_mm = et0_week - (rainSum7 + rainForecast24)`;
 }
 
 function exampleMessages(): ChatCompletionMessageParam[] {
@@ -79,23 +78,24 @@ const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
 function buildFormattedEvaluation(d: WeatherData & { et0_week?: number }) {
-  const deficit = d.et0_week != null ? d.et0_week - d.rainSum : undefined;
+  const effectiveRain = d.rainSum + d.rainForecast24;
+  const deficit = d.et0_week != null ? d.et0_week - effectiveRain : undefined;
   return [
-    `7-T-Temp    ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
-    `7-T-RH      ${fmt(d.humidity)} %   < 80 %?  ${tick(d.humidity < 80)}`,
-    `7-T-Regen   ${fmt(d.rainSum)} mm < 25 mm?  ${tick(d.rainSum < 25)}`,
+    `7-T-Temp   ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
+    `7-T-RH     ${fmt(d.humidity)} %   < 80 %?  ${tick(d.humidity < 80)}`,
+    `7-T-Regen  ${fmt(d.rainSum)} mm < 25 mm?  ${tick(d.rainSum < 25)}`,
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
-    `Regenrate   ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
-    `Fc 24 h     ${fmt(d.rainForecast24)} mm`,
-    d.et0_week != null && `ET₀ 7 T     ${fmt(d.et0_week)} mm`,
-    deficit != null && `ET₀-Defizit  ${fmt(deficit)} mm`
+    `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
+    `Fc 24 h    ${fmt(d.rainForecast24)} mm`,
+    `ET₀ 7 T    ${fmt(d.et0_week)} mm`,
+    deficit != null && `ET₀-Defizit ${fmt(deficit)} mm`
   ].filter(Boolean).join("\n");
 }
 
 // ---------- Hauptlogik -------------------------------------------------------
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // 1) aktuelle Daten holen
-  const d = await queryAllData();   // enthält rainForecast24 & et0_week
+  const d = await queryAllData();
 
   /* ---------- Hard-Rules ----------------------------------------------------
    *  Wenn eine Regel zutrifft → Bewässerung blockieren (result=false).
@@ -109,21 +109,17 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
   if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
 
-  const deficit = d.et0_week != null ? d.et0_week - d.rainSum : 0;
-  if (deficit < 5) blockers.push(`Defizit < 5 mm (${fmt(deficit)} mm)`);
-
-  // Hilfsfunktion zum einheitlichen Loggen & Rückgeben
-  const finalize = (res: CompletionResponse): CompletionResponse => {
-    logger.info(`[IrrigationDecision] ${res.result ? "ON" : "OFF"} | "${res.response}"\n${res.formattedEvaluation}\n------------`);
-    return res;
-  };
+  const deficitNow = d.et0_week - (d.rainSum + d.rainForecast24);
+  if (deficitNow < 5) blockers.push(`Defizit < 5 mm (${fmt(deficitNow)})`);
 
   if (blockers.length) {
-    return finalize({
+    const msg = `Blockiert: ${blockers.join("; ")}`;
+    logger.info(msg);
+    return {
       result: false,
-      response: `Blockiert: ${blockers.join("; ")}`,
+      response: msg,
       formattedEvaluation: buildFormattedEvaluation(d)
-    });
+    };
   }
 
   /* ---------- KI-Entscheidung ---------------------------------------------*/
@@ -162,15 +158,16 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     typeof p.recommended_mm === "number";
 
   if (!valid) {
-    // Bei Parse-Fehler → Vorsichtshalber NICHT bewässern
     p = { irrigationNeeded: false, confidence: 0.25, reasoning: "LLM-Parse-Error", recommended_mm: 0 };
   }
 
-  return finalize({
+  const result = {
     result: p.irrigationNeeded!,
-    response:
-      `${p.reasoning} (confidence ${(p.confidence! * 100).toFixed(0)} %, ` +
+    response: `${p.reasoning} (confidence ${(p.confidence! * 100).toFixed(0)} %, ` +
       `empfohlen ${p.recommended_mm} mm)`,
     formattedEvaluation: buildFormattedEvaluation(d)
-  });
+  } satisfies CompletionResponse;
+
+  logger.info(`${result.result ? "ON" : "OFF"} | ${result.response}\n${result.formattedEvaluation}`);
+  return result;
 }

@@ -1,46 +1,60 @@
 // src/utils/cloudCoverRecorder.ts
 // -----------------------------------------------------------------------------
-//  Holt alle 5 min Bewölkungsgrad + 24-h-Regen­summe (One-Call 3.0)
-//  Schreibt beides in InfluxDB.
+//  Holt aktuelle Bewölkung (15‑min) + 24‑h‑Regen via DWD‑ICON‑D2 (Open‑Meteo)
+//  und schreibt sie mit IPv4‑erzwingendem Agent + Retry‑Logik in InfluxDB.
 // -----------------------------------------------------------------------------
 
-import fetch from "node-fetch";
+import fetch, { RequestInit } from "node-fetch";
+import https from "https";
 import { writeToInflux } from "../clients/influxdb-client";
-import { getOpenWeatherMapApiKey } from "../configs";
 import logger from "../logger";
 
-// ───────── Standort & Konstanten ─────────────────────────────────────────────
-const LAT = Number(process.env.LAT);
-const LON = Number(process.env.LON);
+// ───────── Standort ─────────────────────────────────────────────────────────
+const LAT = Number(process.env.LAT ?? 46.5668);
+const LON = Number(process.env.LON ?? 11.5599);
 
-const MEAS_CL = "openweather.clouds";
-const MEAS_RAIN = "openweather.rain24h";     // neue Messung
+// ───────── Influx‑Messungen ─────────────────────────────────────────────────
+const MEAS_CL = "dwd.clouds";
+const MEAS_RAIN = "dwd.rain24h";
+
+// ───────── Helper: IPv4‑Agent & Retry‑Fetch ────────────────────────────────
+const ipv4Agent = new https.Agent({ family: 4 });
+
+async function fetchWithRetry(url: string, opts: RequestInit = {}, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const r = await fetch(url, { ...opts, agent: ipv4Agent, timeout: 10_000 });
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        } catch (e) {
+            if (i === retries - 1) throw e;
+            logger.warn(`Fetch failed (${e}). Retry ${i + 1}/${retries - 1}`);
+            await new Promise(res => setTimeout(res, 1_500 * (i + 1)));
+        }
+    }
+    throw new Error("Unreachable");
+}
 
 // ───────── Hauptfunktion ────────────────────────────────────────────────────
 export async function recordCurrentCloudCover() {
-    const key = await getOpenWeatherMapApiKey();
     const url =
-        `https://api.openweathermap.org/data/3.0/onecall` +
-        `?lat=${LAT}&lon=${LON}` +
-        `&exclude=minutely,daily,alerts` +          // wir brauchen current + hourly
-        `&units=metric&appid=${key}`;
+        `https://api.open-meteo.com/v1/dwd-icon` +
+        `?latitude=${LAT}&longitude=${LON}` +
+        `&minutely_15=cloud_cover&forecast_minutely_15=4` +
+        `&daily=precipitation_sum&forecast_days=2` +
+        `&timezone=Europe%2FRome`;
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`OneCall HTTP ${res.status}`);
-
-    const j = await res.json();
+    const j = await fetchWithRetry(url);
 
     // -------- clouds ----------------------------------------------------------
-    const cloud = j.current?.clouds;
-    if (!isFinite(cloud)) throw new Error("clouds-Feld fehlt in OneCall-Antwort");
+    const cloudArr = j.minutely_15?.cloud_cover as number[] | undefined;
+    if (!cloudArr?.length) throw new Error("cloud_cover missing in response");
+    const cloud = cloudArr.at(-1)!;               // letzter 15‑min‑Wert
     await writeToInflux("", cloud.toFixed(0), MEAS_CL);
     logger.info(`CloudCover ${cloud}% → Influx (${MEAS_CL})`);
 
     // -------- rain forecast (24 h) -------------------------------------------
-    const rain24 = (j.hourly as any[])
-        .slice(0, 24)                               // nächste 24 Stunden
-        .reduce((sum, h) => sum + (h.rain?.["1h"] ?? 0), 0);
-
+    const rain24 = (j.daily?.precipitation_sum as number[] | undefined)?.[1] ?? 0;
     await writeToInflux("", rain24.toFixed(2), MEAS_RAIN);
     logger.info(`Rain24h ${rain24.toFixed(2)} mm → Influx (${MEAS_RAIN})`);
 

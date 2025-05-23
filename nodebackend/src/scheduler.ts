@@ -27,8 +27,8 @@ schedule.scheduleJob('55 23 * * *', async () => {
   }
 });
 
-// Schedule the task to run every 5 minutes
-schedule.scheduleJob('*/5 * * * *', async () => {
+// Schedule the task to run every 15 minutes
+schedule.scheduleJob('*/15 * * * *', async () => {
   try {
     const val = await recordCurrentCloudCover();
     logger.info(`CloudCover Scheduler-Run: ${val} %`);

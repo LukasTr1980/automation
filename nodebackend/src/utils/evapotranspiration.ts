@@ -31,7 +31,7 @@ const MEAS_TEMP = "javascript.0.Wetterstation.Aussentemperatur";
 const MEAS_RH = "javascript.0.Wetterstation.FT0300_Feuchte_1";
 const MEAS_WIND = "javascript.0.Wetterstation.Wind";
 const MEAS_PRESSURE = "javascript.0.Wetterstation.Druck_relativ";
-const MEAS_CLOUDS = "openweather.clouds";
+const MEAS_CLOUDS = "dwd.clouds";
 
 // ───────────── FAO‑Hilfsfunktionen ──────────────────────────────────────────
 const svp = (T: number) => 0.6108 * Math.exp((17.27 * T) / (T + 237.3));
@@ -97,7 +97,7 @@ export async function computeTodayET0() {
         logger.debug(`Inputs – Tmin:${Tmin}°C Tmax:${Tmax}°C Tavg:${Tavg}°C RH:${RH}% Wind10:${wind10}m/s P:${P_hPa}hPa CloudØ:${cloud}%`);
 
         if (!isFinite(cloud)) {
-            logger.warn("Noch kein Cloud‑Datensatz heute – ET₀ wird in 5 min erneut versucht");
+            logger.warn("Noch kein Cloud‑Datensatz heute – ET₀ wird in 15 min erneut versucht");
             setTimeout(computeTodayET0, 5 * 60 * 1000);
             return;
         }
