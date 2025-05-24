@@ -84,11 +84,11 @@ function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }
   return [
     `7-T-Temp   ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
     `7-T-RH     ${fmt(d.humidity)} %   < 80 %?  ${tick(d.humidity < 80)}`,
-    `7-T-Regen  ${fmt(d.rainSum)} mm < 25 mm?  ${tick(d.rainSum < 25)}`,
+    `7-T-Regen  ${fmt(d.rainSum)} mm`,
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
     `Fc 24 h    ${fmt(d.rainForecast24)} mm`,
-    `Bewässerung ${fmt(d.irrigationDepthMm)} mm`, // show irrigation
+    `Bewässerung ${fmt(d.irrigationDepthMm)} mm`,
     `ET₀ 7 T    ${fmt(d.et0_week)} mm`,
     deficit != null && `ET₀-Defizit ${fmt(deficit)} mm`
   ].filter(Boolean).join("\n");
@@ -100,7 +100,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const d = await queryAllData();
 
   // 2) Bewässerungstiefe berechnen
-  const zoneTopic = "bewaesserung/switch/stefanNord"; // oder als Param setzen
+  const zoneTopic = "bewaesserung/switch/stefanNord";
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneTopic);
   (d as any).irrigationDepthMm = irrigationDepthMm;
 
@@ -111,7 +111,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
 
   if (d.outTemp <= 10) blockers.push(`ØTemp 7 d ≤ 10 °C (${fmt(d.outTemp)} °C)`);
   if (d.humidity >= 80) blockers.push(`ØRH 7 d ≥ 80 % (${fmt(d.humidity)} %)`);
-  if (d.rainSum >= 25) blockers.push(`Regen 7 d ≥ 25 mm (${fmt(d.rainSum)} mm)`);
+  // Removed blocker for 7-day rain sum >= 25 mm
   if (d.rainToday >= 3) blockers.push(`Regen heute ≥ 3 mm (${fmt(d.rainToday)} mm)`);
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
   if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
@@ -138,7 +138,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     rainRate: d.rainRate,
     et0_week: d.et0_week ?? 0,
     rainForecast24: d.rainForecast24,
-    irrigationDepthMm // include irrigation
+    irrigationDepthMm
   };
 
   const openai = await getOpenAI();
