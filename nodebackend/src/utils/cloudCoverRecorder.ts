@@ -40,8 +40,8 @@ export async function recordCurrentCloudCover() {
     const url =
         `https://api.open-meteo.com/v1/dwd-icon` +
         `?latitude=${LAT}&longitude=${LON}` +
-        `&minutely_15=cloud_cover&forecast_minutely_15=4` +
-        `&daily=precipitation_sum&forecast_days=2` +
+        `&minutely_15=cloud_cover&forecast_minutely_15=1` +
+        `&hourly=precipitation&forecast_hours=24` +
         `&timezone=Europe%2FRome`;
 
     const j = await fetchWithRetry(url);
@@ -49,12 +49,14 @@ export async function recordCurrentCloudCover() {
     // -------- clouds ----------------------------------------------------------
     const cloudArr = j.minutely_15?.cloud_cover as number[] | undefined;
     if (!cloudArr?.length) throw new Error("cloud_cover missing in response");
-    const cloud = cloudArr.at(-1)!;               // letzter 15‑min‑Wert
+    // Erstes (einzige) Element ist der Wert für das aktuelle 15‑min‑Intervall
+    const cloud = cloudArr[0]!;
     await writeToInflux("", cloud.toFixed(0), MEAS_CL);
     logger.info(`CloudCover ${cloud}% → Influx (${MEAS_CL})`);
 
     // -------- rain forecast (24 h) -------------------------------------------
-    const rain24 = (j.daily?.precipitation_sum as number[] | undefined)?.[1] ?? 0;
+    const rainArr = j.hourly?.precipitation as number[] | undefined;
+    const rain24 = rainArr?.reduce((sum, v) => sum + v, 0) ?? 0;
     await writeToInflux("", rain24.toFixed(2), MEAS_RAIN);
     logger.info(`Rain24h ${rain24.toFixed(2)} mm → Influx (${MEAS_RAIN})`);
 
