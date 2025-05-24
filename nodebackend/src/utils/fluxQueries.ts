@@ -1,7 +1,7 @@
-import { flux } from "@influxdata/influxdb-client";
+import { flux, ParameterizedQuery } from "@influxdata/influxdb-client";
 
 const sensorBucket = "iobroker";
-const et0Bucket    = "automation";        // ⬅︎ neu
+const et0Bucket = "automation";
 
 // — Helper — ---------------------------------------------------------------
 const computeDateSevenDaysAgo = (): string => {
@@ -36,9 +36,9 @@ export const humidityQuery = flux`
     |> mean(column:"_value")
 `;
 
-export const constructRainSumQuery = (): string => {
+export const constructRainSumQuery = (): ParameterizedQuery => {
   const start = computeDateSevenDaysAgo();
-  return `
+  return flux`
     from(bucket:"${sensorBucket}")
       |> range(start: time(v:"${start}"), stop: now())
       |> filter(fn:(r)=>r._measurement=="javascript.0.Wetterstation.Regen_Tag")
@@ -84,4 +84,23 @@ export const rainForecast24hQuery = flux`
     |> filter(fn:(r)=>r._measurement=="dwd.rain24h")
     |> filter(fn:(r)=>r._field=="value_numeric")
     |> last()
+`;
+
+/* ---------- Bewässerungstage in den letzten 7 Tagen ---------------------- */
+export const irrigationDaysQuery = (zoneTopic: string): ParameterizedQuery => flux`
+  import "timezone"
+  option location = timezone.location(name:"Europe/Rome")
+  from(bucket:"automation")
+    |> range(start: -7d)
+    |> filter(fn: (r) => r._measurement == "mqtt_data")
+    |> filter(fn: (r) => r._field == "value_boolean")
+    |> filter(fn: (r) => r["topic"] == ${zoneTopic!})
+    // Boolean → Numeric (true=1, false=0)
+    |> map(fn: (r) => ({ r with _value: if r._value then 1 else 0 }))
+    // pro Tag den Maximalwert ermitteln, auch ohne Daten
+    |> aggregateWindow(every: 1d, fn: max, createEmpty: true)
+    // null oder 0 → 0, alles ≥1 → 1
+    |> map(fn: (r) => ({ r with _value: if exists r._value and r._value > 0 then 1 else 0 }))
+    // Anzahl der Tage mit Bewässerung aufsummieren
+    |> sum(column: "_value")
 `;

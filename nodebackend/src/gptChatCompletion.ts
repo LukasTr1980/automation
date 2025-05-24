@@ -3,6 +3,7 @@ import { queryAllData } from "./clients/influxdb-client";
 import type { WeatherData } from "./clients/influxdb-client";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import logger from "./logger";
+import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService"; // <-- import service
 
 // ---------- FE-Interface -----------------------------------------------------
 export interface CompletionResponse {
@@ -63,7 +64,7 @@ function buildSystemPrompt(): string {
     `Return ONLY valid JSON with this exact shape:\n` +
     `{ irrigationNeeded:boolean, confidence:number, reasoning:string, recommended_mm:number }\n` +
     `recommended_mm = 0 if irrigationNeeded is false, else round(clamp(deficit_mm*1.2,0,20)).\n` +
-    `deficit_mm = et0_week - (rainSum7 + rainForecast24)`;
+    `deficit_mm = et0_week - (rainSum7 + rainForecast24 + irrigationDepthMm)`; // include irrigation
 }
 
 function exampleMessages(): ChatCompletionMessageParam[] {
@@ -77,8 +78,8 @@ function exampleMessages(): ChatCompletionMessageParam[] {
 const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
-function buildFormattedEvaluation(d: WeatherData & { et0_week?: number }) {
-  const effectiveRain = d.rainSum + d.rainForecast24;
+function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }) {
+  const effectiveRain = d.rainSum + d.rainForecast24 + d.irrigationDepthMm;
   const deficit = d.et0_week != null ? d.et0_week - effectiveRain : undefined;
   return [
     `7-T-Temp   ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
@@ -87,6 +88,7 @@ function buildFormattedEvaluation(d: WeatherData & { et0_week?: number }) {
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
     `Fc 24 h    ${fmt(d.rainForecast24)} mm`,
+    `Bewässerung ${fmt(d.irrigationDepthMm)} mm`, // show irrigation
     `ET₀ 7 T    ${fmt(d.et0_week)} mm`,
     deficit != null && `ET₀-Defizit ${fmt(deficit)} mm`
   ].filter(Boolean).join("\n");
@@ -96,6 +98,11 @@ function buildFormattedEvaluation(d: WeatherData & { et0_week?: number }) {
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // 1) aktuelle Daten holen
   const d = await queryAllData();
+
+  // 2) Bewässerungstiefe berechnen
+  const zoneTopic = "bewaesserung/switch/stefanNord"; // oder als Param setzen
+  const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneTopic);
+  (d as any).irrigationDepthMm = irrigationDepthMm;
 
   /* ---------- Hard-Rules ----------------------------------------------------
    *  Wenn eine Regel zutrifft → Bewässerung blockieren (result=false).
@@ -109,7 +116,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
   if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
 
-  const deficitNow = d.et0_week - (d.rainSum + d.rainForecast24);
+  const deficitNow = d.et0_week - (d.rainSum + d.rainForecast24 + irrigationDepthMm);
   if (deficitNow < 5) blockers.push(`Defizit < 5 mm (${fmt(deficitNow)})`);
 
   if (blockers.length) {
@@ -118,7 +125,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     return {
       result: false,
       response: msg,
-      formattedEvaluation: buildFormattedEvaluation(d)
+      formattedEvaluation: buildFormattedEvaluation(d as any)
     };
   }
 
@@ -130,7 +137,8 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     rainToday: d.rainToday,
     rainRate: d.rainRate,
     et0_week: d.et0_week ?? 0,
-    rainForecast24: d.rainForecast24
+    rainForecast24: d.rainForecast24,
+    irrigationDepthMm // include irrigation
   };
 
   const openai = await getOpenAI();
@@ -165,7 +173,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     result: p.irrigationNeeded!,
     response: `${p.reasoning} (confidence ${(p.confidence! * 100).toFixed(0)} %, ` +
       `empfohlen ${p.recommended_mm} mm)`,
-    formattedEvaluation: buildFormattedEvaluation(d)
+    formattedEvaluation: buildFormattedEvaluation(d as any)
   } satisfies CompletionResponse;
 
   logger.info(`${result.result ? "ON" : "OFF"} | ${result.response}\n${result.formattedEvaluation}`);
