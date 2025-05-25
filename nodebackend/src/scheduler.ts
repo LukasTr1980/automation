@@ -9,6 +9,7 @@ import MqttPublisher from './utils/mqttPublisher';
 import { computeTodayET0 } from './utils/evapotranspiration';
 import { recordCurrentCloudCover } from './utils/cloudCoverRecorder';
 import logger from './logger';
+import { recordIrrigationStartInflux } from './clients/influxdb-client';
 
 const publisher = new MqttPublisher();
 
@@ -44,7 +45,6 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
 
       if (Object.prototype.hasOwnProperty.call(topicToTaskEnablerKey, zoneName)) {
         const taskEnablerKey = topicToTaskEnablerKey[zoneName];
-
         const taskEnablerState = await getTaskEnabler(taskEnablerKey);
 
         if (!taskEnablerState) {
@@ -90,11 +90,13 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
         } else {
           const { result: irrigationNeeded } = await isIrrigationNeeded();
           if (irrigationNeeded) {
-            publisher.publish(topic, state.toString(), (err: Error | null) => {
+            publisher.publish(topic, state.toString(), async (err: Error | null) => {
               if (err) {
                 logger.error('Error while publishing message:', err);
               } else {
-                logger.info('Message published successfully.');
+                logger.info(`Irrigation started for zone ${zoneName}`);
+                // Bewässerung wurde wirklich gestartet → logge es in Influx
+                await recordIrrigationStartInflux(zoneName);
               }
             });
           } else {
@@ -115,14 +117,12 @@ interface RecurrenceRule {
   month: number[];
 }
 
-
 async function scheduleTask(topic: string, state: boolean, recurrenceRule: RecurrenceRule): Promise<void> {
   if (!topic || state === undefined || !recurrenceRule) {
     throw new Error('Missing required parameters: topic, state, recurrenceRule');
   }
 
   const uniqueID = generateUniqueId();
-
   const jobKey = `${topic}_${uniqueID}`;
 
   if (jobs[jobKey]) {
@@ -149,7 +149,6 @@ async function loadScheduledTasks(): Promise<void> {
         const data = await client.get(jobKey);
         if (data) {
           const { state, recurrenceRule } = JSON.parse(data);
-
           const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
 
           const task = await createTask(topic, state);

@@ -13,6 +13,7 @@ import {
 } from "../utils/fluxQueries";
 
 const ORG = "villaanna";
+const BUCKET = "automation"; // Default bucket for writing data
 
 /* ---------- Low-level helper ------------------------------------------------ */
 interface DataRow {
@@ -122,6 +123,23 @@ async function writeToInflux(
         logger.info("Data written to InfluxDB");
     } catch (err) {
         logger.error("Error writing data to InfluxDB", err);
+    }
+}
+
+export async function recordIrrigationStartInflux (zone: string): Promise<void> {
+    try {
+        const influxClient = await getInfluxDbClientAutomation();
+        const writeApi = influxClient.getWriteApi(ORG, BUCKET);
+        const point = new Point("irrigation_start")
+            .tag("zone", zone)
+            .booleanField("started", true)
+
+        writeApi.writePoint(point);
+        await writeApi.flush();
+        logger.info(`InfluxDB: Irrigation started for zone ${zone} recorded.`);
+    }
+    catch (err) {
+        logger.error(`Error recording irrigation start for zone ${zone} in InfluxDB`, err);
     }
 }
 
