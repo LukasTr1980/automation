@@ -87,14 +87,14 @@ export const rainForecast24hQuery = flux`
 `;
 
 /* ---------- Bewässerungstage in den letzten 7 Tagen ---------------------- */
-export const irrigationDaysQuery = (zoneTopic: string): ParameterizedQuery => flux`
+export const irrigationDaysQuery = (zone: string): ParameterizedQuery => flux`
   import "timezone"
   option location = timezone.location(name:"Europe/Rome")
   from(bucket:"automation")
     |> range(start: -7d)
-    |> filter(fn: (r) => r._measurement == "mqtt_data")
-    |> filter(fn: (r) => r._field == "value_boolean")
-    |> filter(fn: (r) => r["topic"] == ${zoneTopic!})
+    |> filter(fn: (r) => r._measurement == "irrigation_start")
+    |> filter(fn: (r) => r._field == "started")
+    |> filter(fn: (r) => r["zone"] == ${zone!})
     // Boolean → Numeric (true=1, false=0)
     |> map(fn: (r) => ({ r with _value: if r._value then 1 else 0 }))
     // pro Tag den Maximalwert ermitteln, auch ohne Daten

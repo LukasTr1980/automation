@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - 2025-05-25
 ### Added
 - feat: add irrigation start logging to InfluxDB and update scheduling logic
+- refactor: rename zoneTopic to zone and update related logic in irrigation functions
 
 ## [v16.15.4] - 2025-05-24
 ### Changed

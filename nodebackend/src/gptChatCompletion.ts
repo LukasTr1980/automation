@@ -100,8 +100,8 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const d = await queryAllData();
 
   // 2) Bewässerungstiefe berechnen
-  const zoneTopic = "bewaesserung/switch/stefanNord";
-  const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneTopic);
+  const zoneName = "lukasSued";
+  const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);
   (d as any).irrigationDepthMm = irrigationDepthMm;
 
   /* ---------- Hard-Rules ----------------------------------------------------
