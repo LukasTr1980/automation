@@ -73,7 +73,7 @@ export async function queryAllData(): Promise<WeatherData> {
         querySingleData(outTempQuery),
         querySingleData(windQuery),
         querySingleData(humidityQuery),
-        querySingleData(constructRainSumQuery()),
+        querySingleData(constructRainSumQuery),
         querySingleData(rainTodayQuery),
         querySingleData(rainRateQuery),
         querySingleData(et0WeekQuery),
