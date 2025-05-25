@@ -97,5 +97,7 @@
     "userInfo": "Benutzer Informationen",
     "notAvailable": "Nicht verfügbar",
     "noUserDataAvailable": "Keine Benutzer Informationen verfügbar",
-    "username": "Benutzername"
+    "username": "Benutzername",
+    "testPoints": "Prüfpunkte",
+    "close": "Schließen"
 }

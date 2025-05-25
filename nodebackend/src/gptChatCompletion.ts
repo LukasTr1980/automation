@@ -88,7 +88,7 @@ function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
     `Fc 24 h    ${fmt(d.rainForecast24)} mm`,
-    `Bewässerung ${fmt(d.irrigationDepthMm)} mm`,
+    `7-T-Bewässerung ${fmt(d.irrigationDepthMm)} mm`,
     `ET₀ 7 T    ${fmt(d.et0_week)} mm`,
     deficit != null && `ET₀-Defizit ${fmt(deficit)} mm`
   ].filter(Boolean).join("\n");

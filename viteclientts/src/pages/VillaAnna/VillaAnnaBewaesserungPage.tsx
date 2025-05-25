@@ -5,6 +5,10 @@ import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopics
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
 import SchedulerCard from '../../components/SchedulerCard';
 import {
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   Box,
   Typography,
   Grid,
@@ -204,11 +208,40 @@ const BewaesserungPage = () => {
                   onClose={handleCloseDialog}
                   showButton={false}
                 >
-
-                  <Typography>
+                  {/* 1. Zusammenfassung */}
+                  <Typography component="p" sx={{ marginBottom: 3 }}>
                     {response}
-                    {formattedEvaluation && `\n\n${formattedEvaluation}`}
                   </Typography>
+
+                  {/* 2. Auswertung */}
+                  <Typography variant="h6" gutterBottom>
+                    {t('testPoints')}
+                  </Typography>
+                  <List dense>
+                    {formattedEvaluation.split('\n').map((line, idx) => {
+                      // Text ohne führendes oder trailinges ✓/✗
+                      const text = line.replace(/^[✓✗]\s*|[✓✗]\s*$/g, '');
+                      // Nur dann Icon rendern, wenn wirklich ✓ oder ✗ in der Zeile
+                      const hasTick = /[✓✗]/.test(line);
+                      return (
+                        <ListItem key={idx}>
+                          {hasTick && (
+                            <ListItemIcon>
+                              <Typography component="span">
+                                {line.includes('✓') ? '✅' : '❌'}
+                              </Typography>
+                            </ListItemIcon>
+                          )}
+                          <ListItemText primary={text} />
+                        </ListItem>
+                      );
+                    })}
+                  </List>
+
+                  {/* 3. Schließen-Button */}
+                  <Box textAlign="right" mt={2}>
+                    <Button onClick={handleCloseDialog}>{t('close')}</Button>
+                  </Box>
                 </DialogFullScreen>
               </Grid>
             )}
@@ -273,7 +306,7 @@ const BewaesserungPage = () => {
           </CardContent>
         </Card>
       </Grid>
-    </Layout>
+    </Layout >
   );
 };
 

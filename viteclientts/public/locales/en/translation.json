@@ -97,5 +97,7 @@
     "userInfo": "User Information",
     "notAvailable": "Not available",
     "noUserDataAvailable": "No user data available",
-    "username": "Username"
+    "username": "Username",
+    "testPoints": "Test Points",
+    "close": "Close"
 }
