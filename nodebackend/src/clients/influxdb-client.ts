@@ -26,8 +26,6 @@ async function querySingleData(
     const queryApi = (await getInfluxDbClientAI()).getQueryApi(ORG);
     const rows: DataRow[] = [];
 
-    logger.info(`Executing query: ${fluxQuery.toString()}`);
-
     return new Promise((resolve, reject) => {
         queryApi.queryRows(fluxQuery, {
             next(row, meta) {
@@ -38,7 +36,6 @@ async function querySingleData(
                 reject(err);
             },
             complete() {
-                logger.info(`Query complete: ${fluxQuery.toString()}`);
                 resolve(rows);
             },
         });

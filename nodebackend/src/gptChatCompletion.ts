@@ -52,7 +52,7 @@ const EXAMPLES = [
     answer: {
       irrigationNeeded: false,
       confidence: 0.9,
-      reasoning: "Boden gesättigt: 42 mm + 12 mm Forecast > 18 mm ET₀.",
+      reasoning: "Boden gesättigt: 42 mm + 6 mm (50% von 12mm Forecast) > 18 mm ET₀.",
       recommended_mm: 0
     }
   }
@@ -64,7 +64,7 @@ function buildSystemPrompt(): string {
     `Return ONLY valid JSON with this exact shape:\n` +
     `{ irrigationNeeded:boolean, confidence:number, reasoning:string, recommended_mm:number }\n` +
     `recommended_mm = 0 if irrigationNeeded is false, else round(clamp(deficit_mm*1.2,0,20)).\n` +
-    `deficit_mm = et0_week - (rainSum7 + rainForecast24 + irrigationDepthMm)`; // include irrigation
+    `deficit_mm = et0_week - (rainSum7 + 0.5*rainForecast24 + irrigationDepthMm)`; // include irrigation
 }
 
 function exampleMessages(): ChatCompletionMessageParam[] {
@@ -79,7 +79,8 @@ const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
 function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }) {
-  const effectiveRain = d.rainSum + d.rainForecast24 + d.irrigationDepthMm;
+  const effectiveForecast = d.rainForecast24 * 0.5;
+  const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
   const deficit = d.et0_week != null ? d.et0_week - effectiveRain : undefined;
   return [
     `7-T-Temp   ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
@@ -87,7 +88,7 @@ function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }
     `7-T-Regen  ${fmt(d.rainSum)} mm`,
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
-    `Fc 24 h    ${fmt(d.rainForecast24)} mm`,
+    `Fc 24 h    ${fmt(effectiveForecast)} mm (50% gewichtet)`,
     `7-T-Bewässerung ${fmt(d.irrigationDepthMm)} mm`,
     `ET₀ 7 T    ${fmt(d.et0_week)} mm`,
     deficit != null && `ET₀-Defizit ${fmt(deficit)} mm`
@@ -116,7 +117,13 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
   if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
 
-  const deficitNow = d.et0_week - (d.rainSum + d.rainForecast24 + irrigationDepthMm);
+  // Forecast nur noch zu 50 % gewichten
+  const effectiveForecast = d.rainForecast24 * 0.5;
+  const effectiveRain = d.rainSum + effectiveForecast + irrigationDepthMm;
+  const deficitNow = d.et0_week - effectiveRain;
+
+  logger.debug(`DefizitNow nach 50%-Forecast: ${fmt(deficitNow)}`);
+
   if (deficitNow < 5) blockers.push(`Defizit < 5 mm (${fmt(deficitNow)})`);
 
   if (blockers.length) {
@@ -176,6 +183,22 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     formattedEvaluation: buildFormattedEvaluation(d as any)
   } satisfies CompletionResponse;
 
+  /*----------- Override safety ---------------------------------
+    * Wenn die LLM irrigationNeeded=false sagt, obwohl
+    * - Defizit > 5 mm (nach 50 % Forecast-Gewichtung) und
+    * - keine Hard-Blocker aktiv sind,
+    * dann erzwingen wir eine Bewässerung.
+    * ---------------------------------------------------------*/
+  if (!result.result && deficitNow >= 5 && blockers.length === 0) {
+    result.result = true;
+    result.response += ' - Override: Defizit > 5 mm, Bewässerung eingeschaltet';
+    logger.warn('LLM-Override: Defizit hoch, LLM antwortete false');
+  }
+
+  // Transparenter Hinweis für Frontend-User
+  result.response += ' - Forecast nur zu 50% gewichtet';
+
+  logger.debug('Rain Forecast only 50% weighted due to high uncertainty');
   logger.info(`${result.result ? "ON" : "OFF"} | ${result.response}\n${result.formattedEvaluation}`);
   return result;
 }
