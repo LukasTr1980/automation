@@ -26,33 +26,37 @@ const EXAMPLES = [
     metrics: {
       outTemp_avg7: 12,
       humidity_avg7: 55,
-      rainSum7: 8,
+      rainSum: 8,
       rainToday: 0,
       rainRate: 0,
       et0_week: 32,
-      rainForecast24: 0
+      rainForecast24: 0,
+      irrigationDepthMm: 0,
+      deficit_mm: 24
     },
     answer: {
       irrigationNeeded: true,
       confidence: 0.83,
-      reasoning: "Wasserdefizit ~24 mm (32 – 8), keine Regenprognose.",
-      recommended_mm: 15
+      reasoning: "Wasserdefizit ~24 mm, keine Regenprognose.",
+      recommended_mm: 20
     }
   },
   {
     metrics: {
       outTemp_avg7: 8,
       humidity_avg7: 85,
-      rainSum7: 42,
+      rainSum: 6,
       rainToday: 4,
       rainRate: 2,
       et0_week: 18,
-      rainForecast24: 12
+      rainForecast24: 12,
+      irrigationDepthMm: 0,
+      deficit_mm: 6
     },
     answer: {
       irrigationNeeded: false,
       confidence: 0.9,
-      reasoning: "Boden gesättigt: 42 mm + 6 mm (50% von 12mm Forecast) > 18 mm ET₀.",
+      reasoning: "Defizit 6 mm, 50% von Forecast 12 mm liefert 6 mm Regen → Bedarf gedeckt.",
       recommended_mm: 0
     }
   }
@@ -60,11 +64,14 @@ const EXAMPLES = [
 
 // ---------- Prompt-Builder ---------------------------------------------------
 function buildSystemPrompt(): string {
-  return `You are an agronomic irrigation advisor for a short-cut lawn.\n` +
-    `Return ONLY valid JSON with this exact shape:\n` +
-    `{ irrigationNeeded:boolean, confidence:number, reasoning:string, recommended_mm:number }\n` +
-    `recommended_mm = 0 if irrigationNeeded is false, else round(clamp(deficit_mm*1.2,0,20)).\n` +
-    `deficit_mm = et0_week - (rainSum7 + 0.5*rainForecast24 + irrigationDepthMm)`; // include irrigation
+  return `
+    You are an agronomic irrigation advisor for a short-cut lawn.
+    Return ONLY valid JSON with this exact shape:
+    { irrigationNeeded:boolean, confidence:number, reasoning:string, recommended_mm:number }
+    recommended_mm = 0 if irrigationNeeded is false, else round(min(max(deficit_mm * 1.2, 0), 20)).
+
+    Important note: The "deficit_mm" in the payload is already fully calculated. Use only this field to make your decision.
+  `.trim();
 }
 
 function exampleMessages(): ChatCompletionMessageParam[] {
@@ -140,12 +147,13 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const payload = {
     outTemp_avg7: d.outTemp,
     humidity_avg7: d.humidity,
-    rainSum7: d.rainSum,
+    rainSum: d.rainSum,
     rainToday: d.rainToday,
     rainRate: d.rainRate,
     et0_week: d.et0_week ?? 0,
     rainForecast24: d.rainForecast24,
-    irrigationDepthMm
+    irrigationDepthMm,
+    deficit_mm: deficitNow
   };
 
   const openai = await getOpenAI();
@@ -176,12 +184,13 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     p = { irrigationNeeded: false, confidence: 0.25, reasoning: "LLM-Parse-Error", recommended_mm: 0 };
   }
 
-  const result = {
+  const normalizedConfidence = Math.max(0, Math.min(1, p.confidence! / (p.confidence! > 1 ? 100 : 1)));
+  const recommendedClamped = Math.round(Math.max(0, Math.min(20, p.recommended_mm!)));
+  const result: CompletionResponse = {
     result: p.irrigationNeeded!,
-    response: `${p.reasoning} (confidence ${(p.confidence! * 100).toFixed(0)} %, ` +
-      `empfohlen ${p.recommended_mm} mm)`,
+    response: `${p.reasoning} (confidence ${(normalizedConfidence * 100).toFixed(0)} %, empfohlen ${recommendedClamped} mm)`,
     formattedEvaluation: buildFormattedEvaluation(d as any)
-  } satisfies CompletionResponse;
+  };
 
   /*----------- Override safety ---------------------------------
     * Wenn die LLM irrigationNeeded=false sagt, obwohl
