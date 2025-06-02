@@ -89,6 +89,7 @@ function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }
   const effectiveForecast = d.rainForecast24 * 0.5;
   const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
   const deficit = d.et0_week != null ? d.et0_week - effectiveRain : undefined;
+
   return [
     `7-T-Temp   ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
     `7-T-RH     ${fmt(d.humidity)} %   < 80 %?  ${tick(d.humidity < 80)}`,
@@ -122,7 +123,8 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // Removed blocker for 7-day rain sum >= 25 mm
   if (d.rainToday >= 3) blockers.push(`Regen heute ≥ 3 mm (${fmt(d.rainToday)} mm)`);
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
-  if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
+  // ─── Hier wurde der Forecast-Blocker entfernt ─────────────────────────────
+  // if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
 
   // Forecast nur noch zu 50 % gewichten
   const effectiveForecast = d.rainForecast24 * 0.5;
