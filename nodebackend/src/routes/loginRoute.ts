@@ -8,7 +8,7 @@ import { updateLastLogin } from '../utils/useLoginsModule';
 import jwt from 'jsonwebtoken';
 import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
-import { initializeEncryptionKey, encrypt } from '../utils/enyryptDecrypt';
+import { initializeEncryptionKey, encrypt } from '../utils/encryptDecrypt';
 import generateUniqueId from '../utils/generateUniqueId';
 
 const router = express.Router();
