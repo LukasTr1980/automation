@@ -5,7 +5,7 @@ import logger from '../logger';
 import crypto from 'crypto';
 import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher';
 import { getJwtAccessTokenSecret } from '../configs';
-import { initializeEncryptionKey, decrypt, encrypt } from '../utils/enyryptDecrypt';
+import { initializeEncryptionKey, decrypt, encrypt } from '../utils/encryptDecrypt';
 import { roleCookieValidation, refreshTokenValidation, deviceIdValidation, usernameValidation } from '../utils/inputValidation';
  
 interface StoredData {
