@@ -1,4 +1,4 @@
-// src/services/gptChatCompletion.ts
+// src/utils/gptChatIrrigation.ts
 // -----------------------------------------------------------------------------
 //  Thin adapter: ruft den AI-Entscheider auf und liefert das alte FE-Schema
 // -----------------------------------------------------------------------------

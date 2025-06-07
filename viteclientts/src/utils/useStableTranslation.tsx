@@ -4,10 +4,10 @@ import { useTranslation } from "react-i18next";
 export const useStableTranslation = () => {
     const { t } = useTranslation();
 
-    const strableTranslate = useCallback(
+    const stableTranslate = useCallback(
         (key: string) => t(key),
         [t]
     );
 
-    return strableTranslate;
+    return stableTranslate;
 }
