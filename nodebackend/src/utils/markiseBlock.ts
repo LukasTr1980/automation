@@ -46,7 +46,7 @@ async function sendValue(value: number, markiseStatusNamespace: string): Promise
     const topic: string = 'markise/switch/haupt/set';
 
     try {
-        publisher.publish(topic, value.toString(), (err: Error | null) => {
+        publisher.publish(topic, value.toString(), (err?: Error | null) => {
             if (err) {
                 logger.error(`Failed to send value: ${value}`, err);
             }

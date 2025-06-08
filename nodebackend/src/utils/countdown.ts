@@ -140,7 +140,7 @@ async function updateCountdowns(topic: string): Promise<void> {
 
 async function sendSignal(topic: string, state: boolean): Promise<void> {
     try {
-        publisher.publish(topic, state.toString(), (err: Error) => {
+        publisher.publish(topic, state.toString(), (err?: Error | null) => {
             if (err) {
                 logger.error('Error while publishing message:', err);
             } else {
