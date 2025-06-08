@@ -5,34 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2025-06-08 
+## [v16.16.0] - 2025-06-08 
 ### Added
 - feat: enhance MqttPublisher to skip unchanged messages and add unit tests
 - feat: add publish queue to MqttPublisher to avoid message loss
 ### Fixed
 - fix: update MQTT publish method to handle optional error parameter
 
-## [16.15.11] - 2025-06-07
+## [v16.15.11] - 2025-06-07
 ### Changed
 - fix: update @mui/lab to version 7.0.0-beta.13 and correct typo in useStableTranslation hook
 
-## [16.15.10] - 2025-06-02
+## [v16.15.10] - 2025-06-02
 ### Changed
 - fix: remove rain forecast blocker and adjust effective forecast calculation
 
-## [16.15.9] - 2025-05-31
+## [v16.15.9] - 2025-05-31
 ### Changed
 - fix: correct rainSum field and update irrigation decision logic in examples
 
-## [16.15.8] - 2025-05-27
+## [v16.15.8] - 2025-05-27
 ### Changed
 - fix: adjust rain forecast weighting and update irrigation decision logic
 
-## [16.15.7] - 2025-05-25
+## [v16.15.7] - 2025-05-25
 ### Changed
 - fix: correct invocation of constructRainSumQuery in queryAllData function
 
-## [16.15.6] - 2025-05-25
+## [v16.15.6] - 2025-05-25
 ### Added
 - feat: enhance irrigation decision page with evaluation summary and close button
 
