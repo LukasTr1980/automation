@@ -1,4 +1,4 @@
-import mqtt, { MqttClient } from 'mqtt';
+import mqtt, { MqttClient, IClientPublishOptions } from 'mqtt';
 import * as envSwitcher from '../envSwitcher';
 import * as vaultClient from '../clients/vaultClient';
 import logger from '../logger';
@@ -13,6 +13,8 @@ interface Credentials {
 class MqttPublisher {
   private client: MqttClient | undefined;
   private lastPayload: Record<string, string> = {};
+  private inflight: Record<string, boolean> = {};
+  private queued: Record<string, string> = {};
 
   constructor() {
     (async () => {
@@ -49,23 +51,43 @@ class MqttPublisher {
   }
 
   // Check if client is initialized before publishing
-  publish(mqttTopic: string, message: string, options = {}, callback: () => void = () => {}): void {
-    if (this.lastPayload[mqttTopic] === message) {
-      logger.debug(`Skip publish - unchanged (${mqttTopic} = ${message})`);
+  publish(
+    topic: string,
+    message: string,
+    options: IClientPublishOptions = {},
+    callback: () => void = () => {}
+  ): void {
+    if (!this.client) throw new Error('MQTT Client not initialized');
+
+    // 1) identische Wiederholung trotzdem schlucken
+    if (this.lastPayload[topic] === message) {
+      logger.debug(`Skip publish – unchanged (${topic}=${message})`);
       return;
     }
-    if (!this.client) {
-      logger.error('MQTT Client is not initialized');
-      throw new Error('MQTT Client is not initialized');
+
+    // 2) ist gerade ein Publish unterwegs? ⇒ in Queue ablegen
+    if (this.inflight[topic]) {
+      this.queued[topic] = message; // Merke nur den NEUESTEN
+      logger.debug(`Queue publish (${topic}=${message})`);
+      return;
     }
-    
-    this.client.publish(mqttTopic, message, options, err => {
-      if (err) {
-        logger.error(`MQTT publish error (${mqttTopic})`, err);
+
+    // 3) senden
+    this.inflight[topic] = true;
+    this.client.publish(topic, message, options, err => {
+      this.inflight[topic] = false;
+
+      if (err) logger.error(`MQTT publish error (${topic}):`, err);
+      else this.lastPayload[topic] = message;
+
+      // 4) war währenddessen etwas gequeued?
+      if (this.queued[topic] !== undefined) {
+        const next = this.queued[topic];
+        delete this.queued[topic];
+        this.publish(topic, next, options, callback); // sofort nachschieben
       } else {
-        this.lastPayload[mqttTopic] = message;
+        callback();
       }
-      callback();
     });
   }
 
