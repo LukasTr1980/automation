@@ -1,7 +1,7 @@
 import { connectToMongo } from '../clients/mongoClient';
 import { EventEmitter } from 'events';
 import { writeToInflux } from '../clients/influxdb-client';
-import mqttClient from '../clients/mqttClient';
+import { mqttClientPromise } from '../clients/mqttClient';
 import { broadcastToSseClients, addSseClient } from './sseHandler';
 import logger from '../logger';
 
@@ -31,42 +31,47 @@ async function fetchMqttTopics(): Promise<MqttTopicsResult | null> {
 const latestStates: Record<string, string> = {};
 
 // Subscribe to all topics and set message handlers
-mqttClient.on('connect', async () => {
-    logger.info('Connected to MQTT broker');
+async function main() {
+    const mqttClient = await mqttClientPromise;
+    mqttClient.on('connect', async () => {
+        logger.info('Connected to MQTT broker');
 
-    const topics = await fetchMqttTopics();
-    if (topics) {
-        mqttTopics = topics.mqttTopics;
-        mqttTopicsNumber = topics.mqttTopicsNumber;
-        [...mqttTopics, ...mqttTopicsNumber].forEach(mqttTopic => {
-            mqttClient.subscribe(mqttTopic, (err) => {
-                if (err) logger.error('Error subscribing to MQTT topic:', err);
-                else logger.info('Subscribed to MQTT topic:', mqttTopic);
+        const topics = await fetchMqttTopics();
+        if (topics) {
+            mqttTopics = topics.mqttTopics;
+            mqttTopicsNumber = topics.mqttTopicsNumber;
+            [...mqttTopics, ...mqttTopicsNumber].forEach(mqttTopic => {
+                mqttClient.subscribe(mqttTopic, (err) => {
+                    if (err) logger.error('Error subscribing to MQTT topic:', err);
+                    else logger.info('Subscribed to MQTT topic:', mqttTopic);
+                });
             });
-        });
-    } else {
-        logger.error('Failed to fetch MQTT topics from the database');
-    }
-});
+        } else {
+            logger.error('Failed to fetch MQTT topics from the database');
+        }
+    });
 
-mqttClient.on('message', async (topic, message) => {
-    const msg = message.toString();
-    logger.info(`Message received from topic: ${topic}, Message: ${msg}`);
+    mqttClient.on('message', async (topic, message) => {
+        const msg = message.toString();
+        logger.info(`Message received from topic: ${topic}, Message: ${msg}`);
 
-    // Update the latest switch state when a message is received
-    latestStates[topic] = msg;
+        // Update the latest switch state when a message is received
+        latestStates[topic] = msg;
 
-    // Broadcast the message to all active SSE clients
-    broadcastToSseClients(topic, msg);
+        // Broadcast the message to all active SSE clients
+        broadcastToSseClients(topic, msg);
 
-    // Only write to Influx for specific topics
-    if (mqttTopics.includes(topic)) {
-        await writeToInflux(topic, msg);
-    }
-    if (['wetter/number/weathercloud_regenrate', 'wetter/number/wind'].includes(topic)) {
-        stateChangeEmitter.emit('stateChanged');
-    }
-});
+        // Only write to Influx for specific topics
+        if (mqttTopics.includes(topic)) {
+            await writeToInflux(topic, msg);
+        }
+        if (['wetter/number/weathercloud_regenrate', 'wetter/number/wind'].includes(topic)) {
+            stateChangeEmitter.emit('stateChanged');
+        }
+    });
+}
+
+main();
 
 // Your interval saving mechanism remains the same
 const SAVE_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds

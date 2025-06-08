@@ -1,36 +1,34 @@
-import mqtt from 'mqtt';
-import { mqttBrokerUrl } from '../utils/constants';
+import mqtt, { IClientOptions, MqttClient } from 'mqtt';
+import * as vaultClient from '../clients/vaultClient';
+import * as envSwitcher from '../envSwitcher';
 import logger from '../logger';
 
-const MQTT_RECONNECT_INTERVAL = 5000; // 5 seconds
+interface Credentials {
+    data: { MOSQUITTO_USERNAME: string; MOSQUITTO_PASSWORD: string };
+}
 
-const mqttOptions: mqtt.IClientOptions = {
+const MQTT_RECONNECT_INTERVAL = 5000;
+const baseOptions: IClientOptions = {
     reconnectPeriod: MQTT_RECONNECT_INTERVAL,
-    connectTimeout: 30 * 1000, // 30 seconds
-    keepalive: 60, // keepalive time in seconds
-    // you can add more options as needed, like authentication credentials
+    connectTimeout: 30_000,
+    keepalive: 60,
+    clean: true,
 };
 
-const mqttClient = mqtt.connect(mqttBrokerUrl, mqttOptions);
-
-mqttClient.on('connect', () => {
-    logger.info('Connected to MQTT broker');
-});
-
-mqttClient.on('reconnect', () => {
-    logger.info('Reconnecting to MQTT broker...');
-});
-
-mqttClient.on('error', (err: Error) => {
-    logger.error('MQTT Error:', err);
-});
-
-mqttClient.on('offline', () => {
-    logger.info('MQTT client is offline');
-});
-
-mqttClient.on('close', () => {
-    logger.info('MQTT client disconnected');
-});
-
-export default mqttClient;
+export const mqttClientPromise: Promise<MqttClient> = (async () => {
+    await vaultClient.login();
+    const cred = await vaultClient.getSecret('kv/data/automation/mosquitto') as Credentials;
+    const brokerUrl = envSwitcher.mosquittoUrl;
+    const options: IClientOptions = {
+        ...baseOptions,
+        username: cred.data.MOSQUITTO_USERNAME,
+        password: cred.data.MOSQUITTO_PASSWORD,
+    };
+    const client = mqtt.connect(brokerUrl, options);
+    client.on('connect', () => logger.info('Connected to MQTT broker'));
+    client.on('reconnect', () => logger.info('Reconnecting to MQTT broker…'));
+    client.on('error', (err) => logger.error('MQTT error:', err));
+    client.on('offline', () => logger.info('MQTT client offline'));
+    client.on('close', () => logger.info('MQTT client disconnected'));
+    return client;
+})();

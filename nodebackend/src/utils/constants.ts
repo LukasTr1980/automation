@@ -12,6 +12,4 @@ const topicToTaskEnablerKey: TopicToTaskEnablerKey = {
     'haupt': 'Markise',
 };
 
-const mqttBrokerUrl: string = envSwitcher.mqttBrokerUrl;
-
-export { mqttBrokerUrl, topicToTaskEnablerKey };
+export { topicToTaskEnablerKey };
