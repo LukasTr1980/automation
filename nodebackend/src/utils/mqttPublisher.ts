@@ -12,7 +12,6 @@ interface Credentials {
 
 class MqttPublisher {
   private client: MqttClient | undefined;
-  private lastPayload: Record<string, string> = {};
 
   constructor() {
     (async () => {
@@ -50,23 +49,11 @@ class MqttPublisher {
 
   // Check if client is initialized before publishing
   publish(mqttTopic: string, message: string, options = {}, callback: () => void = () => {}): void {
-    if (this.lastPayload[mqttTopic] === message) {
-      logger.debug(`Skip publish - unchanged (${mqttTopic} = ${message})`);
-      return;
-    }
     if (!this.client) {
       logger.error('MQTT Client is not initialized');
       throw new Error('MQTT Client is not initialized');
     }
-    
-    this.client.publish(mqttTopic, message, options, err => {
-      if (err) {
-        logger.error(`MQTT publish error (${mqttTopic})`, err);
-      } else {
-        this.lastPayload[mqttTopic] = message;
-      }
-      callback();
-    });
+    this.client.publish(mqttTopic, message, options, callback);
   }
 
   // Check if client is initialized before closing
