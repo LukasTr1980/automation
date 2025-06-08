@@ -9,7 +9,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
     const { topic, state } = req.body;
 
     try {
-        publisher.publish(topic, state.toString(), (err?: Error | null) => {
+        publisher.publish(topic, state.toString(), (err: Error | null) => {
             if (err) {
                 logger.error('Error while publishing message:', err);
                 res.status(500).send('errorWhilePerformingTheSwitching');

@@ -58,14 +58,14 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
       // Special logic for markise
       if (topic.startsWith('markise/switch/haupt/set')) {
         if (!sharedState.timeoutOngoing) {
-          publisher.publish(topic, state.toString(), (err?: Error | null) => {
+          publisher.publish(topic, state.toString(), (err: Error | null) => {
             if (err) {
               logger.error('Error while publishing message:', err);
             } else {
               logger.info('Message published successfully.');
 
               setTimeout(() => {
-                publisher.publish(topic, '3', (err?: Error | null) => {
+                publisher.publish(topic, '3', (err: Error | null) => {
                   if (err) {
                     logger.error('Error while publishing second message:', err);
                   } else {
@@ -80,7 +80,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
         }
       } else {
         if (state === false) {
-          publisher.publish(topic, state.toString(), (err?: Error | null) => {
+          publisher.publish(topic, state.toString(), (err: Error | null) => {
             if (err) {
               logger.error('Error while publishing message:', err);
             } else {
@@ -90,7 +90,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
         } else {
           const { result: irrigationNeeded } = await isIrrigationNeeded();
           if (irrigationNeeded) {
-            publisher.publish(topic, state.toString(), async (err?: Error | null) => {
+            publisher.publish(topic, state.toString(), async (err: Error | null) => {
               if (err) {
                 logger.error('Error while publishing message:', err);
               } else {

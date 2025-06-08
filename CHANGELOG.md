@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - feat: enhance MqttPublisher to skip unchanged messages and add unit tests
 - feat: add publish queue to MqttPublisher to avoid message loss
-### Fixed
-- fix: update MQTT publish method to handle optional error parameter
 
 ## [16.15.11] - 2025-06-07
 ### Changed

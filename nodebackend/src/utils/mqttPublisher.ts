@@ -54,17 +54,10 @@ class MqttPublisher {
   publish(
     topic: string,
     message: string,
-    optionsOrCrb?: IClientPublishOptions | ((err?: Error | null) => void),
-    cb: (err?: Error | null) => void = () => {}
+    options: IClientPublishOptions = {},
+    callback: () => void = () => {}
   ): void {
     if (!this.client) throw new Error('MQTT Client not initialized');
-
-    let opts: IClientPublishOptions = {};
-    if (typeof optionsOrCrb === 'function') {
-      cb = optionsOrCrb;
-    } else if (optionsOrCrb) {
-      opts = optionsOrCrb;
-    }
 
     // 1) identische Wiederholung trotzdem schlucken
     if (this.lastPayload[topic] === message) {
@@ -81,7 +74,7 @@ class MqttPublisher {
 
     // 3) senden
     this.inflight[topic] = true;
-    this.client.publish(topic, message, opts, err => {
+    this.client.publish(topic, message, options, err => {
       this.inflight[topic] = false;
 
       if (err) logger.error(`MQTT publish error (${topic}):`, err);
@@ -91,9 +84,9 @@ class MqttPublisher {
       if (this.queued[topic] !== undefined) {
         const next = this.queued[topic];
         delete this.queued[topic];
-        this.publish(topic, next, opts, cb); // sofort nachschieben
+        this.publish(topic, next, options, callback); // sofort nachschieben
       } else {
-        cb();
+        callback();
       }
     });
   }
