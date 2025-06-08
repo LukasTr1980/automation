@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2025-06-08 
+### Added
+- feat: enhance MqttPublisher to skip unchanged messages and add unit tests
+
 ## [16.15.11] - 2025-06-07
 ### Changed
 - fix: update @mui/lab to version 7.0.0-beta.13 and correct typo in useStableTranslation hook
