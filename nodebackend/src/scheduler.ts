@@ -39,7 +39,7 @@ schedule.scheduleJob('*/15 * * * *', async () => {
   }
 });
 
-schedule.scheduleJob('0 /3 * * *', async () => {
+schedule.scheduleJob('0 */3 * * *', async () => {
   try {
     const val = await siagRecordNextDayRain();
     logger.info(
