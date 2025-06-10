@@ -117,7 +117,7 @@ async function writeToInflux(
     writeApi.writePoint(point);
     try {
         await writeApi.flush();
-        logger.info("Data written to InfluxDB");
+        logger.info(`Data written to InfluxDB: ${point.toLineProtocol()}`);
     } catch (err) {
         logger.error("Error writing data to InfluxDB", err);
     }

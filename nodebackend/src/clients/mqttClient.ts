@@ -25,7 +25,7 @@ export const mqttClientPromise: Promise<MqttClient> = (async () => {
         password: cred.data.MOSQUITTO_PASSWORD,
     };
     const client = mqtt.connect(brokerUrl, options);
-    client.on('connect', () => logger.info('Connected to MQTT broker'));
+    client.on('connect', () => logger.info('Connected to MQTT Broker'));
     client.on('reconnect', () => logger.info('Reconnecting to MQTT broker…'));
     client.on('error', (err) => logger.error('MQTT error:', err));
     client.on('offline', () => logger.info('MQTT client offline'));

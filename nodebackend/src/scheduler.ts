@@ -8,6 +8,7 @@ import { topicToTaskEnablerKey } from './utils/constants';
 import MqttPublisher from './utils/mqttPublisher';
 import { computeTodayET0 } from './utils/evapotranspiration';
 import { recordCurrentCloudCover } from './utils/cloudCoverRecorder';
+import { siagRecordNextDayRain } from './utils/siagRainRecorder';
 import logger from './logger';
 import { recordIrrigationStartInflux } from './clients/influxdb-client';
 
@@ -31,12 +32,23 @@ schedule.scheduleJob('55 23 * * *', async () => {
 // Schedule the task to run every 15 minutes
 schedule.scheduleJob('*/15 * * * *', async () => {
   try {
-    const val = await recordCurrentCloudCover();
-    logger.info(`CloudCover Scheduler-Run: ${val} %`);
+    const { cloud } = await recordCurrentCloudCover();
+    logger.info(`CloudCover Scheduler-Run: ${cloud.toFixed(0)} %`);
   } catch (error) {
     logger.error('CloudCover scheduler run failed:', error);
   }
 });
+
+schedule.scheduleJob('*/5 * * * *', async () => {
+  try {
+    const val = await siagRecordNextDayRain();
+    logger.info(
+      `SiagNextDayRain: ${val.rainSum.toFixed(2)} mm – gültig für ${val.date.slice(0,10)}`
+    );
+  } catch (err) {
+    logger.error('SiagNextDayRain scheduler run failed:', err);
+  }
+})
 
 async function createTask(topic: string, state: boolean): Promise<() => Promise<void>> {
   return async function () {

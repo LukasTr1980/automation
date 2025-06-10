@@ -42,7 +42,7 @@ const cspDirectives = {
 };
 
 if (isDev) {
-  logger.debug('CSP Directives:', cspDirectives);
+  logger.debug('CSP Directives: ' + JSON.stringify(cspDirectives));
 }
 
 app.use(helmet({

@@ -34,7 +34,6 @@ const latestStates: Record<string, string> = {};
 async function main() {
     const mqttClient = await mqttClientPromise;
     mqttClient.on('connect', async () => {
-        logger.info('Connected to MQTT broker');
 
         const topics = await fetchMqttTopics();
         if (topics) {
@@ -43,7 +42,7 @@ async function main() {
             [...mqttTopics, ...mqttTopicsNumber].forEach(mqttTopic => {
                 mqttClient.subscribe(mqttTopic, (err) => {
                     if (err) logger.error('Error subscribing to MQTT topic:', err);
-                    else logger.info('Subscribed to MQTT topic:', mqttTopic);
+                    else logger.info('Subscribed to MQTT topic: ' + JSON.stringify(mqttTopic));
                 });
             });
         } else {

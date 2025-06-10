@@ -34,9 +34,7 @@ class MqttPublisher {
 
         this.client = mqtt.connect(brokerUrl, options);
 
-        this.client.on('connect', () => {
-          logger.info('Connected to MQTT Broker:', brokerUrl);
-        });
+        this.client.on('connect', () => {});
 
         this.client.on('error', (err) => {
           logger.error('MQTT Error:', err);
