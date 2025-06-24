@@ -8,7 +8,7 @@ import { topicToTaskEnablerKey } from './utils/constants';
 import MqttPublisher from './utils/mqttPublisher';
 import { computeTodayET0 } from './utils/evapotranspiration';
 import { recordCurrentCloudCover } from './utils/cloudCoverRecorder';
-import { siagRecordNextDayRain } from './utils/siagRainRecorder';
+import { odhRecordNextDayRain } from './utils/odhRainRecorder';
 import logger from './logger';
 import { recordIrrigationStartInflux } from './clients/influxdb-client';
 
@@ -39,16 +39,16 @@ schedule.scheduleJob('*/15 * * * *', async () => {
   }
 });
 
-schedule.scheduleJob('0 */3 * * *', async () => {
+schedule.scheduleJob('*/15 * * * *', async () => {
   try {
-    const val = await siagRecordNextDayRain();
+    const val = await odhRecordNextDayRain();
     logger.info(
-      `SiagNextDayRain: ${val.rainSum.toFixed(2)} mm – gültig für ${val.date.slice(0,10)}`
+      `OdhNextDayRain: ${val.rainSum.toFixed(2)} mm – Wahrscheinlichkeit max ${val.probMax}% – gültig für ${val.date.slice(0,10)}`
     );
   } catch (err) {
-    logger.error('SiagNextDayRain scheduler run failed:', err);
+    logger.error("OdhNextDayRain scheduler run failed:", err);
   }
-})
+});
 
 async function createTask(topic: string, state: boolean): Promise<() => Promise<void>> {
   return async function () {

@@ -30,7 +30,8 @@ const EXAMPLES = [
       rainToday: 0,
       rainRate: 0,
       et0_week: 32,
-      rainForecast24: 0,
+      rainNextDay: 0,
+      rainProbNextDay: 10,
       irrigationDepthMm: 0,
       deficit_mm: 24
     },
@@ -49,7 +50,8 @@ const EXAMPLES = [
       rainToday: 4,
       rainRate: 2,
       et0_week: 18,
-      rainForecast24: 12,
+      rainNextDay: 12,
+      rainProbNextDay: 50,
       irrigationDepthMm: 0,
       deficit_mm: 6
     },
@@ -86,7 +88,7 @@ const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
 function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }) {
-  const effectiveForecast = d.rainForecast24 * 0.5;
+  const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
   const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
   const deficit = d.et0_week != null ? d.et0_week - effectiveRain : undefined;
 
@@ -96,7 +98,7 @@ function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }
     `7-T-Regen  ${fmt(d.rainSum)} mm`,
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
-    `Fc 24 h    ${fmt(effectiveForecast)} mm (50% gewichtet)`,
+    `Fc morgen ${fmt(d.rainNextDay)} mm × ${fmt(d.rainProbNextDay)} % = ${fmt(effectiveForecast)} mm`,
     `7-T-Bewässerung ${fmt(d.irrigationDepthMm)} mm`,
     `ET₀ 7 T    ${fmt(d.et0_week)} mm`,
     deficit != null && `ET₀-Defizit ${fmt(deficit)} mm`
@@ -123,15 +125,13 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // Removed blocker for 7-day rain sum >= 25 mm
   if (d.rainToday >= 3) blockers.push(`Regen heute ≥ 3 mm (${fmt(d.rainToday)} mm)`);
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
-  // ─── Hier wurde der Forecast-Blocker entfernt ─────────────────────────────
-  // if (d.rainForecast24 >= 5) blockers.push(`Regen­vorhersage 24 h ≥ 5 mm (${fmt(d.rainForecast24)} mm)`);
 
-  // Forecast nur noch zu 50 % gewichten
-  const effectiveForecast = d.rainForecast24 * 0.5;
+  // Forecast nach Wahrscheinlichkeit gewichten
+  const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
   const effectiveRain = d.rainSum + effectiveForecast + irrigationDepthMm;
   const deficitNow = d.et0_week - effectiveRain;
 
-  logger.debug(`DefizitNow nach 50%-Forecast: ${fmt(deficitNow)}`);
+  logger.debug(`DefizitNow mit Wahrscheinlichkeits-Forecast: ${fmt(deficitNow)}`);
 
   if (deficitNow < 5) blockers.push(`Defizit < 5 mm (${fmt(deficitNow)})`);
 
@@ -153,7 +153,8 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     rainToday: d.rainToday,
     rainRate: d.rainRate,
     et0_week: d.et0_week ?? 0,
-    rainForecast24: d.rainForecast24,
+    rainNextDay: d.rainNextDay,
+    rainProbNextDay: d.rainProbNextDay,
     irrigationDepthMm,
     deficit_mm: deficitNow
   };
@@ -207,9 +208,9 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   }
 
   // Transparenter Hinweis für Frontend-User
-  result.response += ' - Forecast nur zu 50% gewichtet';
+  result.response += ' – Forecast mit realer Wahrscheinlichkeit gewichtet';
 
-  logger.debug('Rain Forecast only 50% weighted due to high uncertainty');
+  logger.debug(`DefizitNow mit Wahrscheinlichkeits-Forecast: ${fmt(deficitNow)}`);
   logger.info(`${result.result ? "ON" : "OFF"} | ${result.response}\n${result.formattedEvaluation}`);
   return result;
 }

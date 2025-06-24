@@ -9,7 +9,8 @@ import {
     rainTodayQuery,
     rainRateQuery,
     et0WeekQuery,
-    rainForecast24hQuery,     // ⬅︎ neu
+    rainNextDayQuery,
+    rainProbNextDayQuery,
 } from "../utils/fluxQueries";
 
 const ORG = "villaanna";
@@ -51,7 +52,8 @@ export interface WeatherData {
     rainToday: number;
     rainRate: number;
     et0_week: number;
-    rainForecast24: number;   // ⬅︎ neu
+    rainNextDay: number;
+    rainProbNextDay: number;
 }
 
 export async function queryAllData(): Promise<WeatherData> {
@@ -65,7 +67,8 @@ export async function queryAllData(): Promise<WeatherData> {
         rainTodayRes,
         rainRateRes,
         et0WeekRes,
-        rainFc24Res,            // ⬅︎ neu
+        rainNextDayRes,
+        rainProbNextDayRes,
     ] = await Promise.all([
         querySingleData(outTempQuery),
         querySingleData(windQuery),
@@ -74,7 +77,8 @@ export async function queryAllData(): Promise<WeatherData> {
         querySingleData(rainTodayQuery),
         querySingleData(rainRateQuery),
         querySingleData(et0WeekQuery),
-        querySingleData(rainForecast24hQuery), // ⬅︎ neu
+        querySingleData(rainNextDayQuery),
+        querySingleData(rainProbNextDayQuery),
     ]);
 
     return {
@@ -85,7 +89,8 @@ export async function queryAllData(): Promise<WeatherData> {
         rainToday: rainTodayRes[0]?._value ?? 0,
         rainRate: (rainRateRes[0]?._value ?? 0) / 10,
         et0_week: et0WeekRes[0]?._value ?? 0,
-        rainForecast24: rainFc24Res[0]?._value ?? 0,   // ⬅︎ neu
+        rainNextDay: rainNextDayRes[0]?._value ?? 0,
+        rainProbNextDay: rainProbNextDayRes[0]?._value ?? 0,
     };
 }
 

@@ -79,13 +79,21 @@ option location = timezone.location(name: "Europe/Rome")
     |> sum(column: "_value")
       `;
 
-export const rainForecast24hQuery = flux`
+export const rainNextDayQuery = flux`
+  from (bucket: "${et0Bucket}")
+  |> range(start: -2h)
+  |> filter(fn: (r) => r._measurement == "odh.rainNextDay")
+  |> filter(fn: (r) => r._field == "value_numeric")
+  |> last()
+    `;
+
+export const rainProbNextDayQuery = flux`
   from(bucket: "${et0Bucket}")
     |> range(start: -2h)
-    |> filter(fn: (r) => r._measurement == "dwd.rain24h")
+    |> filter(fn: (r) => r._measurement == "odh.rainProbNextDay")
     |> filter(fn: (r) => r._field == "value_numeric")
     |> last()
-      `;
+`;
 
 /* ---------- Bewässerungstage in den letzten 7 Tagen ---------------------- */
 export const irrigationDaysQuery = (zone: string): ParameterizedQuery => flux`
