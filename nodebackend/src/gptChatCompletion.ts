@@ -68,11 +68,18 @@ const EXAMPLES = [
 function buildSystemPrompt(): string {
   return `
     You are an agronomic irrigation advisor for a short-cut lawn.
-    Return ONLY valid JSON with this exact shape:
-    { irrigationNeeded:boolean, confidence:number, reasoning:string, recommended_mm:number }
-    recommended_mm = 0 if irrigationNeeded is false, else round(min(max(deficit_mm * 1.2, 0), 20)).
 
-    Important note: The "deficit_mm" in the payload is already fully calculated. Use only this field to make your decision.
+    Your job:
+      • Decide whether irrigation is needed based **primarily on "deficit_mm"** (rule of thumb: > 5 mm ⇒ irrigation).
+      • Provide a concise natural-language reasoning (≤ 280 chars).
+      • Suggest a reasonable "recommended_mm" to cover the deficit
+        (typical range 15-20 mm). If no irrigation is needed set it to 0.
+
+    Return **ONLY** valid JSON with this exact shape:
+    { "irrigationNeeded": boolean,
+      "confidence": number,
+      "reasoning": string,
+      "recommended_mm": number }
   `.trim();
 }
 
@@ -87,11 +94,13 @@ function exampleMessages(): ChatCompletionMessageParam[] {
 const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
-function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }) {
-  const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
-  const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
-  const deficit = d.et0_week != null ? d.et0_week - effectiveRain : undefined;
+type EnrichedWeatherData = WeatherData & { irrigationDepthMm: number };
 
+function buildFormattedEvaluation(
+  d: EnrichedWeatherData,
+  effectiveForecast: number,
+  deficit: number
+) {
   return [
     `7-T-Temp   ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
     `7-T-RH     ${fmt(d.humidity)} %   < 80 %?  ${tick(d.humidity < 80)}`,
@@ -101,19 +110,24 @@ function buildFormattedEvaluation(d: WeatherData & { irrigationDepthMm: number }
     `Fc morgen ${fmt(d.rainNextDay)} mm × ${fmt(d.rainProbNextDay)} % = ${fmt(effectiveForecast)} mm`,
     `7-T-Bewässerung ${fmt(d.irrigationDepthMm)} mm`,
     `ET₀ 7 T    ${fmt(d.et0_week)} mm`,
-    deficit != null && `ET₀-Defizit ${fmt(deficit)} mm`
-  ].filter(Boolean).join("\n");
+    `ET₀-Defizit ${fmt(deficit)} mm`,
+  ].join("\n");
 }
 
 // ---------- Hauptlogik -------------------------------------------------------
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
-  // 1) aktuelle Daten holen
+  // 1) aktuelle Daten einholen
   const d = await queryAllData();
 
   // 2) Bewässerungstiefe berechnen
   const zoneName = "lukasSued";
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);
-  (d as any).irrigationDepthMm = irrigationDepthMm;
+  (d as EnrichedWeatherData).irrigationDepthMm = irrigationDepthMm;
+
+  // 3) einheitliche Defizit-Berechnung
+  const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
+  const effectiveRain = d.rainSum + effectiveForecast + irrigationDepthMm;
+  const deficitNow = d.et0_week - effectiveRain;
 
   /* ---------- Hard-Rules ----------------------------------------------------
    *  Wenn eine Regel zutrifft → Bewässerung blockieren (result=false).
@@ -126,11 +140,6 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   if (d.rainToday >= 3) blockers.push(`Regen heute ≥ 3 mm (${fmt(d.rainToday)} mm)`);
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
 
-  // Forecast nach Wahrscheinlichkeit gewichten
-  const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
-  const effectiveRain = d.rainSum + effectiveForecast + irrigationDepthMm;
-  const deficitNow = d.et0_week - effectiveRain;
-
   logger.debug(`DefizitNow mit Wahrscheinlichkeits-Forecast: ${fmt(deficitNow)}`);
 
   if (deficitNow < 5) blockers.push(`Defizit < 5 mm (${fmt(deficitNow)})`);
@@ -141,7 +150,11 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     return {
       result: false,
       response: msg,
-      formattedEvaluation: buildFormattedEvaluation(d as any)
+      formattedEvaluation: buildFormattedEvaluation(
+        d as EnrichedWeatherData,
+        effectiveForecast,
+        deficitNow
+      )
     };
   }
 
@@ -159,20 +172,60 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     deficit_mm: deficitNow
   };
 
-  const openai = await getOpenAI();
-  const messages: ChatCompletionMessageParam[] = [
-    { role: "system", content: buildSystemPrompt() },
-    ...exampleMessages(),
-    { role: "user", content: JSON.stringify(payload) }
-  ];
+  function ruleBasedFallback(deficit: number): LlmDecision {
+    const irrigationNeeded = deficit >= 5;
+    return {
+      irrigationNeeded,
+      confidence: 0.4,
+      reasoning: irrigationNeeded
+        ? "LLM nicht verfügbar, Defizit ≥ 5 mm – Bewässerung ein."
+        : "LLM nicht verfügbar, Defizit < 5 mm.",
+      recommended_mm: irrigationNeeded
+        ? Math.round(Math.min(deficit * 1.2, 20))
+        : 0
+    };
+  }
 
-  const raw = (await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
-    response_format: { type: "json_object" },
-    messages,
-    temperature: 0.3,
-    max_tokens: 300
-  })).choices[0]?.message?.content ?? "{}";
+  async function callOpenAIWithRetry(
+    messages: ChatCompletionMessageParam[],
+    tries = 3,
+    delayMs = 2000
+  ): Promise<string> {
+    const openai = await getOpenAI();
+    for (let i = 1; i <= tries; i++) {
+      try {
+        const resp = await openai.chat.completions.create({
+          model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
+          response_format: { type: "json_object" },
+          messages,
+          temperature: 0.3,
+          max_completion_tokens: 300,
+        },
+          { timeout: 15_000 }
+        );
+        return resp.choices[0]?.message?.content ?? "{}";
+      } catch (err) {
+        logger.warn(`ChatCompletion Try ${i}/${tries} failed: ${err}`);
+        if (i === tries) throw err;
+        await new Promise(r => setTimeout(r, delayMs * i));
+      }
+    }
+    return "{}";
+  }
+
+  let raw: string;
+  try {
+    raw = await callOpenAIWithRetry(
+      [
+        { role: "system", content: buildSystemPrompt() },
+        ...exampleMessages(),
+        { role: "user", content: JSON.stringify(payload) }
+      ]
+    );
+  } catch (err) {
+    logger.error("OpenAI unreachable – using rule-based fallback", err);
+    raw = JSON.stringify(ruleBasedFallback(deficitNow));
+  }
 
   let p: Partial<LlmDecision>;
   try { p = JSON.parse(raw); } catch { p = {}; }
@@ -192,7 +245,11 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const result: CompletionResponse = {
     result: p.irrigationNeeded!,
     response: `${p.reasoning} (confidence ${(normalizedConfidence * 100).toFixed(0)} %, empfohlen ${recommendedClamped} mm)`,
-    formattedEvaluation: buildFormattedEvaluation(d as any)
+    formattedEvaluation: buildFormattedEvaluation(
+      d as EnrichedWeatherData,
+      effectiveForecast,
+      deficitNow
+    )
   };
 
   /*----------- Override safety ---------------------------------
