@@ -116,17 +116,20 @@ function buildFormattedEvaluation(
 
 // ---------- Hauptlogik -------------------------------------------------------
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
-  // 1) aktuelle Daten einholen
-  const d = await queryAllData();
-
-  // 2) Bewässerungstiefe berechnen
+  // 1) Sensordaten & wöchentliche Bewässerung separat holen
+  const weatherData = await queryAllData();
   const zoneName = "lukasSued";
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);
-  (d as EnrichedWeatherData).irrigationDepthMm = irrigationDepthMm;
+
+  // 2) Typsicheres, **unveränderliches** Objekt zusammenbauen
+  const d: EnrichedWeatherData = {
+    ...weatherData,
+    irrigationDepthMm,
+  }
 
   // 3) einheitliche Defizit-Berechnung
   const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
-  const effectiveRain = d.rainSum + effectiveForecast + irrigationDepthMm;
+  const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
   const deficitNow = d.et0_week - effectiveRain;
 
   /* ---------- Hard-Rules ----------------------------------------------------
@@ -150,11 +153,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     return {
       result: false,
       response: msg,
-      formattedEvaluation: buildFormattedEvaluation(
-        d as EnrichedWeatherData,
-        effectiveForecast,
-        deficitNow
-      )
+      formattedEvaluation: buildFormattedEvaluation(d, effectiveForecast, deficitNow)
     };
   }
 
@@ -245,11 +244,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const result: CompletionResponse = {
     result: p.irrigationNeeded!,
     response: `${p.reasoning} (confidence ${(normalizedConfidence * 100).toFixed(0)} %, empfohlen ${recommendedClamped} mm)`,
-    formattedEvaluation: buildFormattedEvaluation(
-      d as EnrichedWeatherData,
-      effectiveForecast,
-      deficitNow
-    )
+    formattedEvaluation: buildFormattedEvaluation(d, effectiveForecast, deficitNow)
   };
 
   /*----------- Override safety ---------------------------------

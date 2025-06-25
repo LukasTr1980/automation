@@ -5,9 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2025-06-24
+## [v16.16.2] - 2025-06-25
 ### Changed
 - feat: enhance irrigation decision logic and improve system prompt for better clarity and reasoning
+- refactor: improve data handling in createIrrigationDecision function for better type safety and clarity
 
 ## [v16.16.1] - 2025-06-24
 ### Added
