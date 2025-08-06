@@ -33,13 +33,6 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   const monthsNumbers = useMonthsNumbers();
   const { showSnackbar } = useSnackbar();
   const [selectedTopic, setSelectedTopic] = useState<string>(initialTopic || mqttTopics[0]);
-  const specialSwitchValues: Record<string, Record<string, number>> = {
-    'markise/switch/haupt/set': { 'true': 1, 'false': 2 }
-  };
-
-  const topicLabels: Record<string, Record<string, string>> = {
-    'markise/switch/haupt/set': { 'true': "Ausfahren", 'false': "Einfahren" }
-  };
   const [switchState, setSwitchState] = useState<boolean>(false);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<number[]>([]);
@@ -96,9 +89,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
     setFieldValidity(isValid);
 
     if (Object.values(isValid).every(Boolean)) {
-      const stateValue = specialSwitchValues[selectedTopic]
-        ? specialSwitchValues[selectedTopic][String(switchState)]
-        : switchState;
+      const stateValue = switchState;
 
       axios.post(`${apiUrl}/scheduler`, {
         hour: selectedHour,

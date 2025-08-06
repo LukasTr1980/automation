@@ -67,53 +67,27 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
         logger.info(`No task enabler key found for "${zoneName}". Proceeding without checking task enabler state.`);
       }
 
-      // Special logic for markise
-      if (topic.startsWith('markise/switch/haupt/set')) {
-        if (!sharedState.timeoutOngoing) {
-          publisher.publish(topic, state.toString(), (err: Error | null) => {
-            if (err) {
-              logger.error('Error while publishing message:', err);
-            } else {
-              logger.info('Message published successfully.');
-
-              setTimeout(() => {
-                publisher.publish(topic, '3', (err: Error | null) => {
-                  if (err) {
-                    logger.error('Error while publishing second message:', err);
-                  } else {
-                    logger.info('Second message published successfully.');
-                  }
-                });
-              }, 40000); // 40 seconds delay
-            }
-          });
-        } else {
-          logger.info("The timeout is ongoing in markiseblock, skipping tasks.");
-        }
-      } else {
-        if (state === false) {
-          publisher.publish(topic, state.toString(), (err: Error | null) => {
-            if (err) {
-              logger.error('Error while publishing message:', err);
-            } else {
-              logger.info('Message published successfully.');
-            }
-          });
-        } else {
-          const { result: irrigationNeeded } = await isIrrigationNeeded();
-          if (irrigationNeeded) {
-            publisher.publish(topic, state.toString(), async (err: Error | null) => {
-              if (err) {
-                logger.error('Error while publishing message:', err);
-              } else {
-                logger.info(`Irrigation started for zone ${zoneName}`);
-                // Bewässerung wurde wirklich gestartet → logge es in Influx
-                await recordIrrigationStartInflux(zoneName);
-              }
-            });
+      if (state === false) {
+        publisher.publish(topic, state.toString(), (err: Error | null) => {
+          if (err) {
+            logger.error('Error while publishing message:', err);
           } else {
-            logger.info('Skipping task execution due to irrigationNeeded returning false');
+            logger.info('Message published successfully.');
           }
+        });
+      } else {
+        const { result: irrigationNeeded } = await isIrrigationNeeded();
+        if (irrigationNeeded) {
+          publisher.publish(topic, state.toString(), async (err: Error | null) => {
+            if (err) {
+              logger.error('Error while publishing message:', err);
+            } else {
+              logger.info(`Irrigation started for zone ${zoneName}`);
+              await recordIrrigationStartInflux(zoneName);
+            }
+          });
+        } else {
+          logger.info('Skipping task execution due to irrigationNeeded returning false');
         }
       }
     } catch (error) {
@@ -150,7 +124,7 @@ async function scheduleTask(topic: string, state: boolean, recurrenceRule: Recur
 }
 
 async function loadScheduledTasks(): Promise<void> {
-  const patterns = ['bewaesserung*', 'markise*'];
+  const patterns = ['bewaesserung*'];
   const client = await connectToRedis();
 
   for (const pattern of patterns) {
@@ -182,7 +156,7 @@ interface TasksByTopic {
 }
 
 async function getScheduledTasks(): Promise<TasksByTopic> {
-  const patterns = ['bewaesserung*', 'markise*'];
+  const patterns = ['bewaesserung*'];
   const client = await connectToRedis();
 
   const tasksByTopic: TasksByTopic = {};

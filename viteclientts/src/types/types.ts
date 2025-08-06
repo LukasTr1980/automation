@@ -83,10 +83,6 @@ export interface MonthsSelectProps {
     setSelectedMonths: (months: number[]) => void;
 }
 
-export interface OnPressSwitchComponentProps {
-    markiseState: string | null;
-    onSend: (value: number) => void;
-}
 
 export interface SecretFieldProps {
     label: string;

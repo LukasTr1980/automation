@@ -774,7 +774,6 @@ Refactor irrigation decision logic and remove unused routes
 - Migrated `index.js` to Typescript.
 - Migrated `api.js` to Typescript.
 - Migrated `mqttRoute.js` to Typescript.
-- Migrated `markiseBlock.js` to Typescript.
 - Changed Dockerfile to reflect new folder structure and node backend as main work directory.
 
 ### Removed
@@ -796,7 +795,6 @@ Refactor irrigation decision logic and remove unused routes
 - Added second toggle for 'lukas west' switch to turn it off during Puppeteer test runs.
 
 ### Changed
-- Migrated multiple routes to TypeScript (TS): simpleapiRoute, deleteTaskRoute, getSecretsRoute, sessionRoute, switchTaskEnablerRoute, countdownRoute, getGptRequestRoute, loginRoute, markiseStatusRoute, updateGptRequestRoute, and countdown.
 
 ### Fixed
 - Fixed association between `zoneName` and `taskId` to ensure correct task deletion.
@@ -974,13 +972,10 @@ Refactor irrigation decision logic and remove unused routes
 
 ## [v9.0.1] - 2023-10-28 
 ### Fixed
-- Throttling time in markiseblock.js
 
 ## [v9.0.0] - 2023-10-28 
 ### Added
 - Display Weather blocking conditions on Markisepage
-- New route handler for markisestatus
-- New namespace.js file to handle rediskeys to not get namingconflicts
 - New prop color for switchcomponent
 
 ### Changed

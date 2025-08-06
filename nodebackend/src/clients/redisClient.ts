@@ -1,6 +1,5 @@
 import { Redis } from 'ioredis';
 import * as envSwitcher from '../envSwitcher';
-import namespaces from '../namespace';
 import * as vaultClient from './vaultClient';
 import logger from '../logger';
 import { Server } from 'socket.io';
@@ -73,7 +72,6 @@ async function subscribeToRedisKey(io: Server) {
 
   if (!subscriptionClient) {
     try {
-      const markiseStatusNamespace = namespaces.markiseStatus;
 
       subscriptionClient = new Redis({
         host: envSwitcher.redisHost,
@@ -117,19 +115,11 @@ async function subscribeToRedisKey(io: Server) {
           } catch (error) {
             logger.error('Error fetching countdown values from Redis:', error);
           }
-        } else if (baseKey.startsWith(`${markiseStatusNamespace}`)) {
-          io.emit('redis-markise-update', { pattern, channel, message });
-        }
       });
 
       await subscriptionClient.psubscribe('__keyspace@0__:countdown:*');
       logger.info('Subscribed to all keys starting with countdown:');
 
-      await subscriptionClient.psubscribe(`__keyspace@0__:${markiseStatusNamespace}:markise:throttling_active`);
-      logger.info('Subscribed to markise:throttling_active key');
-
-      await subscriptionClient.psubscribe(`__keyspace@0__:${markiseStatusNamespace}:markise:weather:*`);
-      logger.info('Subscribed to all keys starting with markise:weather');
 
       subscriptionClient.on('error', (err) => {
         logger.error('Subscription client error:', err);
