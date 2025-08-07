@@ -115,6 +115,7 @@ async function subscribeToRedisKey(io: Server) {
           } catch (error) {
             logger.error('Error fetching countdown values from Redis:', error);
           }
+        }
       });
 
       await subscriptionClient.psubscribe('__keyspace@0__:countdown:*');

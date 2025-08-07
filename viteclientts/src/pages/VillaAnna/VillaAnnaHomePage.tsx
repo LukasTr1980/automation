@@ -50,13 +50,11 @@ const HomePage = () => {
 
   const imageUrls = isSmallScreen ? [
     IrrigationButtonImageSmall,
-    AwningButtonImageSmall,
     IrrigationCountdownButtonImageSmall,
     HeatingButtonImageSmall,
     VentilationButtonImageSmall
   ] : [
     IrrigationButtonImage,
-    AwningButtonImage,
     IrrigationCountdownButtonImage,
     HeatingButtonImage,
     VentilationButtonImage
