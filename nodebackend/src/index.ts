@@ -13,7 +13,6 @@ import { loadScheduledTasks } from './scheduler';
 import { apiLimiter } from './middleware/rateLimiter';
 import apiRouter from './routes/api';
 import logger from './logger';
-import './utils/markiseBlock';
 import helmet from 'helmet';
 import { computeTodayET0 } from './utils/evapotranspiration';
 import { isDev } from './envSwitcher';

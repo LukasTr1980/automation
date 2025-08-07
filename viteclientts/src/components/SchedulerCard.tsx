@@ -33,13 +33,6 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   const monthsNumbers = useMonthsNumbers();
   const { showSnackbar } = useSnackbar();
   const [selectedTopic, setSelectedTopic] = useState<string>(initialTopic || mqttTopics[0]);
-  const specialSwitchValues: Record<string, Record<string, number>> = {
-    'markise/switch/haupt/set': { 'true': 1, 'false': 2 }
-  };
-
-  const topicLabels: Record<string, Record<string, string>> = {
-    'markise/switch/haupt/set': { 'true': "Ausfahren", 'false': "Einfahren" }
-  };
   const [switchState, setSwitchState] = useState<boolean>(false);
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<number[]>([]);
@@ -60,15 +53,14 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
   const weekDaysButtonText = selectedDayNames.length
     ? selectedDayNames.map(day => day.substring(0, 3)).join(', ')
-    : "Wochentage";
+    : t('weekdays', 'Wochentage');
 
   const monthButtonText = selectedMonthNames.length
     ? selectedMonthNames.map(month => month.substring(0, 3)).join(', ')
-    : "Monate";
+    : t('months', 'Monate');
 
-  const currentLabel = topicLabels[selectedTopic]
-    ? topicLabels[selectedTopic][String(switchState)]
-    : switchState ? "Ein" : "Aus";
+  // The label now only depends on the switch state. "Ein" / "Aus" are used as fallbacks.
+  const currentLabel = switchState ? t('on', 'Ein') : t('off', 'Aus');
 
   const handleTopicChange = (event: SelectChangeEvent<string>) => {
     setSelectedTopic(event.target.value as string);
@@ -82,7 +74,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
     month: true,
     day: true,
     hour: true,
-    minute: true
+    minute: true,
   });
 
   const handleSchedule = () => {
@@ -96,22 +88,22 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
     setFieldValidity(isValid);
 
     if (Object.values(isValid).every(Boolean)) {
-      const stateValue = specialSwitchValues[selectedTopic]
-        ? specialSwitchValues[selectedTopic][String(switchState)]
-        : switchState;
+      const stateValue = switchState;
 
-      axios.post(`${apiUrl}/scheduler`, {
-        hour: selectedHour,
-        minute: selectedMinute,
-        topic: selectedTopic,
-        state: stateValue,
-        days: selectedDays,
-        months: selectedMonths
-      })
+      axios
+        .post(`${apiUrl}/scheduler`, {
+          hour: selectedHour,
+          minute: selectedMinute,
+          topic: selectedTopic,
+          state: stateValue,
+          days: selectedDays,
+          months: selectedMonths,
+        })
         .then(response => {
           const backendMessageKey = response.data;
           const translatedMessage = t(backendMessageKey);
-          axios.get(`${apiUrl}/scheduledTasks`)
+          axios
+            .get(`${apiUrl}/scheduledTasks`)
             .then(response => {
               setScheduledTasks(response.data);
               setSelectedHour('');
@@ -150,18 +142,16 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   }, [taskToCopy]);
 
   return (
-    <Card variant='outlined'>
-      <CardHeader title={t("createSchedule")} />
+    <Card variant="outlined">
+      <CardHeader title={t('createSchedule')} />
       <CardContent>
         <Grid container spacing={2}>
           <Grid size={12}>
             <FormControl fullWidth>
-              <InputLabel id="mqtt-topic-label" shrink={false}>{t('zone')}</InputLabel>
-              <Select
-                labelId="mqtt-topic-label"
-                value={selectedTopic}
-                onChange={handleTopicChange}
-              >
+              <InputLabel id="mqtt-topic-label" shrink={false}>
+                {t('zone')}
+              </InputLabel>
+              <Select labelId="mqtt-topic-label" value={selectedTopic} onChange={handleTopicChange}>
                 {mqttTopics.map((topic, i) => (
                   <MenuItem value={topic} key={i}>
                     {topicDescriptions[i] || topic}
@@ -170,67 +160,58 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
               </Select>
             </FormControl>
           </Grid>
+
           <Grid size={12}>
             <FormControlLabel
-              control={
-                <SwitchComponent
-                  checked={switchState}
-                  handleToggle={handleSwitchChange}
-                  label={currentLabel}
-                />
-              }
-              label="" // Since the label is handled inside the custom component, we leave it empty here.
+              control={<SwitchComponent checked={switchState} handleToggle={handleSwitchChange} label={currentLabel} />}
+              label=""
             />
           </Grid>
+
           <Grid size={6}>
             <HourField selectedHour={selectedHour} setSelectedHour={setSelectedHour} error={!fieldValidity.hour} />
           </Grid>
           <Grid size={6}>
             <MinuteField selectedMinute={selectedMinute} setSelectedMinute={setSelectedMinute} error={!fieldValidity.minute} />
           </Grid>
+
           <Grid size={12}>
             <Button
               variant="contained"
-              color={!fieldValidity.day ? "error" : "primary"}
+              color={!fieldValidity.day ? 'error' : 'primary'}
               fullWidth
               onClick={() => setWeekDaysDialogOpen(true)}
               aria-pressed={selectedDays.length ? 'true' : 'false'}
             >
               {weekDaysButtonText}
             </Button>
-            <DialogFullScreen 
-            open={weekDaysDialogOpen} 
-            onClose={() => setWeekDaysDialogOpen(false)}
-            title={t('select')}
-            >
+            <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)} title={t('select')}>
               <Grid size={12}>
                 <WeekdaysSelect selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
               </Grid>
             </DialogFullScreen>
           </Grid>
+
           <Grid size={12}>
             <Button
               variant="contained"
-              color={!fieldValidity.day ? "error" : "primary"}
+              color={!fieldValidity.month ? 'error' : 'primary'}
               fullWidth
               onClick={() => setMonthDialogOpen(true)}
               aria-pressed={selectedMonths.length ? 'true' : 'false'}
             >
               {monthButtonText}
             </Button>
-            <DialogFullScreen 
-            open={monthDialogOpen} 
-            onClose={() => setMonthDialogOpen(false)}
-            title={t('select')}
-            >
+            <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)} title={t('select')}>
               <Grid size={12}>
                 <MonthsSelect selectedMonths={selectedMonths} setSelectedMonths={setSelectedMonths} />
               </Grid>
             </DialogFullScreen>
           </Grid>
+
           <Grid size={12}>
             <Button variant="contained" color="primary" fullWidth onClick={handleSchedule}>
-              Planen
+              {t('schedule', 'Planen')}
             </Button>
           </Grid>
         </Grid>

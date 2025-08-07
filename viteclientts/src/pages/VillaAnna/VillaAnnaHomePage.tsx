@@ -2,12 +2,10 @@ import { Card, CardActionArea, CardContent, CardMedia, Grid, Typography, useMedi
 import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
 import IrrigationButtonImage from '../../images/IrrigationButton.webp';
-import AwningButtonImage from '../../images/AwningButton.webp';
 import IrrigationCountdownButtonImage from '../../images/IrrigationCountdownButton.webp';
 import HeatingButtonImage from '../../images/HeatingButtonImage.webp';
 import VentilationButtonImage from '../../images/VentilationButton.webp';
 import IrrigationButtonImageSmall from '../../images/IrrigationButton160x160.webp';
-import AwningButtonImageSmall from '../../images/AwningButton160x160.webp';
 import HeatingButtonImageSmall from '../../images/HeatingButton160x160.webp';
 import IrrigationCountdownButtonImageSmall from '../../images/IrrigationCountdownButton160x160.webp';
 import VentilationButtonImageSmall from '../../images/VentilationButton160x160.webp';
@@ -52,13 +50,11 @@ const HomePage = () => {
 
   const imageUrls = isSmallScreen ? [
     IrrigationButtonImageSmall,
-    AwningButtonImageSmall,
     IrrigationCountdownButtonImageSmall,
     HeatingButtonImageSmall,
     VentilationButtonImageSmall
   ] : [
     IrrigationButtonImage,
-    AwningButtonImage,
     IrrigationCountdownButtonImage,
     HeatingButtonImage,
     VentilationButtonImage
@@ -87,26 +83,6 @@ const HomePage = () => {
                   <CardContent>
                     <Typography fontSize={typographyFontSize}>
                       Bewässerung
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </RouterLink>
-          </Grid>
-          <Grid>
-            <RouterLink to="/villa-anna/markise" style={{ textDecoration: 'none' }}>
-              <Card sx={cardMaxwidth} variant='outlined'>
-                <CardActionArea>
-                  <CardMedia
-                    component='img'
-                    image={isSmallScreen ? AwningButtonImageSmall : AwningButtonImage}
-                    alt='Awning'
-                    width={cardMediaWidth}
-                    height={cardMediaHeight}
-                  />
-                  <CardContent>
-                    <Typography fontSize={typographyFontSize}>
-                      Markise
                     </Typography>
                   </CardContent>
                 </CardActionArea>
