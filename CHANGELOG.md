@@ -6,9 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [v16.16.6] - 2025-08-08
-### Removed
-- Removed code inherent to markise block.
-- Dependency updates.
+### Added
+- Added possibility to turn ai verification off for irrigation.
 
 ## [v16.16.5] - 2025-08-07
 ### Removed
