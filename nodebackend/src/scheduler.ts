@@ -76,18 +76,31 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
           }
         });
       } else {
-        const { result: irrigationNeeded } = await isIrrigationNeeded();
-        if (irrigationNeeded) {
+        // If skipAiVerification is enabled, we bypass the AI check and
+        // execute scheduled irrigation directly.
+        if (sharedState.skipAiVerification) {
           publisher.publish(topic, state.toString(), async (err: Error | null) => {
             if (err) {
               logger.error('Error while publishing message:', err);
             } else {
-              logger.info(`Irrigation started for zone ${zoneName}`);
+              logger.info(`Irrigation started for zone ${zoneName} (AI verification skipped)`);
               await recordIrrigationStartInflux(zoneName);
             }
           });
         } else {
-          logger.info('Skipping task execution due to irrigationNeeded returning false');
+          const { result: irrigationNeeded } = await isIrrigationNeeded();
+          if (irrigationNeeded) {
+            publisher.publish(topic, state.toString(), async (err: Error | null) => {
+              if (err) {
+                logger.error('Error while publishing message:', err);
+              } else {
+                logger.info(`Irrigation started for zone ${zoneName}`);
+                await recordIrrigationStartInflux(zoneName);
+              }
+            });
+          } else {
+            logger.info('Skipping task execution due to irrigationNeeded returning false');
+          }
         }
       }
     } catch (error) {
