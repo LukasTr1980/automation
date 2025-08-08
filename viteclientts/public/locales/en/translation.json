@@ -99,5 +99,9 @@
     "noUserDataAvailable": "No user data available",
     "username": "Username",
     "testPoints": "Test Points",
-    "close": "Close"
+    "close": "Close",
+    "aiVerificationDisabled": "Ai Verification Disabled",
+    "aiVerificationEnabled": "Ai Verification Enabled",
+    "enableAiVerification": "Enable Ai Verification",
+    "disableAiVerification": "Disable Ai Verification"
 }

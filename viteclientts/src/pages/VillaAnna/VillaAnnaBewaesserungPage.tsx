@@ -31,6 +31,7 @@ import { useUserStore } from '../../utils/store';
 const BewaesserungPage = () => {
   const { jwtToken } = useUserStore();
   const [aiLoading, setAiLoading] = useState(true);
+  const [skipAi, setSkipAi] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [switchesLoading, setSwitchesLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(true);
@@ -49,7 +50,12 @@ const BewaesserungPage = () => {
   const title = `Villa Anna ${t('irrigation')}`;
 
   useEffect(() => {
-    const url = jwtToken ? `${apiUrl}/mqtt?token=${jwtToken}` : `${apiUrl}/mqtt`;
+    const params = new URLSearchParams();
+    if (jwtToken) params.set('token', jwtToken);
+    // If skipAi is true, instruct backend not to run the AI check for the
+    // initial irrigation evaluation pushed via the SSE endpoint.
+    if (skipAi) params.set('checkIrrigation', 'false');
+    const url = `${apiUrl}/mqtt?${params.toString()}`;
     const eventSource = new EventSource(url);
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -75,7 +81,14 @@ const BewaesserungPage = () => {
     return () => {
       eventSource.close();
     };
-  }, [jwtToken, apiUrl]);
+  }, [jwtToken, apiUrl, skipAi]);
+
+  // Load initial skipAi state from backend
+  useEffect(() => {
+    axios.get(`${apiUrl}/skipAi`)
+      .then(resp => setSkipAi(!!resp.data.skip))
+      .catch(() => {});
+  }, [apiUrl]);
 
   useEffect(() => {
     axios.get<APIResponse>(`${apiUrl}/scheduledTasks`)
@@ -200,6 +213,26 @@ const BewaesserungPage = () => {
                     color='info'
                   >
                     {t('aiResponse')}
+                  </Button>
+                </Grid>
+                <Grid size={12}>
+                  <Button
+                    variant='outlined'
+                    onClick={async () => {
+                      const newVal = !skipAi;
+                      try {
+                        await axios.post(`${apiUrl}/skipAi`, { skip: newVal });
+                        setSkipAi(newVal);
+                        showSnackbar(newVal ? t('aiVerificationDisabled') : t('aiVerificationEnabled'));
+                      } catch (err) {
+                        console.error(err);
+                        showSnackbar(t('error'));
+                      }
+                    }}
+                    fullWidth
+                    color={skipAi ? 'error' : 'primary'}
+                  >
+                    {skipAi ? t('enableAiVerification') : t('disableAiVerification')}
                   </Button>
                 </Grid>
                 <DialogFullScreen

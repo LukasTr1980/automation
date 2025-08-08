@@ -23,6 +23,16 @@ router.get('/', async (req: Request, res: Response) => {
             };
             res.write(`data: ${JSON.stringify(irrigationNeededData)}\n\n`);
         }
+    } else {
+        // When AI verification is disabled, send a default irrigationNeeded event
+        // to unblock the frontend loader.
+        const irrigationNeededData = {
+            type: 'irrigationNeeded',
+            state: false,
+            response: '',
+            formattedEvaluation: ''
+        };
+        res.write(`data: ${JSON.stringify(irrigationNeededData)}\n\n`);
     }
 });
 

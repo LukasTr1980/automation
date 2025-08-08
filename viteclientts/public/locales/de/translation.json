@@ -99,5 +99,9 @@
     "noUserDataAvailable": "Keine Benutzer Informationen verfügbar",
     "username": "Benutzername",
     "testPoints": "Prüfpunkte",
-    "close": "Schließen"
+    "close": "Schließen",
+    "aiVerificationDisabled": "Ai Überprüfung deaktiviert",
+    "aiVerificationEnabled": "Ai Überprüfung aktiviert",
+    "enableAiVerification": "Ai Überprüfung aktivieren",
+    "disableAiVerification": "Ai Überprüfung deaktivieren"
 }
