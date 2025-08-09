@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@influxdata/influxdb-client": "^1.33.2",
+    "@lukastr1980/davis": "^1.0.1",
     "cookie": "^1.0.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
@@ -30,8 +31,7 @@
     "openai": "^4.52.1",
     "socket.io": "^4.7.5",
     "uuid": "^11",
-    "winston": "^3.11.0",
-    "@lukastr1980/davis": "^1.0.1"
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@types/cookie": "^0.6.0",
