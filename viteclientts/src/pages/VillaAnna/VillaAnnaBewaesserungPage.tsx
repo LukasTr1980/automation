@@ -189,7 +189,33 @@ const BewaesserungPage = () => {
         <Card variant='outlined'>
           <CardHeader title={t('aiDecision')} />
           <CardContent>
-            {aiLoading ? (
+            {skipAi ? (
+              <Grid container spacing={2} justifyContent="space-between">
+                <Grid size={12}>
+                  <Typography>{t('aiVerificationDisabled')}</Typography>
+                </Grid>
+                <Grid size={12}>
+                  <Button
+                    variant='outlined'
+                    onClick={async () => {
+                      const newVal = false;
+                      try {
+                        await axios.post(`${apiUrl}/skipAi`, { skip: newVal });
+                        setSkipAi(newVal);
+                        showSnackbar(t('aiVerificationEnabled'));
+                      } catch (err) {
+                        console.error(err);
+                        showSnackbar(t('error'));
+                      }
+                    }}
+                    fullWidth
+                    color='primary'
+                  >
+                    {t('enableAiVerification')}
+                  </Button>
+                </Grid>
+              </Grid>
+            ) : aiLoading ? (
               <SkeletonLoader />
             ) : (
               <Grid container spacing={2} justifyContent="space-between">
@@ -230,9 +256,9 @@ const BewaesserungPage = () => {
                       }
                     }}
                     fullWidth
-                    color={skipAi ? 'error' : 'primary'}
+                    color='error'
                   >
-                    {skipAi ? t('enableAiVerification') : t('disableAiVerification')}
+                    {t('disableAiVerification')}
                   </Button>
                 </Grid>
                 <DialogFullScreen
