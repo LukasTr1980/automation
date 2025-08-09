@@ -30,7 +30,8 @@
     "openai": "^4.52.1",
     "socket.io": "^4.7.5",
     "uuid": "^11",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "@lukastr1980/davis": "^1.0.1"
   },
   "devDependencies": {
     "@types/cookie": "^0.6.0",
