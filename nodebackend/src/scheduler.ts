@@ -2,9 +2,8 @@ import schedule from 'node-schedule';
 import { connectToRedis } from './clients/redisClient';
 import isIrrigationNeeded from './gptChatIrrigation';
 import getTaskEnabler from './utils/getTaskEnabler';
-import { sharedState } from './utils/sharedState';
 import generateUniqueId from './utils/generateUniqueId';
-import { topicToTaskEnablerKey } from './utils/constants';
+import { topicToTaskEnablerKey, skipAiRedisKey } from './utils/constants';
 import MqttPublisher from './utils/mqttPublisher';
 import { computeTodayET0 } from './utils/evapotranspiration';
 import { recordCurrentCloudCover } from './utils/cloudCoverRecorder';
@@ -78,7 +77,9 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
       } else {
         // If skipAiVerification is enabled, we bypass the AI check and
         // execute scheduled irrigation directly.
-        if (sharedState.skipAiVerification) {
+        const client = await connectToRedis();
+        const skipAi = (await client.get(skipAiRedisKey)) === 'true';
+        if (skipAi) {
           publisher.publish(topic, state.toString(), async (err: Error | null) => {
             if (err) {
               logger.error('Error while publishing message:', err);

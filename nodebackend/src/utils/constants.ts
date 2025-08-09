@@ -1,5 +1,3 @@
-import * as envSwitcher from '../envSwitcher';
-
 interface TopicToTaskEnablerKey {
     [key: string]: string;
 }
@@ -12,4 +10,6 @@ const topicToTaskEnablerKey: TopicToTaskEnablerKey = {
     'haupt': 'Markise',
 };
 
-export { topicToTaskEnablerKey };
+const skipAiRedisKey = 'skipAiVerification';
+
+export { topicToTaskEnablerKey, skipAiRedisKey };
