@@ -36,6 +36,7 @@ const upperCaseLevel = winston.format(info => {
 const logger = winston.createLogger({
   level: isDev ? "debug" : "info",
   format: winston.format.combine(
+    winston.format.splat(),
     upperCaseLevel(),
     winston.format.label({ label: "Automation" }),
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
@@ -44,6 +45,7 @@ const logger = winston.createLogger({
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
+        winston.format.splat(),
         upperCaseLevel(),                        // make sure console level is capped too
         winston.format.colorize({ level: true }),// color only level token
         winston.format.label({ label: "Automation" }),

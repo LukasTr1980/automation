@@ -1,11 +1,12 @@
 // TS -> CJS Build: das kompiliert zu require('davis')
 import { WeatherlinkClient, flattenCurrent, flattenHistoric } from "@lukastr1980/davis";
+import logger from "../logger";
 
 export async function weatherlinkSmoke() {
-    const apiKey = process.env.API_KEY!;
-    const apiSecret = process.env.API_SECRET!;
+    const apiKey = process.env.WEATHERLINK_API_KEY!;
+    const apiSecret = process.env.WEATHERLINK_API_SECRET!;
     if (!apiKey || !apiSecret) {
-        console.log('[WEATHERLINK] API_KEY/API_SECRET missing in env');
+        logger.error('[WEATHERLINK] API_KEY/API_SECRET missing in env');
         return;
     }
 
@@ -17,19 +18,19 @@ export async function weatherlinkSmoke() {
 
     const stations = await client.getStations();
     if (!stations.length) {
-        console.log('[WEATHERLINK] No station found');
+        logger.warn('[WEATHERLINK] No station found');
         return;
     }
 
     const s = stations[0]; // oder per Namen/UUID filtern
     const uuid = s.station_id_uuid;
-    console.log(`[WEATHERLINK] using UUID from package: ${uuid} (${s.station_name}, id=${s.station_id})`);
+    logger.info(`[WEATHERLINK] using UUID from package: ${uuid} (${s.station_name}, id=${s.station_id})`);
 
     const cur = await client.getCurrent(uuid);
     if (cur) {
-        console.log('[WEATHERLINK][CURRENT]', flattenCurrent(cur));
+        logger.info('[WEATHERLINK][CURRENT] %j', flattenCurrent(cur));
     } else {
-        console.log('[WEATHERLINK] /current not available');
+        logger.warn('[WEATHERLINK] /current not available');
     }
 
     try {
@@ -37,13 +38,13 @@ export async function weatherlinkSmoke() {
         const start = new Date(end.getTime() - 10 * 60 * 1000);
         const hist = await client.getHistoric(uuid, start, end);
         if (!hist) {
-            console.log('[WEATHERLINK] /historic not available (plan/permissions)');
+            logger.warn('[WEATHERLINK] /historic not available (plan/permissions)');
         } else {
             const rows = flattenHistoric(hist);
-            console.log(`[WEATHERLINK][HIST_ROWS] ${rows.length}`);
-            console.log('[WEATHERLINK][HIST_LAST]', rows.at(-1) ?? '(empty)');
+            logger.info('[WEATHERLINK][HIST_ROWS] %d', rows.length);
+            logger.info('[WEATHERLINK][HIST_LAST] %j', rows.at(-1) ?? '(empty)');
         }
     } catch (e: any) {
-        console.log('[WEATHERLINK][HIST ERROR]', e?.response?.status ? `HTTP ${e.response.status}` : e);
+        logger.error('[WEATHERLINK][HIST ERROR]', e?.response?.status ? `HTTP ${e.response.status}` : e);
     }
 }
