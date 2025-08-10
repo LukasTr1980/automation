@@ -1,12 +1,12 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { connectToRedis } from '../clients/redisClient';
-import logger from '../logger';
+import { connectToRedis } from '../clients/redisClient.js';
+import logger from '../logger.js';
 import crypto from 'crypto';
-import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher';
-import { getJwtAccessTokenSecret } from '../configs';
-import { initializeEncryptionKey, decrypt, encrypt } from '../utils/encryptDecrypt';
-import { roleCookieValidation, refreshTokenValidation, deviceIdValidation, usernameValidation } from '../utils/inputValidation';
+import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher.js';
+import { getJwtAccessTokenSecret } from '../configs.js';
+import { initializeEncryptionKey, decrypt, encrypt } from '../utils/encryptDecrypt.js';
+import { roleCookieValidation, refreshTokenValidation, deviceIdValidation, usernameValidation } from '../utils/inputValidation.js';
  
 interface StoredData {
     refreshToken: string;

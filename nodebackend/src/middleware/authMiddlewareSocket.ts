@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
-import logger from '../logger';
-import { getJwtAccessTokenSecret } from '../configs';
+import logger from '../logger.js';
+import { getJwtAccessTokenSecret } from '../configs.js';
 
 const authMiddlewareSocket = async (socket: Socket, next: (err?: Error) => void) => {
   try {
@@ -21,7 +21,7 @@ const authMiddlewareSocket = async (socket: Socket, next: (err?: Error) => void)
     }
 
     const jwtSecret = await getJwtAccessTokenSecret();
-    jwt.verify(token, jwtSecret, (err) => {
+    jwt.verify(token, jwtSecret, (err: unknown) => {
       if (err) {
         logger.warn(`Socket authentication failed: Invalid JWT token`);
         socket.emit('auth_error', 'Authentication error: Invalid JWT token');

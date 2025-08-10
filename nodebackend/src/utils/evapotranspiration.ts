@@ -12,9 +12,9 @@
 //    • Rnl‑Term auf FAO‑56 gebracht (+ optionale Clips)
 // -----------------------------------------------------------------------------
 
-import { querySingleData, writeToInflux } from "../clients/influxdb-client";
-import logger from "../logger";
-import { isDev } from "../envSwitcher";
+import { querySingleData, writeToInflux } from "../clients/influxdb-client.js";
+import logger from "../logger.js";
+import { isDev } from "../envSwitcher.js";
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
 const LAT = Number(process.env.LAT ?? 46.5668);

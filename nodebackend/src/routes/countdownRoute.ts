@@ -1,8 +1,8 @@
 // countdownRoutes.ts
 import express, { Request, Response } from 'express';
-import { initiateCountdown, updateCountdowns } from '../utils/countdown';
-import { connectToRedis } from '../clients/redisClient';
-import logger from '../logger';
+import { initiateCountdown, updateCountdowns } from '../utils/countdown.js';
+import { connectToRedis } from '../clients/redisClient.js';
+import logger from '../logger.js';
 
 interface Countdown {
     value: number;

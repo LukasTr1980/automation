@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import { connectToRedis } from '../clients/redisClient';
-import { skipAiRedisKey } from '../utils/constants';
+import { connectToRedis } from '../clients/redisClient.js';
+import { skipAiRedisKey } from '../utils/constants.js';
 
 const router = express.Router();
 

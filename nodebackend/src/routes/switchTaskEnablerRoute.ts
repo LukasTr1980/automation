@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import setTaskEnabler from '../utils/switchTaskEnabler';
-import logger from '../logger';
+import setTaskEnabler from '../utils/switchTaskEnabler.js';
+import logger from '../logger.js';
 
 const router = express.Router();
 

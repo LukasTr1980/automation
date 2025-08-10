@@ -1,6 +1,6 @@
 import { ParameterizedQuery, Point } from "@influxdata/influxdb-client";
-import logger from "../logger";
-import { getInfluxDbClientAI, getInfluxDbClientAutomation } from "../configs";
+import logger from "../logger.js";
+import { getInfluxDbClientAI, getInfluxDbClientAutomation } from "../configs.js";
 import {
     outTempQuery,
     windQuery,
@@ -11,7 +11,7 @@ import {
     et0WeekQuery,
     rainNextDayQuery,
     rainProbNextDayQuery,
-} from "../utils/fluxQueries";
+} from "../utils/fluxQueries.js";
 
 const ORG = "villaanna";
 const BUCKET = "automation"; // Default bucket for writing data
@@ -29,10 +29,10 @@ async function querySingleData(
 
     return new Promise((resolve, reject) => {
         queryApi.queryRows(fluxQuery, {
-            next(row, meta) {
-                rows.push(meta.toObject(row) as DataRow);
+            next(row: unknown, meta: any) {
+                rows.push(meta.toObject(row as any) as DataRow);
             },
-            error(err) {
+            error(err: unknown) {
                 logger.error(`Error executing query: ${fluxQuery.toString()}`, err);
                 reject(err);
             },

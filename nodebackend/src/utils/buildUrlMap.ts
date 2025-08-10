@@ -1,7 +1,7 @@
-import { connectToMongo } from '../clients/mongoClient';
+import { connectToMongo } from '../clients/mongoClient.js';
 import { ObjectId } from 'mongodb';  
-import * as envSwitcher from '../envSwitcher';
-import logger from '../logger';
+import * as envSwitcher from '../envSwitcher.js';
+import logger from '../logger.js';
 
 const baseUrl: string = envSwitcher.baseUrl;
 

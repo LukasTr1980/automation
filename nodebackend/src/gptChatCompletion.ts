@@ -1,9 +1,9 @@
-import { getOpenAI } from "./configs";
-import { queryAllData } from "./clients/influxdb-client";
-import type { WeatherData } from "./clients/influxdb-client";
+import { getOpenAI } from "./configs.js";
+import { queryAllData } from "./clients/influxdb-client.js";
+import type { WeatherData } from "./clients/influxdb-client.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import logger from "./logger";
-import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService"; // <-- import service
+import logger from "./logger.js";
+import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js"; // <-- import service
 
 // ---------- FE-Interface -----------------------------------------------------
 export interface CompletionResponse {

@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken'; // Import JwtPayload for type extension
-import logger from '../logger';
-import { getJwtAccessTokenSecret } from '../configs';
+import logger from '../logger.js';
+import { getJwtAccessTokenSecret } from '../configs.js';
 
 const router = express.Router();
 

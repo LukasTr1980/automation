@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import logger from '../logger';
-import { getJwtAccessTokenSecret } from '../configs';
+import logger from '../logger.js';
+import { getJwtAccessTokenSecret } from '../configs.js';
 
 interface TokenPayload {
   username: string;
@@ -35,7 +35,7 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
 
     const jwtSecret = await getJwtAccessTokenSecret();
 
-    jwt.verify(token, jwtSecret, (err, decoded) => {
+    jwt.verify(token, jwtSecret, (err: unknown, decoded: unknown) => {
       if (err) {
         logger.warn(`Invalid JWT token from IP ${clientIp}`);
         res.status(401).send("Authentication failed: Invalid token");

@@ -6,7 +6,7 @@
 import {
   createIrrigationDecision,
   CompletionResponse as DecisionResponse,
-} from "./gptChatCompletion";
+} from "./gptChatCompletion.js";
 
 // Frontend erwartet weiterhin CompletionResponse
 export type CompletionResponse = DecisionResponse;

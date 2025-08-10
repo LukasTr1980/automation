@@ -1,5 +1,5 @@
-import logger from '../logger';
-import { connectToRedis } from '../clients/redisClient';
+import logger from '../logger.js';
+import { connectToRedis } from '../clients/redisClient.js';
 
 async function setTaskEnabler(zone: string, state: boolean): Promise<void> {
   try {

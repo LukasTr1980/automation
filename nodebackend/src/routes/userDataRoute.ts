@@ -1,6 +1,6 @@
 import express from 'express';
-import { getUserData } from '../utils/useLoginsModule'; 
-import logger from '../logger';
+import { getUserData } from '../utils/useLoginsModule.js'; 
+import logger from '../logger.js';
 
 const router = express.Router();
 

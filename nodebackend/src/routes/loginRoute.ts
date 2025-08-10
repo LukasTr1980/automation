@@ -1,15 +1,15 @@
 import express from 'express';
-import { loginValidation } from '../utils/inputValidation';
-import { connectToRedis } from '../clients/redisClient';
+import { loginValidation } from '../utils/inputValidation.js';
+import { connectToRedis } from '../clients/redisClient.js';
 import crypto from 'crypto';
-import * as vaultClient from '../clients/vaultClient'; // Import your Vault client
-import logger from '../logger';
-import { updateLastLogin } from '../utils/useLoginsModule';
+import * as vaultClient from '../clients/vaultClient.js'; // Import your Vault client
+import logger from '../logger.js';
+import { updateLastLogin } from '../utils/useLoginsModule.js';
 import jwt from 'jsonwebtoken';
-import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher';
-import { getJwtAccessTokenSecret } from '../configs';
-import { initializeEncryptionKey, encrypt } from '../utils/encryptDecrypt';
-import generateUniqueId from '../utils/generateUniqueId';
+import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher.js';
+import { getJwtAccessTokenSecret } from '../configs.js';
+import { initializeEncryptionKey, encrypt } from '../utils/encryptDecrypt.js';
+import generateUniqueId from '../utils/generateUniqueId.js';
 
 const router = express.Router();
 

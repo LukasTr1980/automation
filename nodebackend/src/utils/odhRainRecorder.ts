@@ -11,8 +11,8 @@
 
 import fetch, { RequestInit } from "node-fetch";
 import https from "https";
-import { writeToInflux } from "../clients/influxdb-client";
-import logger from "../logger";
+import { writeToInflux } from "../clients/influxdb-client.js";
+import logger from "../logger.js";
 import {
     addDays,
     formatISO,

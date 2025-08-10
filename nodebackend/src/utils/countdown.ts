@@ -1,7 +1,7 @@
 // countdown.ts
-import logger from '../logger';
-import { connectToRedis } from '../clients/redisClient';
-import MqttPublisher from '../utils/mqttPublisher';
+import logger from '../logger.js';
+import { connectToRedis } from '../clients/redisClient.js';
+import MqttPublisher from '../utils/mqttPublisher.js';
 
 const publisher = new MqttPublisher();
 

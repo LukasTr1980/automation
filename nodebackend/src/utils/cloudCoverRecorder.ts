@@ -6,8 +6,8 @@
 
 import fetch, { RequestInit } from "node-fetch";
 import https from "https";
-import { writeToInflux } from "../clients/influxdb-client";
-import logger from "../logger";
+import { writeToInflux } from "../clients/influxdb-client.js";
+import logger from "../logger.js";
 
 // ───────── Standort ─────────────────────────────────────────────────────────
 const LAT = Number(process.env.LAT ?? 46.5668);

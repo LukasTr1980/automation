@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import logger from '../logger';
-import { getJwtAccessTokenSecret } from '../configs';
+import logger from '../logger.js';
+import { getJwtAccessTokenSecret } from '../configs.js';
 
 interface TokenPayload {
   username: string;

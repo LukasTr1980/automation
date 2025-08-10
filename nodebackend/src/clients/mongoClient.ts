@@ -1,7 +1,7 @@
 import { MongoClient, Db } from 'mongodb';
-import * as envSwitcher from '../envSwitcher';
-import * as vaultClient from './vaultClient';
-import logger from '../logger';
+import * as envSwitcher from '../envSwitcher.js';
+import * as vaultClient from './vaultClient.js';
+import logger from '../logger.js';
 
 let isConnected: boolean = false;
 let client: MongoClient;

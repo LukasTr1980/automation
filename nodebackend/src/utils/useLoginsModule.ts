@@ -1,6 +1,6 @@
 import { Db } from "mongodb";
-import { connectToMongo } from "../clients/mongoClient";
-import logger from "../logger";
+import { connectToMongo } from "../clients/mongoClient.js";
+import logger from "../logger.js";
 
 interface User {
     username: string;

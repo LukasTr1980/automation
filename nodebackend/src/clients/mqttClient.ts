@@ -1,7 +1,7 @@
 import mqtt, { IClientOptions, MqttClient } from 'mqtt';
-import * as vaultClient from '../clients/vaultClient';
-import * as envSwitcher from '../envSwitcher';
-import logger from '../logger';
+import * as vaultClient from '../clients/vaultClient.js';
+import * as envSwitcher from '../envSwitcher.js';
+import logger from '../logger.js';
 
 interface Credentials {
     data: { MOSQUITTO_USERNAME: string; MOSQUITTO_PASSWORD: string };

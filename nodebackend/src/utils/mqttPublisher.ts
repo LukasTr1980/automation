@@ -1,7 +1,7 @@
 import mqtt, { MqttClient } from 'mqtt';
-import * as envSwitcher from '../envSwitcher';
-import * as vaultClient from '../clients/vaultClient';
-import logger from '../logger';
+import * as envSwitcher from '../envSwitcher.js';
+import * as vaultClient from '../clients/vaultClient.js';
+import logger from '../logger.js';
 
 interface Credentials {
   data: {

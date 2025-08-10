@@ -1,5 +1,5 @@
 import express from "express";
-import { isSecureCookie, isDomainCookie, isSubDomainCookie } from "../envSwitcher";
+import { isSecureCookie, isDomainCookie, isSubDomainCookie } from "../envSwitcher.js";
 
 const router = express.Router();
 

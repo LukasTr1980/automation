@@ -1,6 +1,6 @@
 import express from 'express';
-import getTaskEnabler from '../utils/getTaskEnabler';
-import logger from '../logger';
+import getTaskEnabler from '../utils/getTaskEnabler.js';
+import logger from '../logger.js';
 
 const router = express.Router();
 

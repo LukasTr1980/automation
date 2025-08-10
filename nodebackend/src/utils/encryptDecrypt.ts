@@ -1,6 +1,6 @@
-import * as vaultClient from '../clients/vaultClient';
+import * as vaultClient from '../clients/vaultClient.js';
 import { randomBytes, createCipheriv, createDecipheriv } from 'crypto';
-import logger from '../logger';
+import logger from '../logger.js';
 
 let SECRET_KEY: string; // Declare SECRET_KEY at a scope accessible to encrypt and decrypt functions
 const IV_LENGTH = 16; // For AES, this is always 16

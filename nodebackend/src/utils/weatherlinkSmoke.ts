@@ -1,6 +1,6 @@
 // TS -> CJS Build: das kompiliert zu require('davis')
 import { WeatherlinkClient, flattenCurrent, flattenHistoric } from "@lukastr1980/davis";
-import logger from "../logger";
+import logger from "../logger.js";
 
 export async function weatherlinkSmoke() {
     const apiKey = process.env.WEATHERLINK_API_KEY!;

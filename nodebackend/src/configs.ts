@@ -1,10 +1,10 @@
 import { OpenAI } from 'openai';
 import { InfluxDB } from '@influxdata/influxdb-client';
-import * as envSwitcher from './envSwitcher';
-import * as vaultClient from './clients/vaultClient';
-import logger from './logger';
+import * as envSwitcher from './envSwitcher.js';
+import * as vaultClient from './clients/vaultClient.js';
+import logger from './logger.js';
 import fs from 'fs';
-import { isDev } from './envSwitcher';
+import { isDev } from './envSwitcher.js';
 
 let openai: OpenAI | undefined;
 let influxDbClientAI: InfluxDB | undefined;

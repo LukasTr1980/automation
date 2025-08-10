@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
-import { connectToRedis } from '../clients/redisClient';
-import logger from '../logger';
-import { jobs } from '../scheduler';
+import { connectToRedis } from '../clients/redisClient.js';
+import logger from '../logger.js';
+import { jobs } from '../scheduler.js';
 
 const router = express.Router();
 

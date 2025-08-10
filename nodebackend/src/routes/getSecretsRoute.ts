@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import * as vaultClient from '../clients/vaultClient'; // Ensure the path is correct
-import logger from '../logger';
+import * as vaultClient from '../clients/vaultClient.js'; // Ensure the path is correct
+import logger from '../logger.js';
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 import { Redis } from 'ioredis';
-import * as envSwitcher from '../envSwitcher';
-import * as vaultClient from './vaultClient';
-import logger from '../logger';
+import * as envSwitcher from '../envSwitcher.js';
+import * as vaultClient from './vaultClient.js';
+import logger from '../logger.js';
 import { Server } from 'socket.io';
 
 let client: Redis | undefined;

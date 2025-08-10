@@ -1,7 +1,7 @@
 import { ParameterizedQuery } from "@influxdata/influxdb-client";
-import logger from "../logger";
-import { getInfluxDbClientAutomation } from "../configs";
-import { irrigationDaysQuery } from "../utils/fluxQueries";
+import logger from "../logger.js";
+import { getInfluxDbClientAutomation } from "../configs.js";
+import { irrigationDaysQuery } from "../utils/fluxQueries.js";
 
 const ORG = "villaanna";
 // Pumpenspezifikationen

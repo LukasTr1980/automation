@@ -1,6 +1,6 @@
 import express from 'express';
-import { getScheduledTasks } from '../scheduler';
-import logger from '../logger';
+import { getScheduledTasks } from '../scheduler.js';
+import logger from '../logger.js';
 
 const router = express.Router();
 

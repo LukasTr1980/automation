@@ -1,25 +1,28 @@
 //ATTENTION TO IMPORT ORDER, MAY BREAK APPLICATION
-import './dotenvConfig'; //To make env variables immediately available
+import './dotenvConfig.js'; //To make env variables immediately available
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import { parse as cookieParse } from 'cookie';
 import cors from 'cors';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import http from 'http';
-import { subscribeToRedisKey } from './clients/redisClient';
-import configureSocket from './socketConfig';
-import authMiddlewareSocket from './middleware/authMiddlewareSocket';
-import { loadScheduledTasks } from './scheduler';
-import { apiLimiter } from './middleware/rateLimiter';
-import apiRouter from './routes/api';
-import logger from './logger';
+import { subscribeToRedisKey } from './clients/redisClient.js';
+import configureSocket from './socketConfig.js';
+import authMiddlewareSocket from './middleware/authMiddlewareSocket.js';
+import { loadScheduledTasks } from './scheduler.js';
+import { apiLimiter } from './middleware/rateLimiter.js';
+import apiRouter from './routes/api.js';
+import logger from './logger.js';
 import helmet from 'helmet';
-import { computeTodayET0 } from './utils/evapotranspiration';
-import { isDev } from './envSwitcher';
-import { weatherlinkSmoke } from './utils/weatherlinkSmoke';
+import { computeTodayET0 } from './utils/evapotranspiration.js';
+import { isDev } from './envSwitcher.js';
+import { weatherlinkSmoke } from './utils/weatherlinkSmoke.js';
 
 const app = express();
 const port = 8523;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const clientAppDistPath = isDev ? path.join(__dirname, '..', 'viteclientts', 'dist') : '/usr/src/viteclientts/dist/';
 
 app.set('trust proxy', 1);

@@ -1,6 +1,6 @@
 import express from 'express';
-import MqttPublisher from '../utils/mqttPublisher';
-import logger from '../logger';
+import MqttPublisher from '../utils/mqttPublisher.js';
+import logger from '../logger.js';
 
 const router = express.Router();
 const publisher = new MqttPublisher();

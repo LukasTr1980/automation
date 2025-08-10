@@ -1,15 +1,15 @@
 import schedule from 'node-schedule';
-import { connectToRedis } from './clients/redisClient';
-import isIrrigationNeeded from './gptChatIrrigation';
-import getTaskEnabler from './utils/getTaskEnabler';
-import generateUniqueId from './utils/generateUniqueId';
-import { topicToTaskEnablerKey, skipAiRedisKey } from './utils/constants';
-import MqttPublisher from './utils/mqttPublisher';
-import { computeTodayET0 } from './utils/evapotranspiration';
-import { recordCurrentCloudCover } from './utils/cloudCoverRecorder';
-import { odhRecordNextDayRain } from './utils/odhRainRecorder';
-import logger from './logger';
-import { recordIrrigationStartInflux } from './clients/influxdb-client';
+import { connectToRedis } from './clients/redisClient.js';
+import isIrrigationNeeded from './gptChatIrrigation.js';
+import getTaskEnabler from './utils/getTaskEnabler.js';
+import generateUniqueId from './utils/generateUniqueId.js';
+import { topicToTaskEnablerKey, skipAiRedisKey } from './utils/constants.js';
+import MqttPublisher from './utils/mqttPublisher.js';
+import { computeTodayET0 } from './utils/evapotranspiration.js';
+import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
+import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
+import logger from './logger.js';
+import { recordIrrigationStartInflux } from './clients/influxdb-client.js';
 
 const publisher = new MqttPublisher();
 

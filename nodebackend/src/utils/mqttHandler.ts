@@ -1,9 +1,9 @@
-import { connectToMongo } from '../clients/mongoClient';
+import { connectToMongo } from '../clients/mongoClient.js';
 import { EventEmitter } from 'events';
-import { writeToInflux } from '../clients/influxdb-client';
-import { mqttClientPromise } from '../clients/mqttClient';
-import { broadcastToSseClients, addSseClient } from './sseHandler';
-import logger from '../logger';
+import { writeToInflux } from '../clients/influxdb-client.js';
+import { mqttClientPromise } from '../clients/mqttClient.js';
+import { broadcastToSseClients, addSseClient } from './sseHandler.js';
+import logger from '../logger.js';
 
 class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();

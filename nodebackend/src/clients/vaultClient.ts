@@ -1,6 +1,6 @@
-import * as envSwitcher from '../envSwitcher';
-import { vaultRoleId, vaultSecretId } from '../configs';
-import logger from '../logger';
+import * as envSwitcher from '../envSwitcher.js';
+import { vaultRoleId, vaultSecretId } from '../configs.js';
+import logger from '../logger.js';
 import vault from 'node-vault';
 
 const vaultClient = vault({

@@ -1,5 +1,5 @@
 import winston from "winston";
-import { isDev } from "./envSwitcher";
+import { isDev } from "./envSwitcher.js";
 
 /*
  * Automation‑wide Winston logger
