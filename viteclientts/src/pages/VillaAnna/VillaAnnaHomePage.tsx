@@ -3,61 +3,20 @@ import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
 import IrrigationButtonImage from '../../images/IrrigationButton.webp';
 import IrrigationCountdownButtonImage from '../../images/IrrigationCountdownButton.webp';
-import HeatingButtonImage from '../../images/HeatingButtonImage.webp';
-import VentilationButtonImage from '../../images/VentilationButton.webp';
 import IrrigationButtonImageSmall from '../../images/IrrigationButton160x160.webp';
-import HeatingButtonImageSmall from '../../images/HeatingButton160x160.webp';
 import IrrigationCountdownButtonImageSmall from '../../images/IrrigationCountdownButton160x160.webp';
-import VentilationButtonImageSmall from '../../images/VentilationButton160x160.webp';
-import axios from 'axios';
-import { useUserStore } from '../../utils/store';
-import useSnackbar from '../../utils/useSnackbar';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import ImagePreloader from '../../utils/imagePreloader';
 
 const HomePage = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const { userLogin, deviceId, setTokenAndExpiry } = useUserStore();
-  const { showSnackbar } = useSnackbar();
-  const { t } = useTranslation();
-  const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const refreshToken = async (url: string) => {
-    try {
-      const response = await axios.post(`${apiUrl}/refreshToken`, { username: userLogin, deviceId });
-      if (response.status === 200 && response.data.accessToken) {
-        setTokenAndExpiry(response.data.accessToken);
-        window.open(url, "_blank");
-      }
-    } catch (error) {
-      showSnackbar(t('invalidOrExpiredToken'), 'warning');
-      navigate('/login');
-    }
-  };
-
-  const openHeatingSystemUrl = () => {
-    const heatingSystemUrl = 'https://charts.cx/heating-system/';
-    refreshToken(heatingSystemUrl);
-  };
-
-  const openVentilationSystemUrl = () => {
-    const ventilationSystemUrl = 'https://charts.cx/ventilation-system/';
-    refreshToken(ventilationSystemUrl);
-  }
-
   const imageUrls = isSmallScreen ? [
     IrrigationButtonImageSmall,
-    IrrigationCountdownButtonImageSmall,
-    HeatingButtonImageSmall,
-    VentilationButtonImageSmall
+    IrrigationCountdownButtonImageSmall
   ] : [
     IrrigationButtonImage,
-    IrrigationCountdownButtonImage,
-    HeatingButtonImage,
-    VentilationButtonImage
+    IrrigationCountdownButtonImage
   ];
 
   const cardMaxwidth = isSmallScreen ? { maxWidth: '160px' } : { maxWidth: '200px' };
@@ -108,42 +67,6 @@ const HomePage = () => {
                 </CardActionArea>
               </Card>
             </RouterLink>
-          </Grid>
-          <Grid>
-            <Card sx={cardMaxwidth} variant='outlined'>
-              <CardActionArea onClick={openHeatingSystemUrl}>
-                <CardMedia
-                  component='img'
-                  image={isSmallScreen ? HeatingButtonImageSmall : HeatingButtonImage}
-                  alt='Heating'
-                  width={cardMediaWidth}
-                  height={cardMediaHeight}
-                />
-                <CardContent>
-                  <Typography fontSize={typographyFontSize}>
-                    Heizung
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-          <Grid>
-            <Card sx={cardMaxwidth} variant='outlined'>
-              <CardActionArea onClick={openVentilationSystemUrl}>
-                <CardMedia
-                  component='img'
-                  image={isSmallScreen ? VentilationButtonImageSmall : VentilationButtonImage}
-                  alt='Ventilation'
-                  width={cardMediaWidth}
-                  height={cardMediaHeight}
-                />
-                <CardContent>
-                  <Typography fontSize={typographyFontSize}>
-                    Lüftung
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
           </Grid>
         </Grid>
       </Layout>

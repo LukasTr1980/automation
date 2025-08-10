@@ -1,5 +1,5 @@
 import express from "express";
-import { isSecureCookie, isDomainCookie, isSubDomainCookie } from "../envSwitcher.js";
+import { isSecureCookie, isSubDomainCookie } from "../envSwitcher.js";
 
 const router = express.Router();
 
@@ -20,15 +20,6 @@ router.post('/', (req: express.Request, res: express.Response) => {
         secure: isSecureCookie,
         sameSite: 'lax'
     });
-
-    res.cookie('forwardAuthToken', '', {
-        httpOnly: true,
-        secure: isSecureCookie,
-        domain: isDomainCookie,
-        maxAge: 0,
-        sameSite: 'lax'
-    })
-
     res.status(200).send('loggedOut');
 });
 

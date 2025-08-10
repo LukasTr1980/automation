@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { connectToRedis } from '../clients/redisClient.js';
 import logger from '../logger.js';
 import crypto from 'crypto';
-import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher.js';
+import { isSecureCookie, jwtTokenExpiry, isSubDomainCookie } from '../envSwitcher.js';
 import { getJwtAccessTokenSecret } from '../configs.js';
 import { initializeEncryptionKey, decrypt, encrypt } from '../utils/encryptDecrypt.js';
 import { roleCookieValidation, refreshTokenValidation, deviceIdValidation, usernameValidation } from '../utils/inputValidation.js';
@@ -83,7 +83,6 @@ router.post('/', async (req, res) => {
         const expiresIn = jwtTokenExpiry;
 
         const newAccessToken = jwt.sign({ username: username, role: storedData.userRole }, jwtSecret, { expiresIn });
-        const newForwardAuthToken = jwt.sign({ username: username, role: storedData.userRole }, jwtSecret, {expiresIn});
 
         const newRefreshToken = crypto.randomBytes(40).toString('hex');
         const refreshTokenData: StoredData = { refreshToken: newRefreshToken, userRole: storedData.userRole }
@@ -107,15 +106,6 @@ router.post('/', async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
-
-        res.cookie('forwardAuthToken', newForwardAuthToken, {
-            httpOnly: true,
-            secure: isSecureCookie,
-            domain: isDomainCookie,
-            maxAge: expiresIn * 1000,
-            sameSite: 'lax'
-        })
-
         res.status(200).json({  
             accessToken: newAccessToken
         });

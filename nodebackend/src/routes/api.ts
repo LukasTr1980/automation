@@ -2,7 +2,6 @@ import express from 'express';
 import { apiLimiter, loginLimiter } from '../middleware/rateLimiter.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import requiredRole from '../middleware/roleMiddleware.js';
-import authMiddlewareForwardAuth from '../middleware/authMiddlewareForwardAuth.js';
 
 import loginRouter from './loginRoute.js';
 import mqttRouter from './mqttRoute.js';
@@ -20,7 +19,6 @@ import refreshTokenRouter from './refreshTokenRoute.js';
 import logoutRouter from './logoutRoute.js';
 import verifyTokenRouter from './verifyTokenRoute.js';
 import userDataRouter from './userDataRoute.js';
-import forwardAuthRouter from './forwardAuthRoute.js';
 import cspReportRouter from './cspReportRoute.js';
 
 const router = express.Router();
@@ -41,7 +39,6 @@ router.use('/getSecrets', apiLimiter, [authMiddleware, requiredRole(['admin'])],
 router.use('/updateSecrets', apiLimiter, [authMiddleware, requiredRole(['admin'])], updateSecretsRouter);
 router.use('/countdown', apiLimiter, authMiddleware, countdownRouter);
 router.use('/userData', apiLimiter, authMiddleware, userDataRouter);
-router.use('/forwardAuth', apiLimiter, [authMiddlewareForwardAuth, requiredRole(['admin', 'stefan'])], forwardAuthRouter);
 router.use('/csp-violation-report', apiLimiter, cspReportRouter);
 
 export default router;

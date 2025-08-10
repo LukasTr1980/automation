@@ -6,7 +6,7 @@ import * as vaultClient from '../clients/vaultClient.js'; // Import your Vault c
 import logger from '../logger.js';
 import { updateLastLogin } from '../utils/useLoginsModule.js';
 import jwt from 'jsonwebtoken';
-import { isSecureCookie, jwtTokenExpiry, isDomainCookie, isSubDomainCookie } from '../envSwitcher.js';
+import { isSecureCookie, jwtTokenExpiry, isSubDomainCookie } from '../envSwitcher.js';
 import { getJwtAccessTokenSecret } from '../configs.js';
 import { initializeEncryptionKey, encrypt } from '../utils/encryptDecrypt.js';
 import generateUniqueId from '../utils/generateUniqueId.js';
@@ -52,7 +52,6 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         const expiresIn = jwtTokenExpiry;
 
         const accessToken = jwt.sign({ username, role: userRole }, jwtSecret, { expiresIn });
-        const forwardAuthToken = jwt.sign({ username, role: userRole }, jwtSecret, { expiresIn });
 
         const refreshToken = crypto.randomBytes(40).toString('hex');
 
@@ -79,14 +78,6 @@ router.post('/', async (req: express.Request, res: express.Response) => {
             maxAge: 30 * 24 * 60 * 60 * 1000,
             sameSite: 'lax'
         });
-
-        res.cookie('forwardAuthToken', forwardAuthToken, {
-            httpOnly: true,
-            secure: isSecureCookie,
-            domain: isDomainCookie,
-            maxAge: expiresIn * 1000,
-            sameSite: 'lax'
-        })
 
         await updateLastLogin(username);
         logger.info(`User ${username} logged in successfully from IP ${clientIp}`);
