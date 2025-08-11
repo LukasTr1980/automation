@@ -13,7 +13,7 @@
 // -----------------------------------------------------------------------------
 
 import { querySingleData, writeToInflux } from "../clients/influxdb-client.js";
-import { getDailyOutdoorTempAverage, getDailyOutdoorHumidityAverage, getDailyOutdoorWindSpeedAverage } from "../clients/weatherlink-client.js";
+import { getDailyOutdoorTempAverage, getDailyOutdoorHumidityAverage, getDailyOutdoorWindSpeedAverage, getDailyOutdoorTempExtrema } from "../clients/weatherlink-client.js";
 import logger from "../logger.js";
 import { isDev } from "../envSwitcher.js";
 
@@ -27,10 +27,7 @@ const K_RS = Number(process.env.K_RS ?? 0.19);    // Hargreaves (Inland)
 const BUCKET = process.env.BUCKET ?? "iobroker";   // Sensoren
 const CLOUD_BUCKET = process.env.CLOUD_BUCKET ?? "automation"; // Wolken‑Recorder
 
-// Measurements
-const MEAS_TEMP = "javascript.0.Wetterstation.Aussentemperatur";
-const MEAS_RH = "javascript.0.Wetterstation.FT0300_Feuchte_1";
-const MEAS_WIND = "javascript.0.Wetterstation.Wind";
+// Measurements (pressure and clouds from Influx; temps, RH, wind from WeatherLink)
 const MEAS_PRESSURE = "javascript.0.Wetterstation.Druck_relativ";
 const MEAS_CLOUDS = "dwd.clouds";
 
@@ -68,9 +65,7 @@ from(bucket: "${bucket}")
   |> last()`;
 
 // Sensor‑Queries
-const qTmin = fluxDaily(BUCKET, MEAS_TEMP, "min");
-const qTmax = fluxDaily(BUCKET, MEAS_TEMP, "max");
-// Tavg, RH, Wind are now sourced from WeatherLink helpers, not Influx
+// Tmin/Tmax, Tavg, RH, Wind are now sourced from WeatherLink helpers, not Influx
 const qP = fluxDaily(BUCKET, MEAS_PRESSURE, "mean");
 // Wolken
 const qCloud = fluxDailyField(CLOUD_BUCKET, MEAS_CLOUDS, "value_numeric", "mean");
@@ -83,16 +78,17 @@ async function influxNumber(flux: string): Promise<number> {
 // ───────────── Hauptfunktion ────────────────────────────────────────────────
 export async function computeTodayET0() {
     try {
-        const [Tmin, Tmax, P_hPa, cloud, tempAvgRes, rhAvgRes, windAvgRes] = await Promise.all([
-            influxNumber(qTmin),
-            influxNumber(qTmax),
+        const [P_hPa, cloud, tempAvgRes, rhAvgRes, windAvgRes, tempExtRes] = await Promise.all([
             influxNumber(qP),
             influxNumber(qCloud),
             getDailyOutdoorTempAverage(),
             getDailyOutdoorHumidityAverage(),
             getDailyOutdoorWindSpeedAverage(),
+            getDailyOutdoorTempExtrema(),
         ] as const);
 
+        const Tmin = tempExtRes.ok ? tempExtRes.tLo : NaN;
+        const Tmax = tempExtRes.ok ? tempExtRes.tHi : NaN;
         const Tavg = tempAvgRes.ok ? tempAvgRes.avg : NaN;
         const RH = rhAvgRes.ok ? rhAvgRes.avg : NaN;
         const wind10 = windAvgRes.ok ? windAvgRes.avg : NaN; // m/s
