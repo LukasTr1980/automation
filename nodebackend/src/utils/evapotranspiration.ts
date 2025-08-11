@@ -64,10 +64,12 @@ async function influxNumber(flux: string): Promise<number> {
     return rows.length ? parseFloat(rows[0]._value) : NaN;
 }
 
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
 // ───────────── Hauptfunktion ────────────────────────────────────────────────
 export async function computeTodayET0() {
     try {
-        const [pAvgRes, cloud, tempAvgRes, rhAvgRes, windAvgRes, tempExtRes] = await Promise.all([
+        const [pAvgRes, cloudRaw, tempAvgRes, rhAvgRes, windAvgRes, tempExtRes] = await Promise.all([
             getDailyOutdoorPressureAverage(),
             influxNumber(qCloud),
             getDailyOutdoorTempAverage(),
@@ -75,6 +77,8 @@ export async function computeTodayET0() {
             getDailyOutdoorWindSpeedAverage(),
             getDailyOutdoorTempExtrema(),
         ] as const);
+
+        const cloud = clamp(cloudRaw, 0, 100);  // ← (1) clamp
 
         const P_hPa = pAvgRes.ok ? pAvgRes.avg : NaN;
         const Tmin = tempExtRes.ok ? tempExtRes.tLo : NaN;
@@ -87,7 +91,7 @@ export async function computeTodayET0() {
 
         if (!isFinite(cloud)) {
             logger.warn("Noch kein Cloud‑Datensatz heute – ET₀ wird in 15 min erneut versucht");
-            setTimeout(computeTodayET0, 5 * 60 * 1000);
+            setTimeout(computeTodayET0, 15 * 60 * 1000);
             return;
         }
         if ([Tmin, Tmax, Tavg, RH, wind10, P_hPa].some(v => !isFinite(v))) {
@@ -110,9 +114,11 @@ export async function computeTodayET0() {
         // Netto‑Kurz‑/Langwelle
         const Rns = (1 - ALBEDO) * Rs;
         const ea = svp(Tavg) * RH / 100;
+        // FAO‑56: es aus Tmax/Tmin mitteln (nicht es(Tavg))
+        const es = (svp(Tmax) + svp(Tmin)) / 2;
         const emissivity = Math.max(0.34 - 0.14 * Math.sqrt(ea), 0.05);
         const cloudCorr = Math.max(1.35 * Rs_Rso - 0.35, 0.05);
-        const Rnl = 4.903e-9 * ((Math.pow(Tmax + 273.16, 4) + Math.pow(Tmin + 273.16, 4)) / 2) * emissivity * cloudCorr;
+        const Rnl = 4.903e-9 * ((Math.pow(Tmax + 273.15, 4) + Math.pow(Tmin + 273.15, 4)) / 2) * emissivity * cloudCorr;
         const Rn = Rns - Rnl;
 
         // ET₀ (Penman‑Monteith)
@@ -120,7 +126,7 @@ export async function computeTodayET0() {
         const γ = psychro(P_hPa / 10);              // hPa → kPa
         const u2 = wind10 * 0.748;                  // 10 m → 2 m
 
-        const et0 = (0.408 * Δ * Rn + γ * 900 / (Tavg + 273.15) * u2 * (svp(Tavg) - ea)) /
+        const et0 = (0.408 * Δ * Rn + γ * 900 / (Tavg + 273.15) * u2 * (es - ea)) /
             (Δ + γ * (1 + 0.34 * u2));
 
         if (!isDev) {
