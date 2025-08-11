@@ -92,12 +92,5 @@ const createTopicHandler = (topic: string, checkFunction: (message: string) => b
     };
 };
 
-const rainRateHandler = createTopicHandler('wetter/number/weathercloud_regenrate', (message) => Number(message) > 0);
-const windHandler = createTopicHandler('wetter/number/wind', (message) => Number(message) >= 20);
-
 // Individual exports for each entity
 export { latestStates, addSseClient, stateChangeEmitter };
-
-// Exporting functions with specific aliases
-export const isRaining = rainRateHandler.getStatus;
-export const isWindy = windHandler.getStatus;

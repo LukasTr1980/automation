@@ -60,4 +60,12 @@ export async function weatherlinkSmoke() {
         console.log("measurements:", measurements);
         console.log("inside:", inside);
     }
+
+    const end = Date.now();
+    const start = end - (1200) * 1000;
+    const historic = await client.getHistoric(s.station_id_uuid, start, end);
+    if (historic) {
+        const measurements = historic.sensors[2];
+        console.log('Measurements:', measurements);
+    }
 }
