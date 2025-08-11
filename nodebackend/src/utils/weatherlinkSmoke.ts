@@ -1,6 +1,7 @@
 import { WeatherlinkClient } from '@lukastr1980/davis';
 import logger from "../logger.js";
 import * as vaultClient from "../clients/vaultClient.js";
+import { getDailyOutdoorTempAverage, getOutdoorTempAverageRange } from "../clients/weatherlink-client.js";
 
 interface WeatherlinkCredentials {
     data: {
@@ -61,11 +62,28 @@ export async function weatherlinkSmoke() {
         console.log("inside:", inside);
     }
 
+    // Configurable window like before; default 24h back
     const end = Date.now();
-    const start = end - (1200) * 1000;
+    const WINDOW_SECONDS = 24 * 3600; // adjust as needed
+    const start = end - WINDOW_SECONDS * 1000;
     const historic = await client.getHistoric(s.station_id_uuid, start, end);
     if (historic) {
         const measurements = historic.sensors[2];
         console.log('Measurements:', measurements);
+    }
+
+    // Last 24 hours average (ending now) using flexible range helper
+    const avg24 = await getOutdoorTempAverageRange({ end, windowSeconds: WINDOW_SECONDS, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted', units: 'metric' });
+    if (avg24.ok) {
+        console.log(`[WEATHERLINK] Last ${WINDOW_SECONDS/3600}h outdoor temp avg: ${avg24.avg.toFixed(2)} °C (chunks=${avg24.chunks.length})`);
+    } else {
+        console.log('[WEATHERLINK] Failed to compute range outdoor temp average');
+    }
+
+    // Example: whole week via daily chunks and daily-mean combination
+    const SEVEN_DAYS = 7 * 24 * 3600;
+    const week = await getOutdoorTempAverageRange({ end, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' });
+    if (week.ok) {
+        console.log(`[WEATHERLINK] 7-day avg (daily mean): ${week.avg.toFixed(2)} °C`);
     }
 }

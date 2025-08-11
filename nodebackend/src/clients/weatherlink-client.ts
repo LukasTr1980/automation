@@ -10,6 +10,7 @@ interface WeatherlinkSecret {
 }
 
 export interface RainRateResult { rate: number; ok: boolean }
+export interface RainRateOptions { units?: 'metric' | 'imperial' }
 
 // Generic types for future metrics
 export type SensorTypeCode = number;
@@ -134,25 +135,176 @@ export async function getWeatherlinkMetrics<T extends Record<string, unknown>>(
 }
 
 // Backwards-compatible helper focused on rain rate
-export async function getRainRateFromWeatherlink(): Promise<RainRateResult> {
+export async function getRainRateFromWeatherlink(options: RainRateOptions = {}): Promise<RainRateResult> {
   try {
-    const { ok, metrics } = await getWeatherlinkMetrics<{ rainRate?: number }>([
+    const units = options.units ?? 'metric';
+    const { ok, metrics } = await getWeatherlinkMetrics<{ rateIn?: number; rateMm?: number }>([
       {
-        name: 'rainRate',
+        name: 'rateIn',
+        sensorType: 37, // ISS
+        field: 'rain_rate_last_in',
+        transform: (v) => (typeof v === 'number' && isFinite(v) ? v : undefined), // inches/hour
+        defaultValue: undefined,
+      },
+      {
+        name: 'rateMm',
         sensorType: 37, // ISS
         field: 'rain_rate_last_mm',
-        transform: (v) => (typeof v === 'number' && isFinite(v) ? v : 0), // mm/h already
-        fallbacks: [
-          { field: 'rain_rate_last_in', transform: (v) => (typeof v === 'number' && isFinite(v) ? v * 25.4 : 0) },
-        ],
-        defaultValue: 0,
+        transform: (v) => (typeof v === 'number' && isFinite(v) ? v : undefined), // mm/hour
+        defaultValue: undefined,
       },
     ]);
 
-    const rate = typeof metrics.rainRate === 'number' ? metrics.rainRate : 0;
+    let rate: number = 0;
+    const mm = typeof metrics.rateMm === 'number' ? metrics.rateMm : undefined;
+    const inch = typeof metrics.rateIn === 'number' ? metrics.rateIn : undefined;
+
+    if (units === 'metric') {
+      if (mm !== undefined) rate = mm; else if (inch !== undefined) rate = inch * 25.4; else rate = 0;
+    } else {
+      if (inch !== undefined) rate = inch; else if (mm !== undefined) rate = mm / 25.4; else rate = 0;
+    }
+
     return { rate, ok };
   } catch (e) {
     logger.error('[WEATHERLINK] Error while fetching rain rate', e);
     return { rate: 0, ok: false };
   }
+}
+
+// Compute average outdoor temperature for a given local day
+export interface DailyTempAvgResult { ok: boolean; avg: number; count: number }
+
+export interface OutdoorTempAverageOptions {
+  end?: Date | number;
+  windowSeconds?: number; // total range length
+  chunkSeconds?: number; // max 86400 due to API
+  combineMode?: 'dailyMean' | 'sampleWeighted';
+  units?: 'metric' | 'imperial'; // metric: Celsius, imperial: Fahrenheit
+}
+
+export interface OutdoorTempAverageChunk {
+  start: number;
+  end: number;
+  avg: number;
+  count: number;
+}
+
+export interface OutdoorTempAverageResult {
+  ok: boolean;
+  avg: number;
+  chunks: OutdoorTempAverageChunk[];
+  combineMode: 'dailyMean' | 'sampleWeighted';
+}
+
+function fToC(f: number): number { return (f - 32) * (5 / 9); }
+
+async function computeChunkOutdoorTempAvg(
+  client: WeatherlinkClient,
+  stationUUID: string,
+  start: number | Date,
+  end: number | Date,
+  toMetric: boolean,
+): Promise<{ sum: number; count: number; start: number; end: number }> {
+  const historic = await client.getHistoric(stationUUID, start, end);
+  const startTs = typeof start === 'number' ? start : start.getTime();
+  const endTs = typeof end === 'number' ? end : end.getTime();
+  if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
+
+  const iss = historic.sensors.find((s: any) => s?.sensor_type === 37);
+  const dataArray: unknown[] = Array.isArray(iss?.data) ? (iss!.data as unknown[]) : [];
+
+  let sum = 0;
+  let count = 0;
+  for (const entry of dataArray as any[]) {
+    const tAvg = entry?.temp_avg;
+    const tLast = entry?.temp_last;
+    const tHi = entry?.temp_hi;
+    const tLo = entry?.temp_lo;
+
+    let val: number | undefined = undefined;
+    if (typeof tAvg === 'number' && isFinite(tAvg)) {
+      val = tAvg;
+    } else if (typeof tLast === 'number' && isFinite(tLast)) {
+      val = tLast;
+    } else if (typeof tHi === 'number' && isFinite(tHi) && typeof tLo === 'number' && isFinite(tLo)) {
+      val = (tHi + tLo) / 2;
+    }
+
+    if (typeof val === 'number' && isFinite(val)) {
+      const v = toMetric ? fToC(val) : val;
+      sum += v;
+      count += 1;
+    }
+  }
+  return { sum, count, start: startTs, end: endTs };
+}
+
+// Generic average over a range, chunked due to API limit
+export async function getOutdoorTempAverageRange(options: OutdoorTempAverageOptions = {}): Promise<OutdoorTempAverageResult> {
+  const end = options.end instanceof Date ? options.end.getTime() : typeof options.end === 'number' ? options.end : Date.now();
+  const windowSeconds = options.windowSeconds ?? 24 * 3600; // default last 24h
+  const chunkCap = 24 * 3600; // API max seconds per request
+  const chunkSeconds = Math.min(options.chunkSeconds ?? chunkCap, chunkCap);
+  const combineMode = options.combineMode ?? 'dailyMean';
+  const units = options.units ?? 'metric';
+  const toMetric = units === 'metric';
+
+  const res = await withWeatherlinkClient(async (client) => {
+    const stationUUID = await getFirstStationUUID(client);
+    if (!stationUUID) return null as any;
+
+    const start = end - windowSeconds * 1000;
+
+    const chunks: OutdoorTempAverageChunk[] = [];
+    let cursorEnd = end;
+
+    while (cursorEnd > start) {
+      const cursorStart = Math.max(start, cursorEnd - chunkSeconds * 1000);
+      const { sum, count, start: s, end: e } = await computeChunkOutdoorTempAvg(client, stationUUID, cursorStart, cursorEnd, toMetric);
+      const avg = count > 0 ? sum / count : 0;
+      chunks.push({ start: s, end: e, avg, count });
+      cursorEnd = cursorStart;
+    }
+
+    // We built chunks from end backwards; reverse to chronological
+    chunks.reverse();
+    return { chunks } as { chunks: OutdoorTempAverageChunk[] };
+  });
+
+  if (!res.ok || !res.value) return { ok: false, avg: 0, chunks: [], combineMode };
+
+  const chunks = res.value.chunks;
+  if (!chunks.length) return { ok: false, avg: 0, chunks: [], combineMode };
+
+  let avg = 0;
+  if (combineMode === 'sampleWeighted') {
+    let totalSum = 0;
+    let totalCount = 0;
+    for (const c of chunks) {
+      totalSum += c.avg * c.count;
+      totalCount += c.count;
+    }
+    avg = totalCount > 0 ? totalSum / totalCount : 0;
+  } else {
+    // dailyMean (equal weight per chunk)
+    let sumAvg = 0;
+    let n = 0;
+    for (const c of chunks) {
+      if (c.count > 0) {
+        sumAvg += c.avg;
+        n += 1;
+      }
+    }
+    avg = n > 0 ? sumAvg / n : 0;
+  }
+
+  return { ok: true, avg, chunks, combineMode };
+}
+
+export async function getDailyOutdoorTempAverage(endDate: Date = new Date()): Promise<DailyTempAvgResult> {
+  // Last 24 hours ending at endDate
+  const { ok, avg, chunks } = await getOutdoorTempAverageRange({ end: endDate, windowSeconds: 24 * 3600, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted', units: 'metric' });
+  const count = chunks.length ? chunks[0].count : 0; // single chunk for 24h
+  return { ok, avg, count };
 }
