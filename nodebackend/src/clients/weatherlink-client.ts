@@ -42,6 +42,124 @@ export interface MetricsResult<T extends Record<string, unknown>> {
   metrics: T;
 }
 
+// Simple sliding-window rate limiter: max 10 req/sec and 1000 req/hour
+class SlidingWindowRateLimiter {
+  private perSecond: number;
+  private perHour: number;
+  private recentSecond: number[] = [];
+  private recentHour: number[] = [];
+  private queue: Array<{
+    fn: () => Promise<unknown>;
+    resolve: (v: unknown) => void;
+    reject: (e: unknown) => void;
+  }> = [];
+  private timer: NodeJS.Timeout | null = null;
+  private processing = false;
+
+  constructor(perSecond: number, perHour: number) {
+    this.perSecond = perSecond;
+    this.perHour = perHour;
+  }
+
+  enqueue<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      // Wrap resolve/reject to match our stored callback types (unknown)
+      const wrappedResolve = (v: unknown) => resolve(v as T);
+      const wrappedReject = (e: unknown) => reject(e as any);
+      this.queue.push({ fn: fn as () => Promise<unknown>, resolve: wrappedResolve, reject: wrappedReject });
+      this.schedule();
+    });
+  }
+
+  private schedule(): void {
+    if (this.processing) return;
+    // If a wake-up is already scheduled, let it fire
+    if (this.timer) return;
+    this.process();
+  }
+
+  private prune(now: number): void {
+    const secAgo = now - 1000;
+    while (this.recentSecond.length && this.recentSecond[0] <= secAgo) this.recentSecond.shift();
+    const hourAgo = now - 3600000;
+    while (this.recentHour.length && this.recentHour[0] <= hourAgo) this.recentHour.shift();
+  }
+
+  private allowed(now: number): boolean {
+    this.prune(now);
+    return this.recentSecond.length < this.perSecond && this.recentHour.length < this.perHour;
+  }
+
+  private nextWait(now: number): number {
+    // Compute time until a slot frees up in either window
+    this.prune(now);
+    let waitSec = 0;
+    if (this.recentSecond.length >= this.perSecond) {
+      const oldest = this.recentSecond[0];
+      waitSec = Math.max(0, 1000 - (now - oldest));
+    }
+    let waitHour = 0;
+    if (this.recentHour.length >= this.perHour) {
+      const oldest = this.recentHour[0];
+      waitHour = Math.max(0, 3600000 - (now - oldest));
+    }
+    return Math.max(waitSec, waitHour);
+  }
+
+  private reserve(now: number): void {
+    this.recentSecond.push(now);
+    this.recentHour.push(now);
+  }
+
+  private async process(): Promise<void> {
+    if (this.processing) return;
+    this.processing = true;
+    try {
+      // Drain as many tasks as allowed, one at a time
+      while (this.queue.length) {
+        const now = Date.now();
+        if (!this.allowed(now)) {
+          const wait = this.nextWait(now);
+          // Schedule resume and exit loop
+          this.timer = setTimeout(() => {
+            this.timer = null;
+            this.process().catch((e) => logger.error('[WEATHERLINK] Rate limiter process error', e));
+          }, wait + 2);
+          break;
+        }
+
+        const task = this.queue.shift()!;
+        this.reserve(now);
+        try {
+          const val = await task.fn();
+          task.resolve(val);
+        } catch (err) {
+          task.reject(err);
+        }
+        // loop continues; windows will be re-evaluated next iteration
+      }
+    } finally {
+      this.processing = false;
+      // If queue still has items and we're not scheduled, schedule again
+      if (this.queue.length && !this.timer) {
+        const now = Date.now();
+        const wait = this.nextWait(now);
+        this.timer = setTimeout(() => {
+          this.timer = null;
+          this.process().catch((e) => logger.error('[WEATHERLINK] Rate limiter process error', e));
+        }, wait + 2);
+      }
+    }
+  }
+}
+
+// Shared limiter across the module (API key scope)
+const weatherlinkLimiter = new SlidingWindowRateLimiter(10, 1000);
+
+async function runLimited<T>(fn: () => Promise<T>): Promise<T> {
+  return weatherlinkLimiter.enqueue(fn) as Promise<T>;
+}
+
 async function withWeatherlinkClient<T>(fn: (client: WeatherlinkClient) => Promise<T>): Promise<{ ok: boolean; value?: T }> {
   try {
     await vaultClient.login();
@@ -77,7 +195,7 @@ async function withWeatherlinkClient<T>(fn: (client: WeatherlinkClient) => Promi
 }
 
 async function getFirstStationUUID(client: WeatherlinkClient): Promise<string | undefined> {
-  const stations = await client.getStations();
+  const stations = await runLimited(() => client.getStations());
   if (!stations.length) {
     logger.warn('[WEATHERLINK] No station found');
     return undefined;
@@ -86,7 +204,7 @@ async function getFirstStationUUID(client: WeatherlinkClient): Promise<string | 
 }
 
 async function getCurrentSensorBlocks(client: WeatherlinkClient, stationUUID: string): Promise<SensorBlock[]> {
-  const current = await client.getCurrent(stationUUID);
+  const current = await runLimited(() => client.getCurrent(stationUUID));
   if (!current) return [];
   return current.sensors
     .map((s: any) => {
@@ -206,7 +324,7 @@ async function computeChunkOutdoorTempAvg(
   end: number | Date,
   toMetric: boolean,
 ): Promise<{ sum: number; count: number; start: number; end: number }> {
-  const historic = await client.getHistoric(stationUUID, start, end);
+  const historic = await runLimited(() => client.getHistoric(stationUUID, start, end));
   const startTs = typeof start === 'number' ? start : start.getTime();
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
@@ -340,7 +458,7 @@ async function computeChunkOutdoorTempExtrema(
   end: number | Date,
   toMetric: boolean,
 ): Promise<{ hiMax: number; loMin: number; count: number; start: number; end: number }> {
-  const historic = await client.getHistoric(stationUUID, start, end);
+  const historic = await runLimited(() => client.getHistoric(stationUUID, start, end));
   const startTs = typeof start === 'number' ? start : start.getTime();
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { hiMax: Number.NEGATIVE_INFINITY, loMin: Number.POSITIVE_INFINITY, count: 0, start: startTs, end: endTs };
@@ -455,7 +573,7 @@ async function computeChunkOutdoorHumidityAvg(
   start: number | Date,
   end: number | Date,
 ): Promise<{ sum: number; count: number; start: number; end: number }> {
-  const historic = await client.getHistoric(stationUUID, start, end);
+  const historic = await runLimited(() => client.getHistoric(stationUUID, start, end));
   const startTs = typeof start === 'number' ? start : start.getTime();
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
@@ -586,7 +704,7 @@ async function computeChunkOutdoorWindAvg(
   end: number | Date,
   toMetric: boolean,
 ): Promise<{ sum: number; count: number; start: number; end: number }> {
-  const historic = await client.getHistoric(stationUUID, start, end);
+  const historic = await runLimited(() => client.getHistoric(stationUUID, start, end));
   const startTs = typeof start === 'number' ? start : start.getTime();
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
@@ -717,7 +835,7 @@ async function computeChunkOutdoorPressureAvg(
   end: number | Date,
   toMetric: boolean,
 ): Promise<{ sum: number; count: number; start: number; end: number }> {
-  const historic = await client.getHistoric(stationUUID, start, end);
+  const historic = await runLimited(() => client.getHistoric(stationUUID, start, end));
   const startTs = typeof start === 'number' ? start : start.getTime();
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
