@@ -4,7 +4,7 @@ import type { WeatherData } from "./clients/influxdb-client.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import logger from "./logger.js";
 import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js"; // <-- import service
-import { getRainRateFromWeatherlink, getOutdoorTempAverageRange } from "./clients/weatherlink-client.js";
+import { getRainRateFromWeatherlink, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange } from "./clients/weatherlink-client.js";
 
 // ---------- FE-Interface -----------------------------------------------------
 export interface CompletionResponse {
@@ -126,6 +126,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // Fetch 7-day outdoor temperature average from WeatherLink (daily mean over daily chunks)
   const SEVEN_DAYS = 7 * 24 * 3600;
   let outTemp7 = weatherData.outTemp;
+  let humidity7 = weatherData.humidity;
   try {
     const week = await getOutdoorTempAverageRange({
       windowSeconds: SEVEN_DAYS,
@@ -143,10 +144,28 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     logger.error("[WEATHERLINK] Error computing 7-day temp avg; falling back to Influx value", e);
   }
 
+  // Fetch 7-day outdoor humidity average from WeatherLink
+  try {
+    const hWeek = await getOutdoorHumidityAverageRange({
+      windowSeconds: SEVEN_DAYS,
+      chunkSeconds: 24 * 3600,
+      combineMode: 'dailyMean',
+    });
+    if (hWeek.ok) {
+      humidity7 = hWeek.avg;
+      logger.info(`[WEATHERLINK] Using 7-day humidity avg from WeatherLink: ${humidity7.toFixed(1)} %`);
+    } else {
+      logger.warn("[WEATHERLINK] 7-day humidity avg not available; falling back to Influx value");
+    }
+  } catch (e) {
+    logger.error("[WEATHERLINK] Error computing 7-day humidity avg; falling back to Influx value", e);
+  }
+
   // 2) Typsicheres, unveraenderliches Objekt zusammenbauen
   const d: EnrichedWeatherData = {
     ...weatherData,
     outTemp: outTemp7,
+    humidity: humidity7,
     rainRate: wlOk ? rainRateWL : 0,
     irrigationDepthMm,
   }
@@ -296,4 +315,3 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   logger.info(`${result.result ? "ON" : "OFF"} | ${result.response}\n${result.formattedEvaluation}`);
   return result;
 }
-

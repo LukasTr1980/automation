@@ -1,7 +1,7 @@
 import { WeatherlinkClient } from '@lukastr1980/davis';
 import logger from "../logger.js";
 import * as vaultClient from "../clients/vaultClient.js";
-import { getDailyOutdoorTempAverage, getOutdoorTempAverageRange } from "../clients/weatherlink-client.js";
+import { getDailyOutdoorTempAverage, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange } from "../clients/weatherlink-client.js";
 
 interface WeatherlinkCredentials {
     data: {
@@ -64,7 +64,7 @@ export async function weatherlinkSmoke() {
 
     // Configurable window like before; default 24h back
     const end = Date.now();
-    const WINDOW_SECONDS = 24 * 3600; // adjust as needed
+    const WINDOW_SECONDS = 600; // adjust as needed
     const start = end - WINDOW_SECONDS * 1000;
     const historic = await client.getHistoric(s.station_id_uuid, start, end);
     if (historic) {
@@ -85,5 +85,13 @@ export async function weatherlinkSmoke() {
     const week = await getOutdoorTempAverageRange({ end, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' });
     if (week.ok) {
         console.log(`[WEATHERLINK] 7-day avg (daily mean): ${week.avg.toFixed(2)} °C`);
+    }
+
+    // 7-day humidity average using daily chunks and daily-mean combination
+    const hWeek = await getOutdoorHumidityAverageRange({ end, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean' });
+    if (hWeek.ok) {
+        console.log(`[WEATHERLINK] 7-day humidity avg (daily mean): ${hWeek.avg.toFixed(1)} %`);
+    } else {
+        console.log('[WEATHERLINK] Failed to compute 7-day humidity average');
     }
 }

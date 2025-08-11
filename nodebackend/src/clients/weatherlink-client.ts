@@ -308,3 +308,130 @@ export async function getDailyOutdoorTempAverage(endDate: Date = new Date()): Pr
   const count = chunks.length ? chunks[0].count : 0; // single chunk for 24h
   return { ok, avg, count };
 }
+
+// ===================== HUMIDITY AVERAGES (analogous to temperature) =====================
+
+export interface DailyHumidityAvgResult { ok: boolean; avg: number; count: number }
+
+export interface OutdoorHumidityAverageOptions {
+  end?: Date | number;
+  windowSeconds?: number;
+  chunkSeconds?: number; // max 86400 due to API
+  combineMode?: 'dailyMean' | 'sampleWeighted';
+}
+
+export interface OutdoorHumidityAverageChunk {
+  start: number;
+  end: number;
+  avg: number;
+  count: number;
+}
+
+export interface OutdoorHumidityAverageResult {
+  ok: boolean;
+  avg: number;
+  chunks: OutdoorHumidityAverageChunk[];
+  combineMode: 'dailyMean' | 'sampleWeighted';
+}
+
+async function computeChunkOutdoorHumidityAvg(
+  client: WeatherlinkClient,
+  stationUUID: string,
+  start: number | Date,
+  end: number | Date,
+): Promise<{ sum: number; count: number; start: number; end: number }> {
+  const historic = await client.getHistoric(stationUUID, start, end);
+  const startTs = typeof start === 'number' ? start : start.getTime();
+  const endTs = typeof end === 'number' ? end : end.getTime();
+  if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
+
+  const iss = historic.sensors.find((s: any) => s?.sensor_type === 37);
+  const dataArray: unknown[] = Array.isArray(iss?.data) ? (iss!.data as unknown[]) : [];
+
+  let sum = 0;
+  let count = 0;
+  for (const entry of dataArray as any[]) {
+    const hAvg = entry?.hum_avg;
+    const hLast = entry?.hum_last;
+    const hHi = entry?.hum_hi;
+    const hLo = entry?.hum_lo;
+
+    let val: number | undefined = undefined;
+    if (typeof hAvg === 'number' && isFinite(hAvg)) {
+      val = hAvg;
+    } else if (typeof hLast === 'number' && isFinite(hLast)) {
+      val = hLast;
+    } else if (typeof hHi === 'number' && isFinite(hHi) && typeof hLo === 'number' && isFinite(hLo)) {
+      val = (hHi + hLo) / 2;
+    }
+
+    if (typeof val === 'number' && isFinite(val)) {
+      sum += val;
+      count += 1;
+    }
+  }
+  return { sum, count, start: startTs, end: endTs };
+}
+
+export async function getOutdoorHumidityAverageRange(options: OutdoorHumidityAverageOptions = {}): Promise<OutdoorHumidityAverageResult> {
+  const end = options.end instanceof Date ? options.end.getTime() : typeof options.end === 'number' ? options.end : Date.now();
+  const windowSeconds = options.windowSeconds ?? 24 * 3600; // default last 24h
+  const chunkCap = 24 * 3600; // API max seconds per request
+  const chunkSeconds = Math.min(options.chunkSeconds ?? chunkCap, chunkCap);
+  const combineMode = options.combineMode ?? 'dailyMean';
+
+  const res = await withWeatherlinkClient(async (client) => {
+    const stationUUID = await getFirstStationUUID(client);
+    if (!stationUUID) return null as any;
+
+    const start = end - windowSeconds * 1000;
+
+    const chunks: OutdoorHumidityAverageChunk[] = [];
+    let cursorEnd = end;
+
+    while (cursorEnd > start) {
+      const cursorStart = Math.max(start, cursorEnd - chunkSeconds * 1000);
+      const { sum, count, start: s, end: e } = await computeChunkOutdoorHumidityAvg(client, stationUUID, cursorStart, cursorEnd);
+      const avg = count > 0 ? sum / count : 0;
+      chunks.push({ start: s, end: e, avg, count });
+      cursorEnd = cursorStart;
+    }
+
+    chunks.reverse();
+    return { chunks } as { chunks: OutdoorHumidityAverageChunk[] };
+  });
+
+  if (!res.ok || !res.value) return { ok: false, avg: 0, chunks: [], combineMode };
+
+  const chunks = res.value.chunks;
+  if (!chunks.length) return { ok: false, avg: 0, chunks: [], combineMode };
+
+  let avg = 0;
+  if (combineMode === 'sampleWeighted') {
+    let totalSum = 0;
+    let totalCount = 0;
+    for (const c of chunks) {
+      totalSum += c.avg * c.count;
+      totalCount += c.count;
+    }
+    avg = totalCount > 0 ? totalSum / totalCount : 0;
+  } else {
+    let sumAvg = 0;
+    let n = 0;
+    for (const c of chunks) {
+      if (c.count > 0) {
+        sumAvg += c.avg;
+        n += 1;
+      }
+    }
+    avg = n > 0 ? sumAvg / n : 0;
+  }
+
+  return { ok: true, avg, chunks, combineMode };
+}
+
+export async function getDailyOutdoorHumidityAverage(endDate: Date = new Date()): Promise<DailyHumidityAvgResult> {
+  const { ok, avg, chunks } = await getOutdoorHumidityAverageRange({ end: endDate, windowSeconds: 24 * 3600, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted' });
+  const count = chunks.length ? chunks[0].count : 0; // single chunk for 24h
+  return { ok, avg, count };
+}
