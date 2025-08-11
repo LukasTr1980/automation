@@ -4,24 +4,24 @@ import type { WeatherData } from "./clients/influxdb-client.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import logger from "./logger.js";
 import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js"; // <-- import service
-import { getRainRateFromWeatherlink } from "./clients/weatherlink-client.js";
+import { getRainRateFromWeatherlink, getOutdoorTempAverageRange } from "./clients/weatherlink-client.js";
 
 // ---------- FE-Interface -----------------------------------------------------
 export interface CompletionResponse {
   result: boolean;          // = irrigationNeeded
-  response: string;         // kurze Erklärung inkl. confidence
-  formattedEvaluation: string; // Bullet-Liste der geprüften Fakten
+  response: string;         // kurze Erklaerung inkl. confidence
+  formattedEvaluation: string; // Bullet-Liste der geprueften Fakten
 }
 
 // ---------- LLM-Schema -------------------------------------------------------
 interface LlmDecision {
   irrigationNeeded: boolean;
-  confidence: number;      // 0–1
+  confidence: number;      // 0-1
   reasoning: string;       // max. ~280 Zeichen
   recommended_mm: number;  // 0 falls irrigationNeeded=false
 }
 
-// ---------- Few-shot-Beispiele (gekürzt) -------------------------------------
+// ---------- Few-shot-Beispiele (gekuerzt) -----------------------------------
 const EXAMPLES = [
   {
     metrics: {
@@ -59,7 +59,7 @@ const EXAMPLES = [
     answer: {
       irrigationNeeded: false,
       confidence: 0.9,
-      reasoning: "Defizit 6 mm, 50% von Forecast 12 mm liefert 6 mm Regen → Bedarf gedeckt.",
+      reasoning: "Defizit 6 mm, 50% von Forecast 12 mm liefert 6 mm Regen -> Bedarf gedeckt.",
       recommended_mm: 0
     }
   }
@@ -71,12 +71,12 @@ function buildSystemPrompt(): string {
     You are an agronomic irrigation advisor for a short-cut lawn.
 
     Your job:
-      • Decide whether irrigation is needed based **primarily on "deficit_mm"** (rule of thumb: > 5 mm ⇒ irrigation).
-      • Provide a concise natural-language reasoning (≤ 280 chars).
-      • Suggest a reasonable "recommended_mm" to cover the deficit
+      - Decide whether irrigation is needed based primarily on "deficit_mm" (rule of thumb: > 5 mm => irrigation).
+      - Provide a concise natural-language reasoning (<= 280 chars).
+      - Suggest a reasonable "recommended_mm" to cover the deficit
         (typical range 15-20 mm). If no irrigation is needed set it to 0.
 
-    Return **ONLY** valid JSON with this exact shape:
+    Return ONLY valid JSON with this exact shape:
     { "irrigationNeeded": boolean,
       "confidence": number,
       "reasoning": string,
@@ -91,7 +91,7 @@ function exampleMessages(): ChatCompletionMessageParam[] {
   ]);
 }
 
-// ---------- Ausgabe hübsch formatiert ---------------------------------------
+// ---------- Ausgabe huebsch formatiert --------------------------------------
 const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
@@ -109,23 +109,44 @@ function buildFormattedEvaluation(
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
     `Fc morgen ${fmt(d.rainNextDay)} mm × ${fmt(d.rainProbNextDay)} % = ${fmt(effectiveForecast)} mm`,
-    `7-T-Bewässerung ${fmt(d.irrigationDepthMm)} mm`,
-    `ET₀ 7 T    ${fmt(d.et0_week)} mm`,
-    `ET₀-Defizit ${fmt(deficit)} mm`,
+    `7-T-Bewaesserung ${fmt(d.irrigationDepthMm)} mm`,
+    `ET0 7 T    ${fmt(d.et0_week)} mm`,
+    `ET0-Defizit ${fmt(deficit)} mm`,
   ].join("\n");
 }
 
 // ---------- Hauptlogik -------------------------------------------------------
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
-  // 1) Sensordaten & wöchentliche Bewässerung separat holen
+  // 1) Sensordaten & woechentliche Bewaesserung separat holen
   const weatherData = await queryAllData();
   const zoneName = "lukasSued";
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);
   const { rate: rainRateWL, ok: wlOk } = await getRainRateFromWeatherlink();
 
-  // 2) Typsicheres, **unveränderliches** Objekt zusammenbauen
+  // Fetch 7-day outdoor temperature average from WeatherLink (daily mean over daily chunks)
+  const SEVEN_DAYS = 7 * 24 * 3600;
+  let outTemp7 = weatherData.outTemp;
+  try {
+    const week = await getOutdoorTempAverageRange({
+      windowSeconds: SEVEN_DAYS,
+      chunkSeconds: 24 * 3600,
+      combineMode: 'dailyMean',
+      units: 'metric',
+    });
+    if (week.ok) {
+      outTemp7 = week.avg;
+      logger.info(`[WEATHERLINK] Using 7-day temp avg from WeatherLink: ${outTemp7.toFixed(2)} °C`);
+    } else {
+      logger.warn("[WEATHERLINK] 7-day temp avg not available; falling back to Influx value");
+    }
+  } catch (e) {
+    logger.error("[WEATHERLINK] Error computing 7-day temp avg; falling back to Influx value", e);
+  }
+
+  // 2) Typsicheres, unveraenderliches Objekt zusammenbauen
   const d: EnrichedWeatherData = {
     ...weatherData,
+    outTemp: outTemp7,
     rainRate: wlOk ? rainRateWL : 0,
     irrigationDepthMm,
   }
@@ -133,7 +154,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   if (wlOk) {
     logger.info(`[WEATHERLINK] rainRate OK: ${fmt(rainRateWL)} mm/h`);
   } else {
-    logger.warn(`[WEATHERLINK] rainRate failed � using 0 mm/h as fallback`);
+    logger.warn(`[WEATHERLINK] rainRate failed - using 0 mm/h as fallback`);
   }
 
   // 3) einheitliche Defizit-Berechnung
@@ -142,14 +163,14 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const deficitNow = d.et0_week - effectiveRain;
 
   /* ---------- Hard-Rules ----------------------------------------------------
-   *  Wenn eine Regel zutrifft → Bewässerung blockieren (result=false).
+   *  Wenn eine Regel zutrifft -> Bewaesserung blockieren (result=false).
    * -------------------------------------------------------------------------*/
   const blockers: string[] = [];
 
-  if (d.outTemp <= 10) blockers.push(`ØTemp 7 d ≤ 10 °C (${fmt(d.outTemp)} °C)`);
-  if (d.humidity >= 80) blockers.push(`ØRH 7 d ≥ 80 % (${fmt(d.humidity)} %)`);
+  if (d.outTemp <= 10) blockers.push(`ØTemp 7 d <= 10 °C (${fmt(d.outTemp)} °C)`);
+  if (d.humidity >= 80) blockers.push(`ØRH 7 d >= 80 % (${fmt(d.humidity)} %)`);
   // Removed blocker for 7-day rain sum >= 25 mm
-  if (d.rainToday >= 3) blockers.push(`Regen heute ≥ 3 mm (${fmt(d.rainToday)} mm)`);
+  if (d.rainToday >= 3) blockers.push(`Regen heute >= 3 mm (${fmt(d.rainToday)} mm)`);
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
 
   logger.debug(`DefizitNow mit Wahrscheinlichkeits-Forecast: ${fmt(deficitNow)}`);
@@ -186,8 +207,8 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       irrigationNeeded,
       confidence: 0.4,
       reasoning: irrigationNeeded
-        ? "LLM nicht verfügbar, Defizit ≥ 5 mm – Bewässerung ein."
-        : "LLM nicht verfügbar, Defizit < 5 mm.",
+        ? "LLM nicht verfuegbar, Defizit >= 5 mm - Bewaesserung ein."
+        : "LLM nicht verfuegbar, Defizit < 5 mm.",
       recommended_mm: irrigationNeeded
         ? Math.round(Math.min(deficit * 1.2, 20))
         : 0
@@ -231,7 +252,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       ]
     );
   } catch (err) {
-    logger.error("OpenAI unreachable – using rule-based fallback", err);
+    logger.error("OpenAI unreachable - using rule-based fallback", err);
     raw = JSON.stringify(ruleBasedFallback(deficitNow));
   }
 
@@ -260,18 +281,19 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     * Wenn die LLM irrigationNeeded=false sagt, obwohl
     * - Defizit > 5 mm (nach 50 % Forecast-Gewichtung) und
     * - keine Hard-Blocker aktiv sind,
-    * dann erzwingen wir eine Bewässerung.
+    * dann erzwingen wir eine Bewaesserung.
     * ---------------------------------------------------------*/
   if (!result.result && deficitNow >= 5 && blockers.length === 0) {
     result.result = true;
-    result.response += ' - Override: Defizit > 5 mm, Bewässerung eingeschaltet';
+    result.response += ' - Override: Defizit > 5 mm, Bewaesserung eingeschaltet';
     logger.warn('LLM-Override: Defizit hoch, LLM antwortete false');
   }
 
-  // Transparenter Hinweis für Frontend-User
-  result.response += ' – Forecast mit realer Wahrscheinlichkeit gewichtet';
+  // Transparenter Hinweis fuer Frontend-User
+  result.response += ' - Forecast mit realer Wahrscheinlichkeit gewichtet';
 
   logger.debug(`DefizitNow mit Wahrscheinlichkeits-Forecast: ${fmt(deficitNow)}`);
   logger.info(`${result.result ? "ON" : "OFF"} | ${result.response}\n${result.formattedEvaluation}`);
   return result;
 }
+
