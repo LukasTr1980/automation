@@ -1,7 +1,7 @@
 import { WeatherlinkClient } from '@lukastr1980/davis';
 import logger from "../logger.js";
 import * as vaultClient from "../clients/vaultClient.js";
-import { getDailyOutdoorTempAverage, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange } from "../clients/weatherlink-client.js";
+import { getDailyOutdoorTempAverage, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getDailyOutdoorTempExtrema } from "../clients/weatherlink-client.js";
 
 interface WeatherlinkCredentials {
     data: {
@@ -93,5 +93,21 @@ export async function weatherlinkSmoke() {
         console.log(`[WEATHERLINK] 7-day humidity avg (daily mean): ${hWeek.avg.toFixed(1)} %`);
     } else {
         console.log('[WEATHERLINK] Failed to compute 7-day humidity average');
+    }
+
+    // 7-day wind speed average using daily chunks and daily-mean combination (metric m/s)
+    const wWeek = await getOutdoorWindSpeedAverageRange({ end, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' });
+    if (wWeek.ok) {
+        console.log(`[WEATHERLINK] 7-day wind speed avg (daily mean): ${wWeek.avg.toFixed(2)} m/s`);
+    } else {
+        console.log('[WEATHERLINK] Failed to compute 7-day wind speed average');
+    }
+
+    // 24h temperature extrema (hi/lo) ending now
+    const tExt = await getDailyOutdoorTempExtrema(new Date(end));
+    if (tExt.ok) {
+        console.log(`[WEATHERLINK] 24h temp extrema: hi=${tExt.tHi.toFixed(1)} °C, lo=${tExt.tLo.toFixed(1)} °C (samples=${tExt.count})`);
+    } else {
+        console.log('[WEATHERLINK] Failed to compute 24h temperature extrema');
     }
 }

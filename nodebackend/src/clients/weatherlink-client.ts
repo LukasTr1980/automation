@@ -309,6 +309,121 @@ export async function getDailyOutdoorTempAverage(endDate: Date = new Date()): Pr
   return { ok, avg, count };
 }
 
+// Temperature extrema (hi/lo) over a range, chunked due to API limit
+export interface OutdoorTempExtremaOptions {
+  end?: Date | number;
+  windowSeconds?: number; // total range length
+  chunkSeconds?: number; // max 86400 due to API
+  units?: 'metric' | 'imperial'; // metric: Celsius, imperial: Fahrenheit
+}
+
+export interface OutdoorTempExtremaChunk {
+  start: number;
+  end: number;
+  hiMax: number; // max of temp_hi within chunk
+  loMin: number; // min of temp_lo within chunk
+  count: number; // number of samples contributing
+}
+
+export interface OutdoorTempExtremaResult {
+  ok: boolean;
+  hiMax: number;
+  loMin: number;
+  chunks: OutdoorTempExtremaChunk[];
+  units: 'metric' | 'imperial';
+}
+
+async function computeChunkOutdoorTempExtrema(
+  client: WeatherlinkClient,
+  stationUUID: string,
+  start: number | Date,
+  end: number | Date,
+  toMetric: boolean,
+): Promise<{ hiMax: number; loMin: number; count: number; start: number; end: number }> {
+  const historic = await client.getHistoric(stationUUID, start, end);
+  const startTs = typeof start === 'number' ? start : start.getTime();
+  const endTs = typeof end === 'number' ? end : end.getTime();
+  if (!historic) return { hiMax: Number.NEGATIVE_INFINITY, loMin: Number.POSITIVE_INFINITY, count: 0, start: startTs, end: endTs };
+
+  const iss = historic.sensors.find((s: any) => s?.sensor_type === 37);
+  const dataArray: unknown[] = Array.isArray(iss?.data) ? (iss!.data as unknown[]) : [];
+
+  let hi = Number.NEGATIVE_INFINITY;
+  let lo = Number.POSITIVE_INFINITY;
+  let count = 0;
+  for (const entry of dataArray as any[]) {
+    const tHi = entry?.temp_hi;
+    const tLo = entry?.temp_lo;
+
+    if (typeof tHi === 'number' && isFinite(tHi)) {
+      const v = toMetric ? fToC(tHi) : tHi;
+      if (v > hi) hi = v;
+      count += 1;
+    }
+    if (typeof tLo === 'number' && isFinite(tLo)) {
+      const v = toMetric ? fToC(tLo) : tLo;
+      if (v < lo) lo = v;
+      count += 1;
+    }
+  }
+  return { hiMax: hi, loMin: lo, count, start: startTs, end: endTs };
+}
+
+export async function getOutdoorTempExtremaRange(options: OutdoorTempExtremaOptions = {}): Promise<OutdoorTempExtremaResult> {
+  const end = options.end instanceof Date ? options.end.getTime() : typeof options.end === 'number' ? options.end : Date.now();
+  const windowSeconds = options.windowSeconds ?? 24 * 3600; // default last 24h
+  const chunkCap = 24 * 3600; // API max seconds per request
+  const chunkSeconds = Math.min(options.chunkSeconds ?? chunkCap, chunkCap);
+  const units = options.units ?? 'metric';
+  const toMetric = units === 'metric';
+
+  const res = await withWeatherlinkClient(async (client) => {
+    const stationUUID = await getFirstStationUUID(client);
+    if (!stationUUID) return null as any;
+
+    const start = end - windowSeconds * 1000;
+    const chunks: OutdoorTempExtremaChunk[] = [];
+    let cursorEnd = end;
+
+    while (cursorEnd > start) {
+      const cursorStart = Math.max(start, cursorEnd - chunkSeconds * 1000);
+      const { hiMax, loMin, count, start: s, end: e } = await computeChunkOutdoorTempExtrema(client, stationUUID, cursorStart, cursorEnd, toMetric);
+      chunks.push({ start: s, end: e, hiMax, loMin, count });
+      cursorEnd = cursorStart;
+    }
+
+    chunks.reverse();
+    return { chunks } as { chunks: OutdoorTempExtremaChunk[] };
+  });
+
+  if (!res.ok || !res.value) return { ok: false, hiMax: 0, loMin: 0, chunks: [], units };
+
+  const chunks = res.value.chunks;
+  // Consider only chunks that had at least one contributing sample
+  const valid = chunks.filter((c: OutdoorTempExtremaChunk) => isFinite(c.hiMax) || isFinite(c.loMin));
+  if (!valid.length) return { ok: false, hiMax: 0, loMin: 0, chunks: [], units };
+
+  let hiMax = Number.NEGATIVE_INFINITY;
+  let loMin = Number.POSITIVE_INFINITY;
+  for (const c of valid) {
+    if (isFinite(c.hiMax) && c.hiMax > hiMax) hiMax = c.hiMax;
+    if (isFinite(c.loMin) && c.loMin < loMin) loMin = c.loMin;
+  }
+
+  if (!isFinite(hiMax)) hiMax = 0;
+  if (!isFinite(loMin)) loMin = 0;
+
+  return { ok: true, hiMax, loMin, chunks, units };
+}
+
+export interface DailyTempExtremaResult { ok: boolean; tHi: number; tLo: number; count: number }
+
+export async function getDailyOutdoorTempExtrema(endDate: Date = new Date()): Promise<DailyTempExtremaResult> {
+  const { ok, hiMax, loMin, chunks } = await getOutdoorTempExtremaRange({ end: endDate, windowSeconds: 24 * 3600, chunkSeconds: 24 * 3600, units: 'metric' });
+  const count = chunks.length ? chunks[0].count : 0; // single chunk for 24h
+  return { ok, tHi: hiMax, tLo: loMin, count };
+}
+
 // ===================== HUMIDITY AVERAGES (analogous to temperature) =====================
 
 export interface DailyHumidityAvgResult { ok: boolean; avg: number; count: number }
@@ -432,6 +547,136 @@ export async function getOutdoorHumidityAverageRange(options: OutdoorHumidityAve
 
 export async function getDailyOutdoorHumidityAverage(endDate: Date = new Date()): Promise<DailyHumidityAvgResult> {
   const { ok, avg, chunks } = await getOutdoorHumidityAverageRange({ end: endDate, windowSeconds: 24 * 3600, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted' });
+  const count = chunks.length ? chunks[0].count : 0; // single chunk for 24h
+  return { ok, avg, count };
+}
+
+// ===================== WIND SPEED AVERAGES =====================
+
+export interface DailyWindAvgResult { ok: boolean; avg: number; count: number }
+
+export interface OutdoorWindAverageOptions {
+  end?: Date | number;
+  windowSeconds?: number;
+  chunkSeconds?: number; // max 86400 due to API
+  combineMode?: 'dailyMean' | 'sampleWeighted';
+  units?: 'metric' | 'imperial'; // metric: m/s, imperial: mph
+}
+
+export interface OutdoorWindAverageChunk {
+  start: number;
+  end: number;
+  avg: number;
+  count: number;
+}
+
+export interface OutdoorWindAverageResult {
+  ok: boolean;
+  avg: number;
+  chunks: OutdoorWindAverageChunk[];
+  combineMode: 'dailyMean' | 'sampleWeighted';
+}
+
+function mphToMps(mph: number): number { return mph * 0.44704; }
+
+async function computeChunkOutdoorWindAvg(
+  client: WeatherlinkClient,
+  stationUUID: string,
+  start: number | Date,
+  end: number | Date,
+  toMetric: boolean,
+): Promise<{ sum: number; count: number; start: number; end: number }> {
+  const historic = await client.getHistoric(stationUUID, start, end);
+  const startTs = typeof start === 'number' ? start : start.getTime();
+  const endTs = typeof end === 'number' ? end : end.getTime();
+  if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
+
+  const iss = historic.sensors.find((s: any) => s?.sensor_type === 37);
+  const dataArray: unknown[] = Array.isArray(iss?.data) ? (iss!.data as unknown[]) : [];
+
+  let sum = 0;
+  let count = 0;
+  for (const entry of dataArray as any[]) {
+    const wAvg = entry?.wind_speed_avg; // mph
+    const windRun = entry?.wind_run;    // miles in period
+    const archInt = entry?.arch_int;    // seconds per record
+
+    let mph: number | undefined = undefined;
+    if (typeof wAvg === 'number' && isFinite(wAvg)) {
+      mph = wAvg;
+    } else if (typeof windRun === 'number' && isFinite(windRun) && typeof archInt === 'number' && isFinite(archInt) && archInt > 0) {
+      mph = windRun / (archInt / 3600);
+    }
+
+    if (typeof mph === 'number' && isFinite(mph)) {
+      const v = toMetric ? mphToMps(mph) : mph;
+      sum += v;
+      count += 1;
+    }
+  }
+  return { sum, count, start: startTs, end: endTs };
+}
+
+export async function getOutdoorWindSpeedAverageRange(options: OutdoorWindAverageOptions = {}): Promise<OutdoorWindAverageResult> {
+  const end = options.end instanceof Date ? options.end.getTime() : typeof options.end === 'number' ? options.end : Date.now();
+  const windowSeconds = options.windowSeconds ?? 24 * 3600; // default last 24h
+  const chunkCap = 24 * 3600; // API max seconds per request
+  const chunkSeconds = Math.min(options.chunkSeconds ?? chunkCap, chunkCap);
+  const combineMode = options.combineMode ?? 'dailyMean';
+  const units = options.units ?? 'metric';
+  const toMetric = units === 'metric';
+
+  const res = await withWeatherlinkClient(async (client) => {
+    const stationUUID = await getFirstStationUUID(client);
+    if (!stationUUID) return null as any;
+
+    const start = end - windowSeconds * 1000;
+    const chunks: OutdoorWindAverageChunk[] = [];
+    let cursorEnd = end;
+
+    while (cursorEnd > start) {
+      const cursorStart = Math.max(start, cursorEnd - chunkSeconds * 1000);
+      const { sum, count, start: s, end: e } = await computeChunkOutdoorWindAvg(client, stationUUID, cursorStart, cursorEnd, toMetric);
+      const avg = count > 0 ? sum / count : 0;
+      chunks.push({ start: s, end: e, avg, count });
+      cursorEnd = cursorStart;
+    }
+
+    chunks.reverse();
+    return { chunks } as { chunks: OutdoorWindAverageChunk[] };
+  });
+
+  if (!res.ok || !res.value) return { ok: false, avg: 0, chunks: [], combineMode };
+
+  const chunks = res.value.chunks;
+  if (!chunks.length) return { ok: false, avg: 0, chunks: [], combineMode };
+
+  let avg = 0;
+  if (combineMode === 'sampleWeighted') {
+    let totalSum = 0;
+    let totalCount = 0;
+    for (const c of chunks) {
+      totalSum += c.avg * c.count;
+      totalCount += c.count;
+    }
+    avg = totalCount > 0 ? totalSum / totalCount : 0;
+  } else {
+    let sumAvg = 0;
+    let n = 0;
+    for (const c of chunks) {
+      if (c.count > 0) {
+        sumAvg += c.avg;
+        n += 1;
+      }
+    }
+    avg = n > 0 ? sumAvg / n : 0;
+  }
+
+  return { ok: true, avg, chunks, combineMode };
+}
+
+export async function getDailyOutdoorWindSpeedAverage(endDate: Date = new Date()): Promise<DailyWindAvgResult> {
+  const { ok, avg, chunks } = await getOutdoorWindSpeedAverageRange({ end: endDate, windowSeconds: 24 * 3600, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted', units: 'metric' });
   const count = chunks.length ? chunks[0].count : 0; // single chunk for 24h
   return { ok, avg, count };
 }

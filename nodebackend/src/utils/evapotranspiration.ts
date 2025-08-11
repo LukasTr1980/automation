@@ -13,6 +13,7 @@
 // -----------------------------------------------------------------------------
 
 import { querySingleData, writeToInflux } from "../clients/influxdb-client.js";
+import { getDailyOutdoorTempAverage, getDailyOutdoorHumidityAverage, getDailyOutdoorWindSpeedAverage } from "../clients/weatherlink-client.js";
 import logger from "../logger.js";
 import { isDev } from "../envSwitcher.js";
 
@@ -69,9 +70,7 @@ from(bucket: "${bucket}")
 // Sensor‑Queries
 const qTmin = fluxDaily(BUCKET, MEAS_TEMP, "min");
 const qTmax = fluxDaily(BUCKET, MEAS_TEMP, "max");
-const qTavg = fluxDaily(BUCKET, MEAS_TEMP, "mean");
-const qRH = fluxDaily(BUCKET, MEAS_RH, "mean");
-const qWind = fluxDaily(BUCKET, MEAS_WIND, "mean");
+// Tavg, RH, Wind are now sourced from WeatherLink helpers, not Influx
 const qP = fluxDaily(BUCKET, MEAS_PRESSURE, "mean");
 // Wolken
 const qCloud = fluxDailyField(CLOUD_BUCKET, MEAS_CLOUDS, "value_numeric", "mean");
@@ -84,15 +83,19 @@ async function influxNumber(flux: string): Promise<number> {
 // ───────────── Hauptfunktion ────────────────────────────────────────────────
 export async function computeTodayET0() {
     try {
-        const [Tmin, Tmax, Tavg, RH, wind10, P_hPa, cloud] = await Promise.all([
+        const [Tmin, Tmax, P_hPa, cloud, tempAvgRes, rhAvgRes, windAvgRes] = await Promise.all([
             influxNumber(qTmin),
             influxNumber(qTmax),
-            influxNumber(qTavg),
-            influxNumber(qRH),
-            influxNumber(qWind),
             influxNumber(qP),
             influxNumber(qCloud),
-        ]);
+            getDailyOutdoorTempAverage(),
+            getDailyOutdoorHumidityAverage(),
+            getDailyOutdoorWindSpeedAverage(),
+        ] as const);
+
+        const Tavg = tempAvgRes.ok ? tempAvgRes.avg : NaN;
+        const RH = rhAvgRes.ok ? rhAvgRes.avg : NaN;
+        const wind10 = windAvgRes.ok ? windAvgRes.avg : NaN; // m/s
 
         logger.debug(`Inputs – Tmin:${Tmin}°C Tmax:${Tmax}°C Tavg:${Tavg}°C RH:${RH}% Wind10:${wind10}m/s P:${P_hPa}hPa CloudØ:${cloud}%`);
 
