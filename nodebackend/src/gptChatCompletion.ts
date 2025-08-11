@@ -27,7 +27,6 @@ const EXAMPLES = [
     metrics: {
       outTemp_avg7: 12,
       humidity_avg7: 55,
-      rainSum: 8,
       rainToday: 0,
       rainRate: 0,
       et0_week: 32,
@@ -47,7 +46,6 @@ const EXAMPLES = [
     metrics: {
       outTemp_avg7: 8,
       humidity_avg7: 85,
-      rainSum: 6,
       rainToday: 4,
       rainRate: 2,
       et0_week: 18,
@@ -105,7 +103,6 @@ function buildFormattedEvaluation(
   return [
     `7-T-Temp   ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
     `7-T-RH     ${fmt(d.humidity)} %   < 80 %?  ${tick(d.humidity < 80)}`,
-    `7-T-Regen  ${fmt(d.rainSum)} mm`,
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
     `Fc morgen ${fmt(d.rainNextDay)} mm × ${fmt(d.rainProbNextDay)} % = ${fmt(effectiveForecast)} mm`,
@@ -178,7 +175,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
 
   // 3) einheitliche Defizit-Berechnung
   const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
-  const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
+  const effectiveRain = effectiveForecast + d.irrigationDepthMm;
   const deficitNow = d.et0_week - effectiveRain;
 
   /* ---------- Hard-Rules ----------------------------------------------------
@@ -188,7 +185,6 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
 
   if (d.outTemp <= 10) blockers.push(`ØTemp 7 d <= 10 °C (${fmt(d.outTemp)} °C)`);
   if (d.humidity >= 80) blockers.push(`ØRH 7 d >= 80 % (${fmt(d.humidity)} %)`);
-  // Removed blocker for 7-day rain sum >= 25 mm
   if (d.rainToday >= 3) blockers.push(`Regen heute >= 3 mm (${fmt(d.rainToday)} mm)`);
   if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
 
@@ -210,7 +206,6 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const payload = {
     outTemp_avg7: d.outTemp,
     humidity_avg7: d.humidity,
-    rainSum: d.rainSum,
     rainToday: d.rainToday,
     rainRate: d.rainRate,
     et0_week: d.et0_week ?? 0,
