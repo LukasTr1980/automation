@@ -1,7 +1,7 @@
 import { WeatherlinkClient } from '@lukastr1980/davis';
 import logger from "../logger.js";
 import * as vaultClient from "../clients/vaultClient.js";
-import { getDailyOutdoorTempAverage, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getDailyOutdoorTempExtrema } from "../clients/weatherlink-client.js";
+import { getDailyOutdoorTempAverage, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getDailyOutdoorTempExtrema, getDailyOutdoorPressureAverage } from "../clients/weatherlink-client.js";
 
 interface WeatherlinkCredentials {
     data: {
@@ -68,7 +68,7 @@ export async function weatherlinkSmoke() {
     const start = end - WINDOW_SECONDS * 1000;
     const historic = await client.getHistoric(s.station_id_uuid, start, end);
     if (historic) {
-        const measurements = historic.sensors[2];
+        const measurements = historic.sensors[0];
         console.log('Measurements:', measurements);
     }
 
@@ -109,5 +109,13 @@ export async function weatherlinkSmoke() {
         console.log(`[WEATHERLINK] 24h temp extrema: hi=${tExt.tHi.toFixed(1)} °C, lo=${tExt.tLo.toFixed(1)} °C (samples=${tExt.count})`);
     } else {
         console.log('[WEATHERLINK] Failed to compute 24h temperature extrema');
+    }
+
+    // 24h pressure average (hPa)
+    const p24 = await getDailyOutdoorPressureAverage(new Date(end));
+    if (p24.ok) {
+        console.log(`[WEATHERLINK] 24h pressure avg: ${p24.avg.toFixed(1)} hPa (samples=${p24.count})`);
+    } else {
+        console.log('[WEATHERLINK] Failed to compute 24h pressure average');
     }
 }

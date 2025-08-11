@@ -680,3 +680,135 @@ export async function getDailyOutdoorWindSpeedAverage(endDate: Date = new Date()
   const count = chunks.length ? chunks[0].count : 0; // single chunk for 24h
   return { ok, avg, count };
 }
+
+// ===================== PRESSURE AVERAGES (barometer sensor_type 242) =====================
+
+export interface DailyPressureAvgResult { ok: boolean; avg: number; count: number }
+
+export interface OutdoorPressureAverageOptions {
+  end?: Date | number;
+  windowSeconds?: number;
+  chunkSeconds?: number; // max 86400 due to API
+  combineMode?: 'dailyMean' | 'sampleWeighted';
+  units?: 'metric' | 'imperial'; // metric: hPa, imperial: inHg
+}
+
+export interface OutdoorPressureAverageChunk {
+  start: number;
+  end: number;
+  avg: number;
+  count: number;
+}
+
+export interface OutdoorPressureAverageResult {
+  ok: boolean;
+  avg: number;
+  chunks: OutdoorPressureAverageChunk[];
+  combineMode: 'dailyMean' | 'sampleWeighted';
+  units: 'metric' | 'imperial';
+}
+
+function inHgToHpa(inHg: number): number { return inHg * 33.8638866667; }
+
+async function computeChunkOutdoorPressureAvg(
+  client: WeatherlinkClient,
+  stationUUID: string,
+  start: number | Date,
+  end: number | Date,
+  toMetric: boolean,
+): Promise<{ sum: number; count: number; start: number; end: number }> {
+  const historic = await client.getHistoric(stationUUID, start, end);
+  const startTs = typeof start === 'number' ? start : start.getTime();
+  const endTs = typeof end === 'number' ? end : end.getTime();
+  if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
+
+  // Barometer block is sensor_type 242
+  const bar = (historic as any).sensors?.find((s: any) => s?.sensor_type === 242);
+  const dataArray: unknown[] = Array.isArray(bar?.data) ? (bar!.data as unknown[]) : [];
+
+  let sum = 0;
+  let count = 0;
+  for (const entry of dataArray as any[]) {
+    const seaIn = entry?.bar_sea_level;   // inHg
+    const absIn = entry?.bar_absolute;    // inHg
+
+    let value: number | undefined;
+    if (toMetric) {
+      if (typeof seaIn === 'number' && isFinite(seaIn)) value = inHgToHpa(seaIn);
+      else if (typeof absIn === 'number' && isFinite(absIn)) value = inHgToHpa(absIn);
+    } else {
+      if (typeof seaIn === 'number' && isFinite(seaIn)) value = seaIn;
+      else if (typeof absIn === 'number' && isFinite(absIn)) value = absIn;
+    }
+
+    if (typeof value === 'number' && isFinite(value)) {
+      sum += value;
+      count += 1;
+    }
+  }
+  return { sum, count, start: startTs, end: endTs };
+}
+
+export async function getOutdoorPressureAverageRange(options: OutdoorPressureAverageOptions = {}): Promise<OutdoorPressureAverageResult> {
+  const end = options.end instanceof Date ? options.end.getTime() : typeof options.end === 'number' ? options.end : Date.now();
+  const windowSeconds = options.windowSeconds ?? 24 * 3600; // default last 24h
+  const chunkCap = 24 * 3600; // API max seconds per request
+  const chunkSeconds = Math.min(options.chunkSeconds ?? chunkCap, chunkCap);
+  const combineMode = options.combineMode ?? 'dailyMean';
+  const units = options.units ?? 'metric';
+  const toMetric = units === 'metric';
+
+  const res = await withWeatherlinkClient(async (client) => {
+    const stationUUID = await getFirstStationUUID(client);
+    if (!stationUUID) return null as any;
+
+    const start = end - windowSeconds * 1000;
+    const chunks: OutdoorPressureAverageChunk[] = [];
+    let cursorEnd = end;
+
+    while (cursorEnd > start) {
+      const cursorStart = Math.max(start, cursorEnd - chunkSeconds * 1000);
+      const { sum, count, start: s, end: e } = await computeChunkOutdoorPressureAvg(client, stationUUID, cursorStart, cursorEnd, toMetric);
+      const avg = count > 0 ? sum / count : 0;
+      chunks.push({ start: s, end: e, avg, count });
+      cursorEnd = cursorStart;
+    }
+
+    chunks.reverse();
+    return { chunks } as { chunks: OutdoorPressureAverageChunk[] };
+  });
+
+  if (!res.ok || !res.value) return { ok: false, avg: 0, chunks: [], combineMode, units };
+
+  const chunks = res.value.chunks;
+  if (!chunks.length) return { ok: false, avg: 0, chunks: [], combineMode, units };
+
+  let avg = 0;
+  if (combineMode === 'sampleWeighted') {
+    let totalSum = 0;
+    let totalCount = 0;
+    for (const c of chunks) {
+      totalSum += c.avg * c.count;
+      totalCount += c.count;
+    }
+    avg = totalCount > 0 ? totalSum / totalCount : 0;
+  } else {
+    let sumAvg = 0;
+    let n = 0;
+    for (const c of chunks) {
+      if (c.count > 0) {
+        sumAvg += c.avg;
+        n += 1;
+      }
+    }
+    avg = n > 0 ? sumAvg / n : 0;
+  }
+
+  return { ok: true, avg, chunks, combineMode, units };
+}
+
+export async function getDailyOutdoorPressureAverage(endDate: Date = new Date()): Promise<DailyPressureAvgResult> {
+  const { ok, avg, chunks } = await getOutdoorPressureAverageRange({ end: endDate, windowSeconds: 24 * 3600, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted', units: 'metric' });
+  const count = chunks.length ? chunks[0].count : 0; // single chunk for 24h
+  return { ok, avg, count };
+}
