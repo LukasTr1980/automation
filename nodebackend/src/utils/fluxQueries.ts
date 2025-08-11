@@ -54,13 +54,7 @@ export const rainTodayQuery = flux`
     |> last()
       `;
 
-export const rainRateQuery = flux`
-  from(bucket: "${sensorBucket}")
-    |> range(start: -3h)
-    |> filter(fn: (r) => r._measurement == "javascript.0.Wetterstation.Weathercloud_Regenrate")
-    |> filter(fn: (r) => r._field == "value")
-    |> last()
-      `;
+// rainRate now sourced from WeatherLink; Influx query removed
 
 /* ---------- NEW: ET₀-Wochensumme (7 Tage) ------------------------------ */
 export const et0WeekQuery = flux`

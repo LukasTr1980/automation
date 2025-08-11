@@ -1,4 +1,4 @@
-import { WeatherlinkClient, flattenCurrent, flattenHistoric } from "@lukastr1980/davis";
+import { WeatherlinkClient } from '@lukastr1980/davis';
 import logger from "../logger.js";
 import * as vaultClient from "../clients/vaultClient.js";
 
@@ -49,25 +49,15 @@ export async function weatherlinkSmoke() {
     const uuid = s.station_id_uuid;
     logger.info(`[WEATHERLINK] using UUID from package: ${uuid} (${s.station_name}, id=${s.station_id})`);
 
-    const cur = await client.getCurrent(uuid);
-    if (cur) {
-        logger.info('[WEATHERLINK][CURRENT] %j', flattenCurrent(cur));
-    } else {
-        logger.warn('[WEATHERLINK] /current not available');
-    }
-
-    try {
-        const end = new Date();
-        const start = new Date(end.getTime() - 10 * 60 * 1000);
-        const hist = await client.getHistoric(uuid, start, end);
-        if (!hist) {
-            logger.warn('[WEATHERLINK] /historic not available (plan/permissions)');
-        } else {
-            const rows = flattenHistoric(hist);
-            logger.info('[WEATHERLINK][HIST_ROWS] %d', rows.length);
-            logger.info('[WEATHERLINK][HIST_LAST] %j', rows.at(-1) ?? '(empty)');
-        }
-    } catch (e: any) {
-        logger.error('[WEATHERLINK][HIST ERROR]', e?.response?.status ? `HTTP ${e.response.status}` : e);
+    const current = await client.getCurrent(s.station_id_uuid);
+    if (current) {
+        const bar = current.sensors[0];
+        const stationStatus = current.sensors[1];
+        const measurements = current.sensors[2];
+        const inside = current.sensors[3];
+        console.log("Bar:", bar);
+        console.log("Station Status:", stationStatus);
+        console.log("measurements:", measurements);
+        console.log("inside:", inside);
     }
 }

@@ -4,6 +4,7 @@ import type { WeatherData } from "./clients/influxdb-client.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import logger from "./logger.js";
 import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js"; // <-- import service
+import { getRainRateFromWeatherlink } from "./clients/weatherlink-client.js";
 
 // ---------- FE-Interface -----------------------------------------------------
 export interface CompletionResponse {
@@ -94,7 +95,7 @@ function exampleMessages(): ChatCompletionMessageParam[] {
 const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
-type EnrichedWeatherData = WeatherData & { irrigationDepthMm: number };
+type EnrichedWeatherData = WeatherData & { irrigationDepthMm: number; rainRate: number };
 
 function buildFormattedEvaluation(
   d: EnrichedWeatherData,
@@ -120,11 +121,19 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const weatherData = await queryAllData();
   const zoneName = "lukasSued";
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);
+  const { rate: rainRateWL, ok: wlOk } = await getRainRateFromWeatherlink();
 
   // 2) Typsicheres, **unveränderliches** Objekt zusammenbauen
   const d: EnrichedWeatherData = {
     ...weatherData,
+    rainRate: wlOk ? rainRateWL : 0,
     irrigationDepthMm,
+  }
+
+  if (wlOk) {
+    logger.info(`[WEATHERLINK] rainRate OK: ${fmt(rainRateWL)} mm/h`);
+  } else {
+    logger.warn(`[WEATHERLINK] rainRate failed � using 0 mm/h as fallback`);
   }
 
   // 3) einheitliche Defizit-Berechnung

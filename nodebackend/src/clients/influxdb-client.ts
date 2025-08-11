@@ -7,7 +7,6 @@ import {
     humidityQuery,
     constructRainSumQuery,
     rainTodayQuery,
-    rainRateQuery,
     et0WeekQuery,
     rainNextDayQuery,
     rainProbNextDayQuery,
@@ -50,7 +49,6 @@ export interface WeatherData {
     humidity: number;
     rainSum: number;
     rainToday: number;
-    rainRate: number;
     et0_week: number;
     rainNextDay: number;
     rainProbNextDay: number;
@@ -65,7 +63,6 @@ export async function queryAllData(): Promise<WeatherData> {
         humidityRes,
         rainSumRes,
         rainTodayRes,
-        rainRateRes,
         et0WeekRes,
         rainNextDayRes,
         rainProbNextDayRes,
@@ -75,7 +72,6 @@ export async function queryAllData(): Promise<WeatherData> {
         querySingleData(humidityQuery),
         querySingleData(constructRainSumQuery),
         querySingleData(rainTodayQuery),
-        querySingleData(rainRateQuery),
         querySingleData(et0WeekQuery),
         querySingleData(rainNextDayQuery),
         querySingleData(rainProbNextDayQuery),
@@ -87,7 +83,6 @@ export async function queryAllData(): Promise<WeatherData> {
         humidity: humidityRes[0]?._value ?? 0,
         rainSum: rainSumRes[0]?._value ?? 0,
         rainToday: rainTodayRes[0]?._value ?? 0,
-        rainRate: (rainRateRes[0]?._value ?? 0) / 10,
         et0_week: et0WeekRes[0]?._value ?? 0,
         rainNextDay: rainNextDayRes[0]?._value ?? 0,
         rainProbNextDay: rainProbNextDayRes[0]?._value ?? 0,

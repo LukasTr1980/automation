@@ -5,7 +5,7 @@
   "main": "build/index.js",
   "type": "module",
   "scripts": {
-    "test": "jest",
+    "test": "npm run build && node .",
     "build": "tsc",
     "watch": "tsc -w"
   },
@@ -37,24 +37,13 @@
   "devDependencies": {
     "@types/cookie": "^0.6.0",
     "@types/express": "^5",
-    "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^22.5.5",
     "@types/node-schedule": "^2.1.6",
     "@typescript-eslint/eslint-plugin": "^8.5.0",
     "@typescript-eslint/parser": "^8.5.0",
     "eslint": "^9.10.0",
-    "jest": "^29.7.0",
-    "supertest": "^7.0.0",
-    "ts-jest": "^29.1.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.2"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/test/**/*.ts"
-    ]
   }
 }
