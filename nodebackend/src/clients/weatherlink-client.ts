@@ -826,7 +826,9 @@ export interface OutdoorPressureAverageResult {
   units: 'metric' | 'imperial';
 }
 
-function inHgToHpa(inHg: number): number { return inHg * 33.8638866667; }
+function inHgToHpa(inHg: number): number {
+  return inHg * 33.8638866667;
+}
 
 async function computeChunkOutdoorPressureAvg(
   client: WeatherlinkClient,
@@ -840,27 +842,22 @@ async function computeChunkOutdoorPressureAvg(
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
 
-  // Barometer block is sensor_type 242
   const bar = (historic as any).sensors?.find((s: any) => s?.sensor_type === 242);
-  const dataArray: unknown[] = Array.isArray(bar?.data) ? (bar!.data as unknown[]) : [];
+  const dataArray: any[] = Array.isArray(bar?.data) ? (bar!.data as any[]) : [];
+
+  // ► CHOICE: wenn irgendwo bar_absolute vorhanden ist, nutze im ganzen Chunk NUR bar_absolute,
+  //   sonst NUR bar_sea_level (keine Mischung).
+  const useAbsolute =
+    dataArray.some(e => typeof e?.bar_absolute === 'number' && isFinite(e.bar_absolute));
 
   let sum = 0;
   let count = 0;
-  for (const entry of dataArray as any[]) {
-    const seaIn = entry?.bar_sea_level;   // inHg
-    const absIn = entry?.bar_absolute;    // inHg
 
-    let value: number | undefined;
-    if (toMetric) {
-      if (typeof seaIn === 'number' && isFinite(seaIn)) value = inHgToHpa(seaIn);
-      else if (typeof absIn === 'number' && isFinite(absIn)) value = inHgToHpa(absIn);
-    } else {
-      if (typeof seaIn === 'number' && isFinite(seaIn)) value = seaIn;
-      else if (typeof absIn === 'number' && isFinite(absIn)) value = absIn;
-    }
-
-    if (typeof value === 'number' && isFinite(value)) {
-      sum += value;
+  for (const entry of dataArray) {
+    const inHg = useAbsolute ? entry?.bar_absolute : entry?.bar_sea_level;
+    if (typeof inHg === 'number' && isFinite(inHg)) {
+      const v = toMetric ? inHgToHpa(inHg) : inHg; // metric: hPa, imperial: inHg
+      sum += v;
       count += 1;
     }
   }

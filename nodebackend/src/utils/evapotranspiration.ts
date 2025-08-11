@@ -1,4 +1,4 @@
-// src/services/evapotranspiration.ts
+// src/utils/evapotranspiration.ts
 // -----------------------------------------------------------------------------
 //  DAILY ET₀  (FAO‑56)
 //  – Sensorwerte   (Tmin/Tmax/Tavg, RH, Wind, Pressure)   aus Bucket "iobroker"
@@ -24,7 +24,6 @@ const ALBEDO = Number(process.env.ALBEDO ?? 0.23);    // Gras‑Reflexion
 const K_RS = Number(process.env.K_RS ?? 0.19);    // Hargreaves (Inland)
 
 // Standard‑Buckets
-const BUCKET = process.env.BUCKET ?? "iobroker";   // Sensoren
 const CLOUD_BUCKET = process.env.CLOUD_BUCKET ?? "automation"; // Wolken‑Recorder
 
 // Measurements (clouds from Influx; temps, RH, wind, pressure from WeatherLink)
@@ -45,14 +44,6 @@ function Ra(latDeg: number, doy: number) {
 }
 
 // ───────────── Flux‑Query‑Builder ───────────────────────────────────────────
-const fluxDaily = (bucket: string, m: string, fn: "min" | "max" | "mean") => `import "timezone"
-option location = timezone.location(name: "Europe/Rome")
-from(bucket:"${bucket}")
-  |> range(start: today())
-  |> filter(fn: (r) => r._measurement == "${m}")
-  |> filter(fn: (r) => r._field == "value")
-  |> aggregateWindow(every: 1d, fn: ${fn})
-  |> last()`;
 
 const fluxDailyField = (bucket: string, m: string, field: string, fn: "min" | "max" | "mean") => `import "timezone"
 option location = timezone.location(name: "Europe/Rome")

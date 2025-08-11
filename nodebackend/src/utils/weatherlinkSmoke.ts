@@ -50,26 +50,14 @@ export async function weatherlinkSmoke() {
     const uuid = s.station_id_uuid;
     logger.info(`[WEATHERLINK] using UUID from package: ${uuid} (${s.station_name}, id=${s.station_id})`);
 
-    const current = await client.getCurrent(s.station_id_uuid);
-    if (current) {
-        const bar = current.sensors[0];
-        const stationStatus = current.sensors[1];
-        const measurements = current.sensors[2];
-        const inside = current.sensors[3];
-        console.log("Bar:", bar);
-        console.log("Station Status:", stationStatus);
-        console.log("measurements:", measurements);
-        console.log("inside:", inside);
-    }
-
     // Configurable window like before; default 24h back
     const end = Date.now();
-    const WINDOW_SECONDS = 600; // adjust as needed
+    const WINDOW_SECONDS = 300; // adjust as needed
     const start = end - WINDOW_SECONDS * 1000;
     const historic = await client.getHistoric(s.station_id_uuid, start, end);
     if (historic) {
-        const measurements = historic.sensors[0];
-        console.log('Measurements:', measurements);
+        const data = historic.sensors[3];
+        console.log('data:', data);
     }
 
     // Last 24 hours average (ending now) using flexible range helper
