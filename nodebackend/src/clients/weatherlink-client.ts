@@ -12,6 +12,29 @@ interface WeatherlinkSecret {
 export interface RainRateResult { rate: number; ok: boolean }
 export interface RainRateOptions { units?: 'metric' | 'imperial' }
 
+// ===================== RAINFALL TOTALS =====================
+
+export interface RainTotalChunk {
+  start: number;
+  end: number;
+  total: number; // rain total within chunk (mm or inches)
+  count: number; // contributing records
+}
+
+export interface RainTotalRangeOptions {
+  end?: Date | number;
+  windowSeconds?: number; // total range length
+  chunkSeconds?: number; // max 86400 due to API
+  units?: 'metric' | 'imperial'; // metric: mm, imperial: inches
+}
+
+export interface RainTotalRangeResult {
+  ok: boolean;
+  total: number; // total rain over the full window (mm or inches)
+  chunks: RainTotalChunk[]; // typically daily chunks if chunkSeconds=86400
+  units: 'metric' | 'imperial';
+}
+
 // Generic types for future metrics
 export type SensorTypeCode = number;
 export interface SensorBlock {
@@ -288,6 +311,111 @@ export async function getRainRateFromWeatherlink(options: RainRateOptions = {}):
     logger.error('[WEATHERLINK] Error while fetching rain rate', e);
     return { rate: 0, ok: false };
   }
+}
+
+// Rain size mapping for fallback from clicks
+function rainClicksToMm(clicks: number, rainSizeCode?: number): number | undefined {
+  if (typeof clicks !== 'number' || !isFinite(clicks) || clicks <= 0) return 0;
+  switch (rainSizeCode) {
+    case 2: return clicks * 0.2;       // 0.2 mm per click
+    case 3: return clicks * 0.1;       // 0.1 mm per click
+    case 1: return clicks * 0.01 * 25.4; // 0.01 inch → mm
+    case 4: return clicks * 0.001 * 25.4; // 0.001 inch → mm
+    default: return undefined;
+  }
+}
+
+function mmToInches(mm: number): number { return mm / 25.4; }
+function inchesToMm(inches: number): number { return inches * 25.4; }
+
+async function computeChunkRainTotal(
+  client: WeatherlinkClient,
+  stationUUID: string,
+  start: number | Date,
+  end: number | Date,
+  toMetric: boolean,
+): Promise<{ sum: number; count: number; start: number; end: number }> {
+  const historic = await runLimited(() => client.getHistoric(stationUUID, start, end));
+  const startTs = typeof start === 'number' ? start : start.getTime();
+  const endTs = typeof end === 'number' ? end : end.getTime();
+  if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
+
+  const iss = (historic as any).sensors?.find((s: any) => s?.sensor_type === 37);
+  const dataArray: any[] = Array.isArray(iss?.data) ? (iss!.data as any[]) : [];
+
+  let sumMm = 0;
+  let count = 0;
+  for (const entry of dataArray) {
+    const rMm = entry?.rainfall_mm;
+    const rIn = entry?.rainfall_in;
+    const clicks = entry?.rainfall_clicks;
+    const size = entry?.rain_size; // 1,2,3,4 per docs
+
+    let mm: number | undefined;
+    if (typeof rMm === 'number' && isFinite(rMm)) {
+      mm = rMm;
+    } else if (typeof rIn === 'number' && isFinite(rIn)) {
+      mm = inchesToMm(rIn);
+    } else if (typeof clicks === 'number' && isFinite(clicks)) {
+      const est = rainClicksToMm(clicks, size);
+      if (typeof est === 'number' && isFinite(est)) mm = est;
+    }
+
+    if (typeof mm === 'number' && isFinite(mm)) {
+      sumMm += mm;
+      count += 1;
+    }
+  }
+
+  const sum = toMetric ? sumMm : mmToInches(sumMm);
+  return { sum, count, start: startTs, end: endTs };
+}
+
+export async function getRainTotalRange(options: RainTotalRangeOptions = {}): Promise<RainTotalRangeResult> {
+  const end = options.end instanceof Date ? options.end.getTime() : typeof options.end === 'number' ? options.end : Date.now();
+  const windowSeconds = options.windowSeconds ?? 24 * 3600; // default last 24h
+  const chunkCap = 24 * 3600; // API max seconds per request
+  const chunkSeconds = Math.min(options.chunkSeconds ?? chunkCap, chunkCap);
+  const units = options.units ?? 'metric';
+  const toMetric = units === 'metric';
+
+  const res = await withWeatherlinkClient(async (client) => {
+    const stationUUID = await getFirstStationUUID(client);
+    if (!stationUUID) return null as any;
+
+    const start = end - windowSeconds * 1000;
+    const chunks: RainTotalChunk[] = [];
+    let cursorEnd = end;
+
+    while (cursorEnd > start) {
+      const cursorStart = Math.max(start, cursorEnd - chunkSeconds * 1000);
+      const { sum, count, start: s, end: e } = await computeChunkRainTotal(client, stationUUID, cursorStart, cursorEnd, toMetric);
+      chunks.push({ start: s, end: e, total: sum, count });
+      cursorEnd = cursorStart;
+    }
+
+    chunks.reverse();
+    return { chunks } as { chunks: RainTotalChunk[] };
+  });
+
+  if (!res.ok || !res.value) return { ok: false, total: 0, chunks: [], units };
+
+  const chunks = res.value.chunks;
+  let total = 0;
+  for (const c of chunks) total += c.total;
+  return { ok: true, total, chunks, units };
+}
+
+export async function getDailyRainTotal(endDate: Date = new Date(), units: 'metric' | 'imperial' = 'metric'): Promise<{ ok: boolean; total: number; count: number; units: 'metric' | 'imperial' }> {
+  const { ok, total, chunks } = await getRainTotalRange({ end: endDate, windowSeconds: 24 * 3600, chunkSeconds: 24 * 3600, units });
+  const count = chunks.length ? chunks[0].count : 0; // single 24h chunk
+  return { ok, total, count, units };
+}
+
+export async function getSevenDayRainTotal(endDate: Date = new Date(), units: 'metric' | 'imperial' = 'metric'): Promise<{ ok: boolean; total: number; daily: RainTotalChunk[]; units: 'metric' | 'imperial' }> {
+  const SEVEN_DAYS = 7 * 24 * 3600;
+  const { ok, total, chunks } = await getRainTotalRange({ end: endDate, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, units });
+  return { ok, total, daily: chunks, units };
 }
 
 // Compute average outdoor temperature for a given local day

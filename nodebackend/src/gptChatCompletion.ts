@@ -4,7 +4,7 @@ import type { WeatherData } from "./clients/influxdb-client.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import logger from "./logger.js";
 import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js"; // <-- import service
-import { getRainRateFromWeatherlink, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange } from "./clients/weatherlink-client.js";
+import { getRainRateFromWeatherlink, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getDailyRainTotal, getSevenDayRainTotal } from "./clients/weatherlink-client.js";
 
 // ---------- FE-Interface -----------------------------------------------------
 export interface CompletionResponse {
@@ -93,7 +93,7 @@ function exampleMessages(): ChatCompletionMessageParam[] {
 const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
-type EnrichedWeatherData = WeatherData & { irrigationDepthMm: number; rainRate: number };
+type EnrichedWeatherData = WeatherData & { irrigationDepthMm: number; rainRate: number; rainToday: number; rainSum: number; outTemp: number; humidity: number };
 
 function buildFormattedEvaluation(
   d: EnrichedWeatherData,
@@ -106,6 +106,7 @@ function buildFormattedEvaluation(
     `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
     `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
     `Fc morgen ${fmt(d.rainNextDay)} mm × ${fmt(d.rainProbNextDay)} % = ${fmt(effectiveForecast)} mm`,
+    `7-T-Regen ${fmt(d.rainSum)} mm`,
     `7-T-Bewaesserung ${fmt(d.irrigationDepthMm)} mm`,
     `ET0 7 T    ${fmt(d.et0_week)} mm`,
     `ET0-Defizit ${fmt(deficit)} mm`,
@@ -120,10 +121,32 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);
   const { rate: rainRateWL, ok: wlOk } = await getRainRateFromWeatherlink();
 
+  // Rainfall now sourced exclusively from WeatherLink
+  let rainToday = 0;
+  let rainSum7 = 0;
+  try {
+    const day = await getDailyRainTotal(new Date(), 'metric');
+    if (day.ok) {
+      rainToday = day.total;
+      logger.info(`[WEATHERLINK] Using last 24h rain from WeatherLink: ${rainToday.toFixed(1)} mm`);
+    }
+  } catch (e) {
+    logger.error("[WEATHERLINK] Error computing 24h rain; using 0 mm", e);
+  }
+  try {
+    const week = await getSevenDayRainTotal(new Date(), 'metric');
+    if (week.ok) {
+      rainSum7 = week.total;
+      logger.info(`[WEATHERLINK] Using 7-day rain total from WeatherLink: ${rainSum7.toFixed(1)} mm`);
+    }
+  } catch (e) {
+    logger.error("[WEATHERLINK] Error computing 7-day rain; using 0 mm", e);
+  }
+
   // Fetch 7-day outdoor temperature average from WeatherLink (daily mean over daily chunks)
   const SEVEN_DAYS = 7 * 24 * 3600;
-  let outTemp7 = weatherData.outTemp;
-  let humidity7 = weatherData.humidity;
+  let outTemp7 = 0;
+  let humidity7 = 0;
   try {
     const week = await getOutdoorTempAverageRange({
       windowSeconds: SEVEN_DAYS,
@@ -134,11 +157,9 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     if (week.ok) {
       outTemp7 = week.avg;
       logger.info(`[WEATHERLINK] Using 7-day temp avg from WeatherLink: ${outTemp7.toFixed(2)} °C`);
-    } else {
-      logger.warn("[WEATHERLINK] 7-day temp avg not available; falling back to Influx value");
     }
   } catch (e) {
-    logger.error("[WEATHERLINK] Error computing 7-day temp avg; falling back to Influx value", e);
+    logger.error("[WEATHERLINK] Error computing 7-day temp avg; using 0 °C", e);
   }
 
   // Fetch 7-day outdoor humidity average from WeatherLink
@@ -151,16 +172,16 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     if (hWeek.ok) {
       humidity7 = hWeek.avg;
       logger.info(`[WEATHERLINK] Using 7-day humidity avg from WeatherLink: ${humidity7.toFixed(1)} %`);
-    } else {
-      logger.warn("[WEATHERLINK] 7-day humidity avg not available; falling back to Influx value");
     }
   } catch (e) {
-    logger.error("[WEATHERLINK] Error computing 7-day humidity avg; falling back to Influx value", e);
+    logger.error("[WEATHERLINK] Error computing 7-day humidity avg; using 0%", e);
   }
 
   // 2) Typsicheres, unveraenderliches Objekt zusammenbauen
   const d: EnrichedWeatherData = {
     ...weatherData,
+    rainToday,
+    rainSum: rainSum7,
     outTemp: outTemp7,
     humidity: humidity7,
     rainRate: wlOk ? rainRateWL : 0,
@@ -175,7 +196,8 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
 
   // 3) einheitliche Defizit-Berechnung
   const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
-  const effectiveRain = effectiveForecast + d.irrigationDepthMm;
+  // Integrate 7-day rainfall into current weekly water balance
+  const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
   const deficitNow = d.et0_week - effectiveRain;
 
   /* ---------- Hard-Rules ----------------------------------------------------

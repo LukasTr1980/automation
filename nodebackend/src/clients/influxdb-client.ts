@@ -2,11 +2,6 @@ import { ParameterizedQuery, Point } from "@influxdata/influxdb-client";
 import logger from "../logger.js";
 import { getInfluxDbClientAI, getInfluxDbClientAutomation } from "../configs.js";
 import {
-    outTempQuery,
-    windQuery,
-    humidityQuery,
-    constructRainSumQuery,
-    rainTodayQuery,
     et0WeekQuery,
     rainNextDayQuery,
     rainProbNextDayQuery,
@@ -44,11 +39,6 @@ async function querySingleData(
 
 /* ---------- Public API ----------------------------------------------------- */
 export interface WeatherData {
-    outTemp: number;
-    wind: number;
-    humidity: number;
-    rainSum: number;
-    rainToday: number;
     et0_week: number;
     rainNextDay: number;
     rainProbNextDay: number;
@@ -58,31 +48,16 @@ export async function queryAllData(): Promise<WeatherData> {
     logger.info("Querying all data from InfluxDB");
 
     const [
-        outTempRes,
-        windRes,
-        humidityRes,
-        rainSumRes,
-        rainTodayRes,
         et0WeekRes,
         rainNextDayRes,
         rainProbNextDayRes,
     ] = await Promise.all([
-        querySingleData(outTempQuery),
-        querySingleData(windQuery),
-        querySingleData(humidityQuery),
-        querySingleData(constructRainSumQuery),
-        querySingleData(rainTodayQuery),
         querySingleData(et0WeekQuery),
         querySingleData(rainNextDayQuery),
         querySingleData(rainProbNextDayQuery),
     ]);
 
     return {
-        outTemp: outTempRes[0]?._value ?? 0,
-        wind: windRes[0]?._value ?? 0,
-        humidity: humidityRes[0]?._value ?? 0,
-        rainSum: rainSumRes[0]?._value ?? 0,
-        rainToday: rainTodayRes[0]?._value ?? 0,
         et0_week: et0WeekRes[0]?._value ?? 0,
         rainNextDay: rainNextDayRes[0]?._value ?? 0,
         rainProbNextDay: rainProbNextDayRes[0]?._value ?? 0,
