@@ -17,7 +17,6 @@ import logger from './logger.js';
 import helmet from 'helmet';
 import { computeTodayET0 } from './utils/evapotranspiration.js';
 import { isDev } from './envSwitcher.js';
-import { weatherlinkSmoke } from './utils/weatherlinkSmoke.js';
 
 const app = express();
 const port = 8523;
@@ -85,8 +84,6 @@ app.use(apiLimiter, express.static(path.join(clientAppDistPath)));
 app.get('*', apiLimiter, (req: Request, res: Response) => {
   res.sendFile(path.join(clientAppDistPath, 'index.html'));
 });
-
-weatherlinkSmoke().catch(console.error);
 
 if (isDev) {
   httpServer.listen(port, '192.168.1.185', async () => {
