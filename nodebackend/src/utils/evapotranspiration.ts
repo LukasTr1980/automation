@@ -87,15 +87,15 @@ export async function computeTodayET0() {
         const RH = rhAvgRes.ok ? rhAvgRes.avg : NaN;
         const wind10 = windAvgRes.ok ? windAvgRes.avg : NaN; // m/s
 
-        logger.debug(`Inputs – Tmin:${Tmin}°C Tmax:${Tmax}°C Tavg:${Tavg}°C RH:${RH}% Wind10:${wind10}m/s P:${P_hPa}hPa CloudØ:${cloud}%`);
+        logger.debug(`Inputs - Tmin:${Tmin.toFixed(2)}°C Tmax:${Tmax.toFixed(2)}°C Tavg:${Tavg.toFixed(2)}°C RH:${RH.toFixed(2)}% Wind10:${wind10.toFixed(2)}m/s P:${P_hPa.toFixed(1)}hPa CloudØ:${cloud.toFixed(0)}%`, { label: 'Evapotranspiration' });
 
         if (!isFinite(cloud)) {
-            logger.warn("Noch kein Cloud‑Datensatz heute – ET₀ wird in 15 min erneut versucht");
+            logger.warn("Noch kein Cloud - Datensatz heute – ET₀ wird in 15 min erneut versucht", { label: 'Evapotranspiration' });
             setTimeout(computeTodayET0, 15 * 60 * 1000);
             return;
         }
         if ([Tmin, Tmax, Tavg, RH, wind10, P_hPa].some(v => !isFinite(v))) {
-            throw new Error("Unvollständige Sensordaten – ET₀‑Sprung übersprungen");
+            throw new Error("Unvollständige Sensordaten – ET₀ - Sprung übersprungen");
         }
 
         // Datum / Astronomie
@@ -132,15 +132,15 @@ export async function computeTodayET0() {
         if (!isDev) {
             // ET₀ nur in Produktion in InfluxDB schreiben
             await writeToInflux("", et0.toFixed(2), "et0");   // (measurement, value, field)
-            logger.info(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud}% | P:${P_hPa} hPa`);
+            logger.info(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud.toFixed(0)}% | P:${P_hPa.toFixed(1)} hPa`, { label: 'Evapotranspiration' });
         } else {
             // Debug‑Log in Dev
-            logger.debug(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud}% | P:${P_hPa} hPa`);
+            logger.debug(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud.toFixed(0)}% | P:${P_hPa.toFixed(1)} hPa`, { label: 'Evapotranspiration' });
         }
         return +et0.toFixed(2);
 
     } catch (err) {
-        logger.error("Error computing ET₀", err as Error);
+        logger.error("Error computing ET₀", err as Error, { label: 'Evapotranspiration' });
         throw err;
     }
 }

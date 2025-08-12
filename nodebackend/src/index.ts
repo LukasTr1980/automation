@@ -93,7 +93,7 @@ if (isDev) {
 
     try {
       const val = await computeTodayET0();
-      logger.info(`ET₀ (Dev-Run): ${val} mm`);
+      logger.info(`ET₀ (Dev-Run): ${val} mm`, { label: 'Index' });
     } catch (error) {
       logger.error('Error computing ET₀', error);	
     }

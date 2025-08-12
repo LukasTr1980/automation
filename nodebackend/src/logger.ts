@@ -38,7 +38,6 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.splat(),
     upperCaseLevel(),
-    winston.format.label({ label: "Automation" }),
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     customFormat
   ),
@@ -48,7 +47,6 @@ const logger = winston.createLogger({
         winston.format.splat(),
         upperCaseLevel(),                        // make sure console level is capped too
         winston.format.colorize({ level: true }),// color only level token
-        winston.format.label({ label: "Automation" }),
         winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
         customFormat
       )
