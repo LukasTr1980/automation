@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v17.0.0] - 2025-08-12
+### Added
+- Added Weatherlink API integration
+
+### Removed
+- Removed legacy weather API integration
+
 ## [v16.16.9] - 2025-08-10
 ### Removed
 - chore: update davis package to version 1.0.3 and remove unused domain cookie references
