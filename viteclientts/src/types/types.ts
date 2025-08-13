@@ -43,9 +43,7 @@ export interface LayoutProps {
     showLogo?: boolean;
 }
 
-export interface AuthGuardProps {
-    children: ReactNode;
-}
+// Removed AuthGuard and token-based auth
 
 export interface Countdown {
     topic?: string;
@@ -159,15 +157,7 @@ export type LoadingSpinnerProps = {
     size?: number;
 };
 
-export type SocketProviderProps = {
-    children: ReactNode;
-};
-
-export type UserType = {
-    _id: string;
-    username: string;
-    lastLoginTime: number;
-}
+// Removed SocketProvider
 
 export interface UserState {
     browserName: string;
@@ -178,20 +168,6 @@ export interface UserState {
     deviceType: string;
     deviceVendor: string;
     ua: string;
-    userLogin: string | null;
-    setUserLogin: (userLogin: string | null) => void;
-    jwtToken: string | null;
-    clearJwtToken: () => void;
-    hasVisitedBefore: boolean | null;
-    setHasVisitedBefore: (hasVisited: boolean | null) => void;
-    tokenExpiry: number | null;
-    logoutInProgress: boolean;
-    setLogoutInProgress: (inProgress: boolean) => void;
-    setTokenAndExpiry: (token: string | null) => void;
-    deviceId: string | null;
-    setDeviceId: (deviceId: string | null) => void;
-    fetchUserData: () => Promise<void>;
-    userData: { userData: UserType[] } | null;
     setBrowserInfo: () => void;
 }
 
@@ -211,10 +187,7 @@ export interface ErrorResponse {
     severity: AlertColor;
 }
 
-export type TokenExpiryCountdown = {
-    value: string;
-    expired: boolean;
-}
+// Removed TokenExpiryCountdown
 
 export interface CopyrightProps {
     sx?: SxProps

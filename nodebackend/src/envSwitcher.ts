@@ -19,9 +19,6 @@ interface Config {
     mongoDbHost: string;
     mosquittoUrl: string;
     vaultUrl: string;
-    isSecureCookie: boolean;
-    jwtTokenExpiry: number;
-    isSubDomainCookie: string;
 }
 
 const devConfig: Config = {
@@ -30,10 +27,7 @@ const devConfig: Config = {
     redisHost: '10.25.159.4',
     mongoDbHost: '10.25.159.4:27017',
     mosquittoUrl: 'mqtt://10.25.159.4:1883',
-    vaultUrl: 'http://10.25.159.4:8200',
-    isSecureCookie: false,
-    jwtTokenExpiry: 60,
-    isSubDomainCookie: '192.168.1.185'
+    vaultUrl: 'http://10.25.159.4:8200'
 }
 
 const prodConfig: Config = {
@@ -42,10 +36,7 @@ const prodConfig: Config = {
     redisHost: 'redis_container',
     mongoDbHost: 'mongo_container:27017',
     mosquittoUrl: 'mqtt://mosquitto_container:1883',
-    vaultUrl: 'http://vault_container:8200',
-    isSecureCookie: true,
-    jwtTokenExpiry: 60 * 60 * 24,
-    isSubDomainCookie: 'automation.charts.cx'
+    vaultUrl: 'http://vault_container:8200'
 }
 
 const selectedConfig: Config = isDev ? devConfig : prodConfig;
@@ -56,10 +47,7 @@ export const {
     redisHost,
     mongoDbHost,
     mosquittoUrl,
-    vaultUrl,
-    isSecureCookie,
-    jwtTokenExpiry,
-    isSubDomainCookie
+    vaultUrl
 } = selectedConfig;
 
 export { isDev };

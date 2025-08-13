@@ -1,5 +1,5 @@
 //VillaAnnaCountdownPage.jsx
-import { useEffect, useState, useContext, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import Layout from '../../Layout';
 import {
@@ -18,12 +18,10 @@ import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import useSnackbar from '../../utils/useSnackbar';
-import { SocketContext } from '../../components/socketio/SocketContext';
 import { CountdownsState } from '../../types/types';
 import { useTranslation } from 'react-i18next';
 
 const VillaAnnacountdownPage = () => {
-    const { socket, connected } = useContext(SocketContext);
     const { showSnackbar } = useSnackbar();
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
     const [selectedHour, setSelectedHour] = useState<string>('0');
@@ -83,26 +81,13 @@ const VillaAnnacountdownPage = () => {
         fetchCurrentCountdowns();
     }, [fetchCurrentCountdowns]);
 
+    // Simple polling for countdown updates
     useEffect(() => {
-        if (socket && connected) {  // Check connected status
-            socket.on("redis-countdown-update", (data) => {
-                setCountdowns(prevCountdowns => ({
-                    ...prevCountdowns,
-                    [data.topic]: {
-                        hours: data.countdownHours,
-                        minutes: data.countdownMinutes,
-                        control: data.countdownControl,
-                        value: data.countdownValue,
-                    }
-                }));
-            });
-        }
-        return () => {
-            if (socket) {
-                socket.off("redis-countdown-update");  // Clean up event listener
-            }
-        };
-    }, [socket, connected]);
+        const id = setInterval(() => {
+            fetchCurrentCountdowns();
+        }, 1000);
+        return () => clearInterval(id);
+    }, [fetchCurrentCountdowns]);
 
     return (
         <Layout title="Villa Anna Countdown">

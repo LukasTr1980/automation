@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v18.0.0] - 2025-08-13
+### Removed
+- Removed in-app authentication (JWT, login/logout/refresh/verify routes, role middleware, cookie handling) in favor of Traefik forwardauth.
+- Removed frontend auth UI and state (AuthGuard, Login/User pages, logout control) and Socket.IO client; deleted related utilities.
+- Removed CORS configuration from backend and Vite dev server; CORS now handled by Traefik to avoid header conflicts.
+- Removed in-app Content Security Policy (CSP) headers and `/api/csp-violation-report` endpoint. CSP is now enforced and reported via Traefik/forwardauth.
+
+### Changed
+- Simplified API routing: all routes no longer require app-level auth; access is enforced by the reverse proxy.
+- Frontend routing now renders pages directly; countdown view now polls REST endpoints instead of using websockets.
+- Secrets management: `getSecrets` no longer reports password existence; `updateSecrets` no longer updates passwords.
+- Cleaned configuration by removing JWT/cookie settings; pruned unused dependencies in both apps.
+- Dropped Helmet configuration; reverse proxy is the single source of truth for security headers.
+
 ## [v17.0.0] - 2025-08-12
 ### Added
 - Added Weatherlink API integration

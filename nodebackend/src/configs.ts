@@ -12,7 +12,6 @@ let influxDbClientAutomation: InfluxDB | undefined;
 let openaiApiKey: string | undefined;
 let influxDbTokenAI: string | undefined;
 let influxDbTokenAutomation: string | undefined;
-let jwtAccessTokenSecret: string | undefined;
 let openWeatherMapApiKey: string | undefined;
 let vaultRoleId: string;
 let vaultSecretId: string;
@@ -111,31 +110,6 @@ async function getInfluxDbClientAutomation(): Promise<InfluxDB> {
     return influxDbClientAutomation;
 }
 
-async function initializeJwtConfig(): Promise<void> {
-    try {
-        await vaultClient.login();
-        const jwtSecretData = await vaultClient.getSecret('kv/data/automation/jsonwebtoken');
-        jwtAccessTokenSecret = jwtSecretData.data.JWT_ACCESS_TOKEN_SECRET;
-
-        if (!jwtAccessTokenSecret) {
-            throw new Error('Failed to retrieve JWT Access Token Secret from Vault.');
-        }
-    } catch (error) {
-        logger.error('Could not fetch JWT credentials from Vault', error);
-        throw error;
-    }
-}
-
-async function getJwtAccessTokenSecret(): Promise<string> {
-    if (!jwtAccessTokenSecret) {
-        await initializeJwtConfig();
-    }
-    if (!jwtAccessTokenSecret) {
-        logger.error('JWT Access Token Secret is not initialized');
-        throw new Error('JWT Access Token Secret is not initialized');
-    }
-    return jwtAccessTokenSecret;
-}
 
 async function initializeOpenWeatherMapConfig(): Promise<void> {
     try {
@@ -178,7 +152,6 @@ export {
     getOpenAI,
     getInfluxDbClientAI,
     getInfluxDbClientAutomation,
-    getJwtAccessTokenSecret,
     getOpenWeatherMapApiKey,
     vaultRoleId,
     vaultSecretId,

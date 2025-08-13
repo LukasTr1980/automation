@@ -1,9 +1,6 @@
 import express from 'express';
-import { apiLimiter, loginLimiter } from '../middleware/rateLimiter.js';
-import authMiddleware from '../middleware/authMiddleware.js';
-import requiredRole from '../middleware/roleMiddleware.js';
+import { apiLimiter } from '../middleware/rateLimiter.js';
 
-import loginRouter from './loginRoute.js';
 import mqttRouter from './mqttRoute.js';
 import simpleapiRouter from './simpleapiRoute.js';
 import schedulerRouter from './schedulerRoute.js';
@@ -15,30 +12,19 @@ import deleteTaskRouter from './deleteTaskRoute.js';
 import getSecretsRouter from './getSecretsRoute.js';
 import updateSecretsRouter from './updateSecretsRoute.js';
 import countdownRouter from './countdownRoute.js';
-import refreshTokenRouter from './refreshTokenRoute.js';
-import logoutRouter from './logoutRoute.js';
-import verifyTokenRouter from './verifyTokenRoute.js';
-import userDataRouter from './userDataRoute.js';
-import cspReportRouter from './cspReportRoute.js';
 
 const router = express.Router();
 
-router.use('/login', loginLimiter, loginRouter);
-router.use('/refreshToken', apiLimiter, refreshTokenRouter);
-router.use('/verifyToken', apiLimiter, verifyTokenRouter);
-router.use('/logout', apiLimiter, logoutRouter);
-router.use('/mqtt', apiLimiter, authMiddleware, mqttRouter);
-router.use('/simpleapi', apiLimiter, authMiddleware, simpleapiRouter);
-router.use('/scheduler', apiLimiter, authMiddleware, schedulerRouter);
-router.use('/scheduledTasks', apiLimiter, authMiddleware, scheduledTasksRouter);
-router.use('/skipAi', apiLimiter, authMiddleware, skipAiRouter);
-router.use('/switchTaskEnabler', apiLimiter, authMiddleware, switchTaskEnablerRouter);
-router.use('/getTaskEnabler', apiLimiter, authMiddleware, getTaskEnablerRouter);
-router.use('/deleteTask', apiLimiter, authMiddleware, deleteTaskRouter);
-router.use('/getSecrets', apiLimiter, [authMiddleware, requiredRole(['admin'])], getSecretsRouter);
-router.use('/updateSecrets', apiLimiter, [authMiddleware, requiredRole(['admin'])], updateSecretsRouter);
-router.use('/countdown', apiLimiter, authMiddleware, countdownRouter);
-router.use('/userData', apiLimiter, authMiddleware, userDataRouter);
-router.use('/csp-violation-report', apiLimiter, cspReportRouter);
+router.use('/mqtt', apiLimiter, mqttRouter);
+router.use('/simpleapi', apiLimiter, simpleapiRouter);
+router.use('/scheduler', apiLimiter, schedulerRouter);
+router.use('/scheduledTasks', apiLimiter, scheduledTasksRouter);
+router.use('/skipAi', apiLimiter, skipAiRouter);
+router.use('/switchTaskEnabler', apiLimiter, switchTaskEnablerRouter);
+router.use('/getTaskEnabler', apiLimiter, getTaskEnablerRouter);
+router.use('/deleteTask', apiLimiter, deleteTaskRouter);
+router.use('/getSecrets', apiLimiter, getSecretsRouter);
+router.use('/updateSecrets', apiLimiter, updateSecretsRouter);
+router.use('/countdown', apiLimiter, countdownRouter);
 
 export default router;

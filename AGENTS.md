@@ -27,6 +27,6 @@
 - PRs: include a clear description, linked issues, reproduction/verification steps, and screenshots for UI changes. Ensure both apps build (`npm run build`) and update `CHANGELOG.md` for user‑visible changes.
 
 ## Security & Configuration Tips
-- Secrets are fetched via Vault using `VAULT_ROLE_ID`/`VAULT_SECRET_ID` in dev or Docker secrets in production (`/run/secrets/automation_vault_*`). Never commit `.env*`.
-- External services: InfluxDB, MongoDB, Redis, MQTT, OpenAI, OpenWeatherMap; configure endpoints in `nodebackend/src/envSwitcher.ts` and related configs.
-
+- Secrets: Use Vault with `VAULT_ROLE_ID`/`VAULT_SECRET_ID` in dev or Docker secrets in prod (`/run/secrets/automation_vault_*`). Never commit `.env*`.
+- External services: InfluxDB, MongoDB, Redis, MQTT, OpenAI, OpenWeatherMap; endpoints in `nodebackend/src/envSwitcher.ts`.
+- Auth & CSP: Traefik forwardauth enforces access and sets CSP. The app does not set CSP headers or accept CSP reports. Protect sensitive routes (e.g., `/api/getSecrets`, `/api/updateSecrets`) at the proxy.

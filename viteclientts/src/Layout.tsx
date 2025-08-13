@@ -12,8 +12,6 @@ import NavMenu from './components/menu/NavMenu';
 import logo from './images/logo-512x512.webp';
 import { LayoutProps, CopyrightProps } from './types/types';
 import { useUserStore } from './utils/store';
-import { useTranslation } from 'react-i18next';
-import useCountdown from './utils/useCountdown';
 const appVersion = import.meta.env.VITE_APP_VERSION;
 
 const Layout: React.FC<LayoutProps> = ({
@@ -22,10 +20,7 @@ const Layout: React.FC<LayoutProps> = ({
   showNavMenu = true,
   showLogo = false
 }) => {
-  const { userLogin, setBrowserInfo, osName, browserName, browserVersion } = useUserStore();
-  const { value: countdownTime, refreshing } = useCountdown();
-  const { t } = useTranslation();
-  const countdownDisplay = refreshing ? t('refreshingToken') : countdownTime;
+  const { setBrowserInfo, osName, browserName, browserVersion } = useUserStore();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -100,14 +95,7 @@ const Layout: React.FC<LayoutProps> = ({
         <Typography variant='body1' color='black'>
           Version: {appVersion}
         </Typography>
-        {userLogin === 'admin' &&
-          <Typography variant='body1' color='black'>
-            {t('tokenExpiresIn')}:&nbsp;
-            <span style={{ color: refreshing ? 'green' : 'inherit' }}>
-              {countdownDisplay}
-            </span>
-          </Typography>
-        }
+        
         <Typography variant='body1' color='black'>
           Client Details: {osName}, {browserName} {browserVersion}
         </Typography>

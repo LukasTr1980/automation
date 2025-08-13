@@ -4,35 +4,19 @@ import { Button, Toolbar, Drawer, List, ListItemButton, IconButton, useMediaQuer
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import logo from '../../images/logo-60x60.webp';
-import { useUserStore } from '../../utils/store';
 import { useTranslation } from 'react-i18next';
-import LogoutButton from '../LogoutButton';
 
 const NavMenu: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const { userLogin } = useUserStore();
   const { t } = useTranslation();
 
   const handleDrawerToggle = (): void => {
     setDrawerOpen(!drawerOpen);
   };
 
-  const userInfoDisplay = userLogin ? (
-    <div style={{ marginLeft: 'auto', paddingRight: 2 }}>
-      <Button
-        sx={{ color: '#1565C0', '&:hover': { backgroundColor: '#D2E9F0', color: '#1565C0' } }}
-        component={NavLink}
-        to="/user"
-      >
-        <Typography textTransform='capitalize'>
-          {userLogin}
-        </Typography>
-      </Button>
-
-    </div>
-  ) : (
+  const userInfoDisplay = (
     <div style={{ marginLeft: 'auto', paddingRight: 2 }}>
       <Typography>{t('notAvailable')}</Typography>
     </div>
@@ -63,7 +47,7 @@ const NavMenu: React.FC = () => {
         {[
           { text: 'Home', path: '/home' },
           { text: 'Villa Anna', path: '/villa-anna/home' },
-          ...(userLogin === 'admin' ? [{ text: t('settings'), path: '/settings' }] : [])
+          { text: t('settings'), path: '/settings' }
         ].map(({ text, path }) => {
           return (
             <ListItemButton
@@ -137,19 +121,17 @@ const NavMenu: React.FC = () => {
                 >
                   Villa Anna
                 </Button>
-                {userLogin === 'admin' && (
-                  <Button
-                    sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}
-                    component={NavLink}
-                    to="/settings"
-                  >
-                    {t('settings')}
-                  </Button>
-                )}
+                <Button
+                  sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}
+                  component={NavLink}
+                  to="/settings"
+                >
+                  {t('settings')}
+                </Button>
               </>
             )}
             {userInfoDisplay}
-            <LogoutButton />
+            
           </Toolbar>
         </Grid>
       </AppBar>

@@ -63,10 +63,12 @@ export default defineConfig({
   ],
   server: {
     host: '192.168.1.185',
-    cors: {
-      origin: ['http://192.168.1.185:5173', 'http://localhost:5173', 'https://automation.charts.cx', 'http://localhost:8523', 'https://charts.cx'],
-      allowedHeaders: 'Content-Type,Authorization',
-      credentials: true
+    proxy: {
+      '/api': {
+        target: 'http://192.168.1.185:8523',
+        changeOrigin: true,
+        secure: false,
+      }
     }
   },
   build: {

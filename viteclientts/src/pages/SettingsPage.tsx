@@ -21,27 +21,25 @@ const SettingsPage: React.FC = () => {
     const [influxDbAiToken, setInfluxDbAiToken] = useState("");
     const [influxDbAutomationToken, setInfluxDbAutomationToken] = useState("");
     const [openAiApiToken, setOpenAiApiToken] = useState("");
-    const [newPassword, setNewPassword] = useState("");
 
     const [exists, setExists] = useState({
         influxDbAiToken: false,
         influxDbAutomationToken: false,
         openAiApiToken: false,
-        password: false,
     });
 
     const [focused, setFocused] = useState({
         influxDbAiToken: false,
         influxDbAutomationToken: false,
         openAiApiToken: false,
-        newPassword: false,
+        
     });
 
     const [valid, setValid] = useState({
         influxDbAiToken: true,
         influxDbAutomationToken: true,
         openAiApiToken: true,
-        newPassword: true,
+        
     });
 
     // ─── initial existence flags ─────────────────────────────────
@@ -53,7 +51,6 @@ const SettingsPage: React.FC = () => {
                     influxDbAiToken: data.influxDbAiTokenExists,
                     influxDbAutomationToken: data.influxDbAutomationTokenExists,
                     openAiApiToken: data.openAiApiTokenExists,
-                    password: data.passwordExists,
                 })
             )
             .catch(console.error);
@@ -125,19 +122,7 @@ const SettingsPage: React.FC = () => {
                                 handleUpdateSecret("openAiApiToken", openAiApiToken)
                             }
                         />
-                        <SecretField
-                            label="Password"
-                            type="password"
-                            secretValue={newPassword}
-                            placeholder={exists.password}
-                            isFocused={focused.newPassword}
-                            isValid={valid.newPassword}
-                            onFocus={() => setFocus("newPassword", true)}
-                            onBlur={() => setFocus("newPassword", false)}
-                            onChange={setNewPassword}
-                            onUpdate={() => handleUpdateSecret("newPassword", newPassword)}
-                            autoComplete="new-password"
-                        />
+                        
                     </CardContent>
                 </Card>
             </Grid>

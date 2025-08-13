@@ -5,12 +5,10 @@ import VillaAnnaButtonImage from '../images/VillaAnnaButton.webp';
 import VillaAnnaButtonImageSmall from '../images/VillaAnnaButton160x160.webp';
 import SettingsButtonImageSmall from '../images/SettingsButton160x160.webp';
 import SettingsButtonImage from '../images/SettingsButton.webp';
-import { useUserStore } from '../utils/store';
 import { useTranslation } from 'react-i18next';
 import ImagePreloader from '../utils/imagePreloader';
 
 const HomePage: React.FC = () => {
-  const { userLogin } = useUserStore();
   const { t } = useTranslation();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -46,28 +44,26 @@ const HomePage: React.FC = () => {
               </Card>
             </RouterLink>
           </Grid>
-          {userLogin === 'admin' && (
-            <Grid>
-              <RouterLink to="/settings" style={{ textDecoration: 'none' }}>
-                <Card sx={cardMaxwidth} variant='outlined'>
-                  <CardActionArea>
-                    <CardMedia
-                      component='img'
-                      image={isSmallScreen ? SettingsButtonImageSmall : SettingsButtonImage}
-                      alt='Settings'
-                      width={cardMediaWidth}
-                      height={cardMediaHeight}
-                    />
-                    <CardContent>
-                      <Typography fontSize={typographyFontSize}>
-                        {t('settings')}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </RouterLink>
-            </Grid>
-          )}
+          <Grid>
+            <RouterLink to="/settings" style={{ textDecoration: 'none' }}>
+              <Card sx={cardMaxwidth} variant='outlined'>
+                <CardActionArea>
+                  <CardMedia
+                    component='img'
+                    image={isSmallScreen ? SettingsButtonImageSmall : SettingsButtonImage}
+                    alt='Settings'
+                    width={cardMediaWidth}
+                    height={cardMediaHeight}
+                  />
+                  <CardContent>
+                    <Typography fontSize={typographyFontSize}>
+                      {t('settings')}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </RouterLink>
+          </Grid>
         </Grid>
       </Layout>
     </ImagePreloader>

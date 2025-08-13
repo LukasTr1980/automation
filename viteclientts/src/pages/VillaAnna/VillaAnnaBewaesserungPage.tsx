@@ -26,10 +26,8 @@ import Tab from '@mui/material/Tab';
 import SkeletonLoader from '../../components/skeleton';
 import { useTranslation } from 'react-i18next';
 import DialogFullScreen from '../../components/DialogFullScreen';
-import { useUserStore } from '../../utils/store';
 
 const BewaesserungPage = () => {
-  const { jwtToken } = useUserStore();
   const [aiLoading, setAiLoading] = useState(true);
   const [skipAi, setSkipAi] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -51,7 +49,6 @@ const BewaesserungPage = () => {
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (jwtToken) params.set('token', jwtToken);
     // If skipAi is true, instruct backend not to run the AI check for the
     // initial irrigation evaluation pushed via the SSE endpoint.
     if (skipAi) params.set('checkIrrigation', 'false');
@@ -81,7 +78,7 @@ const BewaesserungPage = () => {
     return () => {
       eventSource.close();
     };
-  }, [jwtToken, apiUrl, skipAi]);
+  }, [apiUrl, skipAi]);
 
   // Load initial skipAi state from backend
   useEffect(() => {

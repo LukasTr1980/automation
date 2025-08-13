@@ -8,19 +8,17 @@ interface UpdateRequestBody {
     influxDbAiToken?: string;
     influxDbAutomationToken?: string;
     openAiApiToken?: string;
-    newPassword?: string;
 }
 
 const fieldToTranslationKeyMap: { [key: string]: string } = {
     'InfluxDB AI Token': 'updateSuccessInfluxDBAIToken',
     'InfluxDB Automation Token': 'updateSuccessInfluxDBAutomationToken',
-    'OpenAI API Token': 'updateSuccessOpenAIAPIToken',
-    'Password': 'updateSuccessPassword'
+    'OpenAI API Token': 'updateSuccessOpenAIAPIToken'
 };
 
 router.post('/', async (req: Request<Record<string, never>, unknown, UpdateRequestBody>, res: Response) => {
     try {
-        const { influxDbAiToken, influxDbAutomationToken, openAiApiToken, newPassword } = req.body;
+        const { influxDbAiToken, influxDbAutomationToken, openAiApiToken } = req.body;
         await vaultClient.login();
 
         const updatedFields: string[] = [];
@@ -38,11 +36,6 @@ router.post('/', async (req: Request<Record<string, never>, unknown, UpdateReque
         if (openAiApiToken) {
             await vaultClient.writeSecret('kv/data/automation/openai', { apikey: openAiApiToken });
             updatedFields.push('OpenAI API Token');
-        }
-
-        if (newPassword) {
-            await vaultClient.writeSecret('kv/data/automation/login/admin', { password: newPassword, role: 'admin' });
-            updatedFields.push('Password');
         }
 
         if (updatedFields.length === 0) {
