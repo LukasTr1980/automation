@@ -30,3 +30,4 @@
 - Secrets: Use Vault with `VAULT_ROLE_ID`/`VAULT_SECRET_ID` in dev or Docker secrets in prod (`/run/secrets/automation_vault_*`). Never commit `.env*`.
 - External services: InfluxDB, MongoDB, Redis, MQTT, OpenAI, OpenWeatherMap; endpoints in `nodebackend/src/envSwitcher.ts`.
 - Auth & CSP: Traefik forwardauth enforces access and sets CSP. The app does not set CSP headers or accept CSP reports. Protect sensitive routes (e.g., `/api/getSecrets`, `/api/updateSecrets`) at the proxy.
+ - PWA: The frontend no longer uses a Service Worker or manifest. On boot, existing SWs are unregistered to avoid cached `index.html` interfering with ForwardAuth redirects. Optionally set `Cache-Control: no-store` for HTML at the proxy for extra safety.

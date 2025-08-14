@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v18.0.1] - 2025-08-14
+### Removed
+- Frontend PWA support and Service Worker; deleted `manifest.webmanifest` and removed `vite-plugin-pwa` usage.
+
+### Changed
+- Added one-time Service Worker deregistration on app boot to ensure clients drop any previously installed SW and stop serving cached `index.html`. This avoids ForwardAuth redirect issues on refresh when the login cookie is missing.
+
 ## [v18.0.0] - 2025-08-13
 ### Removed
 - Removed in-app authentication (JWT, login/logout/refresh/verify routes, role middleware, cookie handling) in favor of Traefik forwardauth.

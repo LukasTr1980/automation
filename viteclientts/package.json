@@ -25,7 +25,6 @@
     "react-router": "^7",
     "react-router-dom": "^7",
     "ua-parser-js": "^2",
-    "vite-plugin-pwa": "^0.21",
     "zustand": "^5"
   },
   "devDependencies": {
