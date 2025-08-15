@@ -32,6 +32,26 @@ app.use('/api', apiRouter);
 const httpServer = http.createServer(app);
 const io = configureSocket(httpServer);
 
+// Graceful shutdown and clearer EADDRINUSE handling
+const host = isDev ? '192.168.1.185' : undefined;
+httpServer.on('error', (err: NodeJS.ErrnoException) => {
+  if (err && err.code === 'EADDRINUSE') {
+    logger.error(`Port ${port} ${host ? `on ${host} ` : ''}already in use. Stop the existing server before starting a new one.`);
+    process.exit(1);
+  }
+  logger.error('HTTP server error', err);
+  process.exit(1);
+});
+
+const shutdown = () => {
+  logger.info('Shutting down HTTP server...');
+  httpServer.close(() => process.exit(0));
+  // Fallback exit if close hangs
+  setTimeout(() => process.exit(0), 2000).unref();
+};
+process.once('SIGINT', shutdown);
+process.once('SIGTERM', shutdown);
+
 app.use(apiLimiter, express.static(path.join(clientAppDistPath)));
 
 app.get('*', apiLimiter, (req: Request, res: Response) => {
@@ -39,7 +59,7 @@ app.get('*', apiLimiter, (req: Request, res: Response) => {
 });
 
 if (isDev) {
-  httpServer.listen(port, '192.168.1.185', async () => {
+  httpServer.listen(port, host, async () => {
     logger.info(`APIs are listening on port ${port}`);
     loadScheduledTasks().catch(logger.error);
     await subscribeToRedisKey(io);

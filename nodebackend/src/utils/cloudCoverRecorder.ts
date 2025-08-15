@@ -4,7 +4,6 @@
 //  und schreibt sie mit IPv4‑erzwingendem Agent + Retry‑Logik in InfluxDB.
 // -----------------------------------------------------------------------------
 
-import fetch, { RequestInit } from "node-fetch";
 import https from "https";
 import { writeToInflux } from "../clients/influxdb-client.js";
 import logger from "../logger.js";
@@ -18,12 +17,10 @@ const MEAS_CL = "dwd.clouds";
 const MEAS_RAIN = "dwd.rain24h";
 
 // ───────── Helper: IPv4‑Agent & Retry‑Fetch ────────────────────────────────
-const ipv4Agent = new https.Agent({ family: 4 });
-
 async function fetchWithRetry(url: string, opts: RequestInit = {}, retries = 3) {
     for (let i = 0; i < retries; i++) {
         try {
-            const r = await fetch(url, { ...opts, agent: ipv4Agent, timeout: 10_000 });
+            const r = await fetch(url, { ...opts });
             if (!r.ok) throw new Error(`HTTP ${r.status}`);
             return r.json();
         } catch (e) {

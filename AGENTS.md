@@ -28,7 +28,7 @@
 
 ## Security & Configuration Tips
 - Secrets: Use Vault with `VAULT_ROLE_ID`/`VAULT_SECRET_ID` in dev or Docker secrets in prod (`/run/secrets/automation_vault_*`). Never commit `.env*`.
-- External services: InfluxDB, MongoDB, Redis, MQTT, OpenAI, OpenWeatherMap; endpoints in `nodebackend/src/envSwitcher.ts`.
+- External services: InfluxDB, MongoDB, Redis, MQTT, OpenWeatherMap; endpoints in `nodebackend/src/envSwitcher.ts`.
 - Auth & CSP: Traefik forwardauth enforces access and sets CSP. The app does not set CSP headers or accept CSP reports.
 - PWA: The frontend no longer uses a Service Worker or manifest. On boot, existing SWs are unregistered to avoid cached `index.html` interfering with ForwardAuth redirects. Optionally set `Cache-Control: no-store` for HTML at the proxy for extra safety.
 
@@ -39,7 +39,7 @@
   - WeatherLink (temp, RH, wind, pressure) via range helpers chunked by 24h to respect API limits.
   - Influx (cloud cover): daily means for the same 7-day window.
 - Storage: Append JSONL lines to `nodebackend/data/evapotranspiration_weekly/YYYY-MM-DD.jsonl` with `{ timestamp, et0_week }`.
-- Consumption: GPT reads the latest weekly `et0_week` directly from JSONL in `gptChatCompletion` using `readLatestJsonlNumber`. `queryAllData()` does not include ET₀.
+- Consumption: Irrigation decision logic reads the latest weekly `et0_week` directly from JSONL in `gptChatCompletion` using `readLatestJsonlNumber`. `queryAllData()` does not include ET₀.
 - Notes: Do not write ET₀ to Influx; `.gitignore` excludes `nodebackend/data/`.
 
 ### ET₀ Ops & Debugging
@@ -74,3 +74,12 @@
 - **Data flow**: React hooks fetch data on component mount with proper loading states and error handling
 - **Responsive design**: Cards adapt to screen size with consistent heights and proper text wrapping
 - **Zone names**: All schedule displays use human-readable names (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle)
+
+## Irrigation Decision (No AI)
+- Source of truth: `nodebackend/src/gptChatCompletion.ts` implements a rule-based decision.
+- Behavior: Applies hard blockers (temp, humidity, rainfall, rain rate, deficit < 5 mm). If none apply, irrigation proceeds.
+- Wiring: Scheduler and MQTT SSE call `createIrrigationDecision` directly; the `gptChatIrrigation.ts` adapter was removed.
+- Dependencies: No OpenAI usage; `openai` dependency and related Vault credentials are removed.
+
+## Dev Server Notes
+- The backend exits with a clear error if port `8523` is already in use (EADDRINUSE). Stop the previous instance (Ctrl+C) before re-running `npm run test`.

@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Loading states and error handling for all real-time data fetching
 
 ### Changed
+- Backend irrigation decision is now purely rule-based using hard blockers and ET₀ deficit; removed AI involvement.
+- Scheduler and MQTT route now call `createIrrigationDecision` directly (adapter removed).
+- Improved server startup handling: graceful message and exit on `EADDRINUSE` (port already in use).
+- Replaced `node-fetch` with Node 22 global `fetch` in cloud cover and ODH rain recorders; removed custom IPv4 agent usage.
 - Completely redesigned VillaAnnaHomePage with professional irrigation app UI following 2025 design trends
 - Replaced mock "Soil Moisture" card with real evapotranspiration data display showing 7-day ET₀ sum in mm from existing JSONL infrastructure
 - Integrated real WeatherLink temperature data replacing fake temperature values
@@ -36,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Zone name mapping to use proper human-readable names (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle)
 
 ### Removed
+- OpenAI integration, credentials retrieval from Vault, and all AI prompt/call code.
+- `gptChatIrrigation.ts` adapter (direct call is used instead).
+- `openai` dependency from `nodebackend/package.json`.
 - NavMenu component and all related navigation code
 - Layout title display functionality and title prop from LayoutProps interface
 - Image preloader dependencies (IrrigationButton images)

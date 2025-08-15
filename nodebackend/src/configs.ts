@@ -1,4 +1,3 @@
-import { OpenAI } from 'openai';
 import { InfluxDB } from '@influxdata/influxdb-client';
 import * as envSwitcher from './envSwitcher.js';
 import * as vaultClient from './clients/vaultClient.js';
@@ -6,34 +5,13 @@ import logger from './logger.js';
 import fs from 'fs';
 import { isDev } from './envSwitcher.js';
 
-let openai: OpenAI | undefined;
 let influxDbClientAI: InfluxDB | undefined;
 let influxDbClientAutomation: InfluxDB | undefined;
-let openaiApiKey: string | undefined;
 let influxDbTokenAI: string | undefined;
 let influxDbTokenAutomation: string | undefined;
 let openWeatherMapApiKey: string | undefined;
 let vaultRoleId: string;
 let vaultSecretId: string;
-
-async function initializeOpenAIConfig(): Promise<void> {
-    try {
-        await vaultClient.login();
-        const openaiCredentials = await vaultClient.getSecret('kv/data/automation/openai');
-        openaiApiKey = openaiCredentials.data.apikey;
-
-        if (!openaiApiKey) {
-            throw new Error('Failed to retrieve Openai Api Key from Vault.');
-        }
-
-        openai = new OpenAI({
-            apiKey: openaiApiKey,
-        });
-    } catch (error) {
-        logger.error('Could not fetch OpenAI credentials from Vault', error);
-        throw error;
-    }
-}
 
 async function initializeInfluxDbConfigAI(): Promise<void> {
     try {
@@ -77,16 +55,6 @@ async function initializeInfluxDbConfigAutomation(): Promise<void> {
     }
 }
 
-async function getOpenAI(): Promise<OpenAI> {
-    if (!openai) {
-        await initializeOpenAIConfig();
-    }
-    if (!openai) {
-        logger.error('OpenAI client is not initialized');
-        throw new Error('OpenAI client is not initialized');
-    }
-    return openai;
-}
 
 async function getInfluxDbClientAI(): Promise<InfluxDB> {
     if (!influxDbClientAI) {
@@ -149,7 +117,6 @@ if (!isDev) {
 }
 
 export {
-    getOpenAI,
     getInfluxDbClientAI,
     getInfluxDbClientAutomation,
     getOpenWeatherMapApiKey,

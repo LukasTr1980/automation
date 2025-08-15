@@ -9,7 +9,6 @@
 //    ODH_LANG          de | it | en …  (optional, default de)
 // -----------------------------------------------------------------------------
 
-import fetch, { RequestInit } from "node-fetch";
 import https from "https";
 import { writeToInflux } from "../clients/influxdb-client.js";
 import logger from "../logger.js";
@@ -30,8 +29,6 @@ const MEAS_RAIN = "odh.rainNextDay";
 const MEAS_PROB = "odh.rainProbNextDay";
 
 // ───────── Helper: fetch mit IPv4 & Retry ───────────────────────────────────
-const ipv4 = new https.Agent({ family: 4 });
-
 async function fetchJsonRetry(
     url: string,
     opts: RequestInit = {},
@@ -39,7 +36,7 @@ async function fetchJsonRetry(
 ): Promise<any> {
     for (let i = 0; i < retries; i++) {
         try {
-            const r = await fetch(url, { ...opts, agent: ipv4, timeout: 10_000 });
+            const r = await fetch(url, { ...opts });
             if (!r.ok) throw new Error(`HTTP ${r.status}`);
             return r.json();
         } catch (err) {

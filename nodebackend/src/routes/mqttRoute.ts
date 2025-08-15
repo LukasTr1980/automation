@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { addSseClient, latestStates } from '../utils/mqttHandler.js';
-import isIrrigationNeeded from '../gptChatIrrigation.js';
+import { createIrrigationDecision } from '../gptChatCompletion.js';
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ router.get('/', async (req: Request, res: Response) => {
     res.write(`data: ${JSON.stringify({ type: 'switchState', latestStates })}\n\n`);
 
     if (req.query.checkIrrigation !== 'false') {
-        const data = await isIrrigationNeeded();
+        const data = await createIrrigationDecision();
         if (data.result !== null) {
             const irrigationNeededData = {
                 type: 'irrigationNeeded',

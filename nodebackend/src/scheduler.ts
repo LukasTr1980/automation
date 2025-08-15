@@ -1,6 +1,6 @@
 import schedule from 'node-schedule';
 import { connectToRedis } from './clients/redisClient.js';
-import isIrrigationNeeded from './gptChatIrrigation.js';
+import { createIrrigationDecision } from './gptChatCompletion.js';
 import getTaskEnabler from './utils/getTaskEnabler.js';
 import generateUniqueId from './utils/generateUniqueId.js';
 import { topicToTaskEnablerKey, skipAiRedisKey } from './utils/constants.js';
@@ -90,7 +90,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
             }
           });
         } else {
-          const { result: irrigationNeeded } = await isIrrigationNeeded();
+          const { result: irrigationNeeded } = await createIrrigationDecision();
           if (irrigationNeeded) {
             publisher.publish(topic, state.toString(), async (err: Error | null) => {
               if (err) {
