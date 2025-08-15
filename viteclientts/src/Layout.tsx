@@ -8,7 +8,6 @@ import {
   useTheme,
   Grid,
 } from '@mui/material';
-import NavMenu from './components/menu/NavMenu';
 import logo from './images/logo-512x512.webp';
 import { LayoutProps, CopyrightProps } from './types/types';
 import { useUserStore } from './utils/store';
@@ -17,7 +16,6 @@ const appVersion = import.meta.env.VITE_APP_VERSION;
 const Layout: React.FC<LayoutProps> = ({
   title,
   children,
-  showNavMenu = true,
   showLogo = false
 }) => {
   const { setBrowserInfo, osName, browserName, browserVersion } = useUserStore();
@@ -57,13 +55,11 @@ const Layout: React.FC<LayoutProps> = ({
 
   return (
     <>
-      {showNavMenu && <NavMenu />}
-      <Container component='main' sx={{ pt: isSmallScreen ? '64px' : '64px', paddingBottom: 2 }} style={{ maxWidth: '700px' }}>
+      <Container component='main' sx={{ paddingBottom: 2 }} style={{ maxWidth: '700px' }}>
         <Grid container paddingTop={isSmallScreen ? 3 : 6}>
-          <Grid component="div" size={12} sx={{ paddingBottom: { xs: 1, sm: 2 } }}>
-            <Typography align="center" textTransform='uppercase' sx={{ fontSize: { xs: '1.3em', sm: '2em' } }}>{title}</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              {showLogo && (
+          {showLogo && (
+            <Grid component="div" size={12} sx={{ paddingBottom: { xs: 1, sm: 2 } }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <img
                   src={logo}
                   alt='Logo'
@@ -73,9 +69,9 @@ const Layout: React.FC<LayoutProps> = ({
                     marginBottom: '24px',
                   }}
                 />
-              )}
-            </Box>
-          </Grid>
+              </Box>
+            </Grid>
+          )}
           {children}
         </Grid>
       </Container>

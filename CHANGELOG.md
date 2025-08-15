@@ -7,10 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Modern dashboard-style homepage design with status cards showing system status, soil moisture, temperature, and next scheduled irrigation
+- Gradient backgrounds and hover animations for improved visual appeal
+- Material-UI icons (WaterDrop, Schedule, Grass, ThermostatAuto) replacing generic button images
 
 ### Changed
+- Completely redesigned VillaAnnaHomePage with professional irrigation app UI following 2025 design trends
+- Improved responsive layout with better grid sizing and card proportions
+- Enhanced action cards with descriptive text, feature chips, and smooth hover effects
+- Updated card heights for better visual balance on desktop screens
 
 ### Removed
+- NavMenu component and all related navigation code
+- Layout title display functionality
+- Image preloader dependencies (IrrigationButton images)
+- showNavMenu prop from LayoutProps interface
 
 ## [v18.1.1] - 2025-08-15
 ### Added

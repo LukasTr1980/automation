@@ -39,7 +39,6 @@ export interface ScheduledTaskCardProps {
 export interface LayoutProps {
     title: string;
     children: ReactNode;
-    showNavMenu?: boolean;
     showLogo?: boolean;
 }
 
