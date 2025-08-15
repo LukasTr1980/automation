@@ -12,10 +12,11 @@
 //    • Rnl‑Term auf FAO‑56 gebracht (+ optionale Clips)
 // -----------------------------------------------------------------------------
 
-import { querySingleData, writeToInflux } from "../clients/influxdb-client.js";
+import { querySingleData } from "../clients/influxdb-client.js";
 import { getDailyOutdoorTempAverage, getDailyOutdoorHumidityAverage, getDailyOutdoorWindSpeedAverage, getDailyOutdoorTempExtrema, getDailyOutdoorPressureAverage } from "../clients/weatherlink-client.js";
 import logger from "../logger.js";
 import { isDev } from "../envSwitcher.js";
+import { appendJsonl } from "./localDataWriter.js";
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
 const LAT = Number(process.env.LAT ?? 46.5668);
@@ -129,12 +130,15 @@ export async function computeTodayET0() {
         const et0 = (0.408 * Δ * Rn + γ * 900 / (Tavg + 273.15) * u2 * (es - ea)) /
             (Δ + γ * (1 + 0.34 * u2));
 
+        // Always write a local JSONL record (daily file) with only ET₀
+        await appendJsonl('evapotranspiration', {
+            et0: +et0.toFixed(2)
+        });
+
+        // Log outcome (no InfluxDB write)
         if (!isDev) {
-            // ET₀ nur in Produktion in InfluxDB schreiben
-            await writeToInflux("", et0.toFixed(2), "et0");   // (measurement, value, field)
             logger.info(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud.toFixed(0)}% | P:${P_hPa.toFixed(1)} hPa`, { label: 'Evapotranspiration' });
         } else {
-            // Debug‑Log in Dev
             logger.debug(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud.toFixed(0)}% | P:${P_hPa.toFixed(1)} hPa`, { label: 'Evapotranspiration' });
         }
         return +et0.toFixed(2);
