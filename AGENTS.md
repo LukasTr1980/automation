@@ -18,6 +18,11 @@
 - Linting: ESLint with `@typescript-eslint` (client also enforces React Hooks). Run `npm run lint` in `viteclientts/`; in backend use `npx eslint .`.
 - Indentation: 2 spaces. Naming: camelCase (vars/functions), PascalCase (classes/React components), UPPER_SNAKE_CASE (env/constants). File names: `.ts` (backend), `.tsx` (React components).
 
+## Language & Logging
+- Logs: All backend log messages must be written in English.
+- UI: All user-visible text (frontend, API response messages shown in UI) must be in German.
+- Prefer central helpers for messages to avoid drift; do not mix languages in a single message.
+
 ## Testing Guidelines
 - No test runner configured yet. Prefer adding unit tests (Vitest for client; Jest or Vitest for backend). Name tests `*.test.ts` / `*.test.tsx` and colocate near source or under `__tests__/`.
 - Until tests exist, validate by running the backend and client locally; keep functions pure and small to ease future testing.

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [v18.2.0] - 2025-08-15
+### Added
 - Modern dashboard-style homepage design with status cards showing system status, weekly evapotranspiration (ET₀), real-time temperature, and next scheduled irrigation
 - New `/api/et0/latest` endpoint to fetch the most recent weekly ET₀ data from JSONL files
 - New `/api/weather/temperature` endpoint providing current temperature from WeatherLink API with automatic Fahrenheit to Celsius conversion
