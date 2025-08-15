@@ -14,7 +14,6 @@ import { useUserStore } from './utils/store';
 const appVersion = import.meta.env.VITE_APP_VERSION;
 
 const Layout: React.FC<LayoutProps> = ({
-  title,
   children,
   showLogo = false
 }) => {

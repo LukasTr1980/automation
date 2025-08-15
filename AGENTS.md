@@ -43,6 +43,7 @@
 - Notes: Do not write ET₀ to Influx; `.gitignore` excludes `nodebackend/data/`.
 
 ### ET₀ Ops & Debugging
-- Manual run: `computeWeeklyET0()` can be invoked (e.g., from `index.ts` or a REPL) to produce today’s JSONL entry.
+- Manual run: `computeWeeklyET0()` can be invoked (e.g., from `index.ts` or a REPL) to produce today's JSONL entry.
 - Logs: Look for `[ET0] Using weekly ET₀ from JSONL: <mm>` during irrigation decisions and `ET₀ weekly sum (last 7 days): <mm>` from the scheduler.
 - Files: Latest record is the last line of `nodebackend/data/evapotranspiration_weekly/YYYY-MM-DD.jsonl`.
+- Frontend API: The `/api/et0/latest` endpoint provides the most recent weekly ET₀ value for dashboard display.

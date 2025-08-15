@@ -45,7 +45,6 @@ const BewaesserungPage = () => {
   const { showSnackbar } = useSnackbar();
   const [isAiResponseDialogOpen, setIsAiResponseDialogOpen] = useState(false);
   const { t } = useTranslation();
-  const title = `Villa Anna ${t('irrigation')}`;
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -156,7 +155,7 @@ const BewaesserungPage = () => {
   }
 
   return (
-    <Layout title={title}>
+    <Layout>
       <Grid size={12} paddingTop={1} paddingBottom={1}>
         <Card variant='outlined'>
           <CardHeader title={t('switches')} />

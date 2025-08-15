@@ -90,7 +90,7 @@ const VillaAnnacountdownPage = () => {
     }, [fetchCurrentCountdowns]);
 
     return (
-        <Layout title="Villa Anna Countdown">
+        <Layout>
             <Grid size={12} paddingTop={1} paddingBottom={1}>
                 <Card variant='outlined'>
                     <CardHeader title={t('setCountdown')} />

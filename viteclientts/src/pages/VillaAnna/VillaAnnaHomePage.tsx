@@ -9,37 +9,60 @@ import {
   useTheme,
   Avatar,
   Chip,
-  Stack,
-  IconButton
+  Stack
 } from '@mui/material';
 import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
 import { 
   WaterDrop, 
   Schedule, 
-  Grass, 
   ThermostatAuto,
   PlayArrow,
   Pause,
-  Settings
+  OpacityOutlined
 } from '@mui/icons-material';
+import { useState, useEffect } from 'react';
 
 const HomePage = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const isMdScreen = useMediaQuery(theme.breakpoints.down('md'));
+
+  const [et0Data, setEt0Data] = useState<{ et0_week: number | null; unit: string } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Mock data - replace with actual data from your irrigation system
   const systemStatus = {
     isRunning: false,
     nextScheduled: '08:00',
     lastRun: '06:30',
-    temperature: '24°C',
-    moisture: 65
+    temperature: '24°C'
   };
 
+  // Fetch ET₀ data
+  useEffect(() => {
+    const fetchEt0Data = async () => {
+      try {
+        const response = await fetch('/api/et0/latest');
+        if (response.ok) {
+          const data = await response.json();
+          setEt0Data(data);
+        } else {
+          console.warn('Failed to fetch ET₀ data:', response.statusText);
+          setEt0Data({ et0_week: null, unit: 'mm' });
+        }
+      } catch (error) {
+        console.error('Error fetching ET₀ data:', error);
+        setEt0Data({ et0_week: null, unit: 'mm' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEt0Data();
+  }, []);
+
   return (
-    <Layout title='Villa Anna Automation'>
+    <Layout>
       <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
         {/* Header Section */}
         <Box sx={{ mb: 4 }}>
@@ -87,7 +110,7 @@ const HomePage = () => {
           
           <Grid size={{ xs: 6, md: 3 }}>
             <Card sx={{ 
-              background: 'linear-gradient(135deg, #388e3c 0%, #66bb6a 100%)',
+              background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
               color: 'white',
               height: '100%'
             }}>
@@ -95,14 +118,14 @@ const HomePage = () => {
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
                   <Box>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
-                      Soil Moisture
+                      ET₀ (7 days)
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {systemStatus.moisture}%
+                      {loading ? '...' : (et0Data?.et0_week !== null && et0Data?.et0_week !== undefined) ? `${et0Data.et0_week} ${et0Data?.unit || 'mm'}` : 'N/A'}
                     </Typography>
                   </Box>
                   <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
-                    <Grass />
+                    <OpacityOutlined />
                   </Avatar>
                 </Stack>
               </CardContent>

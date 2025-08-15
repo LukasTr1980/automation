@@ -7,19 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Modern dashboard-style homepage design with status cards showing system status, soil moisture, temperature, and next scheduled irrigation
+- Modern dashboard-style homepage design with status cards showing system status, weekly evapotranspiration (ET₀), temperature, and next scheduled irrigation
+- New `/api/et0/latest` endpoint to fetch the most recent weekly ET₀ data from JSONL files
+- Real-time evapotranspiration display integration with existing weekly ET₀ computation system
 - Gradient backgrounds and hover animations for improved visual appeal
-- Material-UI icons (WaterDrop, Schedule, Grass, ThermostatAuto) replacing generic button images
+- Material-UI icons (WaterDrop, Schedule, OpacityOutlined, ThermostatAuto) replacing generic button images
 
 ### Changed
 - Completely redesigned VillaAnnaHomePage with professional irrigation app UI following 2025 design trends
+- Replaced mock "Soil Moisture" card with real evapotranspiration data display showing 7-day ET₀ sum in mm
 - Improved responsive layout with better grid sizing and card proportions
 - Enhanced action cards with descriptive text, feature chips, and smooth hover effects
 - Updated card heights for better visual balance on desktop screens
+- Simplified Layout component by removing title prop requirement across all pages
 
 ### Removed
 - NavMenu component and all related navigation code
-- Layout title display functionality
+- Layout title display functionality and title prop from LayoutProps interface
 - Image preloader dependencies (IrrigationButton images)
 - showNavMenu prop from LayoutProps interface
 
