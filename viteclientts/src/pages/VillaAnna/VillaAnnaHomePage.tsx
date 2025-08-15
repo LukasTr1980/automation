@@ -29,7 +29,7 @@ const HomePage = () => {
       <Layout title='Villa Anna Automation'>
         <Grid container spacing={2} justifyContent="center" alignItems="center" paddingTop={1}>
           <Grid>
-            <RouterLink to="/villa-anna/bewaesserung" style={{ textDecoration: 'none' }}>
+            <RouterLink to="/bewaesserung" style={{ textDecoration: 'none' }}>
               <Card sx={cardMaxwidth} variant='outlined'>
                 <CardActionArea>
                   <CardMedia
@@ -49,7 +49,7 @@ const HomePage = () => {
             </RouterLink>
           </Grid>
           <Grid>
-            <RouterLink to="/villa-anna/countdown" style={{ textDecoration: 'none' }}>
+            <RouterLink to="/countdown" style={{ textDecoration: 'none' }}>
               <Card sx={cardMaxwidth} variant='outlined'>
                 <CardActionArea>
                   <CardMedia

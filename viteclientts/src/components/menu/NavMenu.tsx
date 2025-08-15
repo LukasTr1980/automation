@@ -31,7 +31,7 @@ const NavMenu: React.FC = () => {
         paddingRight: '10px',
         borderBottom: '1px solid lightgrey'
       }}>
-        <NavLink to='/home' style={{ display: 'inline-flex', alignItems: 'center' }}>
+        <NavLink to='/' style={{ display: 'inline-flex', alignItems: 'center' }}>
           <img src={logo} alt='Logo' width='60px' height='60px' />
         </NavLink>
         <IconButton
@@ -45,9 +45,9 @@ const NavMenu: React.FC = () => {
       </div>
       <List>
         {[
-          { text: 'Home', path: '/home' },
-          { text: 'Villa Anna', path: '/villa-anna/home' },
-          { text: t('settings'), path: '/settings' }
+          { text: 'Home', path: '/' },
+          { text: 'Bewässerung', path: '/bewaesserung' },
+          { text: 'Countdown', path: '/countdown' }
         ].map(({ text, path }) => {
           return (
             <ListItemButton
@@ -90,7 +90,7 @@ const NavMenu: React.FC = () => {
                 <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDrawerToggle}>
                   <MenuIcon />
                 </IconButton>
-                <NavLink to='/home' style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <NavLink to='/' style={{ display: 'inline-flex', alignItems: 'center' }}>
                   <img src={logo} alt='Logo' width='60px' height='60px' />
                 </NavLink>
                 <Drawer
@@ -104,29 +104,29 @@ const NavMenu: React.FC = () => {
               </>
             ) : (
               <>
-                <NavLink to='/home' style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                <NavLink to='/' style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
                   <img src={logo} alt='Logo' width='60px' height='60px' />
                 </NavLink>
                 <Button
                   sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}
                   component={NavLink}
-                  to="/home"
+                  to="/"
                 >
                   Home
                 </Button>
                 <Button
                   sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}
                   component={NavLink}
-                  to="/villa-anna/home"
+                  to="/bewaesserung"
                 >
-                  Villa Anna
+                  Bewässerung
                 </Button>
                 <Button
                   sx={{ color: 'black', '&:hover': { backgroundColor: '#D2E9F0', color: 'black' } }}
                   component={NavLink}
-                  to="/settings"
+                  to="/countdown"
                 >
-                  {t('settings')}
+                  Countdown
                 </Button>
               </>
             )}

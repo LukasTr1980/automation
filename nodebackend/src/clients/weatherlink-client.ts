@@ -90,6 +90,9 @@ class SlidingWindowRateLimiter {
       const wrappedResolve = (v: unknown) => resolve(v as T);
       const wrappedReject = (e: unknown) => reject(e as any);
       this.queue.push({ fn: fn as () => Promise<unknown>, resolve: wrappedResolve, reject: wrappedReject });
+      if (this.queue.length > 5) {
+        logger.info(`[WEATHERLINK] Queue building up: ${this.queue.length} requests pending`);
+      }
       this.schedule();
     });
   }
@@ -143,16 +146,19 @@ class SlidingWindowRateLimiter {
         const now = Date.now();
         if (!this.allowed(now)) {
           const wait = this.nextWait(now);
+          const limitType = this.recentSecond.length >= this.perSecond ? 'per-second' : 'per-hour';
+          logger.warn(`[WEATHERLINK] Rate limit hit (${limitType}): delaying ${wait}ms, queue length: ${this.queue.length}`);
           // Schedule resume and exit loop
           this.timer = setTimeout(() => {
             this.timer = null;
             this.process().catch((e) => logger.error('[WEATHERLINK] Rate limiter process error', e));
-          }, wait + 2);
+          }, wait + 30);
           break;
         }
 
         const task = this.queue.shift()!;
         this.reserve(now);
+        logger.debug(`[WEATHERLINK] Processing request, ${this.queue.length} remaining in queue`);
         try {
           const val = await task.fn();
           task.resolve(val);
@@ -170,7 +176,7 @@ class SlidingWindowRateLimiter {
         this.timer = setTimeout(() => {
           this.timer = null;
           this.process().catch((e) => logger.error('[WEATHERLINK] Rate limiter process error', e));
-        }, wait + 2);
+        }, wait + 30);
       }
     }
   }

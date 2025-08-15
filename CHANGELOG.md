@@ -10,9 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Removed
+
+## [v18.1.1] - 2025-08-15
+### Added
+- Enhanced WeatherLink rate limiter logging with detailed evidence when API limits are hit (per-second/per-hour), queue status monitoring, and request processing visibility.
+
+### Changed
+- Updated WeatherLink rate limiter timing buffer from 2ms to 30ms for improved safety margin.
+- Simplified frontend routing: VillaAnnaHomePage is now the landing page (/) with direct routes to /bewaesserung and /countdown.
+- Updated navigation menu to reflect simplified routing structure.
 - Backend computes weekly ET₀ on production boot if no JSONL exists, preventing empty data on first deploy.
 
 ### Removed
+- SettingsPage.tsx and related backend routes (/getSecrets, /updateSecrets) - no longer used.
+- HomePage.tsx - replaced by VillaAnnaHomePage as landing page.
+- VillaAnnaRoutes.tsx - routes integrated directly into App.tsx for simplified structure.
 
 ## [v18.1.0] - 2025-08-15
 ### Added

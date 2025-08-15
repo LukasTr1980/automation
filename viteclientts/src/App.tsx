@@ -1,8 +1,8 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import SettingsPage from './pages/SettingsPage';
-import VillaAnnaRoutes from './routes/VillaAnnaRoutes';
+import VillaAnnaHomePage from './pages/VillaAnna/VillaAnnaHomePage';
+import BewaesserungsPage from './pages/VillaAnna/VillaAnnaBewaesserungPage';
+import CountdownPage from './pages/VillaAnna/VillaAnnaCountdownPage';
 import NotFoundPage from './pages/404Page';
 import { SnackbarProvider } from './components/snackbar/SnackbarContext';
 import CentralizedSnackbar from './components/snackbar/CentralizedSnackbar';
@@ -18,10 +18,9 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-              <Route path='/' element={<HomePage />} />
-              <Route path='/home' element={<HomePage />} />
-              <Route path='/settings' element={<SettingsPage />} />
-              <Route path='/villa-anna/*' element={<VillaAnnaRoutes />} />
+              <Route path='/' element={<VillaAnnaHomePage />} />
+              <Route path='/bewaesserung' element={<BewaesserungsPage />} />
+              <Route path='/countdown' element={<CountdownPage />} />
               <Route path='*' element={<NotFoundPage />} />
             </Routes>
             <CentralizedSnackbar />
