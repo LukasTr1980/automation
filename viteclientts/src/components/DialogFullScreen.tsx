@@ -1,12 +1,10 @@
 import React from 'react';
 import { Dialog, DialogContent, IconButton, DialogTitle, Button, DialogActions } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useTranslation } from 'react-i18next';
 
 import { DialogFullScreenProps } from '../types/types';
 
 const DialogFullScreen: React.FC<DialogFullScreenProps> = ({ open, onClose, children, title, showButton = true }) => {
-  const { t } = useTranslation();
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -23,7 +21,7 @@ const DialogFullScreen: React.FC<DialogFullScreenProps> = ({ open, onClose, chil
         <Button
           onClick={onClose}
         >
-          {t('save')}
+          Speichern
         </Button>
       </DialogActions>
       }

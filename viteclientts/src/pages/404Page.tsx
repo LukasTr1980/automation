@@ -6,7 +6,7 @@ const NotFoundPage: React.FC = () => {
     <Layout>
       <Grid size={12}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography variant="subtitle1">Page not found</Typography>
+          <Typography variant="subtitle1">Seite nicht gefunden</Typography>
         </Box>
       </Grid>
     </Layout>

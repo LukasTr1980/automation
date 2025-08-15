@@ -92,7 +92,7 @@ const Layout: React.FC<LayoutProps> = ({
         </Typography>
         
         <Typography variant='body1' color='black'>
-          Client Details: {osName}, {browserName} {browserVersion}
+          Client-Details: {osName}, {browserName} {browserVersion}
         </Typography>
         <Copyright />
       </Box>

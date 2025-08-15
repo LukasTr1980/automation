@@ -19,7 +19,7 @@ import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import useSnackbar from '../../utils/useSnackbar';
 import { CountdownsState } from '../../types/types';
-import { useTranslation } from 'react-i18next';
+import { messages } from '../../utils/messages';
 
 const VillaAnnacountdownPage = () => {
     const { showSnackbar } = useSnackbar();
@@ -27,7 +27,6 @@ const VillaAnnacountdownPage = () => {
     const [selectedHour, setSelectedHour] = useState<string>('0');
     const [selectedMinute, setSelectedMinute] = useState<string>('10');
     const [countdowns, setCountdowns] = useState<CountdownsState>({});
-    const { t } = useTranslation();
     const [fieldValidity, setFieldvalidity] = useState({
         hour: true,
         minute: true
@@ -57,7 +56,7 @@ const VillaAnnacountdownPage = () => {
             })
                 .then(response => {
                     const backendMessageKey = response.data;
-                    const translatedMessage = t(backendMessageKey);
+                    const translatedMessage = messages[backendMessageKey] || backendMessageKey;
                     showSnackbar(translatedMessage);
                 })
                 .catch(error => {
@@ -93,12 +92,12 @@ const VillaAnnacountdownPage = () => {
         <Layout>
             <Grid size={12} paddingTop={1} paddingBottom={1}>
                 <Card variant='outlined'>
-                    <CardHeader title={t('setCountdown')} />
+                    <CardHeader title={'Countdown einstellen'} />
                     <CardContent>
                         <Grid container spacing={2}>
                             <Grid size={12}>
                                 <FormControl fullWidth>
-                                    <InputLabel id="zone-select-label" shrink={false}>{t('zone')}</InputLabel>
+                                    <InputLabel id="zone-select-label" shrink={false}>Zone</InputLabel>
                                     <Select
                                         labelId="zone-select-label"
                                         value={selectedZone}
@@ -137,12 +136,12 @@ const VillaAnnacountdownPage = () => {
                             </Grid>
                             <Grid size={12}>
                                 <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
-                                    Stop
+                                    Stopp
                                 </Button>
                             </Grid>
                             <Grid size={12}>
                                 <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
-                                    Reset
+                                    Zurücksetzen
                                 </Button>
                             </Grid>
                         </Grid>

@@ -1,7 +1,6 @@
 import { TextField } from '@mui/material';
 import React, { ChangeEvent } from 'react';
 import { MinuteFieldProps } from '../types/types';
-import { useTranslation } from 'react-i18next';
 
 const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMinute, error, min = 0, max = 59 }) => {
 
@@ -12,11 +11,9 @@ const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMi
       setSelectedMinute(value);
     }
   };
-  const { t } = useTranslation();
-
   return (
     <TextField
-      label={t('minute')}
+      label={'Minute'}
       type="number"
       slotProps={{ input: { inputProps: { min, max } } }}
       value={selectedMinute}

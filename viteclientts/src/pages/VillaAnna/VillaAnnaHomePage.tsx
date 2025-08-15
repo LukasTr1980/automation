@@ -120,13 +120,13 @@ const HomePage = () => {
             mb: 1,
             fontSize: { xs: '1.5rem', md: '2rem' }
           }}>
-            Villa Anna Irrigation System
+            Villa Anna Bewässerungssystem
           </Typography>
           <Typography variant="subtitle1" sx={{ 
             color: 'text.secondary',
             fontSize: { xs: '0.9rem', md: '1rem' }
           }}>
-            Smart irrigation management and monitoring
+            Intelligente Bewässerungssteuerung und Überwachung
           </Typography>
         </Box>
 
@@ -143,10 +143,10 @@ const HomePage = () => {
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
-                      System Status
+                      Systemstatus
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                      {systemStatus.isRunning ? 'Active' : 'Standby'}
+                      {systemStatus.isRunning ? 'Aktiv' : 'Bereitschaft'}
                     </Typography>
                   </Box>
                   <Avatar sx={{ 
@@ -173,10 +173,10 @@ const HomePage = () => {
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
-                      ET₀ (7 days)
+                      ET₀ (7 Tage)
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                      {loading ? '...' : (et0Data?.et0_week !== null && et0Data?.et0_week !== undefined) ? `${et0Data.et0_week} ${et0Data?.unit || 'mm'}` : 'N/A'}
+                      {loading ? '...' : (et0Data?.et0_week !== null && et0Data?.et0_week !== undefined) ? `${et0Data.et0_week} ${et0Data?.unit || 'mm'}` : 'k. A.'}
                     </Typography>
                   </Box>
                   <Avatar sx={{ 
@@ -203,10 +203,10 @@ const HomePage = () => {
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
-                      Temperature
+                      Temperatur
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                      {tempLoading ? '...' : (temperatureData?.temperature !== null && temperatureData?.temperature !== undefined) ? `${temperatureData.temperature}°${temperatureData?.unit || 'C'}` : 'N/A'}
+                      {tempLoading ? '...' : (temperatureData?.temperature !== null && temperatureData?.temperature !== undefined) ? `${temperatureData.temperature}°${temperatureData?.unit || 'C'}` : 'k. A.'}
                     </Typography>
                   </Box>
                   <Avatar sx={{ 
@@ -233,10 +233,10 @@ const HomePage = () => {
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
-                      Next Schedule
+                      Nächster Zeitplan
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                      {scheduleLoading ? '...' : scheduleData?.nextScheduled || 'No schedule'}
+                      {scheduleLoading ? '...' : scheduleData?.nextScheduled || 'Kein Zeitplan'}
                     </Typography>
                     {scheduleData?.zone && !scheduleLoading && scheduleData.nextScheduled !== 'No schedule' && scheduleData.nextScheduled !== 'Scheduled' && (
                       <Typography variant="body2" sx={{ opacity: 0.8, fontSize: { xs: '0.65rem', md: '0.7rem' }, mt: 0.5 }}>
@@ -302,10 +302,10 @@ const HomePage = () => {
                       color: 'text.secondary',
                       fontSize: { xs: '0.8rem', md: '0.9rem' }
                     }}>
-                      Manual irrigation control and zone management
+                      Manuelle Bewässerungssteuerung und Zonenverwaltung
                     </Typography>
                     <Chip 
-                      label="Manual Control" 
+                      label="Manuelle Steuerung" 
                       size="small" 
                       sx={{ mt: 2, bgcolor: 'primary.main', color: 'white' }}
                     />
@@ -356,10 +356,10 @@ const HomePage = () => {
                       color: 'text.secondary',
                       fontSize: { xs: '0.8rem', md: '0.9rem' }
                     }}>
-                      Scheduled irrigation with countdown timer
+                      Geplante Bewässerung mit Countdown-Timer
                     </Typography>
                     <Chip 
-                      label="Automated" 
+                      label="Automatisiert" 
                       size="small" 
                       sx={{ mt: 2, bgcolor: '#7b1fa2', color: 'white' }}
                     />
@@ -380,17 +380,17 @@ const HomePage = () => {
           borderColor: 'divider'
         }}>
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-            Quick Status
+            Schnellübersicht
           </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="body2" color="text.secondary">
-                Last irrigation: {systemStatus.lastRun} • Duration: 45 min
+                Letzte Bewässerung: {systemStatus.lastRun} • Dauer: 45 Min
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="body2" color="text.secondary">
-                Next scheduled: {scheduleLoading ? '...' : (scheduleData?.nextScheduled || 'No schedule')} {scheduleData?.zone ? `• ${scheduleData.zone}` : '• Auto mode enabled'}
+                Nächste Planung: {scheduleLoading ? '...' : (scheduleData?.nextScheduled || 'Kein Zeitplan')} {scheduleData?.zone ? `• ${scheduleData.zone}` : '• Automatikmodus aktiviert'}
               </Typography>
             </Grid>
           </Grid>

@@ -8,14 +8,13 @@ import { useDaysOfWeek, useMonths } from './constants';
 import axios from 'axios';
 import useSnackbar from '../utils/useSnackbar';
 import { ScheduledTask, ScheduledTaskCardProps } from '../types/types';
-import { useTranslation } from 'react-i18next';
+import { messages } from '../utils/messages';
 
 export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey, onCopyTask }: ScheduledTaskCardProps) {
   const daysOfWeek = useDaysOfWeek();
   const months = useMonths();
   const { showSnackbar } = useSnackbar();
   const currentMonth = new Date().getMonth();
-  const { t } = useTranslation();
   const cleanZoneName = zoneName
     .replace(/\s+/g, '_')
     .replace(/ü/g, 'ue');
@@ -64,7 +63,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
           onDelete(taskId);
         }
         const backendMessageKey = response.data;
-        const translatedMessage = t(backendMessageKey);
+        const translatedMessage = messages[backendMessageKey] || backendMessageKey;
         showSnackbar(translatedMessage);
       })
       .catch(error => {

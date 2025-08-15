@@ -24,7 +24,7 @@ import { GroupedTasks, ScheduledTask, APIResponse } from '../../types/types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import SkeletonLoader from '../../components/skeleton';
-import { useTranslation } from 'react-i18next';
+import { messages } from '../../utils/messages';
 import DialogFullScreen from '../../components/DialogFullScreen';
 
 const BewaesserungPage = () => {
@@ -44,7 +44,6 @@ const BewaesserungPage = () => {
   const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
   const { showSnackbar } = useSnackbar();
   const [isAiResponseDialogOpen, setIsAiResponseDialogOpen] = useState(false);
-  const { t } = useTranslation();
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -130,9 +129,9 @@ const BewaesserungPage = () => {
       state: newSwitchState[index],
     })
       .then(response => {
-        const backendMessageKey = response.data;
-        const translatedMessage = t(backendMessageKey);
-        showSnackbar(translatedMessage);
+          const backendMessageKey = response.data;
+          const translatedMessage = messages[backendMessageKey] || backendMessageKey;
+          showSnackbar(translatedMessage);
       })
       .catch(error => console.error('Error:', error));
   };
@@ -158,7 +157,7 @@ const BewaesserungPage = () => {
     <Layout>
       <Grid size={12} paddingTop={1} paddingBottom={1}>
         <Card variant='outlined'>
-          <CardHeader title={t('switches')} />
+          <CardHeader title={'Schalter'} />
           <CardContent>
             {switchesLoading ? (
               <LoadingSpinner />
@@ -183,12 +182,12 @@ const BewaesserungPage = () => {
 
       <Grid size={12} paddingBottom={1}>
         <Card variant='outlined'>
-          <CardHeader title={t('aiDecision')} />
+          <CardHeader title={'AI Entscheidung'} />
           <CardContent>
             {skipAi ? (
               <Grid container spacing={2} justifyContent="space-between">
                 <Grid size={12}>
-                  <Typography>{t('aiVerificationDisabled')}</Typography>
+                  <Typography>Ai Überprüfung deaktiviert</Typography>
                 </Grid>
                 <Grid size={12}>
                   <Button
@@ -198,16 +197,16 @@ const BewaesserungPage = () => {
                       try {
                         await axios.post(`${apiUrl}/skipAi`, { skip: newVal });
                         setSkipAi(newVal);
-                        showSnackbar(t('aiVerificationEnabled'));
+                        showSnackbar('Ai Überprüfung aktiviert');
                       } catch (err) {
                         console.error(err);
-                        showSnackbar(t('error'));
+                        showSnackbar('Fehler');
                       }
                     }}
                     fullWidth
                     color='primary'
                   >
-                    {t('enableAiVerification')}
+                    Ai Überprüfung aktivieren
                   </Button>
                 </Grid>
               </Grid>
@@ -219,7 +218,7 @@ const BewaesserungPage = () => {
                   <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
                     <SwitchComponent
                       checked={!irrigationNeededSwitch}
-                      label='Ai block:'
+                      label='AI-Block:'
                       disabled={true}
                       color='warning'
                       id="switch-ai-block"
@@ -234,7 +233,7 @@ const BewaesserungPage = () => {
                     fullWidth
                     color='info'
                   >
-                    {t('aiResponse')}
+                    AI Antwort
                   </Button>
                 </Grid>
                 <Grid size={12}>
@@ -245,20 +244,20 @@ const BewaesserungPage = () => {
                       try {
                         await axios.post(`${apiUrl}/skipAi`, { skip: newVal });
                         setSkipAi(newVal);
-                        showSnackbar(newVal ? t('aiVerificationDisabled') : t('aiVerificationEnabled'));
+                        showSnackbar(newVal ? 'Ai Überprüfung deaktiviert' : 'Ai Überprüfung aktiviert');
                       } catch (err) {
                         console.error(err);
-                        showSnackbar(t('error'));
+                        showSnackbar('Fehler');
                       }
                     }}
                     fullWidth
                     color='error'
                   >
-                    {t('disableAiVerification')}
+                    Ai Überprüfung deaktivieren
                   </Button>
                 </Grid>
                 <DialogFullScreen
-                  title={t('aiResponse')}
+                  title={'AI Antwort'}
                   open={isAiResponseDialogOpen}
                   onClose={handleCloseDialog}
                   showButton={false}
@@ -270,7 +269,7 @@ const BewaesserungPage = () => {
 
                   {/* 2. Auswertung */}
                   <Typography variant="h6" gutterBottom>
-                    {t('testPoints')}
+                    Prüfpunkte
                   </Typography>
                   <List dense>
                     {formattedEvaluation.split('\n').map((line, idx) => {
@@ -295,7 +294,7 @@ const BewaesserungPage = () => {
 
                   {/* 3. Schließen-Button */}
                   <Box textAlign="right" mt={2}>
-                    <Button onClick={handleCloseDialog}>{t('close')}</Button>
+                    <Button onClick={handleCloseDialog}>Schließen</Button>
                   </Box>
                 </DialogFullScreen>
               </Grid>
@@ -316,13 +315,13 @@ const BewaesserungPage = () => {
 
       <Grid size={12}>
         <Card variant='outlined'>
-          <CardHeader title={t("scheduledPlans")} />
+          <CardHeader title={'Eingestellte Zeitpläne'} />
           <CardContent>
             {tasksLoading ? (
               <LoadingSpinner />
             ) : (
               <>
-                {scheduledTasks.length === 0 && <Typography variant="body1">{t('noScheduledPlans')}</Typography>}
+                {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne</Typography>}
 
                 <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: { xs: 310, sm: '100%' } }}>
                   <Tabs value={activeTab}

@@ -7,12 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- `viteclientts/src/utils/messages.ts` as a simple map from backend response keys to German messages used by snackbars and UI notifications.
 
 ### Changed
+- Frontend UI text migrated to static German strings (no runtime translation); `index.html` language set to `de`.
+- VillaAnnaHomePage and related pages updated to use German labels and copy throughout.
 
 ### Fixed
 
 ### Removed
+- Entire i18n stack from the client: deleted `src/utils/i18n.tsx`, `src/utils/useStableTranslation.tsx`, and `public/locales/*`.
+- Dropped `i18next`, `i18next-http-backend`, and `react-i18next` from `viteclientts/package.json`.
 
 ## [v18.2.0] - 2025-08-15
 ### Added

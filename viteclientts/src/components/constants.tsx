@@ -1,11 +1,9 @@
-import { useTranslation } from "react-i18next";
 import { DaysOfWeekNumbers, MonthsNumbers } from "../types/types";
 
 export const useDaysOfWeek = () => {
-  const { t } = useTranslation();
   return [
-    t('sunday'), t('monday'), t('tuesday'), t('wednesday'), 
-    t('thursday'), t('friday'), t('saturday')
+    'Sonntag', 'Montag', 'Dienstag', 'Mittwoch',
+    'Donnerstag', 'Freitag', 'Samstag'
   ];
 };
 
@@ -18,11 +16,10 @@ export const useDaysOfWeekNumbers = () => {
 };
 
 export const useMonths = () => {
-  const { t } = useTranslation();
   return [
-    t('january'), t('february'), t('march'), t('april'), 
-    t('may'), t('june'), t('july'), t('august'), 
-    t('september'), t('october'), t('november'), t('december')
+    'Januar', 'Februar', 'März', 'April',
+    'Mai', 'Juni', 'Juli', 'August',
+    'September', 'Oktober', 'November', 'Dezember'
   ];
 };
 

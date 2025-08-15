@@ -23,6 +23,14 @@
 - UI: All user-visible text (frontend, API response messages shown in UI) must be in German.
 - Prefer central helpers for messages to avoid drift; do not mix languages in a single message.
 
+### Frontend Localization
+- The client is German-only. i18n has been removed from `viteclientts/` (no `i18next`/`react-i18next`).
+- Static German strings are used directly in components for all labels, titles, and copy.
+- Backend response keys shown to users must be mapped to German via `viteclientts/src/utils/messages.ts`:
+  - Add/edit keys in that map when backend returns a new message key.
+  - Use `messages[key] || key` when displaying to avoid crashes on unknown keys.
+- Do not reintroduce i18n or locale switching.
+
 ## Testing Guidelines
 - No test runner configured yet. Prefer adding unit tests (Vitest for client; Jest or Vitest for backend). Name tests `*.test.ts` / `*.test.tsx` and colocate near source or under `__tests__/`.
 - Until tests exist, validate by running the backend and client locally; keep functions pure and small to ease future testing.

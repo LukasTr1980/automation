@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import './utils/i18n.tsx'
 
 // One-time Service Worker kill (remove PWA and avoid cached HTML)
 if ('serviceWorker' in navigator) {

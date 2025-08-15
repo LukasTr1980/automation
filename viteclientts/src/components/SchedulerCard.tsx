@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import useSnackbar from '../utils/useSnackbar';
 import { SchedulerCardProps } from '../types/types';
-import { useTranslation } from 'react-i18next';
+import { messages } from '../utils/messages';
 
 const SchedulerCard: React.FC<SchedulerCardProps> = ({
   setReloadTasks,
@@ -41,7 +41,6 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   const [weekDaysDialogOpen, setWeekDaysDialogOpen] = useState<boolean>(false);
   const [monthDialogOpen, setMonthDialogOpen] = useState<boolean>(false);
   const apiUrl = import.meta.env.VITE_API_URL;
-  const { t } = useTranslation();
 
   const selectedDayNames = selectedDays
     .map(num => Object.keys(daysOfWeekNumbers).find(key => daysOfWeekNumbers[key] === num))
@@ -53,14 +52,14 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
   const weekDaysButtonText = selectedDayNames.length
     ? selectedDayNames.map(day => day.substring(0, 3)).join(', ')
-    : t('weekdays', 'Wochentage');
+    : 'Wochentage';
 
   const monthButtonText = selectedMonthNames.length
     ? selectedMonthNames.map(month => month.substring(0, 3)).join(', ')
-    : t('months', 'Monate');
+    : 'Monate';
 
   // The label now only depends on the switch state. "Ein" / "Aus" are used as fallbacks.
-  const currentLabel = switchState ? t('on', 'Ein') : t('off', 'Aus');
+  const currentLabel = switchState ? 'Ein' : 'Aus';
 
   const handleTopicChange = (event: SelectChangeEvent<string>) => {
     setSelectedTopic(event.target.value as string);
@@ -101,7 +100,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
         })
         .then(response => {
           const backendMessageKey = response.data;
-          const translatedMessage = t(backendMessageKey);
+          const translatedMessage = messages[backendMessageKey] || backendMessageKey;
           axios
             .get(`${apiUrl}/scheduledTasks`)
             .then(response => {
@@ -143,13 +142,13 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
   return (
     <Card variant="outlined">
-      <CardHeader title={t('createSchedule')} />
+      <CardHeader title={'Zeitplan erstellen'} />
       <CardContent>
         <Grid container spacing={2}>
           <Grid size={12}>
             <FormControl fullWidth>
               <InputLabel id="mqtt-topic-label" shrink={false}>
-                {t('zone')}
+                Zone
               </InputLabel>
               <Select labelId="mqtt-topic-label" value={selectedTopic} onChange={handleTopicChange}>
                 {mqttTopics.map((topic, i) => (
@@ -185,7 +184,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             >
               {weekDaysButtonText}
             </Button>
-            <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)} title={t('select')}>
+            <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)} title={'Auswählen'}>
               <Grid size={12}>
                 <WeekdaysSelect selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
               </Grid>
@@ -202,7 +201,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
             >
               {monthButtonText}
             </Button>
-            <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)} title={t('select')}>
+            <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)} title={'Auswählen'}>
               <Grid size={12}>
                 <MonthsSelect selectedMonths={selectedMonths} setSelectedMonths={setSelectedMonths} />
               </Grid>
@@ -211,7 +210,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
           <Grid size={12}>
             <Button variant="contained" color="primary" fullWidth onClick={handleSchedule}>
-              {t('schedule', 'Planen')}
+              Planen
             </Button>
           </Grid>
         </Grid>
