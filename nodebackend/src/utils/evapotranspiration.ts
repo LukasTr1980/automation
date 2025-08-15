@@ -13,9 +13,8 @@
 // -----------------------------------------------------------------------------
 
 import { querySingleData } from "../clients/influxdb-client.js";
-import { getDailyOutdoorTempAverage, getDailyOutdoorHumidityAverage, getDailyOutdoorWindSpeedAverage, getDailyOutdoorTempExtrema, getDailyOutdoorPressureAverage } from "../clients/weatherlink-client.js";
+import { getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from "../clients/weatherlink-client.js";
 import logger from "../logger.js";
-import { isDev } from "../envSwitcher.js";
 import { appendJsonl } from "./localDataWriter.js";
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
@@ -46,108 +45,101 @@ function Ra(latDeg: number, doy: number) {
 
 // ───────────── Flux‑Query‑Builder ───────────────────────────────────────────
 
-const fluxDailyField = (bucket: string, m: string, field: string, fn: "min" | "max" | "mean") => `import "timezone"
+const fluxDailySeriesLast7 = (bucket: string, m: string, field: string, fn: "min" | "max" | "mean") => `import "date"
+import "timezone"
 option location = timezone.location(name: "Europe/Rome")
+stop = date.truncate(t: now(), unit: 1d)
+start = date.sub(d: 7d, from: stop)
 from(bucket: "${bucket}")
-  |> range(start: today())
+  |> range(start: start, stop: stop)
   |> filter(fn: (r) => r._measurement == "${m}")
   |> filter(fn: (r) => r._field == "${field}")
-  |> aggregateWindow(every: 1d, fn: ${fn})
-  |> last()`;
+  |> aggregateWindow(every: 1d, fn: ${fn}, createEmpty: true)
+  |> keep(columns: ["_time", "_value"])`;
 
-// Sensor‑Queries
-// Tmin/Tmax, Tavg, RH, Wind, Pressure are sourced from WeatherLink helpers, not Influx
-// Wolken
-const qCloud = fluxDailyField(CLOUD_BUCKET, MEAS_CLOUDS, "value_numeric", "mean");
+// Sensor-Queries for weekly computation only
 
-async function influxNumber(flux: string): Promise<number> {
+async function influxSeriesNumbers(flux: string): Promise<number[]> {
     const rows: any[] = await querySingleData(flux);
-    return rows.length ? parseFloat(rows[0]._value) : NaN;
+    return rows.map(r => parseFloat(r._value));
 }
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 // ───────────── Hauptfunktion ────────────────────────────────────────────────
-export async function computeTodayET0() {
+// No daily ET0 computation anymore — weekly only
+
+export async function computeWeeklyET0(): Promise<number> {
     try {
-        const [pAvgRes, cloudRaw, tempAvgRes, rhAvgRes, windAvgRes, tempExtRes] = await Promise.all([
-            getDailyOutdoorPressureAverage(),
-            influxNumber(qCloud),
-            getDailyOutdoorTempAverage(),
-            getDailyOutdoorHumidityAverage(),
-            getDailyOutdoorWindSpeedAverage(),
-            getDailyOutdoorTempExtrema(),
+        const endDate = new Date();
+        // Align to local midnight (today 00:00) to cover the previous 7 full days
+        const localMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+        const SEVEN_DAYS = 7 * 24 * 3600;
+
+        const [tempAvgW, rhW, windAvgW, tempExtW, pAvgW, cloudsW] = await Promise.all([
+            getOutdoorTempAverageRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
+            getOutdoorHumidityAverageRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean' }),
+            getOutdoorWindSpeedAverageRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
+            getOutdoorTempExtremaRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, units: 'metric' }),
+            getOutdoorPressureAverageRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted', units: 'metric' }),
+            influxSeriesNumbers(fluxDailySeriesLast7(CLOUD_BUCKET, MEAS_CLOUDS, 'value_numeric', 'mean')),
         ] as const);
 
-        const cloud = clamp(cloudRaw, 0, 100);  // ← (1) clamp
+        const n = 7;
+        const chunks = Array.from({ length: n }, (_, i) => i);
 
-        const P_hPa = pAvgRes.ok ? pAvgRes.avg : NaN;
-        const Tmin = tempExtRes.ok ? tempExtRes.tLo : NaN;
-        const Tmax = tempExtRes.ok ? tempExtRes.tHi : NaN;
-        const Tavg = tempAvgRes.ok ? tempAvgRes.avg : NaN;
-        const RH = rhAvgRes.ok ? rhAvgRes.avg : NaN;
-        const wind10 = windAvgRes.ok ? windAvgRes.avg : NaN; // m/s
-
-        logger.debug(`Inputs - Tmin:${Tmin.toFixed(2)}°C Tmax:${Tmax.toFixed(2)}°C Tavg:${Tavg.toFixed(2)}°C RH:${RH.toFixed(2)}% Wind10:${wind10.toFixed(2)}m/s P:${P_hPa.toFixed(1)}hPa CloudØ:${cloud.toFixed(0)}%`, { label: 'Evapotranspiration' });
-
-        if (!isFinite(cloud)) {
-            logger.warn("Noch kein Cloud - Datensatz heute – ET₀ wird in 15 min erneut versucht", { label: 'Evapotranspiration' });
-            setTimeout(computeTodayET0, 15 * 60 * 1000);
-            return;
-        }
-        if ([Tmin, Tmax, Tavg, RH, wind10, P_hPa].some(v => !isFinite(v))) {
-            throw new Error("Unvollständige Sensordaten – ET₀ - Sprung übersprungen");
+        if (!tempAvgW.ok || !rhW.ok || !windAvgW.ok || !tempExtW.ok || !pAvgW.ok) {
+            throw new Error('Weekly ET0: Missing WeatherLink data');
         }
 
-        // Datum / Astronomie
-        const doy = Math.floor((Date.now() - Date.UTC(new Date().getUTCFullYear(), 0, 0)) / 86400000);
-        const RaMJ = Ra(LAT, doy);
+        const et0s: number[] = [];
+        for (const i of chunks) {
+            const Tavg = tempAvgW.chunks[i]?.avg;
+            const RH = rhW.chunks[i]?.avg;
+            const wind10 = windAvgW.chunks[i]?.avg; // m/s at 10 m
+            const Tmin = tempExtW.chunks[i]?.loMin;
+            const Tmax = tempExtW.chunks[i]?.hiMax;
+            const P_hPa = pAvgW.chunks[i]?.avg;
+            let cloud = cloudsW[i];
 
-        // Kurzwellige Strahlung (Hargreaves + Wolkenfaktor)
-        let Rs = K_RS * Math.sqrt(Math.max(0.1, Tmax - Tmin)) * RaMJ;
-        Rs *= 1 - 0.75 * Math.pow(cloud / 100, 3); // projektspezifische Wolkenkorrektur
+            if ([Tavg, RH, wind10, Tmin, Tmax, P_hPa].some(v => typeof v !== 'number' || !isFinite(v))) {
+                throw new Error(`Weekly ET0: incomplete data for day index ${i}`);
+            }
 
-        // Klarhimmel‑Strahlung & Rs/Rso‑Clip
-        const Rso = (0.75 + 2e-5 * ELEV) * RaMJ;
-        let Rs_Rso = Rs / Rso;
-        Rs_Rso = Math.min(Rs_Rso, 1.0);
+            cloud = clamp(cloud, 0, 100);
 
-        // Netto‑Kurz‑/Langwelle
-        const Rns = (1 - ALBEDO) * Rs;
-        const ea = svp(Tavg) * RH / 100;
-        // FAO‑56: es aus Tmax/Tmin mitteln (nicht es(Tavg))
-        const es = (svp(Tmax) + svp(Tmin)) / 2;
-        const emissivity = Math.max(0.34 - 0.14 * Math.sqrt(ea), 0.05);
-        const cloudCorr = Math.max(1.35 * Rs_Rso - 0.35, 0.05);
-        const Rnl = 4.903e-9 * ((Math.pow(Tmax + 273.15, 4) + Math.pow(Tmin + 273.15, 4)) / 2) * emissivity * cloudCorr;
-        const Rn = Rns - Rnl;
+            // Day-of-year from the chunk start (approx)
+            const startTs = tempAvgW.chunks[i].start;
+            const d = new Date(startTs);
+            const doy = Math.floor((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86400000);
 
-        // ET₀ (Penman‑Monteith)
-        const Δ = svpSlope(Tavg);
-        const γ = psychro(P_hPa / 10);              // hPa → kPa
-        const u2 = wind10 * 0.748;                  // 10 m → 2 m
-
-        const et0 = (0.408 * Δ * Rn + γ * 900 / (Tavg + 273.15) * u2 * (es - ea)) /
-            (Δ + γ * (1 + 0.34 * u2));
-
-        // Always write a local JSONL record (daily file) with only ET₀
-        await appendJsonl('evapotranspiration', {
-            et0: +et0.toFixed(2)
-        });
-
-        // Log outcome (no InfluxDB write)
-        if (!isDev) {
-            logger.info(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud.toFixed(0)}% | P:${P_hPa.toFixed(1)} hPa`, { label: 'Evapotranspiration' });
-        } else {
-            logger.debug(`ET₀: ${et0.toFixed(2)} mm | Rs:${Rs.toFixed(2)} MJ | ØCloud:${cloud.toFixed(0)}% | P:${P_hPa.toFixed(1)} hPa`, { label: 'Evapotranspiration' });
+            const RaMJ = Ra(LAT, doy);
+            let Rs = K_RS * Math.sqrt(Math.max(0.1, Tmax - Tmin)) * RaMJ;
+            Rs *= 1 - 0.75 * Math.pow(cloud / 100, 3);
+            const Rso = (0.75 + 2e-5 * ELEV) * RaMJ;
+            let Rs_Rso = Rs / Rso;
+            Rs_Rso = Math.min(Rs_Rso, 1.0);
+            const Rns = (1 - ALBEDO) * Rs;
+            const ea = svp(Tavg) * RH / 100;
+            const es = (svp(Tmax) + svp(Tmin)) / 2;
+            const emissivity = Math.max(0.34 - 0.14 * Math.sqrt(ea), 0.05);
+            const cloudCorr = Math.max(1.35 * Rs_Rso - 0.35, 0.05);
+            const Rnl = 4.903e-9 * ((Math.pow(Tmax + 273.15, 4) + Math.pow(Tmin + 273.15, 4)) / 2) * emissivity * cloudCorr;
+            const Rn = Rns - Rnl;
+            const Δ = svpSlope(Tavg);
+            const γ = psychro(P_hPa / 10);
+            const u2 = wind10 * 0.748;
+            const et0 = (0.408 * Δ * Rn + γ * 900 / (Tavg + 273.15) * u2 * (es - ea)) / (Δ + γ * (1 + 0.34 * u2));
+            et0s.push(Math.max(0, +et0.toFixed(2)));
         }
-        return +et0.toFixed(2);
 
+        const et0Sum = +et0s.reduce((a, b) => a + b, 0).toFixed(2);
+
+        await appendJsonl('evapotranspiration_weekly', { et0_week: et0Sum });
+        logger.info(`ET₀ weekly sum (last 7 days): ${et0Sum.toFixed(2)} mm`, { label: 'Evapotranspiration' });
+        return et0Sum;
     } catch (err) {
-        logger.error("Error computing ET₀", err as Error, { label: 'Evapotranspiration' });
+        logger.error('Error computing weekly ET₀', err as Error, { label: 'Evapotranspiration' });
         throw err;
     }
 }
-
-// Scheduler‑Beispiel (täglich um 23:55)
-// schedule.scheduleJob("55 23 * * *", computeTodayET0);

@@ -11,7 +11,7 @@ import { loadScheduledTasks } from './scheduler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import apiRouter from './routes/api.js';
 import logger from './logger.js';
-import { computeTodayET0 } from './utils/evapotranspiration.js';
+import { computeWeeklyET0 } from './utils/evapotranspiration.js';
 import { isDev } from './envSwitcher.js';
 
 const app = express();
@@ -44,10 +44,10 @@ if (isDev) {
     await subscribeToRedisKey(io);
 
     try {
-      const val = await computeTodayET0();
-      logger.info(`ET₀ (Dev-Run): ${val} mm`, { label: 'Index' });
+      const sum = await computeWeeklyET0();
+      logger.info(`ET₀ Weekly (Dev-Run): ${sum} mm`, { label: 'Index' });
     } catch (error) {
-      logger.error('Error computing ET₀', error);	
+      logger.error('Error computing weekly ET₀', error);	
     }
   });
 } else {

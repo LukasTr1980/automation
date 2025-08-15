@@ -5,7 +5,7 @@ import getTaskEnabler from './utils/getTaskEnabler.js';
 import generateUniqueId from './utils/generateUniqueId.js';
 import { topicToTaskEnablerKey, skipAiRedisKey } from './utils/constants.js';
 import MqttPublisher from './utils/mqttPublisher.js';
-import { computeTodayET0 } from './utils/evapotranspiration.js';
+import { computeWeeklyET0 } from './utils/evapotranspiration.js';
 import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
 import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
@@ -19,12 +19,13 @@ interface Job {
 
 const jobs: Job = {};
 
+// Compute weekly ET0 (sum of last 7 full days) daily
 schedule.scheduleJob('55 23 * * *', async () => {
   try {
-    const val = await computeTodayET0();
-    logger.info(`ET₀ Scheduler-Run: ${val} mm`);
+    const sum = await computeWeeklyET0();
+    logger.info(`ET₀ Weekly Scheduler-Run: ${sum} mm`);
   } catch (error) {
-    logger.error('ET₀ scheduler run failed:', error);
+    logger.error('ET₀ weekly scheduler run failed:', error);
   }
 });
 

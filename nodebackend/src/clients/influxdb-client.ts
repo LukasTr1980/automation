@@ -1,11 +1,8 @@
 import { ParameterizedQuery, Point } from "@influxdata/influxdb-client";
 import logger from "../logger.js";
 import { getInfluxDbClientAI, getInfluxDbClientAutomation } from "../configs.js";
-import {
-    et0WeekQuery,
-    rainNextDayQuery,
-    rainProbNextDayQuery,
-} from "../utils/fluxQueries.js";
+import { rainNextDayQuery, rainProbNextDayQuery } from "../utils/fluxQueries.js";
+import { readLatestJsonlNumber } from "../utils/localDataWriter.js";
 
 const ORG = "villaanna";
 const BUCKET = "automation"; // Default bucket for writing data
@@ -47,18 +44,22 @@ export interface WeatherData {
 export async function queryAllData(): Promise<WeatherData> {
     logger.info("Querying all data from InfluxDB");
 
-    const [
-        et0WeekRes,
-        rainNextDayRes,
-        rainProbNextDayRes,
-    ] = await Promise.all([
-        querySingleData(et0WeekQuery),
+    const [rainNextDayRes, rainProbNextDayRes] = await Promise.all([
         querySingleData(rainNextDayQuery),
         querySingleData(rainProbNextDayQuery),
     ]);
 
+    let et0_week = 0;
+    try {
+        const latest = await readLatestJsonlNumber('evapotranspiration_weekly', 'et0_week', 3);
+        if (typeof latest === 'number' && isFinite(latest)) et0_week = latest;
+        else logger.warn('Weekly ET₀ JSONL not found or invalid; using 0');
+    } catch (e) {
+        logger.warn('Failed reading weekly ET₀ JSONL; using 0', e);
+    }
+
     return {
-        et0_week: et0WeekRes[0]?._value ?? 0,
+        et0_week,
         rainNextDay: rainNextDayRes[0]?._value ?? 0,
         rainProbNextDay: rainProbNextDayRes[0]?._value ?? 0,
     };

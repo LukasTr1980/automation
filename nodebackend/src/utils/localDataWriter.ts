@@ -31,3 +31,30 @@ export async function appendJsonl(subdir: string, record: unknown, dateName?: st
   }
 }
 
+export async function readLatestJsonlNumber(subdir: string, key: string, lookbackDays = 2): Promise<number | null> {
+  for (let i = 0; i <= lookbackDays; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const day = d.toISOString().slice(0, 10);
+    const dir = path.join(backendRoot, 'data', subdir);
+    const file = path.join(dir, `${day}.jsonl`);
+    try {
+      const content = await fs.readFile(file, 'utf8');
+      const lines = content.trim().split(/\r?\n/).filter(Boolean);
+      for (let j = lines.length - 1; j >= 0; j--) {
+        try {
+          const obj = JSON.parse(lines[j]);
+          if (obj && Object.prototype.hasOwnProperty.call(obj, key)) {
+            const v = obj[key];
+            if (typeof v === 'number' && isFinite(v)) return v;
+          }
+        } catch {
+          // skip malformed lines
+        }
+      }
+    } catch {
+      // file not found or unreadable, try previous day
+    }
+  }
+  return null;
+}
