@@ -7,17 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+- Backend computes weekly ET₀ on production boot if no JSONL exists, preventing empty data on first deploy.
+
+### Removed
+
+## [v18.1.0] - 2025-08-15
+### Added
 - Weekly ET₀ computation (`computeWeeklyET0`) using WeatherLink range helpers (24h-chunked) and daily cloud-cover means from Influx; writes JSONL records under `nodebackend/data/evapotranspiration_weekly/`.
 - Local JSONL utilities: `appendJsonl` and `readLatestJsonlNumber` for appending and reading runtime data.
 
 ### Changed
 - Scheduler now runs weekly ET₀ daily at `23:55` and no longer schedules daily ET₀.
-- `gptChatCompletion` sources `et0_week` from local JSONL (not Influx).
+- GPT irrigation decision reads `et0_week` directly from local JSONL in `gptChatCompletion` (no longer provided by `queryAllData`).
 - `.gitignore` now ignores `nodebackend/data/` runtime files.
 
 ### Removed
-- Daily ET₀ calculation and all associated writes/logics.
-- InfluxDB writes and queries for ET₀.
+- Daily ET₀ computation and all associated writes/logic.
+- InfluxDB writes and queries for ET₀, and ET₀ handling inside `queryAllData`.
 
 ## [v18.0.1] - 2025-08-14
 ### Removed

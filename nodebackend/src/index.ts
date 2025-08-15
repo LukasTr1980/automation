@@ -12,6 +12,7 @@ import { apiLimiter } from './middleware/rateLimiter.js';
 import apiRouter from './routes/api.js';
 import logger from './logger.js';
 import { computeWeeklyET0 } from './utils/evapotranspiration.js';
+import { readLatestJsonlNumber } from './utils/localDataWriter.js';
 import { isDev } from './envSwitcher.js';
 
 const app = express();
@@ -56,5 +57,17 @@ if (isDev) {
     loadScheduledTasks().catch(logger.error);
 
     await subscribeToRedisKey(io);
+
+    try {
+      const latest = await readLatestJsonlNumber('evapotranspiration_weekly', 'et0_week', 7);
+      if (typeof latest !== 'number' || !isFinite(latest)) {
+        const sum = await computeWeeklyET0();
+        logger.info(`ET₀ Weekly (First-Run): ${sum} mm`, { label: 'Index' });
+      } else {
+        logger.info(`ET₀ Weekly present on boot: ${latest.toFixed(2)} mm`, { label: 'Index' });
+      }
+    } catch (error) {
+      logger.error('Error ensuring weekly ET₀ on boot', error);
+    }
   });
 }

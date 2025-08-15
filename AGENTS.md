@@ -39,5 +39,10 @@
   - WeatherLink (temp, RH, wind, pressure) via range helpers chunked by 24h to respect API limits.
   - Influx (cloud cover): daily means for the same 7-day window.
 - Storage: Append JSONL lines to `nodebackend/data/evapotranspiration_weekly/YYYY-MM-DD.jsonl` with `{ timestamp, et0_week }`.
-- Consumption: `queryAllData()` reads `et0_week` from JSONL via `readLatestJsonlNumber`; GPT uses that value.
+- Consumption: GPT reads the latest weekly `et0_week` directly from JSONL in `gptChatCompletion` using `readLatestJsonlNumber`. `queryAllData()` does not include ET₀.
 - Notes: Do not write ET₀ to Influx; `.gitignore` excludes `nodebackend/data/`.
+
+### ET₀ Ops & Debugging
+- Manual run: `computeWeeklyET0()` can be invoked (e.g., from `index.ts` or a REPL) to produce today’s JSONL entry.
+- Logs: Look for `[ET0] Using weekly ET₀ from JSONL: <mm>` during irrigation decisions and `ET₀ weekly sum (last 7 days): <mm>` from the scheduler.
+- Files: Latest record is the last line of `nodebackend/data/evapotranspiration_weekly/YYYY-MM-DD.jsonl`.

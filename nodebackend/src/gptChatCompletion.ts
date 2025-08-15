@@ -4,6 +4,7 @@ import type { WeatherData } from "./clients/influxdb-client.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import logger from "./logger.js";
 import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js"; // <-- import service
+import { readLatestJsonlNumber } from "./utils/localDataWriter.js";
 import { getRainRateFromWeatherlink, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getDailyRainTotal, getSevenDayRainTotal } from "./clients/weatherlink-client.js";
 
 // ---------- FE-Interface -----------------------------------------------------
@@ -93,7 +94,7 @@ function exampleMessages(): ChatCompletionMessageParam[] {
 const fmt = (n: number, d = 1) => n.toFixed(d);
 const tick = (v: boolean) => (v ? "✓" : "✗");
 
-type EnrichedWeatherData = WeatherData & { irrigationDepthMm: number; rainRate: number; rainToday: number; rainSum: number; outTemp: number; humidity: number };
+type EnrichedWeatherData = WeatherData & { et0_week: number; irrigationDepthMm: number; rainRate: number; rainToday: number; rainSum: number; outTemp: number; humidity: number };
 
 function buildFormattedEvaluation(
   d: EnrichedWeatherData,
@@ -117,6 +118,19 @@ function buildFormattedEvaluation(
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // 1) Sensordaten & woechentliche Bewaesserung separat holen
   const weatherData = await queryAllData();
+  // Override ET₀ with latest weekly value from JSONL (file-based source of truth)
+  let et0WeeklyFromFile = 0;
+  try {
+    const latest = await readLatestJsonlNumber('evapotranspiration_weekly', 'et0_week', 7);
+    if (typeof latest === 'number' && isFinite(latest)) {
+      et0WeeklyFromFile = latest;
+      logger.info(`[ET0] Using weekly ET₀ from JSONL: ${et0WeeklyFromFile.toFixed(2)} mm`);
+    } else {
+      logger.warn('[ET0] No valid weekly ET₀ in JSONL; falling back to 0');
+    }
+  } catch (e) {
+    logger.warn('[ET0] Failed to read weekly ET₀ from JSONL; falling back to 0', e);
+  }
   const zoneName = "lukasSued";
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);
   const { rate: rainRateWL, ok: wlOk } = await getRainRateFromWeatherlink();
@@ -180,6 +194,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // 2) Typsicheres, unveraenderliches Objekt zusammenbauen
   const d: EnrichedWeatherData = {
     ...weatherData,
+    et0_week: et0WeeklyFromFile,
     rainToday,
     rainSum: rainSum7,
     outTemp: outTemp7,
