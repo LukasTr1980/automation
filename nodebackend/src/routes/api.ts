@@ -11,6 +11,7 @@ import getTaskEnablerRouter from './getTaskEnablerRoute.js';
 import deleteTaskRouter from './deleteTaskRoute.js';
 import countdownRouter from './countdownRoute.js';
 import et0Router from './et0Route.js';
+import currentWeatherRouter from './currentWeatherRoute.js';
 
 const router = express.Router();
 
@@ -24,5 +25,6 @@ router.use('/getTaskEnabler', apiLimiter, getTaskEnablerRouter);
 router.use('/deleteTask', apiLimiter, deleteTaskRouter);
 router.use('/countdown', apiLimiter, countdownRouter);
 router.use('/et0', apiLimiter, et0Router);
+router.use('/weather', apiLimiter, currentWeatherRouter);
 
 export default router;

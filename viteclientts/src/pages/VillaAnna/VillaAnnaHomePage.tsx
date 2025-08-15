@@ -28,14 +28,15 @@ const HomePage = () => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [et0Data, setEt0Data] = useState<{ et0_week: number | null; unit: string } | null>(null);
+  const [temperatureData, setTemperatureData] = useState<{ temperature: number | null; unit: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tempLoading, setTempLoading] = useState(true);
 
   // Mock data - replace with actual data from your irrigation system
   const systemStatus = {
     isRunning: false,
     nextScheduled: '08:00',
-    lastRun: '06:30',
-    temperature: '24°C'
+    lastRun: '06:30'
   };
 
   // Fetch ET₀ data
@@ -59,6 +60,29 @@ const HomePage = () => {
     };
 
     fetchEt0Data();
+  }, []);
+
+  // Fetch current temperature data
+  useEffect(() => {
+    const fetchTemperatureData = async () => {
+      try {
+        const response = await fetch('/api/weather/temperature');
+        if (response.ok) {
+          const data = await response.json();
+          setTemperatureData(data);
+        } else {
+          console.warn('Failed to fetch temperature data:', response.statusText);
+          setTemperatureData({ temperature: null, unit: 'C' });
+        }
+      } catch (error) {
+        console.error('Error fetching temperature data:', error);
+        setTemperatureData({ temperature: null, unit: 'C' });
+      } finally {
+        setTempLoading(false);
+      }
+    };
+
+    fetchTemperatureData();
   }, []);
 
   return (
@@ -145,7 +169,7 @@ const HomePage = () => {
                       Temperature
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {systemStatus.temperature}
+                      {tempLoading ? '...' : (temperatureData?.temperature !== null && temperatureData?.temperature !== undefined) ? `${temperatureData.temperature}°${temperatureData?.unit || 'C'}` : 'N/A'}
                     </Typography>
                   </Box>
                   <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
