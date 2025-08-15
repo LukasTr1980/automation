@@ -1,15 +1,9 @@
 // src/utils/evapotranspiration.ts
 // -----------------------------------------------------------------------------
-//  DAILY ET₀  (FAO‑56)
-//  – Sensorwerte   (Tmin/Tmax/Tavg, RH, Wind, Pressure)   aus Bucket "iobroker"
-//  – Tages‑Ø‑Bewölkung (cloud cover)                      aus Bucket "automation"
-//      (Wolken‑Recorder schreibt unter _field="value_numeric")
-//  – Ergebnis → Influx‑Write (Measurement "et0") + Logging
-//
-//  ✱ 2025‑05‑19 – Physik‑Fixes:
-//    • Luftdruck hPa → kPa in γ
-//    • Rso‑Klammerung korrigiert, Rs/Rso ≤ 1 geclippt
-//    • Rnl‑Term auf FAO‑56 gebracht (+ optionale Clips)
+//  WEEKLY ET₀ (FAO‑56)
+//  – Inputs: Tmin/Tmax/Tavg, RH, Wind, Pressure from WeatherLink (24h chunks)
+//  – Cloud cover daily means from Influx (measurement "dwd.clouds")
+//  – Computes daily ET₀ for last 7 full days and stores the sum as JSONL
 // -----------------------------------------------------------------------------
 
 import { querySingleData } from "../clients/influxdb-client.js";
