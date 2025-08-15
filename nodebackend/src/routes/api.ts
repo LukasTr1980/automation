@@ -12,6 +12,7 @@ import deleteTaskRouter from './deleteTaskRoute.js';
 import countdownRouter from './countdownRoute.js';
 import et0Router from './et0Route.js';
 import currentWeatherRouter from './currentWeatherRoute.js';
+import nextScheduleRouter from './nextScheduleRoute.js';
 
 const router = express.Router();
 
@@ -26,5 +27,6 @@ router.use('/deleteTask', apiLimiter, deleteTaskRouter);
 router.use('/countdown', apiLimiter, countdownRouter);
 router.use('/et0', apiLimiter, et0Router);
 router.use('/weather', apiLimiter, currentWeatherRouter);
+router.use('/schedule', apiLimiter, nextScheduleRouter);
 
 export default router;

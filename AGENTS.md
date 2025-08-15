@@ -47,3 +47,30 @@
 - Logs: Look for `[ET0] Using weekly ET₀ from JSONL: <mm>` during irrigation decisions and `ET₀ weekly sum (last 7 days): <mm>` from the scheduler.
 - Files: Latest record is the last line of `nodebackend/data/evapotranspiration_weekly/YYYY-MM-DD.jsonl`.
 - Frontend API: The `/api/et0/latest` endpoint provides the most recent weekly ET₀ value for dashboard display.
+
+## Real-Time Data Integration APIs
+
+### WeatherLink Temperature API
+- **Endpoint**: `/api/weather/temperature` - Provides current temperature from WeatherLink API
+- **Debug endpoint**: `/api/weather/debug` - Shows raw WeatherLink current data fields for troubleshooting
+- **Data source**: Uses existing `getWeatherlinkMetrics` function with current sensor blocks (sensor type 37)
+- **Processing**: Automatically converts Fahrenheit to Celsius with proper error handling
+- **Rate limiting**: Respects WeatherLink API limits through existing rate limiter
+- **Frontend integration**: VillaAnnaHomePage temperature status card displays live temperature data
+
+### Next Schedule API  
+- **Endpoint**: `/api/schedule/next` - Fetches next scheduled irrigation task from Redis
+- **Data source**: Uses existing `getScheduledTasks()` function from scheduler
+- **Processing**: 
+  - Filters for enabled irrigation tasks (`state === true`)
+  - Parses `recurrenceRule` JSON to extract hour/minute for time display
+  - Maps topics to human-readable zone names using frontend constants
+- **Zone mapping**: Uses same arrays as frontend (`bewaesserungsTopics`, `bewaesserungsTopicsSet`, `switchDescriptions`)
+- **Frontend integration**: Next Schedule status card and Quick Status section show real schedule data
+
+### Frontend Dashboard Integration
+- **VillaAnnaHomePage**: Modern dashboard with real-time status cards replacing all mock data
+- **Status cards**: System Status, ET₀ (7 days), Temperature, Next Schedule
+- **Data flow**: React hooks fetch data on component mount with proper loading states and error handling
+- **Responsive design**: Cards adapt to screen size with consistent heights and proper text wrapping
+- **Zone names**: All schedule displays use human-readable names (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle)

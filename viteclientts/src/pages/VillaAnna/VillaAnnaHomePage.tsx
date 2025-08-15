@@ -29,13 +29,14 @@ const HomePage = () => {
 
   const [et0Data, setEt0Data] = useState<{ et0_week: number | null; unit: string } | null>(null);
   const [temperatureData, setTemperatureData] = useState<{ temperature: number | null; unit: string } | null>(null);
+  const [scheduleData, setScheduleData] = useState<{ nextScheduled: string; zone: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [tempLoading, setTempLoading] = useState(true);
+  const [scheduleLoading, setScheduleLoading] = useState(true);
 
   // Mock data - replace with actual data from your irrigation system
   const systemStatus = {
     isRunning: false,
-    nextScheduled: '08:00',
     lastRun: '06:30'
   };
 
@@ -85,6 +86,29 @@ const HomePage = () => {
     fetchTemperatureData();
   }, []);
 
+  // Fetch next schedule data
+  useEffect(() => {
+    const fetchScheduleData = async () => {
+      try {
+        const response = await fetch('/api/schedule/next');
+        if (response.ok) {
+          const data = await response.json();
+          setScheduleData(data);
+        } else {
+          console.warn('Failed to fetch schedule data:', response.statusText);
+          setScheduleData({ nextScheduled: 'No schedules', zone: null });
+        }
+      } catch (error) {
+        console.error('Error fetching schedule data:', error);
+        setScheduleData({ nextScheduled: 'Error', zone: null });
+      } finally {
+        setScheduleLoading(false);
+      }
+    };
+
+    fetchScheduleData();
+  }, []);
+
   return (
     <Layout>
       <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
@@ -112,20 +136,26 @@ const HomePage = () => {
             <Card sx={{ 
               background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
               color: 'white',
-              height: '100%'
+              height: '100%',
+              minHeight: { xs: 100, md: 120 }
             }}>
-              <CardContent>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Box>
+              <CardContent sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
                       System Status
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
                       {systemStatus.isRunning ? 'Active' : 'Standby'}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
-                    {systemStatus.isRunning ? <PlayArrow /> : <Pause />}
+                  <Avatar sx={{ 
+                    bgcolor: 'rgba(255,255,255,0.2)', 
+                    width: { xs: 36, md: 40 }, 
+                    height: { xs: 36, md: 40 },
+                    flexShrink: 0
+                  }}>
+                    {systemStatus.isRunning ? <PlayArrow sx={{ fontSize: { xs: 18, md: 20 } }} /> : <Pause sx={{ fontSize: { xs: 18, md: 20 } }} />}
                   </Avatar>
                 </Stack>
               </CardContent>
@@ -136,20 +166,26 @@ const HomePage = () => {
             <Card sx={{ 
               background: 'linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)',
               color: 'white',
-              height: '100%'
+              height: '100%',
+              minHeight: { xs: 100, md: 120 }
             }}>
-              <CardContent>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Box>
+              <CardContent sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
                       ET₀ (7 days)
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
                       {loading ? '...' : (et0Data?.et0_week !== null && et0Data?.et0_week !== undefined) ? `${et0Data.et0_week} ${et0Data?.unit || 'mm'}` : 'N/A'}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
-                    <OpacityOutlined />
+                  <Avatar sx={{ 
+                    bgcolor: 'rgba(255,255,255,0.2)', 
+                    width: { xs: 36, md: 40 }, 
+                    height: { xs: 36, md: 40 },
+                    flexShrink: 0
+                  }}>
+                    <OpacityOutlined sx={{ fontSize: { xs: 18, md: 20 } }} />
                   </Avatar>
                 </Stack>
               </CardContent>
@@ -160,20 +196,26 @@ const HomePage = () => {
             <Card sx={{ 
               background: 'linear-gradient(135deg, #f57c00 0%, #ffb74d 100%)',
               color: 'white',
-              height: '100%'
+              height: '100%',
+              minHeight: { xs: 100, md: 120 }
             }}>
-              <CardContent>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Box>
+              <CardContent sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
                       Temperature
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
                       {tempLoading ? '...' : (temperatureData?.temperature !== null && temperatureData?.temperature !== undefined) ? `${temperatureData.temperature}°${temperatureData?.unit || 'C'}` : 'N/A'}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
-                    <ThermostatAuto />
+                  <Avatar sx={{ 
+                    bgcolor: 'rgba(255,255,255,0.2)', 
+                    width: { xs: 36, md: 40 }, 
+                    height: { xs: 36, md: 40 },
+                    flexShrink: 0
+                  }}>
+                    <ThermostatAuto sx={{ fontSize: { xs: 18, md: 20 } }} />
                   </Avatar>
                 </Stack>
               </CardContent>
@@ -184,20 +226,31 @@ const HomePage = () => {
             <Card sx={{ 
               background: 'linear-gradient(135deg, #7b1fa2 0%, #ba68c8 100%)',
               color: 'white',
-              height: '100%'
+              height: '100%',
+              minHeight: { xs: 100, md: 120 }
             }}>
-              <CardContent>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Box>
+              <CardContent sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
                       Next Schedule
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {systemStatus.nextScheduled}
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
+                      {scheduleLoading ? '...' : scheduleData?.nextScheduled || 'No schedule'}
                     </Typography>
+                    {scheduleData?.zone && !scheduleLoading && scheduleData.nextScheduled !== 'No schedule' && scheduleData.nextScheduled !== 'Scheduled' && (
+                      <Typography variant="body2" sx={{ opacity: 0.8, fontSize: { xs: '0.65rem', md: '0.7rem' }, mt: 0.5 }}>
+                        {scheduleData.zone}
+                      </Typography>
+                    )}
                   </Box>
-                  <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
-                    <Schedule />
+                  <Avatar sx={{ 
+                    bgcolor: 'rgba(255,255,255,0.2)', 
+                    width: { xs: 36, md: 40 }, 
+                    height: { xs: 36, md: 40 },
+                    flexShrink: 0
+                  }}>
+                    <Schedule sx={{ fontSize: { xs: 18, md: 20 } }} />
                   </Avatar>
                 </Stack>
               </CardContent>
@@ -337,7 +390,7 @@ const HomePage = () => {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="body2" color="text.secondary">
-                Next scheduled: {systemStatus.nextScheduled} • Auto mode enabled
+                Next scheduled: {scheduleLoading ? '...' : (scheduleData?.nextScheduled || 'No schedule')} {scheduleData?.zone ? `• ${scheduleData.zone}` : '• Auto mode enabled'}
               </Typography>
             </Grid>
           </Grid>

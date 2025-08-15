@@ -7,25 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Modern dashboard-style homepage design with status cards showing system status, weekly evapotranspiration (ET₀), temperature, and next scheduled irrigation
+- Modern dashboard-style homepage design with status cards showing system status, weekly evapotranspiration (ET₀), real-time temperature, and next scheduled irrigation
 - New `/api/et0/latest` endpoint to fetch the most recent weekly ET₀ data from JSONL files
-- Real-time evapotranspiration display integration with existing weekly ET₀ computation system
+- New `/api/weather/temperature` endpoint providing current temperature from WeatherLink API with automatic Fahrenheit to Celsius conversion
+- New `/api/schedule/next` endpoint to fetch the next scheduled irrigation task from Redis with proper time parsing and zone mapping
+- Real-time data integration replacing all mock data with live system information
 - Gradient backgrounds and hover animations for improved visual appeal
-- Material-UI icons (WaterDrop, Schedule, OpacityOutlined, ThermostatAuto) replacing generic button images
+- Material-UI icons (WaterDrop, Schedule, OpacityOutlined, ThermostatAuto, PlayArrow, Pause) with proper sizing and positioning
+- Responsive card layouts with consistent heights and proper text wrapping
+- Loading states and error handling for all real-time data fetching
 
 ### Changed
 - Completely redesigned VillaAnnaHomePage with professional irrigation app UI following 2025 design trends
-- Replaced mock "Soil Moisture" card with real evapotranspiration data display showing 7-day ET₀ sum in mm
-- Improved responsive layout with better grid sizing and card proportions
-- Enhanced action cards with descriptive text, feature chips, and smooth hover effects
-- Updated card heights for better visual balance on desktop screens
+- Replaced mock "Soil Moisture" card with real evapotranspiration data display showing 7-day ET₀ sum in mm from existing JSONL infrastructure
+- Integrated real WeatherLink temperature data replacing fake temperature values
+- Updated Next Schedule card to display actual scheduled irrigation times and zone names from Redis
+- Enhanced Quick Status section with real schedule information including zone details
+- Improved status card layouts with consistent spacing, proper icon alignment, and responsive font sizing
+- Updated zone name mapping to use existing frontend constants for consistency
 - Simplified Layout component by removing title prop requirement across all pages
+- Enhanced card readability with better text hierarchy and responsive design
+
+### Fixed
+- Status card icon visibility and alignment issues
+- Text overflow and wrapping problems in compact card layouts
+- Inconsistent card heights across different screen sizes
+- RecurrenceRule parsing in schedule endpoint to handle both string and object formats
+- Zone name mapping to use proper human-readable names (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle)
 
 ### Removed
 - NavMenu component and all related navigation code
 - Layout title display functionality and title prop from LayoutProps interface
 - Image preloader dependencies (IrrigationButton images)
 - showNavMenu prop from LayoutProps interface
+- All mock/fake data from homepage status cards
 
 ## [v18.1.1] - 2025-08-15
 ### Added
