@@ -1,6 +1,6 @@
 import schedule from 'node-schedule';
 import { connectToRedis } from './clients/redisClient.js';
-import { createIrrigationDecision } from './gptChatCompletion.js';
+import { createIrrigationDecision } from './irrigationDecision.js';
 import getTaskEnabler from './utils/getTaskEnabler.js';
 import generateUniqueId from './utils/generateUniqueId.js';
 import { topicToTaskEnablerKey, skipAiRedisKey } from './utils/constants.js';

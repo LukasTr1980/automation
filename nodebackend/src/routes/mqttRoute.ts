@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { addSseClient, latestStates } from '../utils/mqttHandler.js';
-import { createIrrigationDecision } from '../gptChatCompletion.js';
+import { createIrrigationDecision } from '../irrigationDecision.js';
 
 const router = express.Router();
 

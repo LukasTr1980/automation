@@ -175,3 +175,4 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   logger.info(`${result.result ? "ON" : "OFF"} | ${result.response}\n${result.formattedEvaluation}`);
   return result;
 }
+

@@ -52,7 +52,7 @@
   - WeatherLink (temp, RH, wind, pressure) via range helpers chunked by 24h to respect API limits.
   - Influx (cloud cover): daily means for the same 7-day window.
 - Storage: Append JSONL lines to `nodebackend/data/evapotranspiration_weekly/YYYY-MM-DD.jsonl` with `{ timestamp, et0_week }`.
-- Consumption: Irrigation decision logic reads the latest weekly `et0_week` directly from JSONL in `gptChatCompletion` using `readLatestJsonlNumber`. `queryAllData()` does not include ET₀.
+- Consumption: Irrigation decision logic reads the latest weekly `et0_week` directly from JSONL in `irrigationDecision` using `readLatestJsonlNumber`. `queryAllData()` does not include ET₀.
 - Notes: Do not write ET₀ to Influx; `.gitignore` excludes `nodebackend/data/`.
 
 ### ET₀ Ops & Debugging
@@ -89,7 +89,7 @@
 - **Zone names**: All schedule displays use human-readable names (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle)
 
 ## Irrigation Decision (No AI)
-- Source of truth: `nodebackend/src/gptChatCompletion.ts` implements a rule-based decision.
+- Source of truth: `nodebackend/src/irrigationDecision.ts` implements a rule-based decision.
 - Behavior: Applies hard blockers (temp, humidity, rainfall, rain rate, deficit < 5 mm). If none apply, irrigation proceeds.
 - Wiring: Scheduler and MQTT SSE call `createIrrigationDecision` directly; the `gptChatIrrigation.ts` adapter was removed.
 - Dependencies: No OpenAI usage; `openai` dependency and related Vault credentials are removed.
