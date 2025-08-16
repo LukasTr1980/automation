@@ -5,8 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v19.1.0] - 2025-08-16
+### Changed
+- Backend: Replace MongoDB config storage with centralized constants in `utils/constants.ts` for MQTT irrigation topics and Tuya datapoints.
+- Backend: `mqttHandler` now subscribes directly to `irrigationSwitchTopics` (no DB fetch).
+- Backend: `buildUrlMap` constructs Tuya set-URLs from constants instead of querying MongoDB.
+- Backend: `nextScheduleRoute` uses shared constants for topic → zone name mapping.
+- Docs: AGENTS.md updated to remove MongoDB from architecture and reference shared constants.
 
+### Removed
+- Backend: Deleted `src/clients/mongoClient.ts` and removed `mongodb` dependency from `nodebackend/package.json`.
+- Backend: Dropped inactive `mqttTopicsNumber` usage and removed `markise/switch/haupt` topics from the codebase.
 
 ## [v19.0.0] - 2025-08-16
 ### Added

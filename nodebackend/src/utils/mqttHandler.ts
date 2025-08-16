@@ -1,32 +1,14 @@
-import { connectToMongo } from '../clients/mongoClient.js';
 import { EventEmitter } from 'events';
 import { writeToInflux } from '../clients/influxdb-client.js';
 import { mqttClientPromise } from '../clients/mqttClient.js';
 import { broadcastToSseClients, addSseClient } from './sseHandler.js';
 import logger from '../logger.js';
+import { irrigationSwitchTopics } from './constants.js';
 
 class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();
 
-let mqttTopics: string[] = [];
-let mqttTopicsNumber: string[] = [];
-
-interface MqttTopicsResult {
-    mqttTopics: string[];
-    mqttTopicsNumber: string[];
-}
-
-async function fetchMqttTopics(): Promise<MqttTopicsResult | null> {
-    try {
-        const db = await connectToMongo();
-        const collection = db.collection('nodeServerConfig');
-        const doc = await collection.findOne({});
-        return doc ? { mqttTopics: doc.mqttTopics, mqttTopicsNumber: doc.mqttTopicsNumber } : null;
-    } catch (error) {
-        logger.error('Could not fetch MQTT Topics', error);
-        return null;
-    }
-}
+const mqttTopics: string[] = irrigationSwitchTopics;
 
 const latestStates: Record<string, string> = {};
 
@@ -34,20 +16,12 @@ const latestStates: Record<string, string> = {};
 async function main() {
     const mqttClient = await mqttClientPromise;
     mqttClient.on('connect', async () => {
-
-        const topics = await fetchMqttTopics();
-        if (topics) {
-            mqttTopics = topics.mqttTopics;
-            mqttTopicsNumber = topics.mqttTopicsNumber;
-            [...mqttTopics, ...mqttTopicsNumber].forEach(mqttTopic => {
-                mqttClient.subscribe(mqttTopic, (err) => {
-                    if (err) logger.error('Error subscribing to MQTT topic:', err);
-                    else logger.info('Subscribed to MQTT topic: ' + JSON.stringify(mqttTopic));
-                });
+        mqttTopics.forEach(mqttTopic => {
+            mqttClient.subscribe(mqttTopic, (err) => {
+                if (err) logger.error('Error subscribing to MQTT topic:', err);
+                else logger.info('Subscribed to MQTT topic: ' + JSON.stringify(mqttTopic));
             });
-        } else {
-            logger.error('Failed to fetch MQTT topics from the database');
-        }
+        });
     });
 
     mqttClient.on('message', async (topic, message) => {
@@ -63,9 +37,6 @@ async function main() {
         // Only write to Influx for specific topics
         if (mqttTopics.includes(topic)) {
             await writeToInflux(topic, msg);
-        }
-        if (['wetter/number/weathercloud_regenrate', 'wetter/number/wind'].includes(topic)) {
-            stateChangeEmitter.emit('stateChanged');
         }
     });
 }

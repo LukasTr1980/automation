@@ -1,6 +1,7 @@
 import express from 'express';
 import { getScheduledTasks } from '../scheduler.js';
 import logger from '../logger.js';
+import { irrigationSwitchTopics, irrigationSwitchSetTopics, irrigationSwitchDescriptions } from '../utils/constants.js';
 
 const router = express.Router();
 
@@ -58,23 +59,9 @@ router.get('/next', async (req, res) => {
     const firstTask = enabledIrrigationTasks[0];
 
     // Convert topic to zone name using the same mapping as frontend constants
-    const bewaesserungsTopics = [
-      'bewaesserung/switch/stefanNord',
-      'bewaesserung/switch/stefanOst',
-      'bewaesserung/switch/lukasSued',
-      'bewaesserung/switch/lukasWest',
-      'bewaesserung/switch/alle',
-    ];
-    
-    const bewaesserungsTopicsSet = [
-      'bewaesserung/switch/stefanNord/set',
-      'bewaesserung/switch/stefanOst/set',
-      'bewaesserung/switch/lukasSued/set',
-      'bewaesserung/switch/lukasWest/set',
-      'bewaesserung/switch/alle/set',
-    ];
-    
-    const switchDescriptions = ['Stefan Nord', 'Stefan Ost', 'Lukas Süd', 'Lukas West', 'Alle'];
+    const bewaesserungsTopics = irrigationSwitchTopics;
+    const bewaesserungsTopicsSet = irrigationSwitchSetTopics;
+    const switchDescriptions = irrigationSwitchDescriptions;
 
     // Find the index in either topics array to map to switchDescriptions
     let topicIndex = bewaesserungsTopics.indexOf(firstTask.topic);

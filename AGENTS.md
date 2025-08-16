@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Modules
-- `nodebackend/`: TypeScript backend (ES modules). Source in `src/`, build artifacts in `build/`. Key folders: `clients/` (Vault, MongoDB, Redis, MQTT, InfluxDB), `routes/`, `middleware/`, `utils/`. Entry point: `src/index.ts` (serves on port `8523`).
+- `nodebackend/`: TypeScript backend (ES modules). Source in `src/`, build artifacts in `build/`. Key folders: `clients/` (Vault, Redis, MQTT, InfluxDB), `routes/`, `middleware/`, `utils/`. Entry point: `src/index.ts` (serves on port `8523`).
 - `viteclientts/`: React + Vite + TypeScript client. Source in `src/`, static assets in `public/`, build output in `dist/`.
 - CI & Ops: `.github/workflows/` Docker build; multi-stage `Dockerfile` builds backend and client.
 - Docs: `CHANGELOG.md` records notable changes.
@@ -42,7 +42,7 @@
 
 ## Security & Configuration Tips
 - Secrets: Use Vault with `VAULT_ROLE_ID`/`VAULT_SECRET_ID` in dev or Docker secrets in prod (`/run/secrets/automation_vault_*`). Never commit `.env*`.
-- External services: InfluxDB, MongoDB, Redis, MQTT, OpenWeatherMap; endpoints in `nodebackend/src/envSwitcher.ts`.
+- External services: InfluxDB, Redis, MQTT, OpenWeatherMap; endpoints in `nodebackend/src/envSwitcher.ts`.
 - Auth & CSP: Traefik forwardauth enforces access and sets CSP. The app does not set CSP headers or accept CSP reports.
 - PWA: The frontend no longer uses a Service Worker or manifest. On boot, existing SWs are unregistered to avoid cached `index.html` interfering with ForwardAuth redirects. Optionally set `Cache-Control: no-store` for HTML at the proxy for extra safety.
 
@@ -79,7 +79,7 @@
   - Filters for enabled irrigation tasks (`state === true`)
   - Parses `recurrenceRule` JSON to extract hour/minute for time display
   - Maps topics to human-readable zone names using frontend constants
-- **Zone mapping**: Uses same arrays as frontend (`bewaesserungsTopics`, `bewaesserungsTopicsSet`, `switchDescriptions`)
+- **Zone mapping**: Uses shared backend constants in `nodebackend/src/utils/constants.ts` (`irrigationSwitchTopics`, `irrigationSwitchSetTopics`, `irrigationSwitchDescriptions`); frontend mirrors these values.
 - **Frontend integration**: Next Schedule status card and Quick Status section show real schedule data
 
 ### Frontend Dashboard Integration
