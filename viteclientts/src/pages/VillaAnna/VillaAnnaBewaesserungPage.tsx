@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import axios from 'axios';
 import SwitchComponent from '../../components/switchComponent';
 import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
@@ -15,8 +15,20 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Button
+  Button,
+  Chip,
+  Tooltip,
+  Divider
 } from '@mui/material';
+import ThermostatAutoIcon from '@mui/icons-material/ThermostatAuto';
+import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import SpeedIcon from '@mui/icons-material/Speed';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import CalendarViewWeekIcon from '@mui/icons-material/CalendarViewWeek';
+import WaterIcon from '@mui/icons-material/Water';
+import WavesIcon from '@mui/icons-material/Waves';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import useSnackbar from '../../utils/useSnackbar';
@@ -244,49 +256,143 @@ const BewaesserungPage = () => {
                     </Grid>
                     {response && (
                       <Grid size={12}>
-                        <Box mt={1}>
-                          <Typography variant="h6" gutterBottom>
+                        <Box mt={1} sx={{ backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 1, p: 1.5, border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                          <Typography variant="h6" gutterBottom align="center">
                             Prüfpunkte
                           </Typography>
-                          <List dense>
+                          <List dense sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', '& li': { py: 0.5, width: '100%', maxWidth: 520 } }}>
                             <ListItem>
-                              <ListItemText primary={`ØTemp 7 d: ${response.outTemp.toFixed(1)} °C`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><ThermostatAutoIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Ø-Temperatur (7 Tage)`}
+                                secondary={`${response.outTemp.toFixed(1)} °C`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
+                            <Divider component="li" />
                             <ListItem>
-                              <ListItemText primary={`ØRH 7 d: ${response.humidity.toFixed(0)} %`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><OpacityOutlinedIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Ø-Luftfeuchte (7 Tage)`}
+                                secondary={`${response.humidity.toFixed(0)} %`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
+                            <Divider component="li" />
                             <ListItem>
-                              <ListItemText primary={`Regen heute: ${response.rainToday.toFixed(1)} mm`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WaterDropIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Regen (24h)`}
+                                secondary={`${response.rainToday.toFixed(1)} mm`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
+                            <Divider component="li" />
                             <ListItem>
-                              <ListItemText primary={`Regenrate: ${response.rainRate.toFixed(1)} mm/h`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><SpeedIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Regenrate (aktuell)`}
+                                secondary={`${response.rainRate.toFixed(1)} mm/h`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
+                            <Divider component="li" />
                             <ListItem>
-                              <ListItemText primary={`Prognose morgen: ${response.rainNextDay.toFixed(1)} mm × ${response.rainProbNextDay.toFixed(0)} % = ${response.effectiveForecast.toFixed(1)} mm`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><QueryStatsIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Prognose (morgen, gewichtet)`}
+                                secondary={`${response.rainNextDay.toFixed(1)} mm × ${response.rainProbNextDay.toFixed(0)} % Wahrscheinlichkeit = ${response.effectiveForecast.toFixed(1)} mm`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
+                            <Divider component="li" />
                             <ListItem>
-                              <ListItemText primary={`7-T-Regen: ${response.rainSum.toFixed(1)} mm`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><CalendarViewWeekIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Regen Summe (7 Tage)`}
+                                secondary={`${response.rainSum.toFixed(1)} mm`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
+                            <Divider component="li" />
                             <ListItem>
-                              <ListItemText primary={`7-T-Bewässerung: ${response.irrigationDepthMm.toFixed(1)} mm`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WaterIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Bewässerung Summe (7 Tage)`}
+                                secondary={`${response.irrigationDepthMm.toFixed(1)} mm`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
+                            <Divider component="li" />
                             <ListItem>
-                              <ListItemText primary={`ET₀ 7 T: ${response.et0_week.toFixed(1)} mm`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WavesIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Verdunstung Summe (7 Tage)`}
+                                secondary={`${response.et0_week.toFixed(1)} mm`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
+                            <Divider component="li" />
                             <ListItem>
-                              <ListItemText primary={`ET₀-Defizit: ${response.deficitNow.toFixed(1)} mm`} />
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><TrendingDownIcon color="action" /></ListItemIcon>
+                              <ListItemText
+                                primary={`Wasserdefizit`}
+                                secondary={`${response.deficitNow.toFixed(1)} mm`}
+                                primaryTypographyProps={{ align: 'center' }}
+                                secondaryTypographyProps={{ align: 'center' }}
+                              />
                             </ListItem>
                           </List>
-                          {response.blockers && response.blockers.length > 0 && (
-                            <Box mt={1}>
-                              <Typography variant="subtitle1">Aktive Blocker</Typography>
-                              <List dense>
-                                {response.blockers.map((b, idx) => (
-                                  <ListItem key={idx}><ListItemText primary={b} /></ListItem>
-                                ))}
-                              </List>
+                          {/* Blockers section */}
+                          <Box mt={2}>
+                            <Typography variant="subtitle1" gutterBottom align="center">Blocker Aktiv</Typography>
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+                              {(() => {
+                                const chips: ReactNode[] = [];
+                                const tempActive = response.outTemp <= 10;
+                                const humActive = response.humidity >= 80;
+                                const rain24Active = response.rainToday >= 3;
+                                const rateActive = response.rainRate > 0;
+                                const deficitActive = response.deficitNow < 5;
+                                if (tempActive) chips.push(
+                                  <Tooltip title={`Ø-Temperatur 7 Tage: ${response.outTemp.toFixed(1)} °C`} key="b-temp">
+                                    <Chip color="error" variant="filled" icon={<ThermostatAutoIcon />} label="Ø-Temperatur ≤ 10 °C" />
+                                  </Tooltip>
+                                );
+                                if (humActive) chips.push(
+                                  <Tooltip title={`Ø-Luftfeuchte 7 Tage: ${response.humidity.toFixed(0)} %`} key="b-hum">
+                                    <Chip color="error" variant="filled" icon={<OpacityOutlinedIcon />} label="Ø-Luftfeuchte ≥ 80 %" />
+                                  </Tooltip>
+                                );
+                                if (rain24Active) chips.push(
+                                  <Tooltip title={`Regen (24h): ${response.rainToday.toFixed(1)} mm`} key="b-r24">
+                                    <Chip color="error" variant="filled" icon={<WaterDropIcon />} label="Regen (24h) ≥ 3 mm" />
+                                  </Tooltip>
+                                );
+                                if (rateActive) chips.push(
+                                  <Tooltip title={`Regenrate: ${response.rainRate.toFixed(1)} mm/h`} key="b-rate">
+                                    <Chip color="error" variant="filled" icon={<SpeedIcon />} label="Regenrate > 0" />
+                                  </Tooltip>
+                                );
+                                if (deficitActive) chips.push(
+                                  <Tooltip title={`Wasserdefizit: ${response.deficitNow.toFixed(1)} mm`} key="b-def">
+                                    <Chip color="error" variant="filled" icon={<TrendingDownIcon />} label="Defizit < 5 mm" />
+                                  </Tooltip>
+                                );
+                                return chips.length ? chips : [
+                                  <Chip key="b-none" color="success" variant="outlined" label="Keine Blocker aktiv" />
+                                ];
+                              })()}
                             </Box>
-                          )}
+                          </Box>
                         </Box>
                       </Grid>
                     )}

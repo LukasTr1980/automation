@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed feature flag from `skipAi` to `skipDecisionCheck`:
   - Backend: Redis key `skipDecisionCheck`, new route `GET/POST /api/decisionCheck` replacing `/api/skipAi`.
   - Frontend: state and calls updated to `decisionCheck`; buttons still labeled “Entscheidungsprüfung …” for users.
+- Frontend: decision metrics UI styling and clarity improvements on Bewässerung page:
+  - Centered metrics list with icons, dividers, subtle panel styling.
+  - Clear labels: “Regen (24h)”, “Prognose (morgen, gewichtet) mm × % = effektiv mm”,
+    “Regen Summe (7 Tage)”, “Bewässerung Summe (7 Tage)”, “Verdunstung Summe (7 Tage)”, “Wasserdefizit”.
+  - “Blocker Aktiv” now shows explicit rule chips with thresholds (e.g., “Ø‑Temperatur ≤ 10 °C”,
+    “Ø‑Luftfeuchte ≥ 80 %”, “Regen (24h) ≥ 3 mm”, “Regenrate > 0”, “Defizit < 5 mm”) and tooltips with values.
 - Frontend UI text migrated to static German strings (no runtime translation); `index.html` language set to `de`.
 - VillaAnnaHomePage and related pages updated to use German labels and copy throughout.
 
