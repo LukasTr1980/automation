@@ -1,6 +1,6 @@
 export const messages: Record<string, string> = {
   settings: 'Einstellungen',
-  editGptRequest: 'GPT Anfrage ändern',
+  editGptRequest: 'Anfrage ändern',
   editSecrets: 'Secrets bearbeiten',
   errorWhilePerformingTheSwitching: 'Fehler beim durchführen der Schaltung',
   switchingPerformed: 'Schaltung durchgeführt',
@@ -22,7 +22,7 @@ export const messages: Record<string, string> = {
   forbiddenYouDontHavePermission: 'Zugriff verweigert. Sie haben keine Berechtigung, auf diese Ressource zuzugreifen',
   unknownError: 'Unbekannter Fehler',
   scheduleEnablerUpdated: 'Zeitplan Schalter erfolgreich aktualisiert',
-  GptRequestUpdated: 'GPT-Anfrage erfolgreich aktualisiert',
+  GptRequestUpdated: 'Anfrage erfolgreich aktualisiert',
   noFieldsToUpdate: 'Keine Felder zum Aktualisieren',
   usernameEmpty: 'Benutzername darf nicht leer sein',
   usernameAlphanum: 'Benutzername darf nur alphanumerische Zeichen enthalten',
@@ -39,16 +39,15 @@ export const messages: Record<string, string> = {
   createSchedule: 'Zeitplan erstellen',
   scheduledPlans: 'Eingestellte Zeitpläne',
   noScheduledPlans: 'Keine eingestellten Zeitpläne',
-  updateSuccessInfluxDBAIToken: 'InfluxDB AI Token erfolgreich aktualisiert',
+  updateSuccessInfluxDBAIToken: 'InfluxDB Token erfolgreich aktualisiert',
   updateSuccessInfluxDBAutomationToken: 'InfluxDB Automation Token erfolgreich aktualisiert',
-  updateSuccessOpenAIAPIToken: 'OpenAI API Token erfolgreich aktualisiert',
+  updateSuccessOpenAIAPIToken: 'OpenAI API Token aktualisiert',
   updateSuccessPassword: 'Passwort erfolgreich aktualisiert',
   networkError: 'Netzwerkfehler',
   irrigation: 'Bewässerung',
-  aiDecision: 'AI Entscheidung',
+  aiDecision: 'Smarte Entscheidung',
   on: 'Ein',
   off: 'Aus',
   // Extra safety for ad-hoc keys used in code
   error: 'Fehler',
 };
-

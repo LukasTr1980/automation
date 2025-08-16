@@ -182,12 +182,12 @@ const BewaesserungPage = () => {
 
       <Grid size={12} paddingBottom={1}>
         <Card variant='outlined'>
-          <CardHeader title={'AI Entscheidung'} />
+          <CardHeader title={'Smarte Entscheidung'} />
           <CardContent>
             {skipAi ? (
               <Grid container spacing={2} justifyContent="space-between">
                 <Grid size={12}>
-                  <Typography>Ai Überprüfung deaktiviert</Typography>
+                  <Typography>Entscheidungsprüfung deaktiviert</Typography>
                 </Grid>
                 <Grid size={12}>
                   <Button
@@ -197,7 +197,7 @@ const BewaesserungPage = () => {
                       try {
                         await axios.post(`${apiUrl}/skipAi`, { skip: newVal });
                         setSkipAi(newVal);
-                        showSnackbar('Ai Überprüfung aktiviert');
+                        showSnackbar('Entscheidungsprüfung aktiviert');
                       } catch (err) {
                         console.error(err);
                         showSnackbar('Fehler');
@@ -206,7 +206,7 @@ const BewaesserungPage = () => {
                     fullWidth
                     color='primary'
                   >
-                    Ai Überprüfung aktivieren
+                    Entscheidungsprüfung aktivieren
                   </Button>
                 </Grid>
               </Grid>
@@ -218,7 +218,7 @@ const BewaesserungPage = () => {
                   <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
                     <SwitchComponent
                       checked={!irrigationNeededSwitch}
-                      label='AI-Block:'
+                      label='Blocker:'
                       disabled={true}
                       color='warning'
                       id="switch-ai-block"
@@ -233,7 +233,7 @@ const BewaesserungPage = () => {
                     fullWidth
                     color='info'
                   >
-                    AI Antwort
+                    Entscheidungsdetails
                   </Button>
                 </Grid>
                 <Grid size={12}>
@@ -244,7 +244,7 @@ const BewaesserungPage = () => {
                       try {
                         await axios.post(`${apiUrl}/skipAi`, { skip: newVal });
                         setSkipAi(newVal);
-                        showSnackbar(newVal ? 'Ai Überprüfung deaktiviert' : 'Ai Überprüfung aktiviert');
+                        showSnackbar(newVal ? 'Entscheidungsprüfung deaktiviert' : 'Entscheidungsprüfung aktiviert');
                       } catch (err) {
                         console.error(err);
                         showSnackbar('Fehler');
@@ -253,11 +253,11 @@ const BewaesserungPage = () => {
                     fullWidth
                     color='error'
                   >
-                    Ai Überprüfung deaktivieren
+                    Entscheidungsprüfung deaktivieren
                   </Button>
                 </Grid>
                 <DialogFullScreen
-                  title={'AI Antwort'}
+                  title={'Entscheidungsdetails'}
                   open={isAiResponseDialogOpen}
                   onClose={handleCloseDialog}
                   showButton={false}
