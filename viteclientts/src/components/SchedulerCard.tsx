@@ -182,7 +182,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
               variant="contained"
               color={!fieldValidity.day ? 'error' : 'primary'}
               fullWidth
-              onClick={() => setWeekDaysDialogOpen(true)}
+              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); setWeekDaysDialogOpen(true); }}
               aria-haspopup="dialog"
               aria-controls="weekdays-dialog"
               aria-pressed={selectedDays.length ? 'true' : 'false'}
@@ -201,7 +201,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
               variant="contained"
               color={!fieldValidity.month ? 'error' : 'primary'}
               fullWidth
-              onClick={() => setMonthDialogOpen(true)}
+              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); setMonthDialogOpen(true); }}
               aria-haspopup="dialog"
               aria-controls="months-dialog"
               aria-pressed={selectedMonths.length ? 'true' : 'false'}
