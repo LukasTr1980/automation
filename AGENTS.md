@@ -19,9 +19,10 @@
 - Indentation: 2 spaces. Naming: camelCase (vars/functions), PascalCase (classes/React components), UPPER_SNAKE_CASE (env/constants). File names: `.ts` (backend), `.tsx` (React components).
 
 ## Language & Logging
-- Logs: All backend log messages must be written in English.
+- Comments: All code comments must be written in English (frontend and backend).
+- Logs: All log messages in code must be written in English (frontend and backend).
 - UI: All user-visible text (frontend, API response messages shown in UI) must be in German.
-- Prefer central helpers for messages to avoid drift; do not mix languages in a single message.
+- Prefer central helpers for messages to avoid drift; do not mix languages in a single message or string.
 
 ### Frontend Localization
 - The client is German-only. i18n has been removed from `viteclientts/` (no `i18next`/`react-i18next`).
@@ -90,6 +91,8 @@
 
 ## Irrigation Decision (No AI)
 - Source of truth: `nodebackend/src/irrigationDecision.ts` implements a rule-based decision.
+- Backend returns structured metrics (temps, humidity, rainfall, forecast, ET₀, deficit, blockers) for UI, not LLM text.
+- Frontend displays these values inline on the Bewässerung page under the decision switch.
 - Behavior: Applies hard blockers (temp, humidity, rainfall, rain rate, deficit < 5 mm). If none apply, irrigation proceeds.
 - Wiring: Scheduler and MQTT SSE call `createIrrigationDecision` directly; the `gptChatIrrigation.ts` adapter was removed.
 - Dependencies: No OpenAI usage; `openai` dependency and related Vault credentials are removed.

@@ -25,7 +25,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import SkeletonLoader from '../../components/skeleton';
 import { messages } from '../../utils/messages';
-import DialogFullScreen from '../../components/DialogFullScreen';
+// Dialog removed: details shown inline
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);
@@ -39,11 +39,26 @@ const BewaesserungPage = () => {
   const [orderedTasks, setOrderedTasks] = useState<GroupedTasks>({});
   const [reloadTasks, setReloadTasks] = useState(false);
   const apiUrl = import.meta.env.VITE_API_URL;
-  const [response, setResponse] = useState("");
+  interface DecisionMetrics {
+    outTemp: number;
+    humidity: number;
+    rainToday: number;
+    rainRate: number;
+    rainNextDay: number;
+    rainProbNextDay: number;
+    rainSum: number;
+    irrigationDepthMm: number;
+    et0_week: number;
+    effectiveForecast: number;
+    deficitNow: number;
+    blockers: string[];
+  }
+
+  const [response, setResponse] = useState<DecisionMetrics | null>(null);
   const [formattedEvaluation, setFormattedEvaluation] = useState("");
   const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
   const { showSnackbar } = useSnackbar();
-  const [isAiResponseDialogOpen, setIsAiResponseDialogOpen] = useState(false);
+  // Dialog state removed
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -145,13 +160,7 @@ const BewaesserungPage = () => {
     setActiveTab(newValue);
   };
 
-  const handleOpenDialog = () => {
-    setIsAiResponseDialogOpen(true);
-  }
-
-  const handleCloseDialog = () => {
-    setIsAiResponseDialogOpen(false);
-  }
+  // Dialog handlers removed
 
   return (
     <Layout>
@@ -226,16 +235,54 @@ const BewaesserungPage = () => {
                     />
                   </Box>
                 </Grid>
-                <Grid size={12}>
-                  <Button
-                    variant='contained'
-                    onClick={handleOpenDialog}
-                    fullWidth
-                    color='info'
-                  >
-                    Entscheidungsdetails
-                  </Button>
-                </Grid>
+                {response && (
+                  <Grid size={12}>
+                    <Box mt={1}>
+                      <Typography variant="h6" gutterBottom>
+                        Prüfpunkte
+                      </Typography>
+                      <List dense>
+                        <ListItem>
+                          <ListItemText primary={`ØTemp 7 d: ${response.outTemp.toFixed(1)} °C`} />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText primary={`ØRH 7 d: ${response.humidity.toFixed(0)} %`} />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText primary={`Regen heute: ${response.rainToday.toFixed(1)} mm`} />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText primary={`Regenrate: ${response.rainRate.toFixed(1)} mm/h`} />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText primary={`Prognose morgen: ${response.rainNextDay.toFixed(1)} mm × ${response.rainProbNextDay.toFixed(0)} % = ${response.effectiveForecast.toFixed(1)} mm`} />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText primary={`7-T-Regen: ${response.rainSum.toFixed(1)} mm`} />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText primary={`7-T-Bewässerung: ${response.irrigationDepthMm.toFixed(1)} mm`} />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText primary={`ET₀ 7 T: ${response.et0_week.toFixed(1)} mm`} />
+                        </ListItem>
+                        <ListItem>
+                          <ListItemText primary={`ET₀-Defizit: ${response.deficitNow.toFixed(1)} mm`} />
+                        </ListItem>
+                      </List>
+                      {response.blockers && response.blockers.length > 0 && (
+                        <Box mt={1}>
+                          <Typography variant="subtitle1">Aktive Blocker</Typography>
+                          <List dense>
+                            {response.blockers.map((b, idx) => (
+                              <ListItem key={idx}><ListItemText primary={b} /></ListItem>
+                            ))}
+                          </List>
+                        </Box>
+                      )}
+                    </Box>
+                  </Grid>
+                )}
                 <Grid size={12}>
                   <Button
                     variant='outlined'
@@ -256,47 +303,7 @@ const BewaesserungPage = () => {
                     Entscheidungsprüfung deaktivieren
                   </Button>
                 </Grid>
-                <DialogFullScreen
-                  title={'Entscheidungsdetails'}
-                  open={isAiResponseDialogOpen}
-                  onClose={handleCloseDialog}
-                  showButton={false}
-                >
-                  {/* 1. Zusammenfassung */}
-                  <Typography component="p" sx={{ marginBottom: 3 }}>
-                    {response}
-                  </Typography>
-
-                  {/* 2. Auswertung */}
-                  <Typography variant="h6" gutterBottom>
-                    Prüfpunkte
-                  </Typography>
-                  <List dense>
-                    {formattedEvaluation.split('\n').map((line, idx) => {
-                      // Text ohne führendes oder trailinges ✓/✗
-                      const text = line.replace(/^[✓✗]\s*|[✓✗]\s*$/g, '');
-                      // Nur dann Icon rendern, wenn wirklich ✓ oder ✗ in der Zeile
-                      const hasTick = /[✓✗]/.test(line);
-                      return (
-                        <ListItem key={idx}>
-                          {hasTick && (
-                            <ListItemIcon>
-                              <Typography component="span">
-                                {line.includes('✓') ? '✅' : '❌'}
-                              </Typography>
-                            </ListItemIcon>
-                          )}
-                          <ListItemText primary={text} />
-                        </ListItem>
-                      );
-                    })}
-                  </List>
-
-                  {/* 3. Schließen-Button */}
-                  <Box textAlign="right" mt={2}>
-                    <Button onClick={handleCloseDialog}>Schließen</Button>
-                  </Box>
-                </DialogFullScreen>
+                {/* Dialog removed */}
               </Grid>
             )}
           </CardContent>

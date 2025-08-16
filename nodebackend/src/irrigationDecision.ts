@@ -6,10 +6,25 @@ import { readLatestJsonlNumber } from "./utils/localDataWriter.js";
 import { getRainRateFromWeatherlink, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getDailyRainTotal, getSevenDayRainTotal } from "./clients/weatherlink-client.js";
 
 // ---------- FE-Interface -----------------------------------------------------
+export interface DecisionMetrics {
+  outTemp: number;
+  humidity: number;
+  rainToday: number;
+  rainRate: number;
+  rainNextDay: number;
+  rainProbNextDay: number;
+  rainSum: number;
+  irrigationDepthMm: number;
+  et0_week: number;
+  effectiveForecast: number;
+  deficitNow: number;
+  blockers: string[];
+}
+
 export interface CompletionResponse {
-  result: boolean;          // = irrigationNeeded
-  response: string;         // kurze Erklaerung inkl. confidence
-  formattedEvaluation: string; // Bullet-Liste der geprueften Fakten
+  result: boolean;               // irrigationNeeded
+  response: DecisionMetrics;     // structured values for FE
+  formattedEvaluation: string;   // legacy pretty text (kept for debugging)
 }
 
 // ---------- Ausgabe huebsch formatiert --------------------------------------
@@ -156,7 +171,20 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     logger.info(msg);
     return {
       result: false,
-      response: msg,
+      response: {
+        outTemp: d.outTemp,
+        humidity: d.humidity,
+        rainToday: d.rainToday,
+        rainRate: d.rainRate,
+        rainNextDay: d.rainNextDay,
+        rainProbNextDay: d.rainProbNextDay,
+        rainSum: d.rainSum,
+        irrigationDepthMm: d.irrigationDepthMm,
+        et0_week: d.et0_week,
+        effectiveForecast,
+        deficitNow,
+        blockers,
+      },
       formattedEvaluation: buildFormattedEvaluation(d, effectiveForecast, deficitNow)
     };
   }
@@ -164,15 +192,24 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // ---------- Rule-only decision (no AI) ------------------------------------
   const result: CompletionResponse = {
     result: true,
-    response: `Kein Blocker aktiv; Defizit ${fmt(deficitNow)} mm – Bewässerung ein.`,
+    response: {
+      outTemp: d.outTemp,
+      humidity: d.humidity,
+      rainToday: d.rainToday,
+      rainRate: d.rainRate,
+      rainNextDay: d.rainNextDay,
+      rainProbNextDay: d.rainProbNextDay,
+      rainSum: d.rainSum,
+      irrigationDepthMm: d.irrigationDepthMm,
+      et0_week: d.et0_week,
+      effectiveForecast,
+      deficitNow,
+      blockers,
+    },
     formattedEvaluation: buildFormattedEvaluation(d, effectiveForecast, deficitNow)
   };
 
-  // Transparenter Hinweis fuer Frontend-User
-  result.response += ' - Forecast mit realer Wahrscheinlichkeit gewichtet';
-
   logger.debug(`DefizitNow mit Wahrscheinlichkeits-Forecast: ${fmt(deficitNow)}`);
-  logger.info(`${result.result ? "ON" : "OFF"} | ${result.response}\n${result.formattedEvaluation}`);
+  logger.info(`${result.result ? "ON" : "OFF"} | Defizit ${fmt(deficitNow)} mm\n${result.formattedEvaluation}`);
   return result;
 }
-

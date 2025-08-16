@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend: renamed `nodebackend/src/gptChatCompletion.ts` to `nodebackend/src/irrigationDecision.ts` to reflect rule-based, non-GPT irrigation logic; updated all imports (`scheduler`, `routes`).
 - Docs: updated `AGENTS.md` references from `gptChatCompletion` to `irrigationDecision`.
 - Frontend: replaced "AI" wording with neutral terms in irrigation page (e.g., "AI Entscheidung" → "Smarte Entscheidung", "AI Antwort" → "Entscheidungsdetails", "Ai Überprüfung" → "Entscheidungsprüfung").
+- Backend: `createIrrigationDecision` now returns structured metrics in `response` (numbers + blockers) instead of a free‑text string; `formattedEvaluation` kept for debugging.
+- Frontend: VillaAnna Bewässerung page shows the decision metrics inline under the decision switch; removed the dialog/button to reveal details.
 - Frontend UI text migrated to static German strings (no runtime translation); `index.html` language set to `de`.
 - VillaAnnaHomePage and related pages updated to use German labels and copy throughout.
 
