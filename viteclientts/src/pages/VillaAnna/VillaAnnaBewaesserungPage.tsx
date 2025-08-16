@@ -67,7 +67,6 @@ const BewaesserungPage = () => {
   }
 
   const [response, setResponse] = useState<DecisionMetrics | null>(null);
-  const [formattedEvaluation, setFormattedEvaluation] = useState("");
   const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
   const { showSnackbar } = useSnackbar();
   // Dialog state removed
@@ -95,7 +94,6 @@ const BewaesserungPage = () => {
       } else if (data.type === 'irrigationNeeded') { // Irrigation needed state updates
         setirrigationNeededSwitch(data.state);
         setResponse(data.response);
-        setFormattedEvaluation(data.formattedEvaluation);
         setAiLoading(false);
       }
     };

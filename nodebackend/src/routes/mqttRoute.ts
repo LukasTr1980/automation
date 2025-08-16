@@ -18,8 +18,7 @@ router.get('/', async (req: Request, res: Response) => {
             const irrigationNeededData = {
                 type: 'irrigationNeeded',
                 state: data.result,
-                response: data.response,
-                formattedEvaluation: data.formattedEvaluation
+                response: data.response
             };
             res.write(`data: ${JSON.stringify(irrigationNeededData)}\n\n`);
         }
@@ -29,8 +28,7 @@ router.get('/', async (req: Request, res: Response) => {
         const irrigationNeededData = {
             type: 'irrigationNeeded',
             state: false,
-            response: '',
-            formattedEvaluation: ''
+            response: ''
         };
         res.write(`data: ${JSON.stringify(irrigationNeededData)}\n\n`);
     }

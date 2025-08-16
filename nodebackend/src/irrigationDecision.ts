@@ -1,11 +1,11 @@
 import { queryAllData } from "./clients/influxdb-client.js";
 import type { WeatherData } from "./clients/influxdb-client.js";
 import logger from "./logger.js";
-import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js"; // <-- import service
+import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js";
 import { readLatestJsonlNumber } from "./utils/localDataWriter.js";
 import { getRainRateFromWeatherlink, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getDailyRainTotal, getSevenDayRainTotal } from "./clients/weatherlink-client.js";
 
-// ---------- FE-Interface -----------------------------------------------------
+// ---------- Frontend Contract (structured metrics) ---------------------------
 export interface DecisionMetrics {
   outTemp: number;
   humidity: number;
@@ -22,38 +22,18 @@ export interface DecisionMetrics {
 }
 
 export interface CompletionResponse {
-  result: boolean;               // irrigationNeeded
-  response: DecisionMetrics;     // structured values for FE
-  formattedEvaluation: string;   // legacy pretty text (kept for debugging)
+  result: boolean;             // irrigation decision (true = proceed)
+  response: DecisionMetrics;   // structured values for the frontend
 }
 
-// ---------- Ausgabe huebsch formatiert --------------------------------------
+// ---------- Helpers ---------------------------------------------------------
 const fmt = (n: number, d = 1) => n.toFixed(d);
-const tick = (v: boolean) => (v ? "✓" : "✗");
 
 type EnrichedWeatherData = WeatherData & { et0_week: number; irrigationDepthMm: number; rainRate: number; rainToday: number; rainSum: number; outTemp: number; humidity: number };
 
-function buildFormattedEvaluation(
-  d: EnrichedWeatherData,
-  effectiveForecast: number,
-  deficit: number
-) {
-  return [
-    `7-T-Temp   ${fmt(d.outTemp)} °C  > 10 °C?  ${tick(d.outTemp > 10)}`,
-    `7-T-RH     ${fmt(d.humidity)} %   < 80 %?  ${tick(d.humidity < 80)}`,
-    `Regen heute ${fmt(d.rainToday)} mm < 3 mm?  ${tick(d.rainToday < 3)}`,
-    `Regenrate  ${fmt(d.rainRate)} mm/h == 0?  ${tick(d.rainRate === 0)}`,
-    `Fc morgen ${fmt(d.rainNextDay)} mm × ${fmt(d.rainProbNextDay)} % = ${fmt(effectiveForecast)} mm`,
-    `7-T-Regen ${fmt(d.rainSum)} mm`,
-    `7-T-Bewaesserung ${fmt(d.irrigationDepthMm)} mm`,
-    `ET0 7 T    ${fmt(d.et0_week)} mm`,
-    `ET0-Defizit ${fmt(deficit)} mm`,
-  ].join("\n");
-}
-
-// ---------- Hauptlogik -------------------------------------------------------
+// ---------- Decision logic ---------------------------------------------------
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
-  // 1) Sensordaten & woechentliche Bewaesserung separat holen
+  // 1) Gather current metrics plus weekly irrigation depth
   const weatherData = await queryAllData();
   // Override ET₀ with latest weekly value from JSONL (file-based source of truth)
   let et0WeeklyFromFile = 0;
@@ -128,7 +108,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     logger.error("[WEATHERLINK] Error computing 7-day humidity avg; using 0%", e);
   }
 
-  // 2) Typsicheres, unveraenderliches Objekt zusammenbauen
+  // 2) Build typed, immutable data object
   const d: EnrichedWeatherData = {
     ...weatherData,
     et0_week: et0WeeklyFromFile,
@@ -146,28 +126,28 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
     logger.warn(`[WEATHERLINK] rainRate failed - using 0 mm/h as fallback`);
   }
 
-  // 3) einheitliche Defizit-Berechnung
+  // 3) Unified deficit calculation (German-only values are in FE)
   const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
   // Integrate 7-day rainfall into current weekly water balance
   const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
   const deficitNow = d.et0_week - effectiveRain;
 
-  /* ---------- Hard-Rules ----------------------------------------------------
-   *  Wenn eine Regel zutrifft -> Bewaesserung blockieren (result=false).
+  /* ---------- Hard rules ----------------------------------------------------
+   * If any rule matches, block irrigation (result=false).
    * -------------------------------------------------------------------------*/
   const blockers: string[] = [];
 
-  if (d.outTemp <= 10) blockers.push(`ØTemp 7 d <= 10 °C (${fmt(d.outTemp)} °C)`);
-  if (d.humidity >= 80) blockers.push(`ØRH 7 d >= 80 % (${fmt(d.humidity)} %)`);
-  if (d.rainToday >= 3) blockers.push(`Regen heute >= 3 mm (${fmt(d.rainToday)} mm)`);
-  if (d.rainRate > 0) blockers.push(`Aktuell Regen (${fmt(d.rainRate)} mm/h)`);
+  if (d.outTemp <= 10) blockers.push(`7d avg temperature ≤ 10 °C (${fmt(d.outTemp)} °C)`);
+  if (d.humidity >= 80) blockers.push(`7d avg humidity ≥ 80 % (${fmt(d.humidity)} %)`);
+  if (d.rainToday >= 3) blockers.push(`Rain (24h) ≥ 3 mm (${fmt(d.rainToday)} mm)`);
+  if (d.rainRate > 0) blockers.push(`Rain rate > 0 mm/h (${fmt(d.rainRate)} mm/h)`);
 
-  logger.debug(`DefizitNow mit Wahrscheinlichkeits-Forecast: ${fmt(deficitNow)}`);
+  logger.debug(`DeficitNow with probability-weighted forecast: ${fmt(deficitNow)} mm`);
 
-  if (deficitNow < 5) blockers.push(`Defizit < 5 mm (${fmt(deficitNow)})`);
+  if (deficitNow < 5) blockers.push(`Deficit < 5 mm (${fmt(deficitNow)} mm)`);
 
   if (blockers.length) {
-    const msg = `Blockiert: ${blockers.join("; ")}`;
+    const msg = `Blocked: ${blockers.join("; ")}`;
     logger.info(msg);
     return {
       result: false,
@@ -184,8 +164,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
         effectiveForecast,
         deficitNow,
         blockers,
-      },
-      formattedEvaluation: buildFormattedEvaluation(d, effectiveForecast, deficitNow)
+      }
     };
   }
 
@@ -205,11 +184,10 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       effectiveForecast,
       deficitNow,
       blockers,
-    },
-    formattedEvaluation: buildFormattedEvaluation(d, effectiveForecast, deficitNow)
+    }
   };
 
-  logger.debug(`DefizitNow mit Wahrscheinlichkeits-Forecast: ${fmt(deficitNow)}`);
-  logger.info(`${result.result ? "ON" : "OFF"} | Defizit ${fmt(deficitNow)} mm\n${result.formattedEvaluation}`);
+  logger.debug(`DeficitNow with probability-weighted forecast: ${fmt(deficitNow)} mm`);
+  logger.info(`${result.result ? "ON" : "OFF"} | Deficit ${fmt(deficitNow)} mm`);
   return result;
 }

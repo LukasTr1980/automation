@@ -6,24 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+
+## [v19.0.0] - 2025-08-16
 ### Added
-- `viteclientts/src/utils/messages.ts` as a simple map from backend response keys to German messages used by snackbars and UI notifications.
+- New `GET/POST /api/decisionCheck` endpoint to toggle skipping the decision check; value stored under Redis key `skipDecisionCheck`.
 
 ### Changed
-- Backend: renamed `nodebackend/src/gptChatCompletion.ts` to `nodebackend/src/irrigationDecision.ts` to reflect rule-based, non-GPT irrigation logic; updated all imports (`scheduler`, `routes`).
-- Docs: updated `AGENTS.md` references from `gptChatCompletion` to `irrigationDecision`.
-- Frontend: replaced "AI" wording with neutral terms in irrigation page (e.g., "AI Entscheidung" → "Smarte Entscheidung", "AI Antwort" → "Entscheidungsdetails", "Ai Überprüfung" → "Entscheidungsprüfung").
-- Backend: `createIrrigationDecision` now returns structured metrics in `response` (numbers + blockers) instead of a free‑text string; `formattedEvaluation` kept for debugging.
-- Frontend: VillaAnna Bewässerung page shows the decision metrics inline under the decision switch; removed the dialog/button to reveal details.
-- Renamed feature flag from `skipAi` to `skipDecisionCheck`:
-  - Backend: Redis key `skipDecisionCheck`, new route `GET/POST /api/decisionCheck` replacing `/api/skipAi`.
-  - Frontend: state and calls updated to `decisionCheck`; buttons still labeled “Entscheidungsprüfung …” for users.
-- Frontend: decision metrics UI styling and clarity improvements on Bewässerung page:
-  - Centered metrics list with icons, dividers, subtle panel styling.
-  - Clear labels: “Regen (24h)”, “Prognose (morgen, gewichtet) mm × % = effektiv mm”,
-    “Regen Summe (7 Tage)”, “Bewässerung Summe (7 Tage)”, “Verdunstung Summe (7 Tage)”, “Wasserdefizit”.
-  - “Blocker Aktiv” now shows explicit rule chips with thresholds (e.g., “Ø‑Temperatur ≤ 10 °C”,
-    “Ø‑Luftfeuchte ≥ 80 %”, “Regen (24h) ≥ 3 mm”, “Regenrate > 0”, “Defizit < 5 mm”) and tooltips with values.
+- Backend: renamed `nodebackend/src/gptChatCompletion.ts` to `nodebackend/src/irrigationDecision.ts`; updated imports in scheduler and routes.
+- Backend: `createIrrigationDecision` returns structured metrics (numbers + blockers) instead of free‑text.
+- Frontend: decision metrics shown inline on the Bewässerung page under the decision switch; wording switched to neutral German labels.
+- Frontend: styling polish for the decision list (centered layout, icons, dividers, clearer labels including “Regen (24h)”, “Prognose (morgen, gewichtet)”, “Regen Summe (7 Tage)”, “Bewässerung Summe (7 Tage)”, “Verdunstung Summe (7 Tage)”, “Wasserdefizit”).
+- Frontend: “Blocker Aktiv” shows explicit rule chips with thresholds and tooltips (e.g., “Ø‑Temperatur ≤ 10 °C”, “Ø‑Luftfeuchte ≥ 80 %”, “Regen (24h) ≥ 3 mm”, “Regenrate > 0”, “Defizit < 5 mm”).
+- Docs: AGENTS.md updated for file rename, structured metrics, language policy (comments/logs in English, UI in German), and decisionCheck endpoint.
+
+### Removed
+- Deprecated endpoint `/api/skipAi` in favor of `/api/decisionCheck`.
+- Legacy `formattedEvaluation` from SSE payload and frontend usage.
+
+### Breaking Changes
+- API: `/api/skipAi` → `/api/decisionCheck`.
+- SSE: `formattedEvaluation` removed from `irrigationNeeded` events; only structured `response` is emitted.
 - Frontend UI text migrated to static German strings (no runtime translation); `index.html` language set to `de`.
 - VillaAnnaHomePage and related pages updated to use German labels and copy throughout.
 
