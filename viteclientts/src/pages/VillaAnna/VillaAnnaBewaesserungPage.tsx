@@ -40,13 +40,13 @@ import { messages } from '../../utils/messages';
 // Dialog removed: details shown inline
 
 const BewaesserungPage = () => {
-  const [aiLoading, setAiLoading] = useState(true);
+  const [decisionLoading, setDecisionLoading] = useState(true);
   const [skipDecision, setSkipDecision] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [switchesLoading, setSwitchesLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [switches, setSwitches] = useState([false, false, false, false, false]);
-  const [irrigationNeededSwitch, setirrigationNeededSwitch] = useState(false);
+  const [, setirrigationNeededSwitch] = useState(false);
   const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
   const [orderedTasks, setOrderedTasks] = useState<GroupedTasks>({});
   const [reloadTasks, setReloadTasks] = useState(false);
@@ -94,7 +94,7 @@ const BewaesserungPage = () => {
       } else if (data.type === 'irrigationNeeded') { // Irrigation needed state updates
         setirrigationNeededSwitch(data.state);
         setResponse(data.response);
-        setAiLoading(false);
+        setDecisionLoading(false);
       }
     };
 
@@ -217,7 +217,7 @@ const BewaesserungPage = () => {
                         await axios.post(`${apiUrl}/decisionCheck`, { skip: newVal });
                         setSkipDecision(newVal);
                         // Show loading until the next SSE decision arrives
-                        setAiLoading(true);
+                        setDecisionLoading(true);
                         setResponse(null);
                         showSnackbar('Entscheidungsprüfung aktiviert');
                       } catch (err) {
@@ -234,24 +234,12 @@ const BewaesserungPage = () => {
               </Grid>
             ) : (
               <Grid container spacing={2} justifyContent="space-between">
-                {aiLoading ? (
+                {decisionLoading ? (
                   <Grid size={12}>
                     <SkeletonLoader />
                   </Grid>
                 ) : (
                   <>
-                    <Grid size={12}>
-                      <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
-                        <SwitchComponent
-                          checked={!irrigationNeededSwitch}
-                          label='Blocker:'
-                          disabled={true}
-                          color='warning'
-                          id="switch-ai-block"
-                          name="switch-ai-block"
-                        />
-                      </Box>
-                    </Grid>
                     {response && (
                       <Grid size={12}>
                         <Box mt={1} sx={{ backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 1, p: 1.5, border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

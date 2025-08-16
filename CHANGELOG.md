@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Frontend: Loading skeletons for HomePage Blocker chips (SSE) and Temperatur card to improve perceived performance during API/SSE delays.
+
+### Changed
+- Frontend: VillaAnnaHomePage replaces the fake "Systemstatus" card with real Blocker chips driven by irrigation decision SSE (`/api/mqtt`).
+- Frontend: Blocker chip styles now wrap multi-line text without clipping; labels remain in German with tooltips showing values.
+- Frontend: Renamed ET₀ card label to "Verdunstung 7 Tage" and adjusted card gradient to a blue/cyan scheme for visual consistency.
+- Frontend: Renamed confusing `aiLoading` state on Bewässerung page to `decisionLoading` (no AI involved).
+
+### Removed
+- Frontend: Deleted the redundant disabled "Blocker:" switch (`switch-ai-block`) from VillaAnnaBewaesserungPage; detailed Prüfpunkte + blocker chips remain.
+
 ## [v19.1.0] - 2025-08-16
 ### Changed
 - Backend: Replace MongoDB config storage with centralized constants in `utils/constants.ts` for MQTT irrigation topics and Tuya datapoints.

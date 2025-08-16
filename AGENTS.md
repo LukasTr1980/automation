@@ -84,8 +84,8 @@
 
 ### Frontend Dashboard Integration
 - **VillaAnnaHomePage**: Modern dashboard with real-time status cards replacing all mock data
-- **Status cards**: System Status, ET₀ (7 days), Temperature, Next Schedule
-- **Data flow**: React hooks fetch data on component mount with proper loading states and error handling
+- **Status cards**: Blocker (live via SSE), Verdunstung 7 Tage, Temperatur, Nächster Zeitplan
+- **Data flow**: React hooks fetch data on component mount with proper loading states and error handling; Blocker subscribes to `/api/mqtt` SSE and renders rule chips
 - **Responsive design**: Cards adapt to screen size with consistent heights and proper text wrapping
 - **Zone names**: All schedule displays use human-readable names (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle)
 
