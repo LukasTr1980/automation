@@ -24,6 +24,8 @@
 - Use solid theme colors on icons/avatars where emphasis is needed (e.g., `primary.main`, `secondary.main`, `info.main`).
 - Card headers: Use `slotProps={{ title: { sx: { fontWeight: 600 } } }}`; do not use deprecated `titleTypographyProps` (MUI v6).
 - Dialogs/Modals: Render inside `#root` (pass `container={document.getElementById('root')}`) and set `aria-labelledby`; ensure focus moves into the dialog to avoid aria-hidden/focus warnings.
+- Mobile gutters: Avoid double horizontal padding on `xs`. Rely on Container's default gutters and keep wrapper `Box` with `px: { xs: 0, md: 3 }, py: { xs: 2, md: 3 }` to prevent excessive margins on small screens.
+- Status indicators: Prefer subtle elements (e.g., small colored dot + label) over large badges to match the simplified visual language.
 
 ## Language & Logging
 - Comments: All code comments must be written in English (frontend and backend).

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Card, CardContent, Box, Chip } from '@mui/material';
+import { Typography, Card, CardContent, Box } from '@mui/material';
 import { CountdownCardProps } from '../types/types';
 
 const formatTime = (seconds: number) => {
@@ -13,16 +13,16 @@ const formatTime = (seconds: number) => {
     };
 };
 
-const getStatusColor = (status: string): 'success' | 'error' | 'warning' | 'default' => {
+const getStatusColor = (status: string): string => {
   switch (status.toLowerCase()) {
     case 'start':
-      return 'success';
+      return 'success.main';
     case 'stop':
-      return 'error';
+      return 'error.main';
     case 'reset':
-      return 'warning';
+      return 'warning.main';
     default:
-      return 'default';
+      return 'text.disabled';
   }
 };
 
@@ -34,7 +34,12 @@ const CountdownCard: React.FC<CountdownCardProps> = ({ zoneName, countdown }) =>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                     {zoneName}
                 </Typography>
-                <Chip size="small" color={getStatusColor(countdown.control)} label={countdown.control.toUpperCase()} />
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: getStatusColor(countdown.control) }} />
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: 0.3 }}>
+                    {countdown.control.toUpperCase()}
+                  </Typography>
+                </Box>
             </Box>
             <CardContent sx={{ pt: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline' }}>

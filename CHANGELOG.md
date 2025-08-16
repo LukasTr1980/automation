@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v19.2.0] - 2025-08-16
 ### Added
 - Frontend: Loading skeletons for HomePage Blocker chips (SSE) and Temperatur card to improve perceived performance during API/SSE delays.
 
@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend: VillaAnnaBewaesserungPage and VillaAnnaCountdownPage updated to match the newer homepage design (header block, spacing, outlined cards, consistent typography).
 - Frontend: HomePage status and action cards switched to outlined style; removed gradients and unified Avatars with solid theme colors.
 - Frontend: CountdownCard now uses an outlined surface and semantic status `Chip` (success/error/warning) instead of ad-hoc colored badges.
+ - Frontend: CountdownCard status indicator refined to a minimal colored dot + uppercase label for a cleaner, consistent look.
 - Frontend: SchedulerCard header uses `slotProps` for title styling; outlined card with rounded corners and cleaner labels.
 - Frontend: ScheduledTaskCard visuals refined (subtle borders, rounded groups, soft active highlight) for consistency.
 - Frontend: Replaced deprecated MUI `titleTypographyProps` with `slotProps.title` on all CardHeaders.
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Frontend A11y: Resolved "Blocked aria-hidden on an element because its descendant retained focus" by rendering dialogs inside `#root` and wiring `aria-labelledby`; focus now moves into the dialog.
 - Frontend: Fixed `ReferenceError: props is not defined` in `DialogFullScreen` by correctly destructuring `id` and using a local `titleId`.
+ - Frontend (mobile): Removed excessive horizontal padding on small screens by avoiding duplicate gutters in VillaAnna pages (rely on Container gutters on `xs`).
 
 ### Docs
 - Updated AGENTS.md with design and accessibility guidance: simple flat design (outlined cards, no gradients), use `slotProps` for CardHeader title, and render MUI dialogs within `#root` with proper ARIA attributes.
