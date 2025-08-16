@@ -29,7 +29,7 @@ import { messages } from '../../utils/messages';
 
 const BewaesserungPage = () => {
   const [aiLoading, setAiLoading] = useState(true);
-  const [skipAi, setSkipAi] = useState(false);
+  const [skipDecision, setSkipDecision] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [switchesLoading, setSwitchesLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(true);
@@ -62,9 +62,9 @@ const BewaesserungPage = () => {
 
   useEffect(() => {
     const params = new URLSearchParams();
-    // If skipAi is true, instruct backend not to run the AI check for the
+    // If decision is skipped, instruct backend not to run the decision check for the
     // initial irrigation evaluation pushed via the SSE endpoint.
-    if (skipAi) params.set('checkIrrigation', 'false');
+    if (skipDecision) params.set('checkIrrigation', 'false');
     const url = `${apiUrl}/mqtt?${params.toString()}`;
     const eventSource = new EventSource(url);
     eventSource.onmessage = (event) => {
@@ -91,12 +91,12 @@ const BewaesserungPage = () => {
     return () => {
       eventSource.close();
     };
-  }, [apiUrl, skipAi]);
+  }, [apiUrl, skipDecision]);
 
-  // Load initial skipAi state from backend
+  // Load initial decision-skip state from backend
   useEffect(() => {
-    axios.get(`${apiUrl}/skipAi`)
-      .then(resp => setSkipAi(!!resp.data.skip))
+    axios.get(`${apiUrl}/decisionCheck`)
+      .then(resp => setSkipDecision(!!resp.data.skip))
       .catch(() => {});
   }, [apiUrl]);
 
@@ -193,7 +193,7 @@ const BewaesserungPage = () => {
         <Card variant='outlined'>
           <CardHeader title={'Smarte Entscheidung'} />
           <CardContent>
-            {skipAi ? (
+            {skipDecision ? (
               <Grid container spacing={2} justifyContent="space-between">
                 <Grid size={12}>
                   <Typography>Entscheidungsprüfung deaktiviert</Typography>
@@ -204,8 +204,11 @@ const BewaesserungPage = () => {
                     onClick={async () => {
                       const newVal = false;
                       try {
-                        await axios.post(`${apiUrl}/skipAi`, { skip: newVal });
-                        setSkipAi(newVal);
+                        await axios.post(`${apiUrl}/decisionCheck`, { skip: newVal });
+                        setSkipDecision(newVal);
+                        // Show loading until the next SSE decision arrives
+                        setAiLoading(true);
+                        setResponse(null);
                         showSnackbar('Entscheidungsprüfung aktiviert');
                       } catch (err) {
                         console.error(err);
@@ -219,78 +222,84 @@ const BewaesserungPage = () => {
                   </Button>
                 </Grid>
               </Grid>
-            ) : aiLoading ? (
-              <SkeletonLoader />
             ) : (
               <Grid container spacing={2} justifyContent="space-between">
-                <Grid size={12}>
-                  <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
-                    <SwitchComponent
-                      checked={!irrigationNeededSwitch}
-                      label='Blocker:'
-                      disabled={true}
-                      color='warning'
-                      id="switch-ai-block"
-                      name="switch-ai-block"
-                    />
-                  </Box>
-                </Grid>
-                {response && (
+                {aiLoading ? (
                   <Grid size={12}>
-                    <Box mt={1}>
-                      <Typography variant="h6" gutterBottom>
-                        Prüfpunkte
-                      </Typography>
-                      <List dense>
-                        <ListItem>
-                          <ListItemText primary={`ØTemp 7 d: ${response.outTemp.toFixed(1)} °C`} />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemText primary={`ØRH 7 d: ${response.humidity.toFixed(0)} %`} />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemText primary={`Regen heute: ${response.rainToday.toFixed(1)} mm`} />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemText primary={`Regenrate: ${response.rainRate.toFixed(1)} mm/h`} />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemText primary={`Prognose morgen: ${response.rainNextDay.toFixed(1)} mm × ${response.rainProbNextDay.toFixed(0)} % = ${response.effectiveForecast.toFixed(1)} mm`} />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemText primary={`7-T-Regen: ${response.rainSum.toFixed(1)} mm`} />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemText primary={`7-T-Bewässerung: ${response.irrigationDepthMm.toFixed(1)} mm`} />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemText primary={`ET₀ 7 T: ${response.et0_week.toFixed(1)} mm`} />
-                        </ListItem>
-                        <ListItem>
-                          <ListItemText primary={`ET₀-Defizit: ${response.deficitNow.toFixed(1)} mm`} />
-                        </ListItem>
-                      </List>
-                      {response.blockers && response.blockers.length > 0 && (
-                        <Box mt={1}>
-                          <Typography variant="subtitle1">Aktive Blocker</Typography>
-                          <List dense>
-                            {response.blockers.map((b, idx) => (
-                              <ListItem key={idx}><ListItemText primary={b} /></ListItem>
-                            ))}
-                          </List>
-                        </Box>
-                      )}
-                    </Box>
+                    <SkeletonLoader />
                   </Grid>
+                ) : (
+                  <>
+                    <Grid size={12}>
+                      <Box display="flex" flexDirection="column" justifyContent="center" height="100%">
+                        <SwitchComponent
+                          checked={!irrigationNeededSwitch}
+                          label='Blocker:'
+                          disabled={true}
+                          color='warning'
+                          id="switch-ai-block"
+                          name="switch-ai-block"
+                        />
+                      </Box>
+                    </Grid>
+                    {response && (
+                      <Grid size={12}>
+                        <Box mt={1}>
+                          <Typography variant="h6" gutterBottom>
+                            Prüfpunkte
+                          </Typography>
+                          <List dense>
+                            <ListItem>
+                              <ListItemText primary={`ØTemp 7 d: ${response.outTemp.toFixed(1)} °C`} />
+                            </ListItem>
+                            <ListItem>
+                              <ListItemText primary={`ØRH 7 d: ${response.humidity.toFixed(0)} %`} />
+                            </ListItem>
+                            <ListItem>
+                              <ListItemText primary={`Regen heute: ${response.rainToday.toFixed(1)} mm`} />
+                            </ListItem>
+                            <ListItem>
+                              <ListItemText primary={`Regenrate: ${response.rainRate.toFixed(1)} mm/h`} />
+                            </ListItem>
+                            <ListItem>
+                              <ListItemText primary={`Prognose morgen: ${response.rainNextDay.toFixed(1)} mm × ${response.rainProbNextDay.toFixed(0)} % = ${response.effectiveForecast.toFixed(1)} mm`} />
+                            </ListItem>
+                            <ListItem>
+                              <ListItemText primary={`7-T-Regen: ${response.rainSum.toFixed(1)} mm`} />
+                            </ListItem>
+                            <ListItem>
+                              <ListItemText primary={`7-T-Bewässerung: ${response.irrigationDepthMm.toFixed(1)} mm`} />
+                            </ListItem>
+                            <ListItem>
+                              <ListItemText primary={`ET₀ 7 T: ${response.et0_week.toFixed(1)} mm`} />
+                            </ListItem>
+                            <ListItem>
+                              <ListItemText primary={`ET₀-Defizit: ${response.deficitNow.toFixed(1)} mm`} />
+                            </ListItem>
+                          </List>
+                          {response.blockers && response.blockers.length > 0 && (
+                            <Box mt={1}>
+                              <Typography variant="subtitle1">Aktive Blocker</Typography>
+                              <List dense>
+                                {response.blockers.map((b, idx) => (
+                                  <ListItem key={idx}><ListItemText primary={b} /></ListItem>
+                                ))}
+                              </List>
+                            </Box>
+                          )}
+                        </Box>
+                      </Grid>
+                    )}
+                  </>
                 )}
                 <Grid size={12}>
                   <Button
                     variant='outlined'
                     onClick={async () => {
-                      const newVal = !skipAi;
+                      const newVal = !skipDecision;
                       try {
-                        await axios.post(`${apiUrl}/skipAi`, { skip: newVal });
-                        setSkipAi(newVal);
+                        await axios.post(`${apiUrl}/decisionCheck`, { skip: newVal });
+                        setSkipDecision(newVal);
                         showSnackbar(newVal ? 'Entscheidungsprüfung deaktiviert' : 'Entscheidungsprüfung aktiviert');
                       } catch (err) {
                         console.error(err);
@@ -303,7 +312,6 @@ const BewaesserungPage = () => {
                     Entscheidungsprüfung deaktivieren
                   </Button>
                 </Grid>
-                {/* Dialog removed */}
               </Grid>
             )}
           </CardContent>

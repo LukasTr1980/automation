@@ -10,6 +10,6 @@ const topicToTaskEnablerKey: TopicToTaskEnablerKey = {
     'haupt': 'Markise',
 };
 
-const skipAiRedisKey = 'skipAiVerification';
+const skipDecisionCheckRedisKey = 'skipDecisionCheck';
 
-export { topicToTaskEnablerKey, skipAiRedisKey };
+export { topicToTaskEnablerKey, skipDecisionCheckRedisKey };

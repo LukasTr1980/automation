@@ -93,6 +93,7 @@
 - Source of truth: `nodebackend/src/irrigationDecision.ts` implements a rule-based decision.
 - Backend returns structured metrics (temps, humidity, rainfall, forecast, ET₀, deficit, blockers) for UI, not LLM text.
 - Frontend displays these values inline on the Bewässerung page under the decision switch.
+- Skip flag: `GET/POST /api/decisionCheck` toggles whether scheduled tasks bypass the decision check; value is stored in Redis under `skipDecisionCheck`.
 - Behavior: Applies hard blockers (temp, humidity, rainfall, rain rate, deficit < 5 mm). If none apply, irrigation proceeds.
 - Wiring: Scheduler and MQTT SSE call `createIrrigationDecision` directly; the `gptChatIrrigation.ts` adapter was removed.
 - Dependencies: No OpenAI usage; `openai` dependency and related Vault credentials are removed.

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend: replaced "AI" wording with neutral terms in irrigation page (e.g., "AI Entscheidung" → "Smarte Entscheidung", "AI Antwort" → "Entscheidungsdetails", "Ai Überprüfung" → "Entscheidungsprüfung").
 - Backend: `createIrrigationDecision` now returns structured metrics in `response` (numbers + blockers) instead of a free‑text string; `formattedEvaluation` kept for debugging.
 - Frontend: VillaAnna Bewässerung page shows the decision metrics inline under the decision switch; removed the dialog/button to reveal details.
+- Renamed feature flag from `skipAi` to `skipDecisionCheck`:
+  - Backend: Redis key `skipDecisionCheck`, new route `GET/POST /api/decisionCheck` replacing `/api/skipAi`.
+  - Frontend: state and calls updated to `decisionCheck`; buttons still labeled “Entscheidungsprüfung …” for users.
 - Frontend UI text migrated to static German strings (no runtime translation); `index.html` language set to `de`.
 - VillaAnnaHomePage and related pages updated to use German labels and copy throughout.
 

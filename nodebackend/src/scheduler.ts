@@ -3,7 +3,7 @@ import { connectToRedis } from './clients/redisClient.js';
 import { createIrrigationDecision } from './irrigationDecision.js';
 import getTaskEnabler from './utils/getTaskEnabler.js';
 import generateUniqueId from './utils/generateUniqueId.js';
-import { topicToTaskEnablerKey, skipAiRedisKey } from './utils/constants.js';
+import { topicToTaskEnablerKey, skipDecisionCheckRedisKey } from './utils/constants.js';
 import MqttPublisher from './utils/mqttPublisher.js';
 import { computeWeeklyET0 } from './utils/evapotranspiration.js';
 import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
@@ -76,16 +76,15 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
           }
         });
       } else {
-        // If skipAiVerification is enabled, we bypass the AI check and
-        // execute scheduled irrigation directly.
+        // If decision check is skipped, execute scheduled irrigation directly.
         const client = await connectToRedis();
-        const skipAi = (await client.get(skipAiRedisKey)) === 'true';
-        if (skipAi) {
+        const skipDecision = (await client.get(skipDecisionCheckRedisKey)) === 'true';
+        if (skipDecision) {
           publisher.publish(topic, state.toString(), async (err: Error | null) => {
             if (err) {
               logger.error('Error while publishing message:', err);
             } else {
-              logger.info(`Irrigation started for zone ${zoneName} (AI verification skipped)`);
+              logger.info(`Irrigation started for zone ${zoneName} (decision check skipped)`);
               await recordIrrigationStartInflux(zoneName);
             }
           });
