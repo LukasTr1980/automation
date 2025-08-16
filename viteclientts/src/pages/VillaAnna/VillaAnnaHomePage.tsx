@@ -178,9 +178,8 @@ const HomePage = () => {
         /* Left card: show active blockers (from SSE) instead of fake system status */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid size={{ xs: 6, md: 3 }}>
-            <Card sx={{ 
-              background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-              color: 'white',
+            <Card variant="outlined" sx={{ 
+              borderRadius: 2,
               minHeight: { xs: 110, md: 140 },
               overflow: 'visible'
             }}>
@@ -285,9 +284,8 @@ const HomePage = () => {
           </Grid>
           
           <Grid size={{ xs: 6, md: 3 }}>
-            <Card sx={{ 
-              background: 'linear-gradient(135deg, #039be5 0%, #81d4fa 100%)',
-              color: 'white',
+            <Card variant="outlined" sx={{ 
+              borderRadius: 2,
               height: '100%',
               minHeight: { xs: 100, md: 120 }
             }}>
@@ -301,12 +299,7 @@ const HomePage = () => {
                       {loading ? '...' : (et0Data?.et0_week !== null && et0Data?.et0_week !== undefined) ? `${et0Data.et0_week} ${et0Data?.unit || 'mm'}` : 'k. A.'}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ 
-                    bgcolor: 'rgba(255,255,255,0.2)', 
-                    width: { xs: 36, md: 40 }, 
-                    height: { xs: 36, md: 40 },
-                    flexShrink: 0
-                  }}>
+                  <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 36, md: 40 }, height: { xs: 36, md: 40 }, flexShrink: 0 }}>
                     <OpacityOutlined sx={{ fontSize: { xs: 18, md: 20 } }} />
                   </Avatar>
                 </Stack>
@@ -315,9 +308,8 @@ const HomePage = () => {
           </Grid>
 
           <Grid size={{ xs: 6, md: 3 }}>
-            <Card sx={{ 
-              background: 'linear-gradient(135deg, #f57c00 0%, #ffb74d 100%)',
-              color: 'white',
+            <Card variant="outlined" sx={{ 
+              borderRadius: 2,
               height: '100%',
               minHeight: { xs: 100, md: 120 }
             }}>
@@ -333,12 +325,7 @@ const HomePage = () => {
                       ) : (temperatureData?.temperature !== null && temperatureData?.temperature !== undefined) ? `${temperatureData.temperature}°${temperatureData?.unit || 'C'}` : 'k. A.'}
                     </Typography>
                   </Box>
-                  <Avatar sx={{ 
-                    bgcolor: 'rgba(255,255,255,0.2)', 
-                    width: { xs: 36, md: 40 }, 
-                    height: { xs: 36, md: 40 },
-                    flexShrink: 0
-                  }}>
+                  <Avatar sx={{ bgcolor: 'warning.main', color: 'common.white', width: { xs: 36, md: 40 }, height: { xs: 36, md: 40 }, flexShrink: 0 }}>
                     <ThermostatAuto sx={{ fontSize: { xs: 18, md: 20 } }} />
                   </Avatar>
                 </Stack>
@@ -347,9 +334,8 @@ const HomePage = () => {
           </Grid>
 
           <Grid size={{ xs: 6, md: 3 }}>
-            <Card sx={{ 
-              background: 'linear-gradient(135deg, #7b1fa2 0%, #ba68c8 100%)',
-              color: 'white',
+            <Card variant="outlined" sx={{ 
+              borderRadius: 2,
               height: '100%',
               minHeight: { xs: 100, md: 120 }
             }}>
@@ -368,12 +354,7 @@ const HomePage = () => {
                       </Typography>
                     )}
                   </Box>
-                  <Avatar sx={{ 
-                    bgcolor: 'rgba(255,255,255,0.2)', 
-                    width: { xs: 36, md: 40 }, 
-                    height: { xs: 36, md: 40 },
-                    flexShrink: 0
-                  }}>
+                  <Avatar sx={{ bgcolor: 'secondary.main', color: 'common.white', width: { xs: 36, md: 40 }, height: { xs: 36, md: 40 }, flexShrink: 0 }}>
                     <Schedule sx={{ fontSize: { xs: 18, md: 20 } }} />
                   </Avatar>
                 </Stack>
@@ -386,15 +367,14 @@ const HomePage = () => {
         <Grid container spacing={3} justifyContent="center" sx={{ maxWidth: 800, mx: 'auto' }}>
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
             <RouterLink to="/bewaesserung" style={{ textDecoration: 'none' }}>
-              <Card sx={{ 
+              <Card variant="outlined" sx={{ 
+                borderRadius: 2,
                 height: { xs: 200, md: 280 },
                 transition: 'all 0.3s ease',
                 '&:hover': { 
                   transform: 'translateY(-4px)',
-                  boxShadow: theme.shadows[8]
-                },
-                background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.1) 0%, rgba(66, 165, 245, 0.1) 100%)',
-                border: '1px solid rgba(25, 118, 210, 0.2)'
+                  boxShadow: theme.shadows[6]
+                }
               }}>
                 <CardActionArea sx={{ height: '100%' }}>
                   <CardContent sx={{ 
@@ -405,14 +385,7 @@ const HomePage = () => {
                     flexDirection: 'column',
                     justifyContent: 'center'
                   }}>
-                    <Avatar sx={{ 
-                      width: { xs: 60, md: 80 }, 
-                      height: { xs: 60, md: 80 }, 
-                      mx: 'auto', 
-                      mb: 2,
-                      bgcolor: 'primary.main',
-                      background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)'
-                    }}>
+                    <Avatar sx={{ width: { xs: 60, md: 80 }, height: { xs: 60, md: 80 }, mx: 'auto', mb: 2, bgcolor: 'primary.main', color: 'common.white' }}>
                       <WaterDrop sx={{ fontSize: { xs: 30, md: 40 } }} />
                     </Avatar>
                     <Typography variant="h5" sx={{ 
@@ -431,7 +404,7 @@ const HomePage = () => {
                     <Chip 
                       label="Manuelle Steuerung" 
                       size="small" 
-                      sx={{ mt: 2, bgcolor: 'primary.main', color: 'white' }}
+                      sx={{ mt: 2, bgcolor: 'primary.main', color: 'common.white' }}
                     />
                   </CardContent>
                 </CardActionArea>
@@ -441,15 +414,14 @@ const HomePage = () => {
           
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
             <RouterLink to="/countdown" style={{ textDecoration: 'none' }}>
-              <Card sx={{ 
+              <Card variant="outlined" sx={{ 
+                borderRadius: 2,
                 height: { xs: 200, md: 280 },
                 transition: 'all 0.3s ease',
                 '&:hover': { 
                   transform: 'translateY(-4px)',
-                  boxShadow: theme.shadows[8]
-                },
-                background: 'linear-gradient(135deg, rgba(123, 31, 162, 0.1) 0%, rgba(186, 104, 200, 0.1) 100%)',
-                border: '1px solid rgba(123, 31, 162, 0.2)'
+                  boxShadow: theme.shadows[6]
+                }
               }}>
                 <CardActionArea sx={{ height: '100%' }}>
                   <CardContent sx={{ 
@@ -460,13 +432,7 @@ const HomePage = () => {
                     flexDirection: 'column',
                     justifyContent: 'center'
                   }}>
-                    <Avatar sx={{ 
-                      width: { xs: 60, md: 80 }, 
-                      height: { xs: 60, md: 80 }, 
-                      mx: 'auto', 
-                      mb: 2,
-                      background: 'linear-gradient(135deg, #7b1fa2 0%, #ba68c8 100%)'
-                    }}>
+                    <Avatar sx={{ width: { xs: 60, md: 80 }, height: { xs: 60, md: 80 }, mx: 'auto', mb: 2, bgcolor: 'secondary.main', color: 'common.white' }}>
                       <Schedule sx={{ fontSize: { xs: 30, md: 40 } }} />
                     </Avatar>
                     <Typography variant="h5" sx={{ 

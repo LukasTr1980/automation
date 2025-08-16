@@ -10,13 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend: Loading skeletons for HomePage Blocker chips (SSE) and Temperatur card to improve perceived performance during API/SSE delays.
 
 ### Changed
+- Frontend: Simplified global look — flat page background (no gradient) via `viteclientts/src/index.css`.
+- Frontend: VillaAnnaBewaesserungPage and VillaAnnaCountdownPage updated to match the newer homepage design (header block, spacing, outlined cards, consistent typography).
+- Frontend: HomePage status and action cards switched to outlined style; removed gradients and unified Avatars with solid theme colors.
+- Frontend: CountdownCard now uses an outlined surface and semantic status `Chip` (success/error/warning) instead of ad-hoc colored badges.
+- Frontend: SchedulerCard header uses `slotProps` for title styling; outlined card with rounded corners and cleaner labels.
+- Frontend: ScheduledTaskCard visuals refined (subtle borders, rounded groups, soft active highlight) for consistency.
+- Frontend: Replaced deprecated MUI `titleTypographyProps` with `slotProps.title` on all CardHeaders.
 - Frontend: VillaAnnaHomePage replaces the fake "Systemstatus" card with real Blocker chips driven by irrigation decision SSE (`/api/mqtt`).
 - Frontend: Blocker chip styles now wrap multi-line text without clipping; labels remain in German with tooltips showing values.
-- Frontend: Renamed ET₀ card label to "Verdunstung 7 Tage" and adjusted card gradient to a blue/cyan scheme for visual consistency.
+- Frontend: Renamed ET₀ card label to "Verdunstung 7 Tage".
 - Frontend: Renamed confusing `aiLoading` state on Bewässerung page to `decisionLoading` (no AI involved).
 
 ### Removed
+- Frontend: Gradients from page background and HomePage status/action cards in favor of simple outlined surfaces.
 - Frontend: Deleted the redundant disabled "Blocker:" switch (`switch-ai-block`) from VillaAnnaBewaesserungPage; detailed Prüfpunkte + blocker chips remain.
+
+### Fixed
+- Frontend A11y: Resolved "Blocked aria-hidden on an element because its descendant retained focus" by rendering dialogs inside `#root` and wiring `aria-labelledby`; focus now moves into the dialog.
+- Frontend: Fixed `ReferenceError: props is not defined` in `DialogFullScreen` by correctly destructuring `id` and using a local `titleId`.
+
+### Docs
+- Updated AGENTS.md with design and accessibility guidance: simple flat design (outlined cards, no gradients), use `slotProps` for CardHeader title, and render MUI dialogs within `#root` with proper ARIA attributes.
 
 ## [v19.1.0] - 2025-08-16
 ### Changed

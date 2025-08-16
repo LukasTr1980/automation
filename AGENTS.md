@@ -18,6 +18,13 @@
 - Linting: ESLint with `@typescript-eslint` (client also enforces React Hooks). Run `npm run lint` in `viteclientts/`; in backend use `npx eslint .`.
 - Indentation: 2 spaces. Naming: camelCase (vars/functions), PascalCase (classes/React components), UPPER_SNAKE_CASE (env/constants). File names: `.ts` (backend), `.tsx` (React components).
 
+### Design & Accessibility (Frontend)
+- Use simple, flat surfaces. Prefer MUI `Card variant="outlined"` with `borderRadius: 2`; avoid gradients for backgrounds and cards.
+- Keep page background clean and neutral (flat color), focusing attention on content.
+- Use solid theme colors on icons/avatars where emphasis is needed (e.g., `primary.main`, `secondary.main`, `info.main`).
+- Card headers: Use `slotProps={{ title: { sx: { fontWeight: 600 } } }}`; do not use deprecated `titleTypographyProps` (MUI v6).
+- Dialogs/Modals: Render inside `#root` (pass `container={document.getElementById('root')}`) and set `aria-labelledby`; ensure focus moves into the dialog to avoid aria-hidden/focus warnings.
+
 ## Language & Logging
 - Comments: All code comments must be written in English (frontend and backend).
 - Logs: All log messages in code must be written in English (frontend and backend).

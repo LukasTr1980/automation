@@ -141,13 +141,16 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   }, [taskToCopy]);
 
   return (
-    <Card variant="outlined">
-      <CardHeader title={'Zeitplan erstellen'} />
+    <Card variant="outlined" sx={{ borderRadius: 2 }}>
+      <CardHeader
+        title={'Zeitplan erstellen'}
+        slotProps={{ title: { sx: { fontWeight: 600 } } }}
+      />
       <CardContent>
         <Grid container spacing={2}>
           <Grid size={12}>
             <FormControl fullWidth>
-              <InputLabel id="mqtt-topic-label" shrink={false}>
+              <InputLabel id="mqtt-topic-label">
                 Zone
               </InputLabel>
               <Select labelId="mqtt-topic-label" value={selectedTopic} onChange={handleTopicChange}>
@@ -180,11 +183,13 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
               color={!fieldValidity.day ? 'error' : 'primary'}
               fullWidth
               onClick={() => setWeekDaysDialogOpen(true)}
+              aria-haspopup="dialog"
+              aria-controls="weekdays-dialog"
               aria-pressed={selectedDays.length ? 'true' : 'false'}
             >
               {weekDaysButtonText}
             </Button>
-            <DialogFullScreen open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)} title={'Auswählen'}>
+            <DialogFullScreen id="weekdays-dialog" open={weekDaysDialogOpen} onClose={() => setWeekDaysDialogOpen(false)} title={'Auswählen'}>
               <Grid size={12}>
                 <WeekdaysSelect selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
               </Grid>
@@ -197,11 +202,13 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
               color={!fieldValidity.month ? 'error' : 'primary'}
               fullWidth
               onClick={() => setMonthDialogOpen(true)}
+              aria-haspopup="dialog"
+              aria-controls="months-dialog"
               aria-pressed={selectedMonths.length ? 'true' : 'false'}
             >
               {monthButtonText}
             </Button>
-            <DialogFullScreen open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)} title={'Auswählen'}>
+            <DialogFullScreen id="months-dialog" open={monthDialogOpen} onClose={() => setMonthDialogOpen(false)} title={'Auswählen'}>
               <Grid size={12}>
                 <MonthsSelect selectedMonths={selectedMonths} setSelectedMonths={setSelectedMonths} />
               </Grid>

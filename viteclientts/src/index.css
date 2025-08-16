@@ -24,7 +24,8 @@ a:hover {
 }
 
 body {
-  background: linear-gradient(to bottom, #2596b6 0%, #ffffff 25%, #ffffff 100%);
+  /* Simplify: flat, subtle light background instead of gradient */
+  background: #f6f7f9;
   min-width: 320px;
   min-height: calc(var(--vh, 1vh) * 100);
 }

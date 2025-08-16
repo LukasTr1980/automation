@@ -13,6 +13,8 @@ import {
     CardHeader,
     SelectChangeEvent,
     Button,
+    Box,
+    Typography,
 } from '@mui/material';
 import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
@@ -90,79 +92,110 @@ const VillaAnnacountdownPage = () => {
 
     return (
         <Layout>
-            <Grid size={12} paddingTop={1} paddingBottom={1}>
-                <Card variant='outlined'>
-                    <CardHeader title={'Countdown einstellen'} />
-                    <CardContent>
-                        <Grid container spacing={2}>
-                            <Grid size={12}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="zone-select-label" shrink={false}>Zone</InputLabel>
-                                    <Select
-                                        labelId="zone-select-label"
-                                        value={selectedZone}
-                                        onChange={handleZoneChange}
-                                    >
-                                        {zoneOrder.map((zone, i) => (
-                                            <MenuItem value={zone} key={bewaesserungsTopicsSet[i]}>
-                                                {zone}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
+            {/* Page container aligned with HomePage */}
+            <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
+                {/* Header aligned with HomePage */}
+                <Box sx={{ mb: 4 }}>
+                    <Typography
+                        variant="h4"
+                        sx={{
+                            fontWeight: 600,
+                            color: 'primary.main',
+                            mb: 1,
+                            fontSize: { xs: '1.5rem', md: '2rem' }
+                        }}
+                    >
+                        Bewässerungs-Timer
+                    </Typography>
+                    <Typography
+                        variant="subtitle1"
+                        sx={{ color: 'text.secondary', fontSize: { xs: '0.9rem', md: '1rem' } }}
+                    >
+                        Countdown je Zone steuern
+                    </Typography>
+                </Box>
+
+                <Grid size={12}>
+                    <Card variant='outlined' sx={{ borderRadius: 2 }}>
+                        <CardHeader
+                            title={'Countdown einstellen'}
+                            slotProps={{ title: { sx: { fontWeight: 600 } } }}
+                        />
+                        <CardContent>
+                            <Grid container spacing={2}>
+                                <Grid size={12}>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="zone-select-label">Zone</InputLabel>
+                                        <Select
+                                            labelId="zone-select-label"
+                                            value={selectedZone}
+                                            onChange={handleZoneChange}
+                                        >
+                                            {zoneOrder.map((zone, i) => (
+                                                <MenuItem value={zone} key={bewaesserungsTopicsSet[i]}>
+                                                    {zone}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid size={6}>
+                                    <HourField
+                                        selectedHour={selectedHour}
+                                        setSelectedHour={setSelectedHour}
+                                        error={!fieldValidity.hour}
+                                        min={0}
+                                        max={99}
+                                    />
+                                </Grid>
+                                <Grid size={6}>
+                                    <MinuteField
+                                        selectedMinute={selectedMinute}
+                                        setSelectedMinute={setSelectedMinute}
+                                        error={!fieldValidity.minute}
+                                        min={0}
+                                        max={99}
+                                    />
+                                </Grid>
+                                <Grid size={12}>
+                                    <Button variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
+                                        Start
+                                    </Button>
+                                </Grid>
+                                <Grid size={12}>
+                                    <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
+                                        Stopp
+                                    </Button>
+                                </Grid>
+                                <Grid size={12}>
+                                    <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
+                                        Zurücksetzen
+                                    </Button>
+                                </Grid>
                             </Grid>
-                            <Grid size={6}>
-                                <HourField
-                                    selectedHour={selectedHour}
-                                    setSelectedHour={setSelectedHour}
-                                    error={!fieldValidity.hour}
-                                    min={0}
-                                    max={99}
-                                />
-                            </Grid>
-                            <Grid size={6}>
-                                <MinuteField
-                                    selectedMinute={selectedMinute}
-                                    setSelectedMinute={setSelectedMinute}
-                                    error={!fieldValidity.minute}
-                                    min={0}
-                                    max={99}
-                                />
-                            </Grid>
-                            <Grid size={12}>
-                                <Button variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
-                                    Start
-                                </Button>
-                            </Grid>
-                            <Grid size={12}>
-                                <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
-                                    Stopp
-                                </Button>
-                            </Grid>
-                            <Grid size={12}>
-                                <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
-                                    Zurücksetzen
-                                </Button>
-                            </Grid>
-                        </Grid>
-                    </CardContent>
-                </Card>
-            </Grid>
-            <Grid size={12} paddingBottom={1}>
-                <Card variant='outlined'>
-                    <CardHeader title='Countdowns' />
-                    <CardContent>
-                        {zoneOrder.map(zoneName => {
-                            const topic = bewaesserungsTopicsSet[zoneOrder.indexOf(zoneName)];
-                            const countdown = countdowns[topic];
-                            if (!countdown) return null;  // Skip rendering if there's no countdown data for this topic
-                            return (
-                                <CountdownCard key={topic} zoneName={zoneName} countdown={countdown} />
-                            );
-                        })}
-                    </CardContent>
-                </Card>
-            </Grid>
+                        </CardContent>
+                    </Card>
+                </Grid>
+
+                <Grid size={12} sx={{ mt: 2 }}>
+                    <Card variant='outlined' sx={{ borderRadius: 2 }}>
+                        <CardHeader
+                            title='Countdowns'
+                            slotProps={{ title: { sx: { fontWeight: 600 } } }}
+                        />
+                        <CardContent>
+                            {zoneOrder.map(zoneName => {
+                                const topic = bewaesserungsTopicsSet[zoneOrder.indexOf(zoneName)];
+                                const countdown = countdowns[topic];
+                                if (!countdown) return null; // Skip rendering if there's no countdown data for this topic
+                                return (
+                                    <CountdownCard key={topic} zoneName={zoneName} countdown={countdown} />
+                                );
+                            })}
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Box>
         </Layout>
     );
 };

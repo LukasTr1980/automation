@@ -174,78 +174,107 @@ const BewaesserungPage = () => {
 
   return (
     <Layout>
-      <Grid size={12} paddingTop={1} paddingBottom={1}>
-        <Card variant='outlined'>
-          <CardHeader title={'Schalter'} />
-          <CardContent>
-            {switchesLoading ? (
-              <LoadingSpinner />
-            ) : (
-              <Grid container spacing={2} justifyContent="space-between">
-                {switches.map((val, i) => (
-                  <Grid key={i}>
-                    <SwitchComponent
-                      checked={val}
-                      label={switchDescriptions[i]}
-                      handleToggle={() => handleToggle(i)}
-                      id={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
-                      name={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            )}
-          </CardContent>
-        </Card>
-      </Grid>
+      {/* Page container aligned with HomePage */}
+      <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
+        {/* Header aligned with HomePage */}
+        <Box sx={{ mb: 4 }}>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 600,
+              color: 'primary.main',
+              mb: 1,
+              fontSize: { xs: '1.5rem', md: '2rem' }
+            }}
+          >
+            Bewässerung
+          </Typography>
+          <Typography
+            variant="subtitle1"
+            sx={{ color: 'text.secondary', fontSize: { xs: '0.9rem', md: '1rem' } }}
+          >
+            Manuelle Steuerung und Zeitpläne
+          </Typography>
+        </Box>
 
-      <Grid size={12} paddingBottom={1}>
-        <Card variant='outlined'>
-          <CardHeader title={'Smarte Entscheidung'} />
-          <CardContent>
-            {skipDecision ? (
-              <Grid container spacing={2} justifyContent="space-between">
-                <Grid size={12}>
-                  <Typography>Entscheidungsprüfung deaktiviert</Typography>
+        <Grid size={12}>
+          <Card variant='outlined' sx={{ borderRadius: 2 }}>
+            <CardHeader
+              title={'Schalter'}
+              slotProps={{ title: { sx: { fontWeight: 600 } } }}
+            />
+            <CardContent>
+              {switchesLoading ? (
+                <LoadingSpinner />
+              ) : (
+                <Grid container spacing={2} justifyContent="space-between">
+                  {switches.map((val, i) => (
+                    <Grid key={i}>
+                      <SwitchComponent
+                        checked={val}
+                        label={switchDescriptions[i]}
+                        handleToggle={() => handleToggle(i)}
+                        id={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
+                        name={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
+                      />
+                    </Grid>
+                  ))}
                 </Grid>
-                <Grid size={12}>
-                  <Button
-                    variant='outlined'
-                    onClick={async () => {
-                      const newVal = false;
-                      try {
-                        await axios.post(`${apiUrl}/decisionCheck`, { skip: newVal });
-                        setSkipDecision(newVal);
-                        // Show loading until the next SSE decision arrives
-                        setDecisionLoading(true);
-                        setResponse(null);
-                        showSnackbar('Entscheidungsprüfung aktiviert');
-                      } catch (err) {
-                        console.error(err);
-                        showSnackbar('Fehler');
-                      }
-                    }}
-                    fullWidth
-                    color='primary'
-                  >
-                    Entscheidungsprüfung aktivieren
-                  </Button>
-                </Grid>
-              </Grid>
-            ) : (
-              <Grid container spacing={2} justifyContent="space-between">
-                {decisionLoading ? (
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={12} sx={{ mt: 2 }}>
+          <Card variant='outlined' sx={{ borderRadius: 2 }}>
+            <CardHeader
+              title={'Smarte Entscheidung'}
+              slotProps={{ title: { sx: { fontWeight: 600 } } }}
+            />
+            <CardContent>
+              {skipDecision ? (
+                <Grid container spacing={2} justifyContent="space-between">
                   <Grid size={12}>
-                    <SkeletonLoader />
+                    <Typography>Entscheidungsprüfung deaktiviert</Typography>
                   </Grid>
-                ) : (
-                  <>
-                    {response && (
-                      <Grid size={12}>
-                        <Box mt={1} sx={{ backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 1, p: 1.5, border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                          <Typography variant="h6" gutterBottom align="center">
-                            Prüfpunkte
-                          </Typography>
+                  <Grid size={12}>
+                    <Button
+                      variant='outlined'
+                      onClick={async () => {
+                        const newVal = false;
+                        try {
+                          await axios.post(`${apiUrl}/decisionCheck`, { skip: newVal });
+                          setSkipDecision(newVal);
+                          // Show loading until the next SSE decision arrives
+                          setDecisionLoading(true);
+                          setResponse(null);
+                          showSnackbar('Entscheidungsprüfung aktiviert');
+                        } catch (err) {
+                          console.error(err);
+                          showSnackbar('Fehler');
+                        }
+                      }}
+                      fullWidth
+                      color='primary'
+                    >
+                      Entscheidungsprüfung aktivieren
+                    </Button>
+                  </Grid>
+                </Grid>
+              ) : (
+                <Grid container spacing={2} justifyContent="space-between">
+                  {decisionLoading ? (
+                    <Grid size={12}>
+                      <SkeletonLoader />
+                    </Grid>
+                  ) : (
+                    <>
+                      {response && (
+                        <Grid size={12}>
+                          <Box mt={1} sx={{ backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 1, p: 1.5, border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                            <Typography variant="h6" gutterBottom align="center">
+                              Prüfpunkte
+                            </Typography>
                           <List dense sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', '& li': { py: 0.5, width: '100%', maxWidth: 520 } }}>
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><ThermostatAutoIcon color="action" /></ListItemIcon>
@@ -406,67 +435,71 @@ const BewaesserungPage = () => {
                 </Grid>
               </Grid>
             )}
-          </CardContent>
-        </Card>
-      </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
 
-      {/* Use the SchedulerCard component */}
-      <Grid size={12} paddingBottom={1}>
-        <SchedulerCard
-          setReloadTasks={setReloadTasks}
-          scheduledTasks={scheduledTasks}
-          setScheduledTasks={setScheduledTasks}
-          taskToCopy={copiedTask}
-        />
-      </Grid>
+        {/* Use the SchedulerCard component */}
+        <Grid size={12} sx={{ mt: 2 }}>
+          <SchedulerCard
+            setReloadTasks={setReloadTasks}
+            scheduledTasks={scheduledTasks}
+            setScheduledTasks={setScheduledTasks}
+            taskToCopy={copiedTask}
+          />
+        </Grid>
 
-      <Grid size={12}>
-        <Card variant='outlined'>
-          <CardHeader title={'Eingestellte Zeitpläne'} />
-          <CardContent>
-            {tasksLoading ? (
-              <LoadingSpinner />
-            ) : (
-              <>
-                {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne</Typography>}
+        <Grid size={12} sx={{ mt: 2 }}>
+          <Card variant='outlined' sx={{ borderRadius: 2 }}>
+            <CardHeader
+              title={'Eingestellte Zeitpläne'}
+              slotProps={{ title: { sx: { fontWeight: 600 } } }}
+            />
+            <CardContent>
+              {tasksLoading ? (
+                <LoadingSpinner />
+              ) : (
+                <>
+                  {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne</Typography>}
 
-                <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: { xs: 310, sm: '100%' } }}>
-                  <Tabs value={activeTab}
-                    onChange={handleTabChange}
-                    variant='scrollable'
-                    aria-label="Zone tabs"
-                    scrollButtons
-                    allowScrollButtonsMobile
-                  >
-                    {Object.keys(orderedTasks).map((zoneName) => (
-                      <Tab label={zoneName} key={zoneName} />
-                    ))}
-                  </Tabs>
-                </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: { xs: 310, sm: '100%' } }}>
+                    <Tabs value={activeTab}
+                      onChange={handleTabChange}
+                      variant='scrollable'
+                      aria-label="Zone tabs"
+                      scrollButtons
+                      allowScrollButtonsMobile
+                    >
+                      {Object.keys(orderedTasks).map((zoneName) => (
+                        <Tab label={zoneName} key={zoneName} />
+                      ))}
+                    </Tabs>
+                  </Box>
 
-                {Object.entries(orderedTasks).map(([zoneName, tasks]) => {
-                  if (zoneName === Object.keys(orderedTasks)[activeTab]) {
-                    const topicIndex = switchDescriptions.findIndex(desc => desc === zoneName);
-                    const redisKey = bewaesserungsTopicsSet[topicIndex];
+                  {Object.entries(orderedTasks).map(([zoneName, tasks]) => {
+                    if (zoneName === Object.keys(orderedTasks)[activeTab]) {
+                      const topicIndex = switchDescriptions.findIndex(desc => desc === zoneName);
+                      const redisKey = bewaesserungsTopicsSet[topicIndex];
 
-                    return (
-                      <ScheduledTaskCard
-                        key={`${zoneName}-${topicIndex}`}
-                        zoneName={zoneName}
-                        tasks={tasks}
-                        onDelete={handleDeleteTask}
-                        redisKey={redisKey}
-                        onCopyTask={setCopiedTask}
-                      />
-                    );
-                  }
-                  return null;
-                })}
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </Grid>
+                      return (
+                        <ScheduledTaskCard
+                          key={`${zoneName}-${topicIndex}`}
+                          zoneName={zoneName}
+                          tasks={tasks}
+                          onDelete={handleDeleteTask}
+                          redisKey={redisKey}
+                          onCopyTask={setCopiedTask}
+                        />
+                      );
+                    }
+                    return null;
+                  })}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Box>
     </Layout >
   );
 };

@@ -60,6 +60,7 @@ export interface DialogFullScreenProps {
     children?: React.ReactNode;
     title?: string;
     showButton?: boolean;
+    id?: string; // optional id for aria-controls
 }
 
 export interface ErrorBoundaryState {

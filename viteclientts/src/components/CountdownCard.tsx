@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Card, CardContent, Box } from '@mui/material';
+import { Typography, Card, CardContent, Box, Chip } from '@mui/material';
 import { CountdownCardProps } from '../types/types';
 
 const formatTime = (seconds: number) => {
@@ -13,37 +13,28 @@ const formatTime = (seconds: number) => {
     };
 };
 
-const getStatusBackgroundColor = (status: string) => {
-    switch (status.toLowerCase()) {
-        case 'start':
-            return 'lightgreen';
-        case 'stop':
-            return '#ff6666';
-        case 'reset':
-            return 'orange';
-        default:
-            return 'transparent';
-    }
+const getStatusColor = (status: string): 'success' | 'error' | 'warning' | 'default' => {
+  switch (status.toLowerCase()) {
+    case 'start':
+      return 'success';
+    case 'stop':
+      return 'error';
+    case 'reset':
+      return 'warning';
+    default:
+      return 'default';
+  }
 };
 
 const CountdownCard: React.FC<CountdownCardProps> = ({ zoneName, countdown }) => {
     const formattedTime = formatTime(countdown.value);
     return (
-        <Card sx={{ m: 2, boxShadow: 3 }}>
+        <Card variant="outlined" sx={{ m: 2, borderRadius: 2 }}>
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <Typography variant="subtitle1">
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                     {zoneName}
                 </Typography>
-                <Typography
-                    variant="caption"
-                    sx={{
-                        backgroundColor: getStatusBackgroundColor(countdown.control),
-                        padding: '0.2em 0.4em',
-                        borderRadius: '4px'
-                    }}
-                >
-                    {countdown.control.toUpperCase()}
-                </Typography>
+                <Chip size="small" color={getStatusColor(countdown.control)} label={countdown.control.toUpperCase()} />
             </Box>
             <CardContent sx={{ pt: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline' }}>

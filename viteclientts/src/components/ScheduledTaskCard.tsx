@@ -109,7 +109,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
         {
           // Iterate over the sorted group keys
           sortedGroupKeys.map(key => (
-            <div key={key} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '5px' }}>
+            <div key={key} style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '8px', margin: '10px 0', padding: '8px' }}>
               {groupedTasksForDisplay[key].map((task, i) => {
                 const isActive = task.recurrenceRule.month.includes(currentMonth) && switchStates[cleanZoneName];
                 const status = customLabels && customLabels[task.state.toString()] ? customLabels[task.state.toString()] : (task.state ? "Ein" : "Aus");
@@ -117,7 +117,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                 const days = allDays ? "Täglich" : task.recurrenceRule.dayOfWeek.map(day => daysOfWeek[day].substring(0, 3)).join(", ");
 
                 return (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: isActive ? '#DFF0D8' : 'transparent' }}>
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: isActive ? 'rgba(76, 175, 80, 0.1)' : 'transparent', borderRadius: '6px', padding: '6px' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <div>
                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>{status}</Typography>
