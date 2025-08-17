@@ -91,13 +91,10 @@
 ## Real-Time Data Integration APIs
 
 ### WeatherLink Temperature API
-- **Endpoint**: `/api/weather/temperature` — Provides current temperature in Celsius.
-- **Cache-first**: Reads from Redis `weather:latest` if present; falls back to live WeatherLink fetch. Response includes `source: 'redis' | 'live'`.
+- **Endpoint**: `/api/weather/temperature` — Cache-only current temperature in Celsius (from Redis `weather:latest`). Returns 503 if cache is missing. Response includes `source: 'redis'`.
 - **Debug endpoint**: `/api/weather/debug` — Shows raw WeatherLink current data fields for troubleshooting.
-- **Data source**: Uses `getWeatherlinkMetrics` with current sensor blocks (sensor type 37).
-- **Processing**: Converts Fahrenheit to Celsius with error handling.
-- **Rate limiting**: Respects WeatherLink API limits via the shared sliding-window limiter.
-- **Frontend integration**: VillaAnnaHomePage temperature status card displays live temperature data.
+- **Rate limiting**: Internal calls are rate limited, but the `/temperature` endpoint itself does not call WeatherLink.
+- **Frontend integration**: VillaAnnaHomePage temperature status card reads from `/api/weather/latest` (cache-only) and displays Celsius.
 
 ### WeatherLink Latest Cache (Redis)
 - **Scheduler**: Every 5 minutes with a 30-second delay (`30 */5 * * * *`).

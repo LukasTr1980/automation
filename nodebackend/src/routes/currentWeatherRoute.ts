@@ -1,7 +1,7 @@
 import express from 'express';
-import { getWeatherlinkMetrics } from '../clients/weatherlink-client.js';
 import { readLatestWeatherFromRedis } from '../utils/weatherLatestStorage.js';
 import logger from '../logger.js';
+import { readWeatherAggregatesFromRedis } from '../utils/weatherAggregatesStorage.js';
 
 const router = express.Router();
 
@@ -32,82 +32,48 @@ router.get('/debug', async (req, res) => {
 
 router.get('/temperature', async (req, res) => {
   try {
-    // Prefer cached latest value from Redis if available and recent
-    try {
-      const latest = await readLatestWeatherFromRedis();
-      if (latest && typeof latest.temperatureC === 'number') {
-        logger.info(`Temperature from Redis latest: ${latest.temperatureC}°C`, { label: 'CurrentWeatherRoute' });
-        return res.json({
-          temperature: latest.temperatureC,
-          unit: 'C',
-          timestamp: latest.timestamp,
-          source: 'redis'
-        });
-      }
-    } catch (e) {
-      // Non-fatal: fall back to live fetch
-      logger.warn('Failed to read temperature from Redis; falling back to live fetch', { label: 'CurrentWeatherRoute' });
-    }
-
-    // Try multiple possible field names for current temperature
-    const { ok, metrics } = await getWeatherlinkMetrics<{ tempC?: number }>([
-      {
-        name: 'tempC',
-        sensorType: 37, // ISS sensor
-        field: 'temp', // Try simple 'temp' first
-        fallbacks: [
-          { field: 'temp_f' },  // Maybe temp_f for Fahrenheit
-          { field: 'temp_c' },  // Maybe temp_c for Celsius
-          { field: 'temp_out' }, // Outside temperature
-          { field: 'outside_temp' }, // Another possible name
-          { field: 'temp_last' }, // Archive-style field name
-        ],
-        transform: (v) => {
-          if (typeof v === 'number' && isFinite(v)) {
-            // Assume input is Fahrenheit and convert to Celsius
-            return Math.round(((v - 32) * (5 / 9)) * 10) / 10;
-          }
-          return undefined;
-        },
-        defaultValue: undefined,
-      }
-    ]);
-
-    if (!ok) {
-      logger.warn('Failed to fetch current temperature from WeatherLink', { label: 'CurrentWeatherRoute' });
-      return res.status(503).json({ 
-        error: 'Failed to fetch temperature data',
-        temperature: null,
-        unit: 'C'
+    const latest = await readLatestWeatherFromRedis();
+    if (latest && typeof latest.temperatureC === 'number') {
+      logger.info(`Temperature from Redis latest: ${latest.temperatureC}°C`, { label: 'CurrentWeatherRoute' });
+      return res.json({
+        temperature: latest.temperatureC,
+        unit: 'C',
+        timestamp: latest.timestamp,
+        source: 'redis'
       });
     }
-
-    const temperature = metrics.tempC;
-    
-    if (temperature === undefined || temperature === null) {
-      logger.warn('No temperature data available from WeatherLink - tried multiple field names', { label: 'CurrentWeatherRoute' });
-      return res.status(404).json({ 
-        error: 'No current temperature data available',
-        temperature: null,
-        unit: 'C'
-      });
-    }
-
-    logger.info(`Retrieved current temperature: ${temperature}°C`, { label: 'CurrentWeatherRoute' });
-    
-    res.json({ 
-      temperature,
-      unit: 'C',
-      timestamp: new Date().toISOString(),
-      source: 'live'
-    });
-  } catch (error) {
-    logger.error('Error fetching current temperature', error as Error, { label: 'CurrentWeatherRoute' });
-    res.status(500).json({ 
-      error: 'Failed to fetch current temperature',
+    logger.warn('No cached temperature in Redis', { label: 'CurrentWeatherRoute' });
+    return res.status(503).json({ 
+      error: 'No cached temperature data in Redis',
       temperature: null,
       unit: 'C'
     });
+  } catch (error) {
+    logger.error('Error reading cached temperature', error as Error, { label: 'CurrentWeatherRoute' });
+    res.status(500).json({ 
+      error: 'Failed to read cached temperature',
+      temperature: null,
+      unit: 'C'
+    });
+  }
+});
+
+// Cache-only endpoint exposing Redis snapshot and aggregates
+router.get('/latest', async (req, res) => {
+  try {
+    const [latest, aggregates] = await Promise.all([
+      readLatestWeatherFromRedis(),
+      readWeatherAggregatesFromRedis(),
+    ] as const);
+
+    if (!latest && !aggregates) {
+      return res.status(503).json({ error: 'No cached weather data in Redis' });
+    }
+
+    res.json({ latest, aggregates });
+  } catch (error) {
+    logger.error('Error fetching cached latest weather from Redis', error as Error, { label: 'CurrentWeatherRoute' });
+    res.status(500).json({ error: 'Failed to fetch cached weather data' });
   }
 });
 

@@ -76,14 +76,15 @@ const HomePage = () => {
     fetchEt0Data();
   }, []);
 
-  // Fetch current temperature data
+  // Fetch current temperature data (from Redis-only cache endpoint)
   useEffect(() => {
     const fetchTemperatureData = async () => {
       try {
-        const response = await fetch('/api/weather/temperature');
+        const response = await fetch('/api/weather/latest');
         if (response.ok) {
           const data = await response.json();
-          setTemperatureData(data);
+          const temp = data?.latest?.temperatureC;
+          setTemperatureData({ temperature: typeof temp === 'number' ? temp : null, unit: 'C' });
         } else {
           console.warn('Failed to fetch temperature data:', response.statusText);
           setTemperatureData({ temperature: null, unit: 'C' });
