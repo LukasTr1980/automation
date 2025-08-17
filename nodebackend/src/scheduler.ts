@@ -10,6 +10,9 @@ import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
 import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
 import { recordIrrigationStartInflux } from './clients/influxdb-client.js';
+import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange } from './clients/weatherlink-client.js';
+import { writeLatestWeatherToRedis } from './utils/weatherLatestStorage.js';
+import { writeWeatherAggregatesToRedis } from './utils/weatherAggregatesStorage.js';
 
 const publisher = new MqttPublisher();
 
@@ -47,6 +50,44 @@ schedule.scheduleJob('*/15 * * * *', async () => {
     );
   } catch (err) {
     logger.error("OdhNextDayRain scheduler run failed:", err);
+  }
+});
+
+// Poll WeatherLink current metrics every 5 minutes with 30s delay
+schedule.scheduleJob('30 */5 * * * *', async () => {
+  try {
+    const snap = await fetchLatestWeatherSnapshot();
+    const { rate: rainRateMmPerHour } = await getRainRateFromWeatherlink();
+    const payload = {
+      temperatureC: snap.temperatureC,
+      humidity: snap.humidity,
+      rainRateMmPerHour: typeof rainRateMmPerHour === 'number' && isFinite(rainRateMmPerHour) ? Math.round(rainRateMmPerHour * 10) / 10 : null,
+      timestamp: new Date().toISOString(),
+    };
+    await writeLatestWeatherToRedis(payload);
+    logger.info(`[WEATHERLINK] Cached latest: T=${payload.temperatureC ?? 'n/a'}°C, H=${payload.humidity ?? 'n/a'}%, R=${payload.rainRateMmPerHour ?? 'n/a'} mm/h`);
+
+    // Compute aggregates used by the app (24h/7d rain totals, 7d avg temp/humidity)
+    const now = new Date();
+    const SEVEN_DAYS = 7 * 24 * 3600;
+    const [r24, r7, t7, h7] = await Promise.all([
+      getDailyRainTotal(now, 'metric'),
+      getSevenDayRainTotal(now, 'metric'),
+      getOutdoorTempAverageRange({ windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
+      getOutdoorHumidityAverageRange({ windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean' }),
+    ] as const);
+
+    const agg = {
+      rain24hMm: r24.ok ? Math.round(r24.total * 10) / 10 : null,
+      rain7dMm: r7.ok ? Math.round(r7.total * 10) / 10 : null,
+      temp7dAvgC: t7.ok ? Math.round(t7.avg * 100) / 100 : null,
+      humidity7dAvgPct: h7.ok ? Math.round(h7.avg) : null,
+      timestamp: new Date().toISOString(),
+    };
+    await writeWeatherAggregatesToRedis(agg);
+    logger.info(`[WEATHERLINK] Cached aggs: r24=${agg.rain24hMm ?? 'n/a'} mm, r7=${agg.rain7dMm ?? 'n/a'} mm, t7=${agg.temp7dAvgC ?? 'n/a'} °C, h7=${agg.humidity7dAvgPct ?? 'n/a'} %`);
+  } catch (error) {
+    logger.error('WeatherLink latest cache scheduler failed:', error);
   }
 });
 

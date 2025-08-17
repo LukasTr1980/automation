@@ -319,6 +319,58 @@ export async function getRainRateFromWeatherlink(options: RainRateOptions = {}):
   }
 }
 
+// =============== Latest (current) Weather snapshot for Redis cache ===============
+export interface LatestWeatherSnapshot {
+  temperatureC: number | null;
+  humidity: number | null;
+}
+
+export async function fetchLatestWeatherSnapshot(): Promise<LatestWeatherSnapshot> {
+  try {
+    const { ok, metrics } = await getWeatherlinkMetrics<{ tempC?: number; hum?: number }>([
+      {
+        name: 'tempC',
+        sensorType: 37, // ISS sensor
+        field: 'temp',
+        fallbacks: [
+          { field: 'temp_f' },
+          { field: 'temp_c' },
+          { field: 'temp_out' },
+          { field: 'outside_temp' },
+          { field: 'temp_last' },
+        ],
+        transform: (v) => {
+          if (typeof v === 'number' && isFinite(v)) {
+            // Assume Fahrenheit by default; convert to Celsius
+            return Math.round(((v - 32) * (5 / 9)) * 10) / 10;
+          }
+          return undefined;
+        },
+        defaultValue: undefined,
+      },
+      {
+        name: 'hum',
+        sensorType: 37,
+        field: 'hum',
+        fallbacks: [ { field: 'hum_out' } ],
+        transform: (v) => (typeof v === 'number' && isFinite(v) ? Math.round(v) : undefined),
+        defaultValue: undefined,
+      }
+    ]);
+
+    if (!ok) {
+      logger.warn('[WEATHERLINK] fetchLatestWeatherSnapshot: metrics fetch not ok');
+    }
+
+    const temperatureC = typeof metrics.tempC === 'number' ? metrics.tempC : null;
+    const humidity = typeof metrics.hum === 'number' ? metrics.hum : null;
+    return { temperatureC, humidity };
+  } catch (e) {
+    logger.error('[WEATHERLINK] Error while fetching latest snapshot', e);
+    return { temperatureC: null, humidity: null };
+  }
+}
+
 // Rain size mapping for fallback from clicks
 function rainClicksToMm(clicks: number, rainSizeCode?: number): number | undefined {
   if (typeof clicks !== 'number' || !isFinite(clicks) || clicks <= 0) return 0;

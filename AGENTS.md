@@ -91,12 +91,27 @@
 ## Real-Time Data Integration APIs
 
 ### WeatherLink Temperature API
-- **Endpoint**: `/api/weather/temperature` - Provides current temperature from WeatherLink API
-- **Debug endpoint**: `/api/weather/debug` - Shows raw WeatherLink current data fields for troubleshooting
-- **Data source**: Uses existing `getWeatherlinkMetrics` function with current sensor blocks (sensor type 37)
-- **Processing**: Automatically converts Fahrenheit to Celsius with proper error handling
-- **Rate limiting**: Respects WeatherLink API limits through existing rate limiter
-- **Frontend integration**: VillaAnnaHomePage temperature status card displays live temperature data
+- **Endpoint**: `/api/weather/temperature` — Provides current temperature in Celsius.
+- **Cache-first**: Reads from Redis `weather:latest` if present; falls back to live WeatherLink fetch. Response includes `source: 'redis' | 'live'`.
+- **Debug endpoint**: `/api/weather/debug` — Shows raw WeatherLink current data fields for troubleshooting.
+- **Data source**: Uses `getWeatherlinkMetrics` with current sensor blocks (sensor type 37).
+- **Processing**: Converts Fahrenheit to Celsius with error handling.
+- **Rate limiting**: Respects WeatherLink API limits via the shared sliding-window limiter.
+- **Frontend integration**: VillaAnnaHomePage temperature status card displays live temperature data.
+
+### WeatherLink Latest Cache (Redis)
+- **Scheduler**: Every 5 minutes with a 30-second delay (`30 */5 * * * *`).
+- **Keys**:
+  - `weather:latest` → JSON `{ temperatureC, humidity, rainRateMmPerHour, timestamp }`.
+  - `weather:latest:temperatureC`, `weather:latest:humidity`, `weather:latest:rainRateMmPerHour`, `weather:latest:timestamp`.
+- **Use**: Preferred by APIs and decision logic to reduce live API calls.
+
+### Weather Aggregates Cache (Redis)
+- **Scheduler**: Computed alongside the latest cache job every 5 minutes.
+- **Keys**:
+  - `weather:agg:latest` → JSON `{ rain24hMm, rain7dMm, temp7dAvgC, humidity7dAvgPct, timestamp }`.
+  - `weather:agg:rain24h:mm`, `weather:agg:rain7d:mm`, `weather:agg:temp7d:avgC`, `weather:agg:humidity7d:avgPct`, `weather:agg:timestamp`.
+- **Consumption**: Irrigation decision uses these values first; if missing, it fetches live from WeatherLink.
 
 ### Next Schedule API  
 - **Endpoint**: `/api/schedule/next` - Fetches next scheduled irrigation task from Redis

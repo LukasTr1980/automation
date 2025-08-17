@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Backend: 5‑minute WeatherLink poller with a 30s delay caches current readings in Redis under `weather:latest*` (temperature C, humidity %, rain rate mm/h, timestamp).
+- Backend: Cached 7‑day/24h aggregates in Redis under `weather:agg:*` (rain 24h, rain 7d, temp 7d avg, humidity 7d avg) for decision logic and dashboards.
+
+### Changed
+- Backend: Irrigation decision now prefers Redis‑cached rain rate, rainfall totals, and 7‑day averages; falls back to live WeatherLink fetches if cache is missing.
+- Backend: `/api/weather/temperature` serves from Redis cache first (adds `source: 'redis' | 'live'`).
+
 ## [v19.3.1] - 2025-08-17
 ### Fixed
 - Client: Docker CI build failure due to TS6133 (unused local) in `NavBar`; removed unused media-query hook to comply with strict TypeScript settings.

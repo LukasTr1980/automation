@@ -1,5 +1,6 @@
 import express from 'express';
 import { getWeatherlinkMetrics } from '../clients/weatherlink-client.js';
+import { readLatestWeatherFromRedis } from '../utils/weatherLatestStorage.js';
 import logger from '../logger.js';
 
 const router = express.Router();
@@ -31,6 +32,23 @@ router.get('/debug', async (req, res) => {
 
 router.get('/temperature', async (req, res) => {
   try {
+    // Prefer cached latest value from Redis if available and recent
+    try {
+      const latest = await readLatestWeatherFromRedis();
+      if (latest && typeof latest.temperatureC === 'number') {
+        logger.info(`Temperature from Redis latest: ${latest.temperatureC}°C`, { label: 'CurrentWeatherRoute' });
+        return res.json({
+          temperature: latest.temperatureC,
+          unit: 'C',
+          timestamp: latest.timestamp,
+          source: 'redis'
+        });
+      }
+    } catch (e) {
+      // Non-fatal: fall back to live fetch
+      logger.warn('Failed to read temperature from Redis; falling back to live fetch', { label: 'CurrentWeatherRoute' });
+    }
+
     // Try multiple possible field names for current temperature
     const { ok, metrics } = await getWeatherlinkMetrics<{ tempC?: number }>([
       {
@@ -80,7 +98,8 @@ router.get('/temperature', async (req, res) => {
     res.json({ 
       temperature,
       unit: 'C',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      source: 'live'
     });
   } catch (error) {
     logger.error('Error fetching current temperature', error as Error, { label: 'CurrentWeatherRoute' });
