@@ -10,6 +10,7 @@
 
 import { querySingleData } from "../clients/influxdb-client.js";
 import { readWeatherAggregatesFromRedis } from "./weatherAggregatesStorage.js";
+import { readDailyLast7FromRedis } from "./weatherDailyStorage.js";
 import logger from "../logger.js";
 import { writeWeeklyET0ToRedis } from "./et0Storage.js";
 
@@ -85,28 +86,22 @@ export async function computeWeeklyET0(): Promise<number> {
         const [cloudsRaw] = await Promise.all([
             influxSeriesNumbers(fluxDailySeriesLast7(CLOUD_BUCKET, MEAS_CLOUDS, 'value_numeric', 'mean')),
         ] as const);
+        
+        // Read daily aggregates (preferred) and 7-day means (fallbacks)
+        const [daily, agg] = await Promise.all([
+            readDailyLast7FromRedis(),
+            readWeatherAggregatesFromRedis(),
+        ] as const);
+        if (!agg) throw new Error('Weekly ET0: Missing aggregates in Redis');
 
-        const agg = await readWeatherAggregatesFromRedis();
-        if (!agg) {
-            throw new Error('Weekly ET0: Missing aggregates in Redis');
-        }
-
-        // Use latest 7d averages from Redis; derive Tmin/Tmax from average daily range
         const Tavg7 = agg.temp7dAvgC;
         const RH7 = agg.humidity7dAvgPct;
-        const windAtSensor7 = agg.wind7dAvgMS; // m/s at height WIND_Z (aggregate must match sensor height)
+        const windAtSensor7 = agg.wind7dAvgMS;
         const P_hPa7 = agg.pressure7dAvgHPa ?? 1013;
         const dTavg = agg.temp7dRangeAvgC;
 
-        // Plausibility guard: abort on missing critical aggregates
-        const missing = [Tavg7, RH7, windAtSensor7, dTavg].some(v => v === null || v === undefined || Number.isNaN(v as number));
-        if (missing) {
-            logger.warn('[ET0] Incomplete 7d aggregates (Tavg/RH/Wind/dT). Aborting ET₀ computation.', { label: 'Evapotranspiration' });
-            throw new Error('Weekly ET0: Incomplete 7d aggregates (Tavg/RH/Wind/dT).');
-        }
-
         const n = 7;
-        const chunks = Array.from({ length: n }, (_, i) => i);
+        const idx = Array.from({ length: n }, (_, i) => i);
 
         // Ensure we have 7 usable cloud values [0..100], fill gaps with last valid or 60 %
         const cloudsW: number[] = [];
@@ -121,25 +116,31 @@ export async function computeWeeklyET0(): Promise<number> {
             }
         }
         logger.info(`[ET0] Cloud cover daily means used: ${cloudsW.map(v => v.toFixed(0)).join(', ')} %`, { label: 'Evapotranspiration' });
-
+        
         const et0s: number[] = [];
-        for (const i of chunks) {
-            const Tavg = Tavg7 as number;
-            const RH = RH7 as number;
-            const windZ = windAtSensor7 as number; // m/s at sensor height WIND_Z
-            const P_hPa = P_hPa7;
-            const Tmin = Tavg - (dTavg as number) / 2;
-            const Tmax = Tavg + (dTavg as number) / 2;
+        for (const i of idx) {
             const cloud = clamp(cloudsW[i], 0, 100);
 
-            // Day-of-year from the chunk start (local)
+            // Compute local day start for doy; prefer aligned sequence
             const startTs = localMidnight.getTime() - (SEVEN_DAYS * 1000) + i * 24 * 3600 * 1000;
-            const d = new Date(startTs);
-            const jan1 = new Date(d.getFullYear(), 0, 1);
-            const doy = Math.floor((+new Date(d.getFullYear(), d.getMonth(), d.getDate()) - +jan1) / 86400000) + 1;
+            const dLocal = new Date(startTs);
+            const jan1 = new Date(dLocal.getFullYear(), 0, 1);
+            const doy = Math.floor((+new Date(dLocal.getFullYear(), dLocal.getMonth(), dLocal.getDate()) - +jan1) / 86400000) + 1;
+
+            // Prefer daily values; fallback to 7d aggregates if missing
+            const day = daily?.days?.[i];
+            const TavgDaily = (day?.tAvgC ?? (Number.isFinite(day?.tMinC) && Number.isFinite(day?.tMaxC) ? ((day!.tMinC! + day!.tMaxC!) / 2) : null));
+            const Tavg = Number.isFinite(TavgDaily as number) ? (TavgDaily as number) : (Tavg7 as number);
+            const dTRange = Number.isFinite(day?.tMinC) && Number.isFinite(day?.tMaxC)
+              ? ((day!.tMaxC! - day!.tMinC!))
+              : (dTavg as number);
+            const Tmin = Number.isFinite(day?.tMinC as number) ? (day!.tMinC as number) : (Tavg - dTRange / 2);
+            const Tmax = Number.isFinite(day?.tMaxC as number) ? (day!.tMaxC as number) : (Tavg + dTRange / 2);
+            const RH = Number.isFinite(day?.rhMeanPct as number) ? (day!.rhMeanPct as number) : (RH7 as number);
+            const windZ = Number.isFinite(day?.windMeanMS as number) ? (day!.windMeanMS as number) : (windAtSensor7 as number);
+            const P_hPa = Number.isFinite(day?.pressureMeanHPa as number) ? (day!.pressureMeanHPa as number) : P_hPa7;
 
             const RaMJ = Ra(LAT, doy);
-            // Shortwave radiation via Angström–Prescott using cloud cover for n/N.
             const nOverN = clamp(1 - cloud / 100, 0, 1);
             let Rs = (AP_A_S + AP_B_S * nOverN) * RaMJ;
             const Rso = (0.75 + 2e-5 * ELEV) * RaMJ;
@@ -147,7 +148,6 @@ export async function computeWeeklyET0(): Promise<number> {
             Rs_Rso = clamp(Rs_Rso, 0, 1.0);
             const Rns = (1 - ALBEDO) * Rs;
             const es = (svp(Tmax) + svp(Tmin)) / 2;
-            // Actual vapor pressure from RHmean and es (FAO‑56 recommendation for RHmean)
             const ea = es * RH / 100;
             const Tk4 = (Math.pow(Tmax + 273.15, 4) + Math.pow(Tmin + 273.15, 4)) / 2;
             const emissivity = Math.max(0.05, 0.34 - 0.14 * Math.sqrt(Math.max(ea, 0)));
@@ -160,7 +160,6 @@ export async function computeWeeklyET0(): Promise<number> {
             const et0 = (0.408 * Δ * Rn + γ * 900 / (Tavg + 273.15) * u2 * (es - ea)) / (Δ + γ * (1 + 0.34 * u2));
             et0s.push(Math.max(0, et0));
 
-            // Per‑day debug log of inputs and derived terms
             logger.debug(
                 `[ET0] d${i + 1} ` +
                 `doy=${doy} cloud=${cloud.toFixed(0)}% n/N=${nOverN.toFixed(2)} ` +
@@ -178,7 +177,8 @@ export async function computeWeeklyET0(): Promise<number> {
         await writeWeeklyET0ToRedis(et0Sum);
         logger.info(
             `ET₀ weekly sum (last 7 days): ${et0Sum.toFixed(2)} mm | ` +
-            `Inputs: Tavg7=${(Tavg7 as number).toFixed(2)}°C dT7=${(dTavg as number).toFixed(2)}°C RH7=${(RH7 as number).toFixed(1)}% ` +
+            `Inputs: ` + (daily?.days?.length ? `daily aggregates from Redis (preferred), ` : ``) +
+            `Tavg7=${(Tavg7 as number).toFixed(2)}°C dT7=${(dTavg as number).toFixed(2)}°C RH7=${(RH7 as number).toFixed(1)}% ` +
             `wind@${WIND_Z}m=${(windAtSensor7 as number).toFixed(2)} m/s P=${(P_hPa7 / 10).toFixed(2)} kPa ` +
             `Angström a_s=${AP_A_S}, b_s=${AP_B_S}`,
             { label: 'Evapotranspiration' }

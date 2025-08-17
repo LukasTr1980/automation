@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend: ET₀ per‑day debug logging (d1…d7) including cloud %, n/N, Tmin/Tmax/Tavg, RH, wind@Z, u2, Ra/Rso/Rs, es/ea, Δ/γ, Rns/Rnl/Rn, ET0. Cloud series summary logged at info level.
 - Backend: Config knobs for ET₀: `WIND_SENSOR_HEIGHT_M` (default 10 m) and optional Angström coefficients `ANGSTROM_A_S` (default 0.25), `ANGSTROM_B_S` (default 0.50).
 
+## [v19.4.0] - 2025-08-17
+### Added
+- Backend: New Redis cache for last-7 daily aggregates under `weather:daily:last7` (one entry per full local day with `date`, `tMinC`, `tMaxC`, `tAvgC`, `rhMeanPct`, `windMeanMS`, `pressureMeanHPa`).
+
+### Changed
+- Backend: ET₀ computation now uses real daily inputs from Redis (Tmin/Tmax/Tavg, RH mean, wind mean at sensor height, pressure mean) per day, together with daily cloud-cover means from Influx, to compute 7 daily FAO‑56 Penman–Monteith ET₀ values and sum them; falls back to 7‑day means when a daily value is missing. Still recomputed every 5 minutes.
+- Backend: Scheduler aligns daily chunks to local midnight and writes the last-7 daily aggregate payload alongside existing 24h/7d aggregates.
+
 ### Changed
 - Backend: Irrigation decision now prefers Redis‑cached rain rate, rainfall totals, and 7‑day averages; falls back to live WeatherLink fetches if cache is missing.
 - Backend: `/api/weather/temperature` is now cache-only (Redis) and no longer calls WeatherLink.
