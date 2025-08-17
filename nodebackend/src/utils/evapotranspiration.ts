@@ -7,7 +7,7 @@
 // -----------------------------------------------------------------------------
 
 import { querySingleData } from "../clients/influxdb-client.js";
-import { getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from "../clients/weatherlink-client.js";
+import { readWeatherAggregatesFromRedis } from "./weatherAggregatesStorage.js";
 import logger from "../logger.js";
 import { writeWeeklyET0ToRedis } from "./et0Storage.js";
 
@@ -69,41 +69,39 @@ export async function computeWeeklyET0(): Promise<number> {
         // Align to local midnight (today 00:00) to cover the previous 7 full days
         const localMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
         const SEVEN_DAYS = 7 * 24 * 3600;
-
-        const [tempAvgW, rhW, windAvgW, tempExtW, pAvgW, cloudsW] = await Promise.all([
-            getOutdoorTempAverageRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
-            getOutdoorHumidityAverageRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean' }),
-            getOutdoorWindSpeedAverageRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
-            getOutdoorTempExtremaRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, units: 'metric' }),
-            getOutdoorPressureAverageRange({ end: localMidnight, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted', units: 'metric' }),
+        const [cloudsW] = await Promise.all([
             influxSeriesNumbers(fluxDailySeriesLast7(CLOUD_BUCKET, MEAS_CLOUDS, 'value_numeric', 'mean')),
         ] as const);
+
+        const agg = await readWeatherAggregatesFromRedis();
+        if (!agg) {
+            throw new Error('Weekly ET0: Missing aggregates in Redis');
+        }
+
+        // Use latest 7d averages from Redis; derive Tmin/Tmax from average daily range
+        const Tavg7 = agg.temp7dAvgC ?? 0;
+        const RH7 = agg.humidity7dAvgPct ?? 0;
+        const wind10_7 = agg.wind7dAvgMS ?? 0; // m/s at 10 m
+        const P_hPa7 = agg.pressure7dAvgHPa ?? 1013;
+        const dTavg = agg.temp7dRangeAvgC ?? 8; // fallback daily range if missing
 
         const n = 7;
         const chunks = Array.from({ length: n }, (_, i) => i);
 
-        if (!tempAvgW.ok || !rhW.ok || !windAvgW.ok || !tempExtW.ok || !pAvgW.ok) {
-            throw new Error('Weekly ET0: Missing WeatherLink data');
-        }
-
         const et0s: number[] = [];
         for (const i of chunks) {
-            const Tavg = tempAvgW.chunks[i]?.avg;
-            const RH = rhW.chunks[i]?.avg;
-            const wind10 = windAvgW.chunks[i]?.avg; // m/s at 10 m
-            const Tmin = tempExtW.chunks[i]?.loMin;
-            const Tmax = tempExtW.chunks[i]?.hiMax;
-            const P_hPa = pAvgW.chunks[i]?.avg;
+            const Tavg = Tavg7;
+            const RH = RH7;
+            const wind10 = wind10_7; // m/s at 10 m
+            const P_hPa = P_hPa7;
+            const Tmin = Tavg - dTavg / 2;
+            const Tmax = Tavg + dTavg / 2;
             let cloud = cloudsW[i];
-
-            if ([Tavg, RH, wind10, Tmin, Tmax, P_hPa].some(v => typeof v !== 'number' || !isFinite(v))) {
-                throw new Error(`Weekly ET0: incomplete data for day index ${i}`);
-            }
 
             cloud = clamp(cloud, 0, 100);
 
             // Day-of-year from the chunk start (approx)
-            const startTs = tempAvgW.chunks[i].start;
+            const startTs = localMidnight.getTime() - (SEVEN_DAYS * 1000) + i * 24 * 3600 * 1000;
             const d = new Date(startTs);
             const doy = Math.floor((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86400000);
 

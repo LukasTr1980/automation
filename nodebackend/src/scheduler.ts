@@ -10,7 +10,7 @@ import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
 import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
 import { recordIrrigationStartInflux } from './clients/influxdb-client.js';
-import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange } from './clients/weatherlink-client.js';
+import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from './clients/weatherlink-client.js';
 import { writeLatestWeatherToRedis } from './utils/weatherLatestStorage.js';
 import { writeWeatherAggregatesToRedis } from './utils/weatherAggregatesStorage.js';
 
@@ -70,22 +70,50 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
     // Compute aggregates used by the app (24h/7d rain totals, 7d avg temp/humidity)
     const now = new Date();
     const SEVEN_DAYS = 7 * 24 * 3600;
-    const [r24, r7, t7, h7] = await Promise.all([
+    const [r24, r7, t7, h7, w7, p7, tExt7] = await Promise.all([
       getDailyRainTotal(now, 'metric'),
       getSevenDayRainTotal(now, 'metric'),
       getOutdoorTempAverageRange({ windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
       getOutdoorHumidityAverageRange({ windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean' }),
+      getOutdoorWindSpeedAverageRange({ windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
+      getOutdoorPressureAverageRange({ windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'sampleWeighted', units: 'metric' }),
+      getOutdoorTempExtremaRange({ windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, units: 'metric' }),
     ] as const);
+
+    // Average daily temperature range over 7 days
+    let deltaT7Avg: number | null = null;
+    if (tExt7.ok) {
+      let sum = 0;
+      let n = 0;
+      for (const c of tExt7.chunks) {
+        if (isFinite(c.hiMax) && isFinite(c.loMin) && c.count > 0) {
+          sum += (c.hiMax - c.loMin);
+          n += 1;
+        }
+      }
+      deltaT7Avg = n > 0 ? Math.round((sum / n) * 100) / 100 : null;
+    }
 
     const agg = {
       rain24hMm: r24.ok ? Math.round(r24.total * 10) / 10 : null,
       rain7dMm: r7.ok ? Math.round(r7.total * 10) / 10 : null,
       temp7dAvgC: t7.ok ? Math.round(t7.avg * 100) / 100 : null,
       humidity7dAvgPct: h7.ok ? Math.round(h7.avg) : null,
+      wind7dAvgMS: w7.ok ? Math.round(w7.avg * 1000) / 1000 : null,
+      pressure7dAvgHPa: p7.ok ? Math.round(p7.avg) : null,
+      temp7dRangeAvgC: deltaT7Avg,
       timestamp: new Date().toISOString(),
     };
     await writeWeatherAggregatesToRedis(agg);
-    logger.info(`[WEATHERLINK] Cached aggs: r24=${agg.rain24hMm ?? 'n/a'} mm, r7=${agg.rain7dMm ?? 'n/a'} mm, t7=${agg.temp7dAvgC ?? 'n/a'} °C, h7=${agg.humidity7dAvgPct ?? 'n/a'} %`);
+    logger.info(`[WEATHERLINK] Cached aggs: r24=${agg.rain24hMm ?? 'n/a'} mm, r7=${agg.rain7dMm ?? 'n/a'} mm, t7=${agg.temp7dAvgC ?? 'n/a'} °C, h7=${agg.humidity7dAvgPct ?? 'n/a'} %, w7=${agg.wind7dAvgMS ?? 'n/a'} m/s, p7=${agg.pressure7dAvgHPa ?? 'n/a'} hPa, dT7=${agg.temp7dRangeAvgC ?? 'n/a'} °C`);
+
+    // Recompute weekly ET0 using Redis-cached values and store to Redis
+    try {
+      const sum = await computeWeeklyET0();
+      logger.info(`ET₀ Weekly (5-min refresh): ${sum} mm`);
+    } catch (err) {
+      logger.error('ET₀ 5-min recompute failed:', err);
+    }
   } catch (error) {
     logger.error('WeatherLink latest cache scheduler failed:', error);
   }

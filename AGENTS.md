@@ -73,18 +73,20 @@
 - PWA: The frontend no longer uses a Service Worker or manifest. On boot, existing SWs are unregistered to avoid cached `index.html` interfering with ForwardAuth redirects. Optionally set `Cache-Control: no-store` for HTML at the proxy for extra safety.
 
 ## Evapotranspiration (ET₀)
-- Weekly only: Compute 7-day ET₀ sum once per day; no daily ET₀ is stored or used.
-- Scheduler: Runs at `23:55` (see `nodebackend/src/scheduler.ts`).
+- Weekly only: 7-day ET₀ sum is recalculated every 5 minutes using latest cached inputs; no daily ET₀ is stored.
+- Schedulers:
+  - Every 5 minutes (+30s): refresh Redis weather caches and recompute weekly ET₀.
+  - Daily at `23:55`: backup recomputation (same logic).
 - Data sources:
-  - WeatherLink (temp, RH, wind, pressure) via range helpers chunked by 24h to respect API limits.
+  - Weather inputs from Redis aggregates (`weather:agg:latest`): 7d average temperature, humidity, wind, pressure, and mean diurnal range (Tmax−Tmin). These aggregates are refreshed every 5 minutes by polling WeatherLink.
   - Influx (cloud cover): daily means for the same 7-day window.
 - Storage: Redis keys `et0:weekly:YYYY-MM-DD` and `et0:weekly:latest` store the weekly sum in mm.
 - Consumption: Irrigation decision reads the latest weekly ET₀ from Redis. `queryAllData()` does not include ET₀.
-- Notes: Do not write ET₀ to Influx.
+- Note: ET₀ computation does not call WeatherLink directly; it reads inputs from Redis to avoid extra API load.
 
 ### ET₀ Ops & Debugging
 - Manual run: `computeWeeklyET0()` can be invoked (e.g., from `index.ts` or a REPL) to produce today's Redis entry.
-- Logs: Look for `[ET0] Using weekly ET₀ from Redis: <mm>` during irrigation decisions and `ET₀ weekly sum (last 7 days): <mm>` from the scheduler.
+- Logs: Look for `[ET0] Using weekly ET₀ from Redis: <mm>` during irrigation decisions and `ET₀ weekly sum (last 7 days): <mm>` from the scheduler. A 5‑minute refresh log also appears.
 - Data: Inspect Redis with `GET et0:weekly:latest` or `GET et0:weekly:YYYY-MM-DD`.
 - Frontend API: The `/api/et0/latest` endpoint provides the most recent weekly ET₀ value for dashboard display.
 
