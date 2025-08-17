@@ -1,4 +1,5 @@
 import express from 'express';
+import { getWeatherlinkMetrics } from '../clients/weatherlink-client.js';
 import { readLatestWeatherFromRedis } from '../utils/weatherLatestStorage.js';
 import logger from '../logger.js';
 import { readWeatherAggregatesFromRedis } from '../utils/weatherAggregatesStorage.js';

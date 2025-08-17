@@ -10,14 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend: 5‑minute WeatherLink poller with a 30s delay caches current readings in Redis under `weather:latest*` (temperature C, humidity %, rain rate mm/h, timestamp).
 - Backend: Cached 7‑day/24h aggregates in Redis under `weather:agg:*` (rain 24h, rain 7d, temp 7d avg, humidity 7d avg, wind 7d avg, pressure 7d avg, mean daily temp range) for decision logic, ET₀, and dashboards.
 - Backend: New cache-only endpoint `/api/weather/latest` returning Redis `latest` snapshot and `agg` aggregates for the client.
+- Frontend: General stale indicator in "Schnellübersicht" on the homepage with German tooltip (shows last update time; warning dot if older than 10 minutes).
 
 ### Changed
 - Backend: Irrigation decision now prefers Redis‑cached rain rate, rainfall totals, and 7‑day averages; falls back to live WeatherLink fetches if cache is missing.
 - Backend: `/api/weather/temperature` is now cache-only (Redis) and no longer calls WeatherLink.
 - Backend: ET₀ weekly sum is recomputed every 5 minutes using Redis‑cached inputs plus Influx cloud cover; it no longer calls WeatherLink directly.
+- Frontend: VillaAnnaHomePage temperature now reads from `/api/weather/latest` (Redis-only), not the WeatherLink-backed route.
+- Frontend: Removed the temperature-card-specific stale text for a cleaner card; freshness is shown in "Schnellübersicht".
 
 ### Removed
 - Backend: Daily `23:55` ET₀ recomputation job; 5‑minute refresh supersedes it.
+- Frontend: Mock line "Letzte Bewässerung: 06:30 • Dauer: 45 Min" from the homepage quick info.
 
 ## [v19.3.1] - 2025-08-17
 ### Fixed

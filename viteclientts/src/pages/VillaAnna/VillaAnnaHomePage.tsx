@@ -25,12 +25,43 @@ import {
 } from '@mui/icons-material';
 import { useState, useEffect, type ReactNode } from 'react';
 
+// Small helper to render relative age in minutes with German label
+function formatRelativeMinutes(ts: string): string {
+  try {
+    const ms = Date.now() - new Date(ts).getTime();
+    const mins = Math.max(0, Math.round(ms / 60000));
+    if (mins <= 0) return 'gerade eben';
+    if (mins === 1) return 'vor 1 Minute';
+    return `vor ${mins} Minuten`;
+  } catch {
+    return 'unbekannt';
+  }
+}
+
+// Formats an ISO timestamp using German locale (short date + short time)
+function formatDateTimeDE(ts: string | null | undefined): string {
+  if (!ts) return 'unbekannt';
+  try {
+    const d = new Date(ts);
+    return new Intl.DateTimeFormat('de-DE', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(d);
+  } catch {
+    return 'unbekannt';
+  }
+}
+
 const HomePage = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [et0Data, setEt0Data] = useState<{ et0_week: number | null; unit: string } | null>(null);
   const [temperatureData, setTemperatureData] = useState<{ temperature: number | null; unit: string } | null>(null);
+  const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
+  const [cacheStale, setCacheStale] = useState<boolean>(false);
+  const [latestTimestamp, setLatestTimestamp] = useState<string | null>(null);
+  const [aggregatesTimestamp, setAggregatesTimestamp] = useState<string | null>(null);
   const [scheduleData, setScheduleData] = useState<{ nextScheduled: string; zone: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [tempLoading, setTempLoading] = useState(true);
@@ -47,11 +78,7 @@ const HomePage = () => {
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [decision, setDecision] = useState<DecisionMetrics | null>(null);
 
-  // Mock data - replace with actual data from your irrigation system
-  const systemStatus = {
-    isRunning: false,
-    lastRun: '06:30'
-  };
+  // Removed legacy mock system status; using real data + cache freshness
 
   // Fetch ET₀ data
   useEffect(() => {
@@ -84,14 +111,37 @@ const HomePage = () => {
         if (response.ok) {
           const data = await response.json();
           const temp = data?.latest?.temperatureC;
+          const tsLatest: string | undefined = data?.latest?.timestamp;
+          const tsAgg: string | undefined = data?.aggregates?.timestamp;
+          setLatestTimestamp(tsLatest ?? null);
+          setAggregatesTimestamp(tsAgg ?? null);
           setTemperatureData({ temperature: typeof temp === 'number' ? temp : null, unit: 'C' });
+          // Compute general cache freshness using the older of the two timestamps
+          const ages: number[] = [];
+          if (tsLatest) ages.push(Date.now() - new Date(tsLatest).getTime());
+          if (tsAgg) ages.push(Date.now() - new Date(tsAgg).getTime());
+          if (ages.length) {
+            const ageMs = Math.max(...ages);
+            const tsForDisplay = (tsLatest && tsAgg)
+              ? (new Date(tsLatest) < new Date(tsAgg) ? tsLatest : tsAgg)
+              : (tsLatest || tsAgg)!;
+            setCacheTimestamp(tsForDisplay);
+            setCacheStale(ageMs > 10 * 60 * 1000); // 10 minutes threshold
+          } else {
+            setCacheTimestamp(null);
+            setCacheStale(true);
+          }
         } else {
           console.warn('Failed to fetch temperature data:', response.statusText);
           setTemperatureData({ temperature: null, unit: 'C' });
+          setCacheTimestamp(null);
+          setCacheStale(true);
         }
       } catch (error) {
         console.error('Error fetching temperature data:', error);
         setTemperatureData({ temperature: null, unit: 'C' });
+        setCacheTimestamp(null);
+        setCacheStale(true);
       } finally {
         setTempLoading(false);
       }
@@ -475,9 +525,23 @@ const HomePage = () => {
           </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography variant="body2" color="text.secondary">
-                Letzte Bewässerung: {systemStatus.lastRun} • Dauer: 45 Min
-              </Typography>
+              <Tooltip title={(() => {
+                if (!latestTimestamp && !aggregatesTimestamp) return 'Zeitpunkt unbekannt';
+                if (latestTimestamp && aggregatesTimestamp && latestTimestamp !== aggregatesTimestamp) {
+                  return `Aktuell: ${formatDateTimeDE(latestTimestamp)} • Aggregiert: ${formatDateTimeDE(aggregatesTimestamp)}`;
+                }
+                // Same (or only one available) → show single concise value
+                return `Stand: ${formatDateTimeDE(cacheTimestamp)}`;
+              })()}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {cacheStale && (
+                  <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'warning.main' }} />
+                )}
+                <Typography variant="body2" color="text.secondary">
+                  Datenaktualität: {cacheTimestamp ? formatRelativeMinutes(cacheTimestamp) : 'unbekannt'}
+                </Typography>
+              </Box>
+              </Tooltip>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="body2" color="text.secondary">

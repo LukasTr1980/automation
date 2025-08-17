@@ -106,9 +106,15 @@
 ### Weather Aggregates Cache (Redis)
 - **Scheduler**: Computed alongside the latest cache job every 5 minutes.
 - **Keys**:
-  - `weather:agg:latest` → JSON `{ rain24hMm, rain7dMm, temp7dAvgC, humidity7dAvgPct, timestamp }`.
-  - `weather:agg:rain24h:mm`, `weather:agg:rain7d:mm`, `weather:agg:temp7d:avgC`, `weather:agg:humidity7d:avgPct`, `weather:agg:timestamp`.
+  - `weather:agg:latest` → JSON `{ rain24hMm, rain7dMm, temp7dAvgC, humidity7dAvgPct, wind7dAvgMS, pressure7dAvgHPa, temp7dRangeAvgC, timestamp }`.
+  - `weather:agg:rain24h:mm`, `weather:agg:rain7d:mm`, `weather:agg:temp7d:avgC`, `weather:agg:humidity7d:avgPct`, `weather:agg:wind7d:avgMS`, `weather:agg:pressure7d:avgHPa`, `weather:agg:temp7d:rangeAvgC`, `weather:agg:timestamp`.
 - **Consumption**: Irrigation decision uses these values first; if missing, it fetches live from WeatherLink.
+
+### Weather Cache API
+- **Endpoint**: `/api/weather/latest` — Returns Redis-cached weather snapshot and aggregates.
+- **Response**: `{ latest, aggregates }`
+  - `latest`: `{ temperatureC, humidity, rainRateMmPerHour, timestamp }`
+  - `aggregates`: `{ rain24hMm, rain7dMm, temp7dAvgC, humidity7dAvgPct, wind7dAvgMS, pressure7dAvgHPa, temp7dRangeAvgC, timestamp }`
 
 ### Next Schedule API  
 - **Endpoint**: `/api/schedule/next` - Fetches next scheduled irrigation task from Redis
@@ -126,6 +132,7 @@
 - **Data flow**: React hooks fetch data on component mount with proper loading states and error handling; Blocker subscribes to `/api/mqtt` SSE and renders rule chips
 - **Responsive design**: Cards adapt to screen size with consistent heights and proper text wrapping
 - **Zone names**: All schedule displays use human-readable names (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle)
+- **Freshness indicator**: Schnellübersicht shows a general cache freshness row using timestamps from `/api/weather/latest`; adds a subtle warning dot if older than 10 minutes and a German-formatted tooltip for exact times.
 
 ## Irrigation Decision (No AI)
 - Source of truth: `nodebackend/src/irrigationDecision.ts` implements a rule-based decision.
