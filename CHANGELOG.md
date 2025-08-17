@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend: Cached 7‑day/24h aggregates in Redis under `weather:agg:*` (rain 24h, rain 7d, temp 7d avg, humidity 7d avg, wind 7d avg, pressure 7d avg, mean daily temp range) for decision logic, ET₀, and dashboards.
 - Backend: New cache-only endpoint `/api/weather/latest` returning Redis `latest` snapshot and `agg` aggregates for the client.
 - Frontend: General stale indicator in "Schnellübersicht" on the homepage with German tooltip (shows last update time; warning dot if older than 10 minutes).
+- Backend: ET₀ per‑day debug logging (d1…d7) including cloud %, n/N, Tmin/Tmax/Tavg, RH, wind@Z, u2, Ra/Rso/Rs, es/ea, Δ/γ, Rns/Rnl/Rn, ET0. Cloud series summary logged at info level.
+- Backend: Config knobs for ET₀: `WIND_SENSOR_HEIGHT_M` (default 10 m) and optional Angström coefficients `ANGSTROM_A_S` (default 0.25), `ANGSTROM_B_S` (default 0.50).
 
 ### Changed
 - Backend: Irrigation decision now prefers Redis‑cached rain rate, rainfall totals, and 7‑day averages; falls back to live WeatherLink fetches if cache is missing.
 - Backend: `/api/weather/temperature` is now cache-only (Redis) and no longer calls WeatherLink.
-- Backend: ET₀ weekly sum is recomputed every 5 minutes using Redis‑cached inputs plus Influx cloud cover; it no longer calls WeatherLink directly.
+- Backend: ET₀ calculation updated towards FAO‑56: uses Angström–Prescott for shortwave radiation with Influx cloud cover (n/N ≈ 1 − cloud/100), computes ea from RHmean via `ea = es * RH/100`, converts wind from sensor height to 2 m via FAO log law, applies standard Rnl clamps, and uses local DOY.
+- Backend: ET₀ still uses Redis 7‑day averages for Tavg/RH/wind/pressure and mean diurnal range; clouds vary per day. Weekly sum stays recalculated every 5 minutes.
 - Frontend: VillaAnnaHomePage temperature now reads from `/api/weather/latest` (Redis-only), not the WeatherLink-backed route.
 - Frontend: Removed the temperature-card-specific stale text for a cleaner card; freshness is shown in "Schnellübersicht".
 

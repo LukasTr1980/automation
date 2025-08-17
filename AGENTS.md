@@ -76,15 +76,23 @@
 - Weekly only: 7-day ET₀ sum is recalculated every 5 minutes using latest cached inputs; no daily ET₀ is stored.
 - Scheduler: Every 5 minutes (+30s) refreshes Redis weather caches and recomputes weekly ET₀.
 - Data sources:
-  - Weather inputs from Redis aggregates (`weather:agg:latest`): 7d average temperature, humidity, wind, pressure, and mean diurnal range (Tmax−Tmin). These aggregates are refreshed every 5 minutes by polling WeatherLink.
-  - Influx (cloud cover): daily means for the same 7-day window.
+  - Weather inputs from Redis aggregates (`weather:agg:latest`): 7‑day average temperature, humidity, wind (at sensor height), pressure, and mean diurnal range (Tmax−Tmin). These aggregates are refreshed every 5 minutes by polling WeatherLink.
+  - Influx (cloud cover): daily means for the same 7‑day window (used in radiation via Angström–Prescott, n/N ≈ 1 − cloud/100).
 - Storage: Redis keys `et0:weekly:YYYY-MM-DD` and `et0:weekly:latest` store the weekly sum in mm.
 - Consumption: Irrigation decision reads the latest weekly ET₀ from Redis. `queryAllData()` does not include ET₀.
 - Note: ET₀ computation does not call WeatherLink directly; it reads inputs from Redis to avoid extra API load.
 
+### Method (Backend)
+- Formula: FAO‑56 Penman–Monteith (daily) with G≈0.
+- Radiation: Angström–Prescott using cloud cover daily means from Influx (`a_s`=0.25, `b_s`=0.50 by default).
+- Humidity: `ea = es * RHmean/100` where `es = (svp(Tmax) + svp(Tmin)) / 2`.
+- Wind: converts measured wind speed at `WIND_SENSOR_HEIGHT_M` to 2 m via FAO log law.
+- Longwave: standard emissivity/cloud correction clamps to avoid unrealistically low Rnl.
+- Inputs approximation: Tavg/RH/wind/pressure are 7‑day means applied uniformly across the 7 days; clouds vary per day.
+
 ### ET₀ Ops & Debugging
 - Manual run: `computeWeeklyET0()` can be invoked (e.g., from `index.ts` or a REPL) to produce today's Redis entry.
-- Logs: Look for `[ET0] Using weekly ET₀ from Redis: <mm>` during irrigation decisions and `ET₀ weekly sum (last 7 days): <mm>` from the scheduler. A 5‑minute refresh log also appears.
+- Logs: Look for `[ET0] Using weekly ET₀ from Redis: <mm>` during irrigation decisions and `ET₀ weekly sum (last 7 days): <mm>` from the scheduler. A 5‑minute refresh log also appears. ET₀ also logs the 7 cloud means at info and per‑day inputs/derivations at debug (d1…d7).
 - Data: Inspect Redis with `GET et0:weekly:latest` or `GET et0:weekly:YYYY-MM-DD`.
 - Frontend API: The `/api/et0/latest` endpoint provides the most recent weekly ET₀ value for dashboard display.
 
