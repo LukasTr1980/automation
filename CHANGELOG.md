@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend: `/api/weather/temperature` serves from Redis cache first (adds `source: 'redis' | 'live'`).
 - Backend: ET₀ weekly sum is recomputed every 5 minutes using Redis‑cached inputs plus Influx cloud cover; it no longer calls WeatherLink directly.
 
+### Removed
+- Backend: Daily `23:55` ET₀ recomputation job; 5‑minute refresh supersedes it.
+
 ## [v19.3.1] - 2025-08-17
 ### Fixed
 - Client: Docker CI build failure due to TS6133 (unused local) in `NavBar`; removed unused media-query hook to comply with strict TypeScript settings.

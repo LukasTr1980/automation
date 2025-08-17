@@ -3,7 +3,6 @@ import type { WeatherData } from "./clients/influxdb-client.js";
 import logger from "./logger.js";
 import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js";
 import { readLatestWeeklyET0FromRedis } from "./utils/et0Storage.js";
-import { getRainRateFromWeatherlink, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getDailyRainTotal, getSevenDayRainTotal } from "./clients/weatherlink-client.js";
 import { readLatestWeatherFromRedis } from "./utils/weatherLatestStorage.js";
 import { readWeatherAggregatesFromRedis } from "./utils/weatherAggregatesStorage.js";
 
@@ -52,7 +51,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   }
   const zoneName = "lukasSued";
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);
-  // Prefer Redis-cached rain rate if available
+  // Read rain rate from Redis latest cache
   let rainRateWL = 0;
   let wlOk = false;
   try {
@@ -62,89 +61,30 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       wlOk = true;
     }
   } catch {}
-  if (!wlOk) {
-    const live = await getRainRateFromWeatherlink();
-    rainRateWL = live.rate;
-    wlOk = live.ok;
-  }
 
   // Rainfall now sourced exclusively from WeatherLink
   let rainToday = 0;
   let rainSum7 = 0;
-  let usedAggRain = false;
   try {
     const agg = await readWeatherAggregatesFromRedis();
     if (agg) {
       if (typeof agg.rain24hMm === 'number') rainToday = agg.rain24hMm;
       if (typeof agg.rain7dMm === 'number') rainSum7 = agg.rain7dMm;
-      usedAggRain = Number.isFinite(rainToday) && Number.isFinite(rainSum7);
     }
   } catch {}
-  if (!usedAggRain) {
-    try {
-      const day = await getDailyRainTotal(new Date(), 'metric');
-      if (day.ok) {
-        rainToday = day.total;
-        logger.info(`[WEATHERLINK] Using last 24h rain from WeatherLink: ${rainToday.toFixed(1)} mm`);
-      }
-    } catch (e) {
-      logger.error("[WEATHERLINK] Error computing 24h rain; using 0 mm", e);
-    }
-    try {
-      const week = await getSevenDayRainTotal(new Date(), 'metric');
-      if (week.ok) {
-        rainSum7 = week.total;
-        logger.info(`[WEATHERLINK] Using 7-day rain total from WeatherLink: ${rainSum7.toFixed(1)} mm`);
-      }
-    } catch (e) {
-      logger.error("[WEATHERLINK] Error computing 7-day rain; using 0 mm", e);
-    }
-  }
+  // No WeatherLink API calls here; rely on Redis values
 
   // Fetch 7-day outdoor temperature average from WeatherLink (daily mean over daily chunks)
-  const SEVEN_DAYS = 7 * 24 * 3600;
   let outTemp7 = 0;
   let humidity7 = 0;
-  let usedAggAvg = false;
   try {
     const agg = await readWeatherAggregatesFromRedis();
     if (agg) {
       if (typeof agg.temp7dAvgC === 'number') outTemp7 = agg.temp7dAvgC;
       if (typeof agg.humidity7dAvgPct === 'number') humidity7 = agg.humidity7dAvgPct;
-      usedAggAvg = Number.isFinite(outTemp7) && Number.isFinite(humidity7);
     }
   } catch {}
-  if (!usedAggAvg) {
-    try {
-      const week = await getOutdoorTempAverageRange({
-        windowSeconds: SEVEN_DAYS,
-        chunkSeconds: 24 * 3600,
-        combineMode: 'dailyMean',
-        units: 'metric',
-      });
-      if (week.ok) {
-        outTemp7 = week.avg;
-        logger.info(`[WEATHERLINK] Using 7-day temp avg from WeatherLink: ${outTemp7.toFixed(2)} °C`);
-      }
-    } catch (e) {
-      logger.error("[WEATHERLINK] Error computing 7-day temp avg; using 0 °C", e);
-    }
-
-    // Fetch 7-day outdoor humidity average from WeatherLink
-    try {
-      const hWeek = await getOutdoorHumidityAverageRange({
-        windowSeconds: SEVEN_DAYS,
-        chunkSeconds: 24 * 3600,
-        combineMode: 'dailyMean',
-      });
-      if (hWeek.ok) {
-        humidity7 = hWeek.avg;
-        logger.info(`[WEATHERLINK] Using 7-day humidity avg from WeatherLink: ${humidity7.toFixed(1)} %`);
-      }
-    } catch (e) {
-      logger.error("[WEATHERLINK] Error computing 7-day humidity avg; using 0%", e);
-    }
-  }
+  // No WeatherLink API calls here; rely on Redis values
 
   // 2) Build typed, immutable data object
   const d: EnrichedWeatherData = {

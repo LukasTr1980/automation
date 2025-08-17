@@ -74,9 +74,7 @@
 
 ## Evapotranspiration (ET₀)
 - Weekly only: 7-day ET₀ sum is recalculated every 5 minutes using latest cached inputs; no daily ET₀ is stored.
-- Schedulers:
-  - Every 5 minutes (+30s): refresh Redis weather caches and recompute weekly ET₀.
-  - Daily at `23:55`: backup recomputation (same logic).
+- Scheduler: Every 5 minutes (+30s) refreshes Redis weather caches and recomputes weekly ET₀.
 - Data sources:
   - Weather inputs from Redis aggregates (`weather:agg:latest`): 7d average temperature, humidity, wind, pressure, and mean diurnal range (Tmax−Tmin). These aggregates are refreshed every 5 minutes by polling WeatherLink.
   - Influx (cloud cover): daily means for the same 7-day window.
@@ -139,6 +137,7 @@
 - Skip flag: `GET/POST /api/decisionCheck` toggles whether scheduled tasks bypass the decision check; value is stored in Redis under `skipDecisionCheck`.
 - Behavior: Applies hard blockers (temp, humidity, rainfall, rain rate, deficit < 5 mm). If none apply, irrigation proceeds.
 - Wiring: Scheduler and MQTT SSE call `createIrrigationDecision` directly; the `gptChatIrrigation.ts` adapter was removed.
+- Weather input source: Decision logic reads latest values exclusively from Redis caches (`weather:latest`, `weather:agg:latest`); it does not call WeatherLink directly.
 - Dependencies: No OpenAI usage; `openai` dependency and related Vault credentials are removed.
 
 ## Dev Server Notes

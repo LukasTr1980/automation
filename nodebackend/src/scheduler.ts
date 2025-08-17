@@ -22,15 +22,7 @@ interface Job {
 
 const jobs: Job = {};
 
-// Compute weekly ET0 (sum of last 7 full days) daily
-schedule.scheduleJob('55 23 * * *', async () => {
-  try {
-    const sum = await computeWeeklyET0();
-    logger.info(`ET₀ Weekly Scheduler-Run: ${sum} mm`);
-  } catch (error) {
-    logger.error('ET₀ weekly scheduler run failed:', error);
-  }
-});
+// Daily ET₀ job removed; ET₀ is refreshed every 5 minutes alongside weather cache
 
 // Schedule the task to run every 15 minutes
 schedule.scheduleJob('*/15 * * * *', async () => {
