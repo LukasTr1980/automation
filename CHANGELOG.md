@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.3.1] - 2025-08-17
+### Fixed
+- Client: Docker CI build failure due to TS6133 (unused local) in `NavBar`; removed unused media-query hook to comply with strict TypeScript settings.
+
+### Changed
+- Frontend: Replaced deprecated MUI `primaryTypographyProps`/`secondaryTypographyProps` on `ListItemText` with `slotProps` to align with MUI v6 and remove deprecation warnings.
+
 ## [v19.3.0] - 2025-08-17
 ### Added
 - Frontend: Simple, responsive top navigation (`NavBar`) with links to Start (`/`), Bewässerung (`/bewaesserung`), and Timer (`/countdown`).

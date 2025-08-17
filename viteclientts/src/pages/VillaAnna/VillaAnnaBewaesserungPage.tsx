@@ -281,8 +281,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Ø-Temperatur (7 Tage)`}
                                 secondary={`${response.outTemp.toFixed(1)} °C`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                             <Divider component="li" />
@@ -291,8 +290,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Ø-Luftfeuchte (7 Tage)`}
                                 secondary={`${response.humidity.toFixed(0)} %`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                             <Divider component="li" />
@@ -301,8 +299,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Regen (24h)`}
                                 secondary={`${response.rainToday.toFixed(1)} mm`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                             <Divider component="li" />
@@ -311,8 +308,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Regenrate (aktuell)`}
                                 secondary={`${response.rainRate.toFixed(1)} mm/h`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                             <Divider component="li" />
@@ -321,8 +317,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Prognose (morgen, gewichtet)`}
                                 secondary={`${response.rainNextDay.toFixed(1)} mm × ${response.rainProbNextDay.toFixed(0)} % Wahrscheinlichkeit = ${response.effectiveForecast.toFixed(1)} mm`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                             <Divider component="li" />
@@ -331,8 +326,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Regen Summe (7 Tage)`}
                                 secondary={`${response.rainSum.toFixed(1)} mm`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                             <Divider component="li" />
@@ -341,8 +335,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Bewässerung Summe (7 Tage)`}
                                 secondary={`${response.irrigationDepthMm.toFixed(1)} mm`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                             <Divider component="li" />
@@ -351,8 +344,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Verdunstung Summe (7 Tage)`}
                                 secondary={`${response.et0_week.toFixed(1)} mm`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                             <Divider component="li" />
@@ -361,8 +353,7 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Wasserdefizit`}
                                 secondary={`${response.deficitNow.toFixed(1)} mm`}
-                                primaryTypographyProps={{ align: 'center' }}
-                                secondaryTypographyProps={{ align: 'center' }}
+                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
                           </List>

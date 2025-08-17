@@ -7,7 +7,6 @@ import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
-import { useTheme, useMediaQuery } from '@mui/material';
 
 const NavBar: React.FC = () => {
   // Pages and labels used across desktop and mobile
@@ -19,8 +18,7 @@ const NavBar: React.FC = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  // Note: responsive behavior handled via sx display props; no media query needed.
 
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
 
