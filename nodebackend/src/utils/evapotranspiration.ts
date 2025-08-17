@@ -3,13 +3,13 @@
 //  WEEKLY ET₀ (FAO‑56)
 //  – Inputs: Tmin/Tmax/Tavg, RH, Wind, Pressure from WeatherLink (24h chunks)
 //  – Cloud cover daily means from Influx (measurement "dwd.clouds")
-//  – Computes daily ET₀ for last 7 full days and stores the sum as JSONL
+//  – Computes daily ET₀ for last 7 full days and stores the sum in Redis
 // -----------------------------------------------------------------------------
 
 import { querySingleData } from "../clients/influxdb-client.js";
 import { getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from "../clients/weatherlink-client.js";
 import logger from "../logger.js";
-import { appendJsonl } from "./localDataWriter.js";
+import { writeWeeklyET0ToRedis } from "./et0Storage.js";
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
 const LAT = Number(process.env.LAT ?? 46.5668);
@@ -129,7 +129,7 @@ export async function computeWeeklyET0(): Promise<number> {
 
         const et0Sum = +et0s.reduce((a, b) => a + b, 0).toFixed(2);
 
-        await appendJsonl('evapotranspiration_weekly', { et0_week: et0Sum });
+        await writeWeeklyET0ToRedis(et0Sum);
         logger.info(`ET₀ weekly sum (last 7 days): ${et0Sum.toFixed(2)} mm`, { label: 'Evapotranspiration' });
         return et0Sum;
     } catch (err) {

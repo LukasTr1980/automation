@@ -2,7 +2,7 @@ import { queryAllData } from "./clients/influxdb-client.js";
 import type { WeatherData } from "./clients/influxdb-client.js";
 import logger from "./logger.js";
 import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js";
-import { readLatestJsonlNumber } from "./utils/localDataWriter.js";
+import { readLatestWeeklyET0FromRedis } from "./utils/et0Storage.js";
 import { getRainRateFromWeatherlink, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getDailyRainTotal, getSevenDayRainTotal } from "./clients/weatherlink-client.js";
 
 // ---------- Frontend Contract (structured metrics) ---------------------------
@@ -35,18 +35,18 @@ type EnrichedWeatherData = WeatherData & { et0_week: number; irrigationDepthMm: 
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // 1) Gather current metrics plus weekly irrigation depth
   const weatherData = await queryAllData();
-  // Override ET₀ with latest weekly value from JSONL (file-based source of truth)
+  // Override ET₀ with latest weekly value from Redis (source of truth)
   let et0WeeklyFromFile = 0;
   try {
-    const latest = await readLatestJsonlNumber('evapotranspiration_weekly', 'et0_week', 7);
+    const latest = await readLatestWeeklyET0FromRedis(7);
     if (typeof latest === 'number' && isFinite(latest)) {
       et0WeeklyFromFile = latest;
-      logger.info(`[ET0] Using weekly ET₀ from JSONL: ${et0WeeklyFromFile.toFixed(2)} mm`);
+      logger.info(`[ET0] Using weekly ET₀ from Redis: ${et0WeeklyFromFile.toFixed(2)} mm`);
     } else {
-      logger.warn('[ET0] No valid weekly ET₀ in JSONL; falling back to 0');
+      logger.warn('[ET0] No valid weekly ET₀ in Redis; falling back to 0');
     }
   } catch (e) {
-    logger.warn('[ET0] Failed to read weekly ET₀ from JSONL; falling back to 0', e);
+    logger.warn('[ET0] Failed to read weekly ET₀ from Redis; falling back to 0', e);
   }
   const zoneName = "lukasSued";
   const irrigationDepthMm = await getWeeklyIrrigationDepthMm(zoneName);

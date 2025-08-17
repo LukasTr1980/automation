@@ -1,15 +1,15 @@
 import express from 'express';
-import { readLatestJsonlNumber } from '../utils/localDataWriter.js';
+import { readLatestWeeklyET0FromRedis } from '../utils/et0Storage.js';
 import logger from '../logger.js';
 
 const router = express.Router();
 
 router.get('/latest', async (req, res) => {
   try {
-    const latestEt0 = await readLatestJsonlNumber('evapotranspiration_weekly', 'et0_week', 2);
+    const latestEt0 = await readLatestWeeklyET0FromRedis(2);
     
     if (latestEt0 === null) {
-      logger.warn('No ET₀ data found in recent files', { label: 'ET0Route' });
+      logger.warn('No ET₀ data found in Redis (recent days)', { label: 'ET0Route' });
       return res.status(404).json({ 
         error: 'No recent evapotranspiration data found',
         et0_week: null 

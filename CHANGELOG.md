@@ -1546,3 +1546,6 @@ Refactor irrigation decision logic and remove unused routes
 
 ### Removed
 - Some `console.logs`.
+## [Unreleased]
+### Changed
+- Backend: Store weekly ET₀ in Redis (`et0:weekly:YYYY-MM-DD` and `et0:weekly:latest`) instead of JSONL; scheduler writes to Redis, irrigation decision and `/api/et0/latest` read from Redis.
