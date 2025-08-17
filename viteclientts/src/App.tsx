@@ -8,6 +8,7 @@ import { SnackbarProvider } from './components/snackbar/SnackbarContext';
 import CentralizedSnackbar from './components/snackbar/CentralizedSnackbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import CssBaseline from '@mui/material/CssBaseline';
+import NavBar from './components/NavBar';
 
 function App() {
 
@@ -17,6 +18,7 @@ function App() {
         <CssBaseline />
         <Router>
           <div className="App">
+            <NavBar />
             <Routes>
               <Route path='/' element={<VillaAnnaHomePage />} />
               <Route path='/bewaesserung' element={<BewaesserungsPage />} />

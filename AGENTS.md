@@ -27,11 +27,28 @@
 - Mobile gutters: Avoid double horizontal padding on `xs`. Rely on Container's default gutters and keep wrapper `Box` with `px: { xs: 0, md: 3 }, py: { xs: 2, md: 3 }` to prevent excessive margins on small screens.
 - Status indicators: Prefer subtle elements (e.g., small colored dot + label) over large badges to match the simplified visual language.
 
+#### Navigation
+- Flat header: use a simple top bar with a bottom border (`borderBottom: 1px solid divider`), no elevation or shadows.
+- Spacing: align header gutters with page content (`maxWidth: 1200`, `px: { xs: 2, md: 3 }`, centered `mx: 'auto'`).
+- Active state: indicate with a small primary-colored dot before the label; avoid filled/raised tabs.
+- Mobile: use a hamburger icon opening a simple `Menu`; include ARIA (e.g., button label "Menü öffnen").
+- Text: keep all labels in German; keep the brand text minimal and neutral.
+
 ## Language & Logging
 - Comments: All code comments must be written in English (frontend and backend).
 - Logs: All log messages in code must be written in English (frontend and backend).
 - UI: All user-visible text (frontend, API response messages shown in UI) must be in German.
 - Prefer central helpers for messages to avoid drift; do not mix languages in a single message or string.
+- Docs: All text in `CHANGELOG.md` and `AGENTS.md` must be written in English.
+
+### Changelog Header
+- `CHANGELOG.md` must always begin exactly with the following lines at the very top:
+  - `# Changelog`
+  - A blank line
+  - `All notable changes to this project will be documented in this file.`
+  - A blank line
+  - `The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),`
+  - `and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).`
 
 ### Frontend Localization
 - The client is German-only. i18n has been removed from `viteclientts/` (no `i18next`/`react-i18next`).

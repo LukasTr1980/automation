@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.3.0] - 2025-08-17
+### Added
+- Frontend: Simple, responsive top navigation (`NavBar`) with links to Start (`/`), Bewässerung (`/bewaesserung`), and Timer (`/countdown`).
+
+### Changed
+- Backend: Store weekly ET₀ in Redis (`et0:weekly:YYYY-MM-DD`, `et0:weekly:latest`); scheduler writes to Redis, irrigation decision and `/api/et0/latest` read from Redis.
+- Frontend: Navigation styled to match the flat, minimal design (no elevation, bottom border, subtle active dot, aligned gutters and `maxWidth`).
+
+### Docs
+- AGENTS.md: Added a “Navigation” subsection (flat header, active-indicator, mobile menu ARIA) and a rule that all text in `CHANGELOG.md` and `AGENTS.md` must be written in English.
+
 ## [v19.2.0] - 2025-08-16
 ### Added
 - Frontend: Loading skeletons for HomePage Blocker chips (SSE) and Temperatur card to improve perceived performance during API/SSE delays.
