@@ -1,6 +1,5 @@
 import { flux, ParameterizedQuery } from "@influxdata/influxdb-client";
 
-const sensorBucket = "iobroker";
 const et0Bucket = "automation";
 
 // — Queries ----------------------------------------------------------------

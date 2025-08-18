@@ -18,7 +18,6 @@ import { writeWeeklyET0ToRedis } from "./et0Storage.js";
 const LAT = Number(process.env.LAT ?? 46.5668);
 const ELEV = Number(process.env.ELEV ?? 1060);    // m NN
 const ALBEDO = Number(process.env.ALBEDO ?? 0.23);    // Grass reference albedo
-const K_RS = Number(process.env.K_RS ?? 0.19);         // Hargreaves (inland)
 const WIND_Z = Number(process.env.WIND_SENSOR_HEIGHT_M ?? 10); // wind sensor height (m)
 const AP_A_S = Number(process.env.ANGSTROM_A_S ?? 0.25); // Angström a_s
 const AP_B_S = Number(process.env.ANGSTROM_B_S ?? 0.50); // Angström b_s
@@ -142,7 +141,7 @@ export async function computeWeeklyET0(): Promise<number> {
 
             const RaMJ = Ra(LAT, doy);
             const nOverN = clamp(1 - cloud / 100, 0, 1);
-            let Rs = (AP_A_S + AP_B_S * nOverN) * RaMJ;
+            const Rs = (AP_A_S + AP_B_S * nOverN) * RaMJ;
             const Rso = (0.75 + 2e-5 * ELEV) * RaMJ;
             let Rs_Rso = Rs / Rso;
             Rs_Rso = clamp(Rs_Rso, 0, 1.0);

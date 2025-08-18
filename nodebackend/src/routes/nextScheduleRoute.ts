@@ -82,7 +82,7 @@ router.get('/next', async (req, res) => {
       if (typeof ruleObj === 'string') {
         try {
           ruleObj = JSON.parse(ruleObj);
-        } catch (parseError) {
+        } catch (_parseError) {
           logger.warn(`RecurrenceRule is a string but not valid JSON: ${firstTask.recurrenceRule}`, { label: 'NextScheduleRoute' });
         }
       }

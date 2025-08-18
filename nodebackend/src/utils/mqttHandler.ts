@@ -53,15 +53,5 @@ setInterval(() => {
     }
 }, SAVE_INTERVAL);
 
-// Handlers for topics with specific check functions
-const createTopicHandler = (topic: string, checkFunction: (message: string) => boolean) => {
-    return {
-        getStatus: () => {
-            const message = latestStates[topic];
-            return message ? checkFunction(message) : null;
-        }
-    };
-};
-
 // Individual exports for each entity
 export { latestStates, addSseClient, stateChangeEmitter };

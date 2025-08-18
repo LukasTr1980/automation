@@ -83,7 +83,7 @@ async function subscribeToRedisKey(io: Server) {
         },
       });
 
-      subscriptionClient.on('pmessage', async (pattern, channel, message) => {
+      subscriptionClient.on('pmessage', async (_pattern, channel, _message) => {
         const baseKey = channel.substring(15, channel.lastIndexOf(":"));
         if (baseKey.startsWith('countdown:')) {
           try {

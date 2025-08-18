@@ -261,7 +261,7 @@ export async function getWeatherlinkMetrics<T extends Record<string, unknown>>(
     const block = sensors.find((b) => b.sensor_type === spec.sensorType);
     const data = block?.data ?? {};
 
-    let raw: unknown = (data as any)?.[spec.field];
+    const raw: unknown = (data as any)?.[spec.field];
     let value: unknown = undefined;
     if (raw !== undefined) {
       value = spec.transform ? spec.transform(raw, data) : raw;

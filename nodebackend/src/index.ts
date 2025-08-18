@@ -1,6 +1,6 @@
 //ATTENTION TO IMPORT ORDER, MAY BREAK APPLICATION
 import './dotenvConfig.js'; //To make env variables immediately available
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';

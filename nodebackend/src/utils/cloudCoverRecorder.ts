@@ -4,7 +4,6 @@
 //  und schreibt sie mit IPv4‑erzwingendem Agent + Retry‑Logik in InfluxDB.
 // -----------------------------------------------------------------------------
 
-import https from "https";
 import { writeToInflux } from "../clients/influxdb-client.js";
 import logger from "../logger.js";
 

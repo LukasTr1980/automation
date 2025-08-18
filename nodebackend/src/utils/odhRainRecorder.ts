@@ -9,7 +9,6 @@
 //    ODH_LANG          de | it | en …  (optional, default de)
 // -----------------------------------------------------------------------------
 
-import https from "https";
 import { writeToInflux } from "../clients/influxdb-client.js";
 import logger from "../logger.js";
 import {
