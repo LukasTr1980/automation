@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v19.5.0] - 2025-08-19
 ### Added
 - Frontend: Playwright E2E setup in `viteclientts/`; tests reside in `viteclientts/tests/` and run via `npx playwright test` (config runs Vite dev on port 5173 with `baseURL` `http://127.0.0.1:5173`).
 - Backend: 5‑minute WeatherLink poller with a 30s delay caches current readings in Redis under `weather:latest*` (temperature C, humidity %, rain rate mm/h, timestamp).
@@ -14,10 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend: General stale indicator in "Schnellübersicht" on the homepage with German tooltip (shows last update time; warning dot if older than 10 minutes).
 - Backend: ET₀ per‑day debug logging (d1…d7) including cloud %, n/N, Tmin/Tmax/Tavg, RH, wind@Z, u2, Ra/Rso/Rs, es/ea, Δ/γ, Rns/Rnl/Rn, ET0. Cloud series summary logged at info level.
 - Backend: Config knobs for ET₀: `WIND_SENSOR_HEIGHT_M` (default 10 m) and optional Angström coefficients `ANGSTROM_A_S` (default 0.25), `ANGSTROM_B_S` (default 0.50).
- - Frontend (Bewässerung): Added date-range tooltip and clarified labels "(7 Tage bis gestern)" for the weekly sums: Regen, Bewässerung, und Verdunstung (ET₀).
- - Frontend: Added an info tooltip to the “Blocker” headers (Home and Bewässerung) listing the possible blocker rules for quick reference.
+- Frontend (Bewässerung): Added date-range tooltip and clarified labels "(7 Tage bis gestern)" for the weekly sums: Regen, Bewässerung, und Verdunstung (ET₀).
+- Frontend: Added an info tooltip to the "Blocker" headers (Home and Bewässerung) listing the possible blocker rules for quick reference.
 
-## Changed
+### Changed
 - Backend: ET₀ weekly recomputation moved to a single daily run (00:40 local time) instead of every 5 minutes; removed ET₀ from the 5‑minute WeatherLink loop. ET₀ uses Redis caches plus Influx clouds and does not trigger additional WeatherLink calls.
 - Backend: Weather aggregates split: 24h/7d rainfall totals refresh every 5 minutes (for immediate blockers), while 7‑day means (temperature, humidity, wind, pressure, mean diurnal range) and the last‑7 daily aggregates refresh once daily after midnight.
 - Frontend (HomePage): Rename temperature card label to "Temperatur (aktuell)" and base the freshness indicator on the current snapshot timestamp only; tooltip continues to show both current and aggregate timestamps.
