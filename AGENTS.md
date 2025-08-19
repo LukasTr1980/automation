@@ -63,8 +63,10 @@
 - Blocker headers: Show a small info icon with a tooltip listing the possible blocker rules (temperature, humidity, 24h rain, rain rate, deficit) for quick at-a-glance context.
 
 ## Testing Guidelines
-- No test runner configured yet. Prefer adding unit tests (Vitest for client; Jest or Vitest for backend). Name tests `*.test.ts` / `*.test.tsx` and colocate near source or under `__tests__/`.
-- Until tests exist, validate by running the backend and client locally; keep functions pure and small to ease future testing.
+- Client unit tests: Prefer Vitest for component/unit tests. Name tests `*.test.ts` / `*.test.tsx` and colocate near source or under `__tests__/`.
+- Backend unit tests: Prefer Jest or Vitest. Name tests `*.test.ts` and colocate near source or under `__tests__/`.
+- End‑to‑end (Playwright): Installed in `viteclientts/`. Tests live in `viteclientts/tests/`. Run with `cd viteclientts && npx playwright test`. The config starts Vite preview on port `4173` and uses `baseURL` `http://localhost:4173`.
+- Until comprehensive tests exist, validate by running the backend and client locally; keep functions pure and small to ease future testing.
 
 ## Commit & Pull Request Guidelines
 - Commits: follow Conventional Commits (e.g., `feat:`, `fix:`, `refactor:`) as used in history.
