@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Frontend tests: Stabilized Playwright smoke tests by scoping locators to landmarks (use `navigation["Navigation"]` and `main`) and adding a URL assertion after clicking the “Bewässerung” nav link to avoid strict-mode ambiguity with similarly named home page cards. No UI or behavior changes.
+
+### Docs
+- AGENTS.md: Added Playwright locator guidance to avoid ambiguous matches (prefer scoping to landmarks, assert URL after navigation, optionally constrain heading level or use anchored names).
+
 ## [v19.5.0] - 2025-08-19
 ### Added
 - Frontend: Playwright E2E setup in `viteclientts/`; tests reside in `viteclientts/tests/` and run via `npx playwright test` (config runs Vite dev on port 5173 with `baseURL` `http://127.0.0.1:5173`).

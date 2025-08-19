@@ -7,19 +7,30 @@ import { test, expect } from '@playwright/test';
 test('home renders header and nav', async ({ page }) => {
   await page.goto('/');
 
-  // Header title on the homepage
+  // Header title on the homepage (scope to main to avoid ambiguity)
+  const main = page.getByRole('main');
   await expect(
-    page.getByRole('heading', { name: 'Villa Anna Bewässerungssystem' })
+    main.getByRole('heading', { name: 'Villa Anna Bewässerungssystem' })
   ).toBeVisible();
 
-  // Top navigation links (German labels)
-  await expect(page.getByRole('link', { name: 'Start' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Bewässerung' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Timer' })).toBeVisible();
+  // Top navigation links (German labels) scoped to navigation landmark
+  const nav = page.getByRole('navigation', { name: 'Navigation' });
+  await expect(nav.getByRole('link', { name: 'Start' })).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'Bewässerung' })).toBeVisible();
+  await expect(nav.getByRole('link', { name: 'Timer' })).toBeVisible();
 });
 
 test('navigate to Bewässerung page', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: 'Bewässerung' }).click();
-  await expect(page.getByRole('heading', { name: 'Bewässerung' })).toBeVisible();
+  // Click nav link specifically (avoid card link on the home grid)
+  await page
+    .getByRole('navigation', { name: 'Navigation' })
+    .getByRole('link', { name: 'Bewässerung' })
+    .click();
+
+  // Confirm navigation and verify page heading within main
+  await expect(page).toHaveURL(/\/bewaesserung$/);
+  await expect(
+    page.getByRole('main').getByRole('heading', { name: /^Bewässerung$/ })
+  ).toBeVisible();
 });

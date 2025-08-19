@@ -79,6 +79,11 @@
 - Debugging: use `--debug` or `PWDEBUG=1` to pause on actions; use `test.only(...)` to scope runs; inspect console/network via headed mode.
 - Preview vs dev: E2E runs against Vite dev server (not preview). If you prefer preview, adjust `webServer`/`baseURL` in `playwright.config.ts` to `vite preview` on port `4173` and update tests accordingly.
 
+#### Locator guidance (avoid ambiguity)
+- Scope by landmarks: prefer `page.getByRole('navigation', { name: 'Navigation' })` for top nav links and `page.getByRole('main')` for page content to prevent strict-mode conflicts with similarly named elements (e.g., nav link “Bewässerung” vs. card link on the home page).
+- Assert navigation: after clicking a link, add `await expect(page).toHaveURL(/\/bewaesserung$/)` (or a relevant route) before asserting page content.
+- Constrain headings when helpful: check within `main` and optionally add `{ level }` or anchored names like `{ name: /^Bewässerung$/ }` to target the page header, not card headings.
+
 ## Commit & Pull Request Guidelines
 - Commits: follow Conventional Commits (e.g., `feat:`, `fix:`, `refactor:`) as used in history.
 - PRs: include a clear description, linked issues, reproduction/verification steps, and screenshots for UI changes. Ensure both apps build (`npm run build`) and update `CHANGELOG.md` for user‑visible changes.
