@@ -73,8 +73,8 @@
 - PWA: The frontend no longer uses a Service Worker or manifest. On boot, existing SWs are unregistered to avoid cached `index.html` interfering with ForwardAuth redirects. Optionally set `Cache-Control: no-store` for HTML at the proxy for extra safety.
 
 ## Evapotranspiration (ET₀)
-- Weekly only: 7‑day ET₀ sum is recalculated every 5 minutes; the weekly total is stored, not individual daily outputs.
-- Scheduler: Every 5 minutes (+30s) refreshes Redis caches and recomputes weekly ET₀.
+- Weekly only: 7‑day ET₀ sum is recalculated once per day shortly after midnight; the weekly total is stored, not individual daily outputs.
+- Scheduler: Weather caches still refresh every 5 minutes (+30s), while weekly ET₀ is recomputed daily (00:40 local time).
 - Data sources:
   - Redis daily aggregates (`weather:daily:last7`): last 7 full local days with `tMinC`, `tMaxC`, `tAvgC`, `rhMeanPct`, `windMeanMS` (sensor height), `pressureMeanHPa`.
   - Redis 7‑day means (`weather:agg:latest`): used as fallbacks if a daily field is missing (Tavg, RH, wind, pressure, mean diurnal range).
@@ -93,7 +93,7 @@
 
 ### ET₀ Ops & Debugging
 - Manual run: `computeWeeklyET0()` can be invoked (e.g., from `index.ts` or a REPL) to produce today's Redis entry.
-- Logs: Irrigation decision logs `[ET0] Using weekly ET₀ from Redis: <mm>`; the scheduler logs `ET₀ weekly sum (last 7 days): <mm>` on refresh. ET₀ logs the 7 cloud means at info and per‑day inputs/derivations at debug (d1…d7).
+- Logs: Irrigation decision logs `[ET0] Using weekly ET₀ from Redis: <mm>`; the scheduler logs `ET₀ weekly sum (last 7 days): <mm>` on the daily run. ET₀ logs the 7 cloud means at info and per‑day inputs/derivations at debug (d1…d7).
 - Data: Inspect Redis with `GET et0:weekly:latest`, `GET et0:weekly:YYYY-MM-DD`, and `GET weather:daily:last7`.
 - Frontend API: The `/api/et0/latest` endpoint provides the most recent weekly ET₀ value for dashboard display.
 

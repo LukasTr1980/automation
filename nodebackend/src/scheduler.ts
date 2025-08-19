@@ -150,15 +150,19 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
       logger.error('Failed to cache daily last-7 aggregates to Redis', e);
     }
 
-    // Recompute weekly ET0 using Redis-cached values and store to Redis
-    try {
-      const sum = await computeWeeklyET0();
-      logger.info(`ET₀ Weekly (5-min refresh): ${sum} mm`);
-    } catch (err) {
-      logger.error('ET₀ 5-min recompute failed:', err);
-    }
+    // ET0 recomputation removed from 5-min loop; handled by a daily job
   } catch (error) {
     logger.error('WeatherLink latest cache scheduler failed:', error);
+  }
+});
+
+// Compute weekly ET₀ once per day shortly after local midnight
+schedule.scheduleJob('40 0 * * *', async () => {
+  try {
+    const sum = await computeWeeklyET0();
+    logger.info(`ET₀ Weekly (daily run): ${sum} mm`);
+  } catch (err) {
+    logger.error('ET₀ daily recompute failed:', err);
   }
 });
 
