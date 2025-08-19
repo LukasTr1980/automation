@@ -116,16 +116,10 @@ const HomePage = () => {
           setLatestTimestamp(tsLatest ?? null);
           setAggregatesTimestamp(tsAgg ?? null);
           setTemperatureData({ temperature: typeof temp === 'number' ? temp : null, unit: 'C' });
-          // Compute general cache freshness using the older of the two timestamps
-          const ages: number[] = [];
-          if (tsLatest) ages.push(Date.now() - new Date(tsLatest).getTime());
-          if (tsAgg) ages.push(Date.now() - new Date(tsAgg).getTime());
-          if (ages.length) {
-            const ageMs = Math.max(...ages);
-            const tsForDisplay = (tsLatest && tsAgg)
-              ? (new Date(tsLatest) < new Date(tsAgg) ? tsLatest : tsAgg)
-              : (tsLatest || tsAgg)!;
-            setCacheTimestamp(tsForDisplay);
+          // Freshness indicator reflects current snapshot only (latest)
+          if (tsLatest) {
+            const ageMs = Date.now() - new Date(tsLatest).getTime();
+            setCacheTimestamp(tsLatest);
             setCacheStale(ageMs > 10 * 60 * 1000); // 10 minutes threshold
           } else {
             setCacheTimestamp(null);
@@ -368,7 +362,7 @@ const HomePage = () => {
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
-                      Temperatur
+                      Temperatur (aktuell)
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
                       {tempLoading ? (

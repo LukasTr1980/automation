@@ -71,6 +71,22 @@ const BewaesserungPage = () => {
   const { showSnackbar } = useSnackbar();
   // Dialog state removed
 
+  // Helper: label for last 7 full local days (yesterday back 7 days)
+  const sevenDayFullRangeLabel = (() => {
+    try {
+      const now = new Date();
+      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const end = new Date(midnight);
+      end.setDate(end.getDate() - 1); // yesterday
+      const start = new Date(midnight);
+      start.setDate(start.getDate() - 7); // 7 full days back
+      const fmt = (d: Date) => new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(d);
+      return `${fmt(start)}–${fmt(end)}`;
+    } catch {
+      return '';
+    }
+  })();
+
   useEffect(() => {
     const params = new URLSearchParams();
     // If decision is skipped, instruct backend not to run the decision check for the
@@ -278,20 +294,24 @@ const BewaesserungPage = () => {
                           <List dense sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', '& li': { py: 0.5, width: '100%', maxWidth: 520 } }}>
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><ThermostatAutoIcon color="action" /></ListItemIcon>
-                              <ListItemText
-                                primary={`Ø-Temperatur (7 Tage)`}
-                                secondary={`${response.outTemp.toFixed(1)} °C`}
-                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                              />
+                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                                <ListItemText
+                                  primary={`Ø-Temperatur (7 Tage bis gestern)`}
+                                  secondary={`${response.outTemp.toFixed(1)} °C`}
+                                  slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
+                                />
+                              </Tooltip>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><OpacityOutlinedIcon color="action" /></ListItemIcon>
-                              <ListItemText
-                                primary={`Ø-Luftfeuchte (7 Tage)`}
-                                secondary={`${response.humidity.toFixed(0)} %`}
-                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                              />
+                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                                <ListItemText
+                                  primary={`Ø-Luftfeuchte (7 Tage bis gestern)`}
+                                  secondary={`${response.humidity.toFixed(0)} %`}
+                                  slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
+                                />
+                              </Tooltip>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>

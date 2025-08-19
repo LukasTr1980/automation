@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Changed
 - Backend: ET₀ weekly recomputation moved to a single daily run (00:40 local time) instead of every 5 minutes; removed ET₀ from the 5‑minute WeatherLink loop. ET₀ uses Redis caches plus Influx clouds and does not trigger additional WeatherLink calls.
+- Backend: Weather aggregates split: 24h/7d rainfall totals refresh every 5 minutes (for immediate blockers), while 7‑day means (temperature, humidity, wind, pressure, mean diurnal range) and the last‑7 daily aggregates refresh once daily after midnight.
+- Frontend (HomePage): Rename temperature card label to "Temperatur (aktuell)" and base the freshness indicator on the current snapshot timestamp only; tooltip continues to show both current and aggregate timestamps.
+- Frontend (Bewässerung): Clarify 7‑day averages as "(7 Tage bis gestern)" for temperature and humidity, and add a tooltip that displays the exact local date range (e.g., "Zeitraum: 12.08.–18.08. (lokal)").
 
 ## [v19.4.0] - 2025-08-17
 ### Added

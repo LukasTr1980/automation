@@ -12,7 +12,7 @@ import logger from './logger.js';
 import { recordIrrigationStartInflux } from './clients/influxdb-client.js';
 import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from './clients/weatherlink-client.js';
 import { writeLatestWeatherToRedis } from './utils/weatherLatestStorage.js';
-import { writeWeatherAggregatesToRedis } from './utils/weatherAggregatesStorage.js';
+import { writeWeatherAggregatesToRedis, readWeatherAggregatesFromRedis } from './utils/weatherAggregatesStorage.js';
 import { writeDailyLast7ToRedis } from './utils/weatherDailyStorage.js';
 
 const publisher = new MqttPublisher();
@@ -60,14 +60,51 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
     await writeLatestWeatherToRedis(payload);
     logger.info(`[WEATHERLINK] Cached latest: T=${payload.temperatureC ?? 'n/a'}°C, H=${payload.humidity ?? 'n/a'}%, R=${payload.rainRateMmPerHour ?? 'n/a'} mm/h`);
 
-    // Compute aggregates used by the app (24h/7d rain totals, 7d avg temp/humidity)
+    // Compute and cache rolling rain totals (24h, 7d) every 5 minutes; keep 7d means unchanged until daily refresh
     const now = new Date();
-    const SEVEN_DAYS = 7 * 24 * 3600;
-    // Align daily chunked ranges to the last 7 full local days [00:00..24:00)
-    const alignedEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const [r24, r7, t7, h7, w7, p7, tExt7] = await Promise.all([
+    const [r24, r7] = await Promise.all([
       getDailyRainTotal(now, 'metric'),
       getSevenDayRainTotal(now, 'metric'),
+    ] as const);
+
+    // Read existing 7d averages from Redis to preserve their values during the day
+    const existing = await readWeatherAggregatesFromRedis();
+    const agg = {
+      rain24hMm: r24.ok ? Math.round(r24.total * 10) / 10 : (existing?.rain24hMm ?? null),
+      rain7dMm: r7.ok ? Math.round(r7.total * 10) / 10 : (existing?.rain7dMm ?? null),
+      temp7dAvgC: existing?.temp7dAvgC ?? null,
+      humidity7dAvgPct: existing?.humidity7dAvgPct ?? null,
+      wind7dAvgMS: existing?.wind7dAvgMS ?? null,
+      pressure7dAvgHPa: existing?.pressure7dAvgHPa ?? null,
+      temp7dRangeAvgC: existing?.temp7dRangeAvgC ?? null,
+      timestamp: new Date().toISOString(),
+    };
+    await writeWeatherAggregatesToRedis(agg);
+    logger.info(`[WEATHERLINK] Cached aggs: r24=${agg.rain24hMm ?? 'n/a'} mm, r7=${agg.rain7dMm ?? 'n/a'} mm (7d means unchanged until daily job)`);
+
+    // ET0 recomputation removed from 5-min loop; handled by a daily job
+  } catch (error) {
+    logger.error('WeatherLink latest cache scheduler failed:', error);
+  }
+});
+
+// Compute weekly ET₀ once per day shortly after local midnight
+schedule.scheduleJob('40 0 * * *', async () => {
+  try {
+    const sum = await computeWeeklyET0();
+    logger.info(`ET₀ Weekly (daily run): ${sum} mm`);
+  } catch (err) {
+    logger.error('ET₀ daily recompute failed:', err);
+  }
+});
+
+// Refresh last-7 daily aggregates and 7d means once per day (aligned to local midnight)
+schedule.scheduleJob('35 0 * * *', async () => {
+  try {
+    const now = new Date();
+    const SEVEN_DAYS = 7 * 24 * 3600;
+    const alignedEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const [t7, h7, w7, p7, tExt7] = await Promise.all([
       getOutdoorTempAverageRange({ end: alignedEnd, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
       getOutdoorHumidityAverageRange({ end: alignedEnd, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean' }),
       getOutdoorWindSpeedAverageRange({ end: alignedEnd, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, combineMode: 'dailyMean', units: 'metric' }),
@@ -89,9 +126,11 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
       deltaT7Avg = n > 0 ? Math.round((sum / n) * 100) / 100 : null;
     }
 
+    // Merge with current rain totals so the agg payload remains complete
+    const existing = await readWeatherAggregatesFromRedis();
     const agg = {
-      rain24hMm: r24.ok ? Math.round(r24.total * 10) / 10 : null,
-      rain7dMm: r7.ok ? Math.round(r7.total * 10) / 10 : null,
+      rain24hMm: existing?.rain24hMm ?? null,
+      rain7dMm: existing?.rain7dMm ?? null,
       temp7dAvgC: t7.ok ? Math.round(t7.avg * 100) / 100 : null,
       humidity7dAvgPct: h7.ok ? Math.round(h7.avg) : null,
       wind7dAvgMS: w7.ok ? Math.round(w7.avg * 1000) / 1000 : null,
@@ -100,7 +139,7 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
       timestamp: new Date().toISOString(),
     };
     await writeWeatherAggregatesToRedis(agg);
-    logger.info(`[WEATHERLINK] Cached aggs: r24=${agg.rain24hMm ?? 'n/a'} mm, r7=${agg.rain7dMm ?? 'n/a'} mm, t7=${agg.temp7dAvgC ?? 'n/a'} °C, h7=${agg.humidity7dAvgPct ?? 'n/a'} %, w7=${agg.wind7dAvgMS ?? 'n/a'} m/s, p7=${agg.pressure7dAvgHPa ?? 'n/a'} hPa, dT7=${agg.temp7dRangeAvgC ?? 'n/a'} °C`);
+    logger.info(`[WEATHERLINK] Daily 7d means cached: t7=${agg.temp7dAvgC ?? 'n/a'} °C, h7=${agg.humidity7dAvgPct ?? 'n/a'} %, w7=${agg.wind7dAvgMS ?? 'n/a'} m/s, p7=${agg.pressure7dAvgHPa ?? 'n/a'} hPa, dT7=${agg.temp7dRangeAvgC ?? 'n/a'} °C`);
 
     // Persist per-day aggregates for the last 7 full local days in Redis
     try {
@@ -145,24 +184,12 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
       }
 
       await writeDailyLast7ToRedis({ days, timestamp: new Date().toISOString() });
-      logger.info(`[WEATHERLINK] Cached daily last-7: ${days.map(d => d.date).join(', ')}`);
+      logger.info(`[WEATHERLINK] Cached daily last-7 (daily job): ${days.map(d => d.date).join(', ')}`);
     } catch (e) {
-      logger.error('Failed to cache daily last-7 aggregates to Redis', e);
+      logger.error('Failed to cache daily last-7 aggregates to Redis (daily job)', e);
     }
-
-    // ET0 recomputation removed from 5-min loop; handled by a daily job
-  } catch (error) {
-    logger.error('WeatherLink latest cache scheduler failed:', error);
-  }
-});
-
-// Compute weekly ET₀ once per day shortly after local midnight
-schedule.scheduleJob('40 0 * * *', async () => {
-  try {
-    const sum = await computeWeeklyET0();
-    logger.info(`ET₀ Weekly (daily run): ${sum} mm`);
   } catch (err) {
-    logger.error('ET₀ daily recompute failed:', err);
+    logger.error('Daily 7d aggregates refresh failed:', err);
   }
 });
 

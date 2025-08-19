@@ -113,7 +113,7 @@
 - **Use**: Preferred by APIs and decision logic to reduce live API calls.
 
 ### Weather Aggregates Cache (Redis)
-- **Scheduler**: Computed alongside the latest cache job every 5 minutes.
+- **Scheduler**: Rolling rain totals (24h, 7d) update every 5 minutes. 7‑day means for temperature, humidity, wind, pressure, and mean diurnal range update once daily after midnight.
 - **Keys**:
   - `weather:agg:latest` → JSON `{ rain24hMm, rain7dMm, temp7dAvgC, humidity7dAvgPct, wind7dAvgMS, pressure7dAvgHPa, temp7dRangeAvgC, timestamp }`.
   - `weather:agg:rain24h:mm`, `weather:agg:rain7d:mm`, `weather:agg:temp7d:avgC`, `weather:agg:humidity7d:avgPct`, `weather:agg:wind7d:avgMS`, `weather:agg:pressure7d:avgHPa`, `weather:agg:temp7d:rangeAvgC`, `weather:agg:timestamp`.
@@ -141,7 +141,8 @@
 - **Data flow**: React hooks fetch data on component mount with proper loading states and error handling; Blocker subscribes to `/api/mqtt` SSE and renders rule chips
 - **Responsive design**: Cards adapt to screen size with consistent heights and proper text wrapping
 - **Zone names**: All schedule displays use human-readable names (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle)
-- **Freshness indicator**: Schnellübersicht shows a general cache freshness row using timestamps from `/api/weather/latest`; adds a subtle warning dot if older than 10 minutes and a German-formatted tooltip for exact times.
+- **Freshness indicator**: Schnellübersicht shows general cache freshness based on the latest snapshot timestamp from `/api/weather/latest.latest.timestamp` (warning dot if older than 10 minutes). Tooltip shows both current and aggregate timestamps for clarity.
+- **Labels (current vs averages)**: Temperature card label is "Temperatur (aktuell)" (current value). 7‑day averages on the Bewässerung page are labeled "(7 Tage bis gestern)" and include a tooltip with the exact local date range (e.g., "Zeitraum: 12.08.–18.08. (lokal)").
 
 ## Irrigation Decision (No AI)
 - Source of truth: `nodebackend/src/irrigationDecision.ts` implements a rule-based decision.
