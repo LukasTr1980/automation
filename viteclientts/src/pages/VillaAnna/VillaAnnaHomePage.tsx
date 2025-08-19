@@ -23,6 +23,7 @@ import {
   Speed,
   TrendingDown
 } from '@mui/icons-material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useState, useEffect, type ReactNode } from 'react';
 
 // Small helper to render relative age in minutes with German label
@@ -229,8 +230,11 @@ const HomePage = () => {
               overflow: 'visible'
             }}>
               <CardContent sx={{ py: 1.5 }}>
-                <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem', mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   Blocker
+                  <Tooltip title={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}>
+                    <InfoOutlinedIcon aria-label="Mögliche Blocker" sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  </Tooltip>
                 </Typography>
                 {decisionLoading ? (
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', pt: 0.5 }}>

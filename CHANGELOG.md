@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend: General stale indicator in "Schnellübersicht" on the homepage with German tooltip (shows last update time; warning dot if older than 10 minutes).
 - Backend: ET₀ per‑day debug logging (d1…d7) including cloud %, n/N, Tmin/Tmax/Tavg, RH, wind@Z, u2, Ra/Rso/Rs, es/ea, Δ/γ, Rns/Rnl/Rn, ET0. Cloud series summary logged at info level.
 - Backend: Config knobs for ET₀: `WIND_SENSOR_HEIGHT_M` (default 10 m) and optional Angström coefficients `ANGSTROM_A_S` (default 0.25), `ANGSTROM_B_S` (default 0.50).
+ - Frontend (Bewässerung): Added date-range tooltip and clarified labels "(7 Tage bis gestern)" for the weekly sums: Regen, Bewässerung, und Verdunstung (ET₀).
+ - Frontend: Added an info tooltip to the “Blocker” headers (Home and Bewässerung) listing the possible blocker rules for quick reference.
 
 ## Changed
 - Backend: ET₀ weekly recomputation moved to a single daily run (00:40 local time) instead of every 5 minutes; removed ET₀ from the 5‑minute WeatherLink loop. ET₀ uses Redis caches plus Influx clouds and does not trigger additional WeatherLink calls.

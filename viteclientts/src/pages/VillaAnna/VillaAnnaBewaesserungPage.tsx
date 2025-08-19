@@ -29,6 +29,7 @@ import CalendarViewWeekIcon from '@mui/icons-material/CalendarViewWeek';
 import WaterIcon from '@mui/icons-material/Water';
 import WavesIcon from '@mui/icons-material/Waves';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import useSnackbar from '../../utils/useSnackbar';
@@ -343,29 +344,35 @@ const BewaesserungPage = () => {
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><CalendarViewWeekIcon color="action" /></ListItemIcon>
-                              <ListItemText
-                                primary={`Regen Summe (7 Tage)`}
-                                secondary={`${response.rainSum.toFixed(1)} mm`}
-                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                              />
+                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                                <ListItemText
+                                  primary={`Regen Summe (7 Tage bis gestern)`}
+                                  secondary={`${response.rainSum.toFixed(1)} mm`}
+                                  slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
+                                />
+                              </Tooltip>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WaterIcon color="action" /></ListItemIcon>
-                              <ListItemText
-                                primary={`Bewässerung Summe (7 Tage)`}
-                                secondary={`${response.irrigationDepthMm.toFixed(1)} mm`}
-                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                              />
+                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                                <ListItemText
+                                  primary={`Bewässerung Summe (7 Tage bis gestern)`}
+                                  secondary={`${response.irrigationDepthMm.toFixed(1)} mm`}
+                                  slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
+                                />
+                              </Tooltip>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WavesIcon color="action" /></ListItemIcon>
-                              <ListItemText
-                                primary={`Verdunstung Summe (7 Tage)`}
-                                secondary={`${response.et0_week.toFixed(1)} mm`}
-                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                              />
+                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                                <ListItemText
+                                  primary={`Verdunstung Summe (7 Tage bis gestern)`}
+                                  secondary={`${response.et0_week.toFixed(1)} mm`}
+                                  slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
+                                />
+                              </Tooltip>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
@@ -379,7 +386,14 @@ const BewaesserungPage = () => {
                           </List>
                           {/* Blockers section */}
                           <Box mt={2}>
-                            <Typography variant="subtitle1" gutterBottom align="center">Blocker Aktiv</Typography>
+                            <Typography variant="subtitle1" gutterBottom align="center" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                              Blocker Aktiv
+                              <Tooltip 
+                                title={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
+                              >
+                                <InfoOutlinedIcon aria-label="Mögliche Blocker" sx={{ fontSize: 18, color: 'text.secondary' }} />
+                              </Tooltip>
+                            </Typography>
                             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                               {(() => {
                                 const chips: ReactNode[] = [];

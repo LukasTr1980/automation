@@ -58,6 +58,10 @@
   - Use `messages[key] || key` when displaying to avoid crashes on unknown keys.
 - Do not reintroduce i18n or locale switching.
 
+### Frontend UI Conventions (Villa Anna)
+- 7-day metrics on Bewässerung: Use the suffix "(7 Tage bis gestern)" and a tooltip showing the exact local date range (e.g., "Zeitraum: 12.08.–18.08. (lokal)") for both averages and sums (temperature, humidity, rain sum, irrigation sum, ET₀ sum).
+- Blocker headers: Show a small info icon with a tooltip listing the possible blocker rules (temperature, humidity, 24h rain, rain rate, deficit) for quick at-a-glance context.
+
 ## Testing Guidelines
 - No test runner configured yet. Prefer adding unit tests (Vitest for client; Jest or Vitest for backend). Name tests `*.test.ts` / `*.test.tsx` and colocate near source or under `__tests__/`.
 - Until tests exist, validate by running the backend and client locally; keep functions pure and small to ease future testing.
