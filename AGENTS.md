@@ -65,8 +65,19 @@
 ## Testing Guidelines
 - Client unit tests: Prefer Vitest for component/unit tests. Name tests `*.test.ts` / `*.test.tsx` and colocate near source or under `__tests__/`.
 - Backend unit tests: Prefer Jest or Vitest. Name tests `*.test.ts` and colocate near source or under `__tests__/`.
-- End‑to‑end (Playwright): Installed in `viteclientts/`. Tests live in `viteclientts/tests/`. Run with `cd viteclientts && npx playwright test`. The config starts Vite preview on port `4173` and uses `baseURL` `http://localhost:4173`.
+- End‑to‑end (Playwright): Installed in `viteclientts/`. Tests live in `viteclientts/tests/`. Run with `cd viteclientts && npx playwright test`. The config launches the Vite dev server on port `5173` and uses `baseURL` `http://127.0.0.1:5173`.
 - Until comprehensive tests exist, validate by running the backend and client locally; keep functions pure and small to ease future testing.
+
+### Playwright E2E (client)
+- Location: tests in `viteclientts/tests/`; config in `viteclientts/playwright.config.ts`.
+- Server & base URL: config starts Vite in dev mode on `http://127.0.0.1:5173` and sets `use.baseURL` accordingly, so tests can `page.goto('/')`.
+- Run tests: `cd viteclientts && npx playwright test` (headless by default). Add `--headed` for headed runs or `--ui` for the Playwright UI.
+- Browsers: projects run on `chromium`, `firefox`, and `webkit` via `@playwright/test`. Install browsers with `cd viteclientts && npx playwright install` (add `--with-deps` on fresh machines/CI images).
+- Parallelism & CI: tests are `fullyParallel`; on CI the config sets `workers: 1` and `retries: 2`.
+- Reports: HTML reporter writes to `viteclientts/playwright-report/`. Open with `cd viteclientts && npx playwright show-report`.
+- Tracing: `trace: 'on-first-retry'` collects traces on first retry. Open a trace zip with `cd viteclientts && npx playwright show-trace test-results/<run>/<test>/trace.zip`.
+- Debugging: use `--debug` or `PWDEBUG=1` to pause on actions; use `test.only(...)` to scope runs; inspect console/network via headed mode.
+- Preview vs dev: E2E runs against Vite dev server (not preview). If you prefer preview, adjust `webServer`/`baseURL` in `playwright.config.ts` to `vite preview` on port `4173` and update tests accordingly.
 
 ## Commit & Pull Request Guidelines
 - Commits: follow Conventional Commits (e.g., `feat:`, `fix:`, `refactor:`) as used in history.

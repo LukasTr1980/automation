@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Frontend: Playwright E2E setup in `viteclientts/`; tests reside in `viteclientts/tests/` and run via `npx playwright test` (config uses Vite preview on port 4173).
+- Frontend: Playwright E2E setup in `viteclientts/`; tests reside in `viteclientts/tests/` and run via `npx playwright test` (config runs Vite dev on port 5173 with `baseURL` `http://127.0.0.1:5173`).
 - Backend: 5‑minute WeatherLink poller with a 30s delay caches current readings in Redis under `weather:latest*` (temperature C, humidity %, rain rate mm/h, timestamp).
 - Backend: Cached 7‑day/24h aggregates in Redis under `weather:agg:*` (rain 24h, rain 7d, temp 7d avg, humidity 7d avg, wind 7d avg, pressure 7d avg, mean daily temp range) for decision logic, ET₀, and dashboards.
 - Backend: New cache-only endpoint `/api/weather/latest` returning Redis `latest` snapshot and `agg` aggregates for the client.
