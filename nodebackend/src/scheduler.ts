@@ -78,6 +78,8 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
       pressure7dAvgHPa: existing?.pressure7dAvgHPa ?? null,
       temp7dRangeAvgC: existing?.temp7dRangeAvgC ?? null,
       timestamp: new Date().toISOString(),
+      // Preserve daily means timestamp so frontend can distinguish from rolling rain updates
+      meansTimestamp: existing?.meansTimestamp ?? existing?.timestamp,
     };
     await writeWeatherAggregatesToRedis(agg);
     logger.info(`[WEATHERLINK] Cached aggs: r24=${agg.rain24hMm ?? 'n/a'} mm, r7=${agg.rain7dMm ?? 'n/a'} mm (7d means unchanged until daily job)`);
@@ -137,6 +139,8 @@ schedule.scheduleJob('35 0 * * *', async () => {
       pressure7dAvgHPa: p7.ok ? Math.round(p7.avg) : null,
       temp7dRangeAvgC: deltaT7Avg,
       timestamp: new Date().toISOString(),
+      // Set/refresh the means timestamp on the daily job
+      meansTimestamp: new Date().toISOString(),
     };
     await writeWeatherAggregatesToRedis(agg);
     logger.info(`[WEATHERLINK] Daily 7d means cached: t7=${agg.temp7dAvgC ?? 'n/a'} °C, h7=${agg.humidity7dAvgPct ?? 'n/a'} %, w7=${agg.wind7dAvgMS ?? 'n/a'} m/s, p7=${agg.pressure7dAvgHPa ?? 'n/a'} hPa, dT7=${agg.temp7dRangeAvgC ?? 'n/a'} °C`);

@@ -63,6 +63,7 @@ const HomePage = () => {
   const [cacheStale, setCacheStale] = useState<boolean>(false);
   const [latestTimestamp, setLatestTimestamp] = useState<string | null>(null);
   const [aggregatesTimestamp, setAggregatesTimestamp] = useState<string | null>(null);
+  const [meansTimestamp, setMeansTimestamp] = useState<string | null>(null);
   const [scheduleData, setScheduleData] = useState<{ nextScheduled: string; zone: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [tempLoading, setTempLoading] = useState(true);
@@ -114,8 +115,10 @@ const HomePage = () => {
           const temp = data?.latest?.temperatureC;
           const tsLatest: string | undefined = data?.latest?.timestamp;
           const tsAgg: string | undefined = data?.aggregates?.timestamp;
+          const tsMeans: string | undefined = data?.aggregates?.meansTimestamp;
           setLatestTimestamp(tsLatest ?? null);
           setAggregatesTimestamp(tsAgg ?? null);
+          setMeansTimestamp(tsMeans ?? null);
           setTemperatureData({ temperature: typeof temp === 'number' ? temp : null, unit: 'C' });
           // Freshness indicator reflects current snapshot only (latest)
           if (tsLatest) {
@@ -232,7 +235,13 @@ const HomePage = () => {
               <CardContent sx={{ py: 1.5 }}>
                 <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem', mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   Blocker
-                  <Tooltip title={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}>
+                  <Tooltip 
+                    title={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
+                    arrow
+                    placement="top"
+                    enterTouchDelay={0}
+                    leaveTouchDelay={3000}
+                  >
                     <InfoOutlinedIcon aria-label="Mögliche Blocker" sx={{ fontSize: 16, color: 'text.secondary' }} />
                   </Tooltip>
                 </Typography>
@@ -523,14 +532,23 @@ const HomePage = () => {
           </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Tooltip title={(() => {
+              <Tooltip 
+                arrow 
+                placement="top"
+                followCursor
+                enterTouchDelay={0}
+                leaveTouchDelay={3000}
+                title={(() => {
                 if (!latestTimestamp && !aggregatesTimestamp) return 'Zeitpunkt unbekannt';
-                if (latestTimestamp && aggregatesTimestamp && latestTimestamp !== aggregatesTimestamp) {
-                  return `Aktuell: ${formatDateTimeDE(latestTimestamp)} • Aggregiert: ${formatDateTimeDE(aggregatesTimestamp)}`;
+                // Prefer daily means timestamp for the aggregated part when available
+                const aggDisplay = meansTimestamp ?? aggregatesTimestamp ?? cacheTimestamp;
+                if (latestTimestamp && aggDisplay && latestTimestamp !== aggDisplay) {
+                  return `Aktuell: ${formatDateTimeDE(latestTimestamp)} • Aggregiert: ${formatDateTimeDE(aggDisplay)}`;
                 }
                 // Same (or only one available) → show single concise value
                 return `Stand: ${formatDateTimeDE(cacheTimestamp)}`;
-              })()}>
+              })()}
+              >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 {cacheStale && (
                   <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'warning.main' }} />

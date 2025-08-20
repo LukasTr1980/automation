@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Backend: Add `meansTimestamp` to `weather:agg:latest` JSON to represent the last refresh of 7‑day means (daily after midnight). The 5‑minute job now preserves `meansTimestamp` while updating rolling rain totals, so consumers can distinguish “aggregated” time from “current” time.
+- Frontend (HomePage): "Schnellübersicht" tooltip now uses `aggregates.meansTimestamp` for the aggregated time when available; continues to fall back to `aggregates.timestamp` for older payloads.
+
 ### Fixed
 - Frontend tests: Stabilized Playwright smoke tests by scoping locators to landmarks (use `navigation["Navigation"]` and `main`) and adding a URL assertion after clicking the “Bewässerung” nav link to avoid strict-mode ambiguity with similarly named home page cards. No UI or behavior changes.
+- Tooltips: On VillaAnnaHomePage and VillaAnnaBewaesserungPage, tooltips now appear close to the text, and are touch-friendly on mobile (`enterTouchDelay=0`, timed auto-hide). The HomePage aggregated time no longer mirrors the current time during the day.
 
 ### Docs
 - AGENTS.md: Added Playwright locator guidance to avoid ambiguous matches (prefer scoping to landmarks, assert URL after navigation, optionally constrain heading level or use anchored names).
+- AGENTS.md: Documented `meansTimestamp` in the weather aggregates payload and clarified that the HomePage tooltip shows the daily‑means timestamp for “Aggregiert”.
 
 ## [v19.5.0] - 2025-08-19
 ### Added

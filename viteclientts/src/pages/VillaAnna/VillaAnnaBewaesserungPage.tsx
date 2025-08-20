@@ -295,7 +295,14 @@ const BewaesserungPage = () => {
                           <List dense sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', '& li': { py: 0.5, width: '100%', maxWidth: 520 } }}>
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><ThermostatAutoIcon color="action" /></ListItemIcon>
-                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                              <Tooltip 
+                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                arrow
+                                placement="top"
+                                followCursor
+                                enterTouchDelay={0}
+                                leaveTouchDelay={3000}
+                              >
                                 <ListItemText
                                   primary={`Ø-Temperatur (7 Tage bis gestern)`}
                                   secondary={`${response.outTemp.toFixed(1)} °C`}
@@ -306,7 +313,14 @@ const BewaesserungPage = () => {
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><OpacityOutlinedIcon color="action" /></ListItemIcon>
-                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                              <Tooltip 
+                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                arrow
+                                placement="top"
+                                followCursor
+                                enterTouchDelay={0}
+                                leaveTouchDelay={3000}
+                              >
                                 <ListItemText
                                   primary={`Ø-Luftfeuchte (7 Tage bis gestern)`}
                                   secondary={`${response.humidity.toFixed(0)} %`}
@@ -344,7 +358,14 @@ const BewaesserungPage = () => {
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><CalendarViewWeekIcon color="action" /></ListItemIcon>
-                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                              <Tooltip 
+                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                arrow
+                                placement="top"
+                                followCursor
+                                enterTouchDelay={0}
+                                leaveTouchDelay={3000}
+                              >
                                 <ListItemText
                                   primary={`Regen Summe (7 Tage bis gestern)`}
                                   secondary={`${response.rainSum.toFixed(1)} mm`}
@@ -355,7 +376,14 @@ const BewaesserungPage = () => {
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WaterIcon color="action" /></ListItemIcon>
-                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                              <Tooltip 
+                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                arrow
+                                placement="top"
+                                followCursor
+                                enterTouchDelay={0}
+                                leaveTouchDelay={3000}
+                              >
                                 <ListItemText
                                   primary={`Bewässerung Summe (7 Tage bis gestern)`}
                                   secondary={`${response.irrigationDepthMm.toFixed(1)} mm`}
@@ -366,7 +394,14 @@ const BewaesserungPage = () => {
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WavesIcon color="action" /></ListItemIcon>
-                              <Tooltip title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}>
+                              <Tooltip 
+                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                arrow
+                                placement="top"
+                                followCursor
+                                enterTouchDelay={0}
+                                leaveTouchDelay={3000}
+                              >
                                 <ListItemText
                                   primary={`Verdunstung Summe (7 Tage bis gestern)`}
                                   secondary={`${response.et0_week.toFixed(1)} mm`}
@@ -390,6 +425,10 @@ const BewaesserungPage = () => {
                               Blocker Aktiv
                               <Tooltip 
                                 title={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
+                                arrow
+                                placement="top"
+                                enterTouchDelay={0}
+                                leaveTouchDelay={3000}
                               >
                                 <InfoOutlinedIcon aria-label="Mögliche Blocker" sx={{ fontSize: 18, color: 'text.secondary' }} />
                               </Tooltip>

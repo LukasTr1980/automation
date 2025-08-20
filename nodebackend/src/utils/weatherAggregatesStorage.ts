@@ -9,7 +9,10 @@ export interface WeatherAggregates {
   wind7dAvgMS: number | null;
   pressure7dAvgHPa: number | null;
   temp7dRangeAvgC: number | null; // mean of (Tmax - Tmin) over last 7 days
+  // timestamp: last time any aggregate field was updated (e.g., rolling rain every 5 min)
   timestamp: string; // ISO
+  // meansTimestamp: last time the 7‑day means were refreshed (once daily after midnight)
+  meansTimestamp?: string; // ISO (optional for backward compatibility)
 }
 
 const AGG_KEY = "weather:agg:latest";
