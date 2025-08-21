@@ -311,38 +311,48 @@ const BewaesserungPage = () => {
                           <List dense sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', '& li': { py: 0.5, width: '100%', maxWidth: 520 } }}>
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><ThermostatAutoIcon color="action" /></ListItemIcon>
-                              <Tooltip 
-                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                arrow
-                                placement="top"
-                                followCursor
-                                enterTouchDelay={0}
-                                leaveTouchDelay={3000}
-                              >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                 <ListItemText
                                   primary={`Ø-Temperatur (7 Tage bis gestern)`}
                                   secondary={`${response.outTemp.toFixed(1)} °C`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                              </Tooltip>
+                                <Tooltip 
+                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                  arrow
+                                  placement="top"
+                                  enterTouchDelay={0}
+                                  leaveTouchDelay={10000}
+                                  leaveDelay={10000}
+                                >
+                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
+                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><OpacityOutlinedIcon color="action" /></ListItemIcon>
-                              <Tooltip 
-                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                arrow
-                                placement="top"
-                                followCursor
-                                enterTouchDelay={0}
-                                leaveTouchDelay={3000}
-                              >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                 <ListItemText
                                   primary={`Ø-Luftfeuchte (7 Tage bis gestern)`}
                                   secondary={`${response.humidity.toFixed(0)} %`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                              </Tooltip>
+                                <Tooltip 
+                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                  arrow
+                                  placement="top"
+                                  enterTouchDelay={0}
+                                  leaveTouchDelay={10000}
+                                  leaveDelay={10000}
+                                >
+                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
+                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
@@ -374,56 +384,71 @@ const BewaesserungPage = () => {
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><CalendarViewWeekIcon color="action" /></ListItemIcon>
-                              <Tooltip 
-                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                arrow
-                                placement="top"
-                                followCursor
-                                enterTouchDelay={0}
-                                leaveTouchDelay={3000}
-                              >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                 <ListItemText
                                   primary={`Regen Summe (7 Tage bis gestern)`}
                                   secondary={`${response.rainSum.toFixed(1)} mm`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                              </Tooltip>
+                                <Tooltip 
+                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                  arrow
+                                  placement="top"
+                                  enterTouchDelay={0}
+                                  leaveTouchDelay={10000}
+                                  leaveDelay={10000}
+                                >
+                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
+                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WaterIcon color="action" /></ListItemIcon>
-                              <Tooltip 
-                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                arrow
-                                placement="top"
-                                followCursor
-                                enterTouchDelay={0}
-                                leaveTouchDelay={3000}
-                              >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                 <ListItemText
                                   primary={`Bewässerung Summe (7 Tage bis gestern)`}
                                   secondary={`${response.irrigationDepthMm.toFixed(1)} mm`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                              </Tooltip>
+                                <Tooltip 
+                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                  arrow
+                                  placement="top"
+                                  enterTouchDelay={0}
+                                  leaveTouchDelay={10000}
+                                  leaveDelay={10000}
+                                >
+                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
+                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WavesIcon color="action" /></ListItemIcon>
-                              <Tooltip 
-                                title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                arrow
-                                placement="top"
-                                followCursor
-                                enterTouchDelay={0}
-                                leaveTouchDelay={3000}
-                              >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                 <ListItemText
                                   primary={`Verdunstung Summe (7 Tage bis gestern)`}
                                   secondary={`${response.et0_week.toFixed(1)} mm`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                              </Tooltip>
+                                <Tooltip 
+                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
+                                  arrow
+                                  placement="top"
+                                  enterTouchDelay={0}
+                                  leaveTouchDelay={10000}
+                                  leaveDelay={10000}
+                                >
+                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
+                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
@@ -444,7 +469,8 @@ const BewaesserungPage = () => {
                                 arrow
                                 placement="top"
                                 enterTouchDelay={0}
-                                leaveTouchDelay={3000}
+                                leaveTouchDelay={10000}
+                                leaveDelay={10000}
                               >
                                 <IconButton size="small" aria-label="Mögliche Blocker" sx={{ color: 'text.secondary', p: 0.25 }}>
                                   <InfoOutlinedIcon sx={{ fontSize: 18 }} />
@@ -460,27 +486,27 @@ const BewaesserungPage = () => {
                                 const rateActive = response.rainRate > 0;
                                 const deficitActive = response.deficitNow < 5;
                                 if (tempActive) chips.push(
-                                  <Tooltip title={`Ø-Temperatur 7 Tage: ${response.outTemp.toFixed(1)} °C`} key="b-temp">
+                                  <Tooltip title={`Ø-Temperatur 7 Tage: ${response.outTemp.toFixed(1)} °C`} key="b-temp" leaveDelay={10000} leaveTouchDelay={10000}>
                                     <Chip color="error" variant="filled" icon={<ThermostatAutoIcon />} label="Ø-Temperatur ≤ 10 °C" />
                                   </Tooltip>
                                 );
                                 if (humActive) chips.push(
-                                  <Tooltip title={`Ø-Luftfeuchte 7 Tage: ${response.humidity.toFixed(0)} %`} key="b-hum">
+                                  <Tooltip title={`Ø-Luftfeuchte 7 Tage: ${response.humidity.toFixed(0)} %`} key="b-hum" leaveDelay={10000} leaveTouchDelay={10000}>
                                     <Chip color="error" variant="filled" icon={<OpacityOutlinedIcon />} label="Ø-Luftfeuchte ≥ 80 %" />
                                   </Tooltip>
                                 );
                                 if (rain24Active) chips.push(
-                                  <Tooltip title={`Regen (24h): ${response.rainToday.toFixed(1)} mm`} key="b-r24">
+                                  <Tooltip title={`Regen (24h): ${response.rainToday.toFixed(1)} mm`} key="b-r24" leaveDelay={10000} leaveTouchDelay={10000}>
                                     <Chip color="error" variant="filled" icon={<WaterDropIcon />} label="Regen (24h) ≥ 3 mm" />
                                   </Tooltip>
                                 );
                                 if (rateActive) chips.push(
-                                  <Tooltip title={`Regenrate: ${response.rainRate.toFixed(1)} mm/h`} key="b-rate">
+                                  <Tooltip title={`Regenrate: ${response.rainRate.toFixed(1)} mm/h`} key="b-rate" leaveDelay={10000} leaveTouchDelay={10000}>
                                     <Chip color="error" variant="filled" icon={<SpeedIcon />} label="Regenrate > 0" />
                                   </Tooltip>
                                 );
                                 if (deficitActive) chips.push(
-                                  <Tooltip title={`Wasserdefizit: ${response.deficitNow.toFixed(1)} mm`} key="b-def">
+                                  <Tooltip title={`Wasserdefizit: ${response.deficitNow.toFixed(1)} mm`} key="b-def" leaveDelay={10000} leaveTouchDelay={10000}>
                                     <Chip color="error" variant="filled" icon={<TrendingDownIcon />} label="Defizit < 5 mm" />
                                   </Tooltip>
                                 );

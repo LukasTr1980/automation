@@ -4,18 +4,20 @@ import axios from 'axios';
 import Layout from '../../Layout';
 import {
     FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     Grid,
     Card,
     CardContent,
     CardHeader,
-    SelectChangeEvent,
     Button,
     Box,
     Typography,
+    ToggleButton,
+    FormLabel,
 } from '@mui/material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import CircularProgress from '@mui/material/CircularProgress';
 import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import { HourField, MinuteField } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
@@ -30,6 +32,7 @@ const VillaAnnacountdownPage = () => {
     const [selectedHour, setSelectedHour] = useState<string>('0');
     const [selectedMinute, setSelectedMinute] = useState<string>('10');
     const [sending, setSending] = useState(false);
+    const [sendingAction, setSendingAction] = useState<null | 'start' | 'stop' | 'reset'>(null);
     const [fieldValidity, setFieldvalidity] = useState({
         hour: true,
         minute: true
@@ -37,11 +40,9 @@ const VillaAnnacountdownPage = () => {
 
     const apiUrl = import.meta.env.VITE_API_URL;
 
-    const handleZoneChange = (event: SelectChangeEvent) => {
-        setSelectedZone(event.target.value);
-    }
+    // Zone selection handled by standalone ToggleButtons
 
-    const handleSendTopic = (action: string) => {
+    const handleSendTopic = (action: 'start' | 'stop' | 'reset') => {
         const isValid = {
             hour: selectedHour !== '',
             minute: selectedMinute !== '',
@@ -52,6 +53,7 @@ const VillaAnnacountdownPage = () => {
         if (Object.values(isValid).every(Boolean)) {
             const selectedTopic = bewaesserungsTopicsSet[zoneOrder.indexOf(selectedZone)];
             setSending(true);
+            setSendingAction(action);
             axios.post(`${apiUrl}/countdown/setCountdown`, {
                 topic: selectedTopic,
                 hours: selectedHour,
@@ -67,7 +69,7 @@ const VillaAnnacountdownPage = () => {
                     console.error('Error', error);
                     showSnackbar('Fehler', 'error');
                 })
-                .finally(() => setSending(false));
+                .finally(() => { setSending(false); setSendingAction(null); });
         }
     };
 
@@ -82,6 +84,12 @@ const VillaAnnacountdownPage = () => {
         refetchInterval: 1000,
         refetchOnWindowFocus: false,
     });
+
+    // Derive running countdowns (only show active ones)
+    const countdowns = countdownsQuery.data || {};
+    // Only show stopped or running; hide reset
+    const entries = Object.entries(countdowns).filter(([_, c]) => !!c && c.control?.toLowerCase() !== 'reset');
+    const hasAny = entries.length > 0;
 
     return (
         <Layout>
@@ -117,19 +125,29 @@ const VillaAnnacountdownPage = () => {
                         <CardContent>
                             <Grid container spacing={2}>
                                 <Grid size={12}>
-                                    <FormControl fullWidth>
-                                        <InputLabel id="zone-select-label">Zone</InputLabel>
-                                        <Select
-                                            labelId="zone-select-label"
-                                            value={selectedZone}
-                                            onChange={handleZoneChange}
-                                        >
-                                            {zoneOrder.map((zone, i) => (
-                                                <MenuItem value={zone} key={bewaesserungsTopicsSet[i]}>
-                                                    {zone}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
+                                    <FormControl fullWidth component="fieldset" sx={{ mb: 1 }}>
+                                        <FormLabel id="zone-toggle-label" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>Zone</FormLabel>
+                                        <Box sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-start' }, mt: 1, flexWrap: 'wrap', gap: 1 }}>
+                                          {zoneOrder.map((zone, i) => (
+                                            <ToggleButton
+                                              key={bewaesserungsTopicsSet[i]}
+                                              value={zone}
+                                              selected={selectedZone === zone}
+                                              onClick={() => setSelectedZone(zone)}
+                                              aria-label={zone}
+                                              sx={{
+                                                borderRadius: 2,
+                                                textTransform: 'none',
+                                                px: 1.5,
+                                                py: 1,
+                                                minWidth: { xs: 120, sm: 140 },
+                                                justifyContent: 'center'
+                                              }}
+                                            >
+                                              {zone}
+                                            </ToggleButton>
+                                          ))}
+                                        </Box>
                                     </FormControl>
                                 </Grid>
                                 <Grid size={6}>
@@ -151,43 +169,75 @@ const VillaAnnacountdownPage = () => {
                                     />
                                 </Grid>
                                 <Grid size={12}>
-                                    <Button variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')} disabled={sending} aria-busy={sending}>
-                                        Start
+                                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
+                                    <Button
+                                      variant='contained'
+                                      color='success'
+                                      size='large'
+                                      onClick={() => handleSendTopic('start')}
+                                      disabled={sending}
+                                      aria-busy={sending && sendingAction === 'start'}
+                                      startIcon={sending && sendingAction === 'start' ? <CircularProgress size={18} color='inherit' /> : <PlayArrowIcon />}
+                                      disableElevation
+                                      sx={{ flex: 1, borderRadius: 2 }}
+                                      aria-label='Countdown starten'
+                                    >
+                                      Start
                                     </Button>
-                                </Grid>
-                                <Grid size={12}>
-                                    <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')} disabled={sending} aria-busy={sending}>
-                                        Stopp
+                                    <Button
+                                      variant='contained'
+                                      color='error'
+                                      size='large'
+                                      onClick={() => handleSendTopic('stop')}
+                                      disabled={sending}
+                                      aria-busy={sending && sendingAction === 'stop'}
+                                      startIcon={sending && sendingAction === 'stop' ? <CircularProgress size={18} color='inherit' /> : <StopIcon />}
+                                      disableElevation
+                                      sx={{ flex: 1, borderRadius: 2 }}
+                                      aria-label='Countdown stoppen'
+                                    >
+                                      Stopp
                                     </Button>
-                                </Grid>
-                                <Grid size={12}>
-                                    <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')} disabled={sending} aria-busy={sending}>
-                                        Zurücksetzen
+                                    <Button
+                                      variant='outlined'
+                                      color='warning'
+                                      size='large'
+                                      onClick={() => handleSendTopic('reset')}
+                                      disabled={sending}
+                                      aria-busy={sending && sendingAction === 'reset'}
+                                      startIcon={sending && sendingAction === 'reset' ? <CircularProgress size={18} /> : <RestartAltIcon />}
+                                      disableElevation
+                                      sx={{ flex: 1, borderRadius: 2 }}
+                                      aria-label='Countdown zurücksetzen'
+                                    >
+                                      Zurücksetzen
                                     </Button>
+                                  </Box>
                                 </Grid>
                             </Grid>
                         </CardContent>
                     </Card>
                 </Grid>
 
-                <Grid size={12} sx={{ mt: 2 }}>
-                    <Card variant='outlined' sx={{ borderRadius: 2 }}>
-                        <CardHeader
-                            title='Countdowns'
-                            slotProps={{ title: { sx: { fontWeight: 600 } } }}
-                        />
-                        <CardContent>
-                            {zoneOrder.map(zoneName => {
-                                const topic = bewaesserungsTopicsSet[zoneOrder.indexOf(zoneName)];
-                                const countdown = (countdownsQuery.data || {})[topic];
-                                if (!countdown) return null; // Skip rendering if there's no countdown data for this topic
-                                return (
-                                    <CountdownCard key={topic} zoneName={zoneName} countdown={countdown} />
-                                );
-                            })}
-                        </CardContent>
-                    </Card>
-                </Grid>
+                {hasAny && (
+                    <Grid size={12} sx={{ mt: 2 }}>
+                        <Card variant='outlined' sx={{ borderRadius: 2 }}>
+                            <CardHeader
+                                title='Countdowns'
+                                slotProps={{ title: { sx: { fontWeight: 600 } } }}
+                            />
+                            <CardContent>
+                                {entries.map(([topic, countdown]) => {
+                                  const idx = bewaesserungsTopicsSet.indexOf(topic);
+                                  const zoneName = idx >= 0 ? zoneOrder[idx] : topic;
+                                  return (
+                                      <CountdownCard key={topic} zoneName={zoneName} countdown={countdown!} />
+                                  );
+                                })}
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                )}
             </Box>
         </Layout>
     );

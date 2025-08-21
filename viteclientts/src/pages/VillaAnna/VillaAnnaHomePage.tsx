@@ -208,7 +208,8 @@ const HomePage = () => {
                     arrow
                     placement="top"
                     enterTouchDelay={0}
-                    leaveTouchDelay={3000}
+                    leaveTouchDelay={10000}
+                    leaveDelay={10000}
                   >
                     <IconButton size="small" aria-label="Mögliche Blocker" sx={{ color: 'text.secondary', p: 0.25 }}>
                       <InfoOutlinedIcon sx={{ fontSize: 16 }} />
@@ -231,7 +232,7 @@ const HomePage = () => {
                       const rateActive = decision.rainRate > 0;
                       const deficitActive = decision.deficitNow < 5;
                       if (tempActive) chips.push(
-                        <Tooltip title={`Ø-Temperatur 7 Tage: ${decision.outTemp.toFixed(1)} °C`} key="b-temp">
+                        <Tooltip title={`Ø-Temperatur 7 Tage: ${decision.outTemp.toFixed(1)} °C`} key="b-temp" leaveDelay={10000} leaveTouchDelay={10000}>
                           <Chip 
                             color="error" 
                             variant="filled" 
@@ -243,7 +244,7 @@ const HomePage = () => {
                         </Tooltip>
                       );
                       if (humActive) chips.push(
-                        <Tooltip title={`Ø-Luftfeuchte 7 Tage: ${decision.humidity.toFixed(0)} %`} key="b-hum">
+                        <Tooltip title={`Ø-Luftfeuchte 7 Tage: ${decision.humidity.toFixed(0)} %`} key="b-hum" leaveDelay={10000} leaveTouchDelay={10000}>
                           <Chip 
                             color="error" 
                             variant="filled" 
@@ -255,7 +256,7 @@ const HomePage = () => {
                         </Tooltip>
                       );
                       if (rain24Active) chips.push(
-                        <Tooltip title={`Regen (24h): ${decision.rainToday.toFixed(1)} mm`} key="b-r24">
+                        <Tooltip title={`Regen (24h): ${decision.rainToday.toFixed(1)} mm`} key="b-r24" leaveDelay={10000} leaveTouchDelay={10000}>
                           <Chip 
                             color="error" 
                             variant="filled" 
@@ -267,7 +268,7 @@ const HomePage = () => {
                         </Tooltip>
                       );
                       if (rateActive) chips.push(
-                        <Tooltip title={`Regenrate: ${decision.rainRate.toFixed(1)} mm/h`} key="b-rate">
+                        <Tooltip title={`Regenrate: ${decision.rainRate.toFixed(1)} mm/h`} key="b-rate" leaveDelay={10000} leaveTouchDelay={10000}>
                           <Chip 
                             color="error" 
                             variant="filled" 
@@ -279,7 +280,7 @@ const HomePage = () => {
                         </Tooltip>
                       );
                       if (deficitActive) chips.push(
-                        <Tooltip title={`Wasserdefizit: ${decision.deficitNow.toFixed(1)} mm`} key="b-def">
+                        <Tooltip title={`Wasserdefizit: ${decision.deficitNow.toFixed(1)} mm`} key="b-def" leaveDelay={10000} leaveTouchDelay={10000}>
                           <Chip 
                             color="error" 
                             variant="filled" 
@@ -320,11 +321,16 @@ const HomePage = () => {
               <CardContent sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
                   <Box sx={{ flex: 1 }}>
-                    <Tooltip title={formatLast7DaysRangeDE()} arrow placement="top" enterTouchDelay={0} leaveTouchDelay={3000}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
                         Verdunstung (7 Tage bis gestern)
                       </Typography>
-                    </Tooltip>
+                      <Tooltip title={formatLast7DaysRangeDE()} arrow placement="top" enterTouchDelay={0} leaveTouchDelay={10000} leaveDelay={10000}>
+                        <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
+                          <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
                       {et0Query.isLoading
                         ? '...'
@@ -491,42 +497,47 @@ const HomePage = () => {
           border: '1px solid',
           borderColor: 'divider'
         }}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}>
             Schnellübersicht
           </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Tooltip 
-                arrow 
-                placement="top"
-                followCursor
-                enterTouchDelay={0}
-                leaveTouchDelay={3000}
-                title={(() => {
-                if (!latestTimestamp && !aggregatesTimestamp) return 'Zeitpunkt unbekannt';
-                // Prefer daily means timestamp for the aggregated part when available
-                const aggDisplay = meansTimestamp ?? aggregatesTimestamp ?? cacheTimestamp;
-                if (latestTimestamp && aggDisplay && latestTimestamp !== aggDisplay) {
-                  return `Aktuell: ${formatDateTimeDE(latestTimestamp)} • Aggregiert: ${formatDateTimeDE(aggDisplay)}`;
-                }
-                // Same (or only one available) → show single concise value
-                return `Stand: ${formatDateTimeDE(cacheTimestamp)}`;
-              })()}
-              >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'center', sm: 'flex-start' }, textAlign: { xs: 'center', sm: 'left' } }}>
                 {cacheStale && (
                   <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'warning.main' }} />
                 )}
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
                   Datenaktualität: {cacheTimestamp ? formatRelativeMinutes(cacheTimestamp) : 'unbekannt'}
                 </Typography>
+                <Tooltip 
+                  arrow 
+                  placement="top"
+                  enterTouchDelay={0}
+                  leaveTouchDelay={10000}
+                  leaveDelay={10000}
+                  title={(() => {
+                    if (!latestTimestamp && !aggregatesTimestamp) return 'Zeitpunkt unbekannt';
+                    // Prefer daily means timestamp for the aggregated part when available
+                    const aggDisplay = meansTimestamp ?? aggregatesTimestamp ?? cacheTimestamp;
+                    if (latestTimestamp && aggDisplay && latestTimestamp !== aggDisplay) {
+                      return `Aktuell: ${formatDateTimeDE(latestTimestamp)} • Aggregiert: ${formatDateTimeDE(aggDisplay)}`;
+                    }
+                    // Same (or only one available) → show single concise value
+                    return `Stand: ${formatDateTimeDE(cacheTimestamp)}`;
+                  })()}
+                >
+                  <IconButton size="small" aria-label="Zeitstempel anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
+                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Tooltip>
               </Box>
-              </Tooltip>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography variant="body2" color="text.secondary">
-                Nächste Planung: {scheduleQuery.isLoading ? '...' : (scheduleQuery.data?.nextScheduled || 'Kein Zeitplan')} {scheduleQuery.data?.zone ? `• ${scheduleQuery.data.zone}` : '• Automatikmodus aktiviert'}
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-start' } }}>
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                  Nächste Planung: {scheduleQuery.isLoading ? '...' : (scheduleQuery.data?.nextScheduled || 'Kein Zeitplan')} {scheduleQuery.data?.zone ? `• ${scheduleQuery.data.zone}` : '• Automatikmodus aktiviert'}
+                </Typography>
+              </Box>
             </Grid>
           </Grid>
         </Box>

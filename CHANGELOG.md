@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.9.0] - 2025-08-21
+### Changed
+- Frontend (Tooltips): Standardized to the small info-icon pattern, increased persistence (`leaveDelay`/`leaveTouchDelay` = 10s), and removed `followCursor` to fix scroll/anchoring. Applied on VillaAnnaHomePage and VillaAnnaBewaesserungPage.
+- Frontend (HomePage): "Schnellübersicht" section centers on small screens; Verdunstung label now uses an info icon for the date-range tooltip; Datenaktualität uses an info icon with clearer timestamps.
+- Frontend (Countdown): Redesigned the countdown timer display for readability (tabular digits, responsive sizes, accessible `role="timer"`), removed the extra inner border, and ensured proper centering on xs.
+- Frontend (Countdown): Modernized action buttons (Start/Stopp/Zurücksetzen) with clear variants, icons, per-action loading state, and larger tap targets.
+- Frontend (Countdown): Replaced the zone dropdown with centered, wrapped ToggleButtons; fixed borders/spacing so buttons don’t visually merge; better small-screen layout.
+
+### Fixed
+- Frontend (Countdown): Countdown list now hides entries in `reset` state while still showing `running` and `stopped`; the section card renders only when at least one non-reset countdown exists.
+
 ## [v19.8.0] - 2025-08-21
 ### Changed
 - Frontend (Layout): Global content width narrowed and unified across all pages per AGENTS.md. Introduced `CONTENT_MAX_WIDTH` and set Layout `Container` to `width: { xs: '100%', md: CONTENT_MAX_WIDTH }` with aligned gutters (`px: { xs: 1, md: 3 }`, `mx: 'auto'`).

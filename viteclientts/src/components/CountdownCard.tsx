@@ -41,20 +41,63 @@ const CountdownCard: React.FC<CountdownCardProps> = ({ zoneName, countdown }) =>
                   </Typography>
                 </Box>
             </Box>
-            <CardContent sx={{ pt: 1 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline' }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <Typography variant="h4">{formattedTime.hours}</Typography>
+            <CardContent sx={{ pt: 1, display: 'flex', justifyContent: 'center' }}>
+                <Box
+                  role="timer"
+                  aria-label={`Verbleibende Zeit ${formattedTime.hours} Stunden ${formattedTime.minutes} Minuten ${formattedTime.seconds} Sekunden`}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mx: 'auto',
+                    px: { xs: 1.5, md: 2 },
+                    py: { xs: 1, md: 1.25 },
+                    borderRadius: 2,
+                    gap: { xs: 1, md: 1.25 },
+                  }}
+                >
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: { xs: 64, md: 80 } }}>
+                        <Typography
+                          variant="h4"
+                          sx={{
+                            fontWeight: 600,
+                            fontVariantNumeric: 'tabular-nums',
+                            lineHeight: 1,
+                            fontSize: { xs: '1.75rem', md: '2.25rem' }
+                          }}
+                        >
+                          {formattedTime.hours}
+                        </Typography>
                         <Typography variant="caption" color="text.secondary">Stunden</Typography>
                     </Box>
-                    <Typography variant="h4" sx={{ mx: 1 }}>:</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <Typography variant="h4">{formattedTime.minutes}</Typography>
+                    <Typography aria-hidden sx={{ mx: { xs: 0.5, md: 1 }, color: 'text.secondary', fontWeight: 600, fontSize: { xs: '1.5rem', md: '2rem' }, lineHeight: 1 }}>:</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: { xs: 64, md: 80 } }}>
+                        <Typography
+                          variant="h4"
+                          sx={{
+                            fontWeight: 600,
+                            fontVariantNumeric: 'tabular-nums',
+                            lineHeight: 1,
+                            fontSize: { xs: '1.75rem', md: '2.25rem' }
+                          }}
+                        >
+                          {formattedTime.minutes}
+                        </Typography>
                         <Typography variant="caption" color="text.secondary">Minuten</Typography>
                     </Box>
-                    <Typography variant="h4" sx={{ mx: 1 }}>:</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <Typography variant="h4">{formattedTime.seconds}</Typography>
+                    <Typography aria-hidden sx={{ mx: { xs: 0.5, md: 1 }, color: 'text.secondary', fontWeight: 600, fontSize: { xs: '1.5rem', md: '2rem' }, lineHeight: 1 }}>:</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: { xs: 64, md: 80 } }}>
+                        <Typography
+                          variant="h4"
+                          sx={{
+                            fontWeight: 600,
+                            fontVariantNumeric: 'tabular-nums',
+                            lineHeight: 1,
+                            fontSize: { xs: '1.75rem', md: '2.25rem' }
+                          }}
+                        >
+                          {formattedTime.seconds}
+                        </Typography>
                         <Typography variant="caption" color="text.secondary">Sekunden</Typography>
                     </Box>
                 </Box>
