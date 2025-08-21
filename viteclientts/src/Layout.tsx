@@ -62,7 +62,7 @@ const Layout: React.FC<LayoutProps> = ({
           pb: 2,
           width: { xs: '100%', md: CONTENT_MAX_WIDTH },
           mx: 'auto',
-          px: { xs: 2, md: 3 }
+          px: { xs: 1, md: 3 }
         }}
       >
         <Grid container paddingTop={isSmallScreen ? 3 : 6}>

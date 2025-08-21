@@ -39,7 +39,7 @@ const NavBar: React.FC = () => {
       <Box sx={{
         width: { xs: '100%', md: CONTENT_MAX_WIDTH },
         mx: 'auto',
-        px: { xs: 2, md: 3 },
+        px: { xs: 1, md: 3 },
         py: 1,
         display: 'flex',
         alignItems: 'center',
