@@ -39,9 +39,11 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import SkeletonLoader from '../../components/skeleton';
 import { messages } from '../../utils/messages';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 // Dialog removed: details shown inline
 
 const BewaesserungPage = () => {
+  const queryClient = useQueryClient();
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [skipDecision, setSkipDecision] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -52,7 +54,6 @@ const BewaesserungPage = () => {
   const [, setirrigationNeededSwitch] = useState(false);
   const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
   const [orderedTasks, setOrderedTasks] = useState<GroupedTasks>({});
-  const [reloadTasks, setReloadTasks] = useState(false);
   const apiUrl = import.meta.env.VITE_API_URL;
   interface DecisionMetrics {
     outTemp: number;
@@ -123,46 +124,54 @@ const BewaesserungPage = () => {
   }, [apiUrl, skipDecision]);
 
   // Load initial decision-skip state from backend
+  // React Query: decisionCheck (initial state)
+  const decisionCheckQuery = useQuery<{ skip?: boolean }>({
+    queryKey: ['decisionCheck'],
+    queryFn: async () => {
+      const r = await fetch(`${apiUrl}/decisionCheck`);
+      if (!r.ok) throw new Error('decisionCheck');
+      return r.json();
+    },
+    staleTime: 60 * 1000,
+  });
   useEffect(() => {
-    axios.get(`${apiUrl}/decisionCheck`)
-      .then(resp => setSkipDecision(!!resp.data.skip))
-      .catch(() => {});
-  }, [apiUrl]);
+    if (typeof decisionCheckQuery.data?.skip !== 'undefined') {
+      setSkipDecision(!!decisionCheckQuery.data.skip);
+    }
+  }, [decisionCheckQuery.data]);
 
+  // React Query: scheduledTasks
+  const scheduledTasksQuery = useQuery<APIResponse>({
+    queryKey: ['scheduledTasks'],
+    queryFn: async () => {
+      const r = await fetch(`${apiUrl}/scheduledTasks`);
+      if (!r.ok) throw new Error('scheduledTasks');
+      return r.json();
+    },
+    staleTime: 30 * 1000,
+  });
   useEffect(() => {
-    axios.get<APIResponse>(`${apiUrl}/scheduledTasks`)
-      .then(response => {
-        const tasksArray = Object.entries(response.data).flatMap(([key, tasks]) => tasks.map(task => ({ topic: key, ...task })));
-        const bewaesserungTasks = tasksArray.filter(task => task.topic.startsWith('bewaesserung'));
-        setScheduledTasks(bewaesserungTasks as ScheduledTask[]);
+    if (!scheduledTasksQuery.data) return;
+    const tasksArray = Object.entries(scheduledTasksQuery.data).flatMap(([key, tasks]) => tasks.map(task => ({ topic: key, ...task })));
+    const bewaesserungTasks = tasksArray.filter(task => task.topic.startsWith('bewaesserung')) as ScheduledTask[];
+    setScheduledTasks(bewaesserungTasks);
 
-        const groupedTasksLocal = bewaesserungTasks.reduce<GroupedTasks>((groups, task) => {
-          const topicIndex = bewaesserungsTopicsSet.indexOf(task.topic);
-          const zoneName = switchDescriptions[topicIndex];
+    const groupedTasksLocal = bewaesserungTasks.reduce<GroupedTasks>((groups, task) => {
+      const topicIndex = bewaesserungsTopicsSet.indexOf(task.topic);
+      const zoneName = switchDescriptions[topicIndex];
+      if (!groups[zoneName]) groups[zoneName] = [];
+      groups[zoneName].push(task as ScheduledTask);
+      groups[zoneName].sort((a, b) => Number(b.state) - Number(a.state));
+      return groups;
+    }, {});
 
-          if (!groups[zoneName]) {
-            groups[zoneName] = [];
-          }
-
-          groups[zoneName].push(task as ScheduledTask);
-          groups[zoneName].sort((a, b) => Number(b.state) - Number(a.state));
-
-          return groups;
-        }, {});
-
-        const orderedTasksLocal = zoneOrder.reduce<GroupedTasks>((ordered, zone) => {
-          if (groupedTasksLocal[zone]) {
-            ordered[zone] = groupedTasksLocal[zone];
-          }
-          return ordered;
-        }, {});
-
-        // Set the orderedTasks to the state
-        setOrderedTasks(orderedTasksLocal);
-        setTasksLoading(false);
-      })
-      .catch(error => console.error('Error:', error));
-  }, [reloadTasks, apiUrl]);
+    const orderedTasksLocal = zoneOrder.reduce<GroupedTasks>((ordered, zone) => {
+      if (groupedTasksLocal[zone]) ordered[zone] = groupedTasksLocal[zone];
+      return ordered;
+    }, {});
+    setOrderedTasks(orderedTasksLocal);
+    setTasksLoading(false);
+  }, [scheduledTasksQuery.data]);
 
   const handleToggle = (index: number) => {
     const newSwitchState = switches.map((val, i) => (i === index ? !val : val));
@@ -186,7 +195,7 @@ const BewaesserungPage = () => {
 
   const handleDeleteTask = (taskId: string) => {
     setScheduledTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-    setReloadTasks(prevState => !prevState);  // Toggle to force re-fetch
+    queryClient.invalidateQueries({ queryKey: ['scheduledTasks'] });
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -267,12 +276,12 @@ const BewaesserungPage = () => {
                       onClick={async () => {
                         const newVal = false;
                         try {
-                          await axios.post(`${apiUrl}/decisionCheck`, { skip: newVal });
+                          await fetch(`${apiUrl}/decisionCheck`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skip: newVal }) });
                           setSkipDecision(newVal);
-                          // Show loading until the next SSE decision arrives
                           setDecisionLoading(true);
                           setResponse(null);
                           showSnackbar('Entscheidungsprüfung aktiviert');
+                          queryClient.invalidateQueries({ queryKey: ['decisionCheck'] });
                         } catch (err) {
                           console.error(err);
                           showSnackbar('Fehler');
@@ -492,9 +501,10 @@ const BewaesserungPage = () => {
                     onClick={async () => {
                       const newVal = !skipDecision;
                       try {
-                        await axios.post(`${apiUrl}/decisionCheck`, { skip: newVal });
+                        await fetch(`${apiUrl}/decisionCheck`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skip: newVal }) });
                         setSkipDecision(newVal);
                         showSnackbar(newVal ? 'Entscheidungsprüfung deaktiviert' : 'Entscheidungsprüfung aktiviert');
+                        queryClient.invalidateQueries({ queryKey: ['decisionCheck'] });
                       } catch (err) {
                         console.error(err);
                         showSnackbar('Fehler');
@@ -515,9 +525,6 @@ const BewaesserungPage = () => {
         {/* Use the SchedulerCard component */}
         <Grid size={12} sx={{ mt: 2 }}>
           <SchedulerCard
-            setReloadTasks={setReloadTasks}
-            scheduledTasks={scheduledTasks}
-            setScheduledTasks={setScheduledTasks}
             taskToCopy={copiedTask}
           />
         </Grid>

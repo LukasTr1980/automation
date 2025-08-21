@@ -3,9 +3,6 @@ import { AlertColor } from '@mui/material/Alert';
 import { SxProps } from '@mui/material';
 
 export interface SchedulerCardProps {
-    setReloadTasks: React.Dispatch<React.SetStateAction<boolean>>;
-    scheduledTasks: ScheduledTask[];
-    setScheduledTasks: React.Dispatch<React.SetStateAction<ScheduledTask[]>>;
     initialTopic?: string;
     mqttTopics?: string[];
     topicDescriptions?: string[];

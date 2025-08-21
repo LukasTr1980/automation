@@ -20,15 +20,15 @@ import {
 import useSnackbar from '../utils/useSnackbar';
 import { SchedulerCardProps } from '../types/types';
 import { messages } from '../utils/messages';
+import { useQueryClient } from '@tanstack/react-query';
 
 const SchedulerCard: React.FC<SchedulerCardProps> = ({
-  setReloadTasks,
-  setScheduledTasks,
   initialTopic,
   mqttTopics = bewaesserungsTopicsSet,
   topicDescriptions = switchDescriptions,
   taskToCopy,
 }) => {
+  const queryClient = useQueryClient();
   const daysOfWeekNumbers = useDaysOfWeekNumbers();
   const monthsNumbers = useMonthsNumbers();
   const { showSnackbar } = useSnackbar();
@@ -101,20 +101,15 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
         .then(response => {
           const backendMessageKey = response.data;
           const translatedMessage = messages[backendMessageKey] || backendMessageKey;
-          axios
-            .get(`${apiUrl}/scheduledTasks`)
-            .then(response => {
-              setScheduledTasks(response.data);
-              setSelectedHour('');
-              setSelectedMinute('');
-              setSelectedDays([]);
-              setSelectedMonths([]);
-              setSelectedTopic(mqttTopics[0]);
-              setSwitchState(false);
-              setReloadTasks(prevState => !prevState);
-              showSnackbar(translatedMessage);
-            })
-            .catch(error => console.error('Error:', error));
+          // Reset form and inform parent via query invalidation
+          setSelectedHour('');
+          setSelectedMinute('');
+          setSelectedDays([]);
+          setSelectedMonths([]);
+          setSelectedTopic(mqttTopics[0]);
+          setSwitchState(false);
+          queryClient.invalidateQueries({ queryKey: ['scheduledTasks'] });
+          showSnackbar(translatedMessage);
         })
         .catch(error => console.error('Error:', error));
     }
