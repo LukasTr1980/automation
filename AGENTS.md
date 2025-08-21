@@ -1,9 +1,19 @@
+AGENTS.md — Design & Development Handbook (Agent Edition)
+
+Purpose (for agents):
+This file encodes how to build, design, and reason about this irrigation automation app. It combines repository rules, UI/UX standards, accessibility, state management strategy, real-time integration, security for IoT, testing, performance, and domain specifics (ET₀, WeatherLink, scheduling).
+Follow the rules. Prefer patterns and decisions stated here over implicit guesses.
+
 Repository Guidelines
 Project Structure & Modules
 
-nodebackend/: TypeScript backend (ES modules). Source in src/, build artifacts in build/. Key folders: clients/ (Vault, Redis, MQTT, InfluxDB), routes/, middleware/, utils/. Entry point: src/index.ts (serves on port 8523).
+nodebackend/: TypeScript backend (ES modules). Source in src/, build in build/.
 
-viteclientts/: React + Vite + TypeScript client. Source in src/, static assets in public/, build output in dist/.
+Key folders: clients/ (Vault, Redis, MQTT, InfluxDB), routes/, middleware/, utils/.
+
+Entry: src/index.ts (HTTP on port 8523).
+
+viteclientts/: React + Vite + TypeScript client. Source in src/, static in public/, build in dist/.
 
 CI & Ops: .github/workflows/ Docker build; multi-stage Dockerfile builds backend and client.
 
@@ -11,220 +21,560 @@ Docs: CHANGELOG.md records notable changes.
 
 Build, Test, and Development Commands
 
-Backend build/run: cd nodebackend && npm ci && npm run build && node build/index.js (or npm test to build+run).
+Backend build/run:
+cd nodebackend && npm ci && npm run build && node build/index.js
+(or npm test to build+run).
 
-Backend watch: cd nodebackend && npm run watch (rebuild on change).
+Backend watch:
+cd nodebackend && npm run watch
 
-Client dev: cd viteclientts && npm ci && npm run dev (Vite dev server).
+Client dev:
+cd viteclientts && npm ci && npm run dev
 
-Client build/preview: cd viteclientts && npm run build && npm run preview.
+Client build/preview:
+cd viteclientts && npm run build && npm run preview
 
-Docker: docker build -t automation . then docker run -p 8523:8523 automation.
+Docker:
+docker build -t automation . && docker run -p 8523:8523 automation
 
 Coding Style & Naming Conventions
 
-Language: TypeScript with strict enabled; target ES2022; ESM.
+Language: TypeScript, strict enabled; target ES2022; ESM.
 
-Linting: ESLint with @typescript-eslint (client also enforces React Hooks). Run npm run lint in viteclientts/; in backend use npx eslint ..
+Linting: ESLint with @typescript-eslint (client enforces React Hooks).
 
-Indentation: 2 spaces. Naming: camelCase (vars/functions), PascalCase (classes/React components), UPPER_SNAKE_CASE (env/constants). File names: .ts (backend), .tsx (React components).
+Client: npm run lint in viteclientts/
 
-Design & Accessibility Guidelines (Frontend)
-Visual & Layout
+Backend: npx eslint . in nodebackend/
 
-Use simple, flat surfaces. Prefer MUI Card variant="outlined" with borderRadius: 2; avoid gradients for backgrounds and cards.
+Formatting: 2-space indentation.
 
-Keep page background clean and neutral (flat color), focusing attention on content.
+Naming: camelCase (vars/functions), PascalCase (classes/React components), UPPER_SNAKE_CASE (env/constants).
 
-Use solid theme colors on icons/avatars where emphasis is needed (primary.main, secondary.main, info.main).
-
-Card headers: use slotProps={{ title: { sx: { fontWeight: 600 } } }}; do not use deprecated titleTypographyProps (MUI v6).
-
-Status indicators: prefer subtle elements (small colored dot + label) over large badges.
-
-Dialogs: render inside #root, set aria-labelledby, and ensure focus moves into the dialog.
-
-Navigation
-
-Flat header with bottom border (borderBottom: 1px solid divider), no shadows.
-
-Spacing: align header gutters with content (maxWidth: 1200, px: { xs: 2, md: 3 }, centered mx: 'auto').
-
-Active state: indicate with a small primary-colored dot; avoid raised/filled tabs.
-
-Mobile: hamburger Menu with ARIA label (“Menü öffnen”).
-
-Text: all labels in German; brand text minimal.
-
-Cross-Platform & User Types
-
-Design for both homeowners and engineers:
-
-Homeowners: simple labels (“Pumpe AN”) and intuitive controls.
-
-Engineers: advanced data views (logs, sensor calibration) via expandable panels or expert mode.
-
-Progressive disclosure: show core irrigation controls first, advanced config deeper.
-
-Responsive layouts: consistent experience across mobile/desktop/tablet.
-
-Accessibility (WCAG/EAA 2025)
-
-Follow WCAG 2.1/2.2 AA.
-
-Minimum color contrast 4.5:1 for text/background.
-
-Never use color alone: pair with labels/icons.
-
-Ensure all interactive elements have accessible names (aria-label, alt).
-
-Full keyboard navigation with visible focus.
-
-Test with screen readers (NVDA, VoiceOver).
-
-Add tooltips for metrics (e.g., date ranges, blockers) and icons.
-
-Architecture & State Management
-Project Structure
-
-Feature-first organization:
-
-src/features/<feature>/: domain modules (e.g., irrigation, scheduling). Contain components, hooks, services.
-
-src/components/: reusable, cross-feature UI components.
-
-src/pages/: route-level views if using router.
-
-src/hooks/, src/context/: shared custom hooks and providers.
-
-src/services/: API clients, WebSocket handlers, utils.
-
-Co-locate component code (Component.tsx, Component.test.tsx, styles) in same folder.
-
-Use path aliases (@components, @features/irrigation) for clean imports.
-
-State Management
-
-Local/UI state: useState or Context for simple, static config.
-
-Global complex state: Redux Toolkit for predictable flows and debugging.
-
-Lightweight global state: Zustand or Jotai for simpler stores.
-
-Server state: React Query (TanStack) for caching, background refresh, and command mutations.
-
-Command execution: encapsulate irrigation control in hooks/services (useIrrigationController) for reuse and testing.
-
-Optimistic updates: update UI immediately on command, then reconcile with server/device state.
-
-Error handling: centralize notifications (toast, snackbar) for failed commands.
-
-Security & Configuration
-
-Authentication: use JWT/OAuth2; enforce role-based access (homeowner vs engineer).
-
-Transport: enforce HTTPS/WSS; no plaintext traffic.
-
-Secrets: never commit; store in Vault or Docker secrets.
-
-Validation: sanitize all input; backend validates commands; rate-limit APIs.
-
-Local storage: avoid storing long-lived tokens in localStorage; prefer HttpOnly cookies.
-
-OWASP IoT Top 10 compliance: secure comms, patch dependencies, device auth, signed updates.
-
-Frontend: Vite only exposes VITE_* env vars – never leak secrets.
-
-CSP/Auth: Traefik forwardauth enforces access; app itself does not set CSP headers.
-
-Integration & Real-Time Communication
-
-APIs: REST/GraphQL for configs, schedules, logs.
-
-Real-time: WebSockets (wss://) for live zone status, telemetry, and immediate command feedback.
-
-MQTT (optional): via WebSocket bridge for IoT integration.
-
-Sync: keep UI state updated via push events; reconcile with optimistic updates.
-
-Reconnection: auto-reconnect websockets; fallback to HTTP if offline.
-
-Conflict handling: idempotent commands, timestamps for out-of-order events.
-
-Offline: show cached state with warning; queue commands until reconnect.
-
-Tooling & Testing
-Tooling
-
-Vite plugins:
-
-@vitejs/plugin-react-swc for fast builds.
-
-vite-plugin-svgr for SVG as components.
-
-vite-plugin-pwa if adding install/offline.
-
-Rollup visualizer to monitor bundle size.
-
-Storybook: for component-driven development and design system documentation.
-
-ESLint + Prettier: enforce coding style and accessibility rules.
-
-Testing
-
-Unit tests: Vitest + React Testing Library; colocate *.test.ts(x).
-
-Backend tests: Jest or Vitest.
-
-E2E: Playwright (configured for dev server).
-
-CI: run lint, unit tests, E2E (workers:1, retries:2).
-
-Reports: HTML reports and Playwright traces stored in repo.
-
-Locator guidance: prefer role-based locators (getByRole), assert URL after nav.
+Files: .ts (backend), .tsx (React components).
 
 Language & Logging
 
-Comments & logs: English only.
+Comments (code): English only.
 
-UI text: German only (static strings).
+Logs (code): English only.
 
-Message mapping: backend keys mapped in viteclientts/src/utils/messages.ts.
+UI (visible text): German only (static strings).
 
 Docs: English only (CHANGELOG.md, AGENTS.md).
 
-Special Domain Logic
-Evapotranspiration (ET₀)
+Message mapping: backend message keys → German in viteclientts/src/utils/messages.ts using messages[key] || key.
+Do not reintroduce i18n or locale switching.
 
-Computed daily, summed weekly (FAO-56 Penman–Monteith).
+Frontend Design System & Accessibility
+Visual & Layout (MUI v6+)
 
-Inputs from Redis daily aggregates and Influx clouds.
+Overall: Simple, flat surfaces. No gradient backgrounds. Clean neutral page background.
 
-Stored in Redis as et0:weekly:YYYY-MM-DD and et0:weekly:latest.
+Cards: Prefer Card with variant="outlined" and sx={{ borderRadius: 2 }}.
 
-Consumed by decision engine and frontend.
+Color usage: Use solid theme colors for emphasis on icons/avatars (primary.main, secondary.main, info.main). Avoid over-coloring content.
 
-Logs include inputs/outputs at info/debug.
+Card headers: Use slots (MUI v6):
+slotProps={{ title: { sx: { fontWeight: 600 } } }}.
+Do not use deprecated titleTypographyProps.
 
-Irrigation Decision
+Status indicators: Prefer a small colored dot + short label over large badges.
 
-Pure rule-based (src/irrigationDecision.ts).
+Dialogs/Modals: Render inside #root (container={document.getElementById('root')}), set aria-labelledby, focus moves into dialog on open.
 
-Hard blockers: temp, humidity, rainfall, rain rate, deficit.
+Navigation
 
-Skip flag toggled via /api/decisionCheck.
+Flat header (top app bar) with bottom border: borderBottom: 1px solid, color divider. No elevation/shadows.
 
-Backend returns structured metrics; frontend displays inline.
+Header/content gutters aligned: maxWidth: 1200, px: { xs: 2, md: 3 }, mx: 'auto'.
 
-No AI or OpenAI dependencies.
+Active state: small primary-colored dot before label; no raised/filled tabs.
+
+Mobile: hamburger button opening Menu, ARIA label “Menü öffnen”.
+
+All labels German; brand text minimal, neutral.
+
+Mobile Gutters
+
+Avoid double horizontal padding on xs.
+Wrap page content with:
+Box sx={{ px: { xs: 0, md: 3 }, py: { xs: 2, md: 3 } }} and rely on Container defaults.
+
+Progressive Disclosure & Dual Audiences
+
+Homeowners: plain language (e.g., “Pumpe AN”), direct toggles, big tap targets.
+
+Engineers: reveal Advanced panels (calibration, logs, telemetry) via toggles/expansion or “Expert mode”.
+
+Keep core controls up front; tuck complexity deeper. Avoid info overload.
+
+Feedback & Visualization
+
+Immediate feedback for commands: button loading/disabled state + success/failure snackbar.
+
+Realtime status on controls (e.g., “Bewässerung läuft… 03:12”).
+
+Charts for engineers (moisture, water use, faults); plain indicators for homeowners.
+
+Notifications: Distinguish severities (info/success/warn/error) to avoid alarm fatigue.
+
+Accessibility (WCAG 2.1/2.2 AA, EAA 2025)
+
+Contrast: text/background ≥ 4.5:1. Never convey status via color alone—pair with icon/label.
+
+Keyboard: tab through all controls; visible focus ring.
+
+Names: proper accessible names (aria-label, aria-labelledby, alt).
+
+Roles/Landmarks: role="navigation" (named), role="main", correct heading hierarchy.
+
+Testing: run with NVDA/VoiceOver; include RTL a11y checks; verify dialogs trap focus.
+
+Outdoor use: bigger touch targets and high-contrast labels are preferred.
+
+Architecture (Vite + React + TS)
+Folder Strategy (feature-first)
+viteclientts/src/
+  components/        # Reusable UI (cross-feature)
+  features/
+    irrigation/      # Domain module: components, hooks, services
+    schedule/        # …
+  pages/             # Route-level views (if using routing)
+  hooks/             # Shared hooks (auth, theme, etc.)
+  context/           # Shared providers (AuthProvider, ThemeProvider)
+  services/          # apiClient, WebSocketClient, storage, formatters
+  types/             # Global shared types if needed
+
+
+Co-locate component code (Component.tsx, Component.test.tsx, styles) within the same folder.
+
+Use path aliases (@components/*, @features/irrigation/*) via tsconfig.json + vite.config.ts.
+
+Component Guidelines
+
+Keep components small, pure, testable.
+
+Logic that talks to APIs/WebSockets → custom hooks/services; keep view components declarative.
+
+Prefer controlled components for forms; centralize formatters in services/ or utils/.
+
+State Management Strategy
+Decision Table
+Need	Use
+Simple local UI state	useState
+App-wide static config (theme, auth user)	React Context (split by domain to limit rerenders)
+Medium global UI state with minimal boilerplate	Zustand store (selectors to avoid rerenders)
+Complex global state, debugging/time travel, middleware	Redux Toolkit (RTK), slices + thunks/sagas if needed
+Server-derived data (fetch/cache/refresh)	React Query (TanStack) queries & mutations
+Fine-grained atomized UI config	Jotai (optional; use sparingly)
+Principles
+
+Server state ≠ client state. Keep server data in React Query; derive UI state separately.
+
+Commands as mutations: Use React Query useMutation or a dedicated command hook (see next section).
+
+Optimistic updates: UI updates immediately; reconcile with server/device events.
+
+Render performance: memoize selectors, split Contexts, use Suspense where helpful.
+
+Command Execution (Irrigation Control)
+Pattern
+
+Create a controller hook/service: useIrrigationController() that exposes:
+
+startZone(zoneId), stopZone(zoneId), stopAll(), setSchedule(id, payload)…
+
+Internally routes commands via:
+
+HTTP POST (REST/GraphQL) or WebSocket message; both authenticated.
+
+Applies optimistic UI; emits toast/snackbar; handles retries/errors.
+
+Reliability
+
+Idempotency: include idempotency keys on commands; server de-dupes.
+
+Queueing: if offline or WS down, queue commands (in-memory) → flush on reconnect; cap queue size.
+
+Out-of-order handling: use timestamps/sequence numbers; last writer wins or explicit conflict policy.
+
+Feedback
+
+Disable command buttons while in flight or show inline loader.
+
+On failure, show clear German error (map backend key → German label).
+
+Real-Time Integration
+Transport
+
+Prefer WebSockets (WSS) for bi-directional control and telemetry.
+
+Optionally integrate MQTT over WebSockets if broker is present.
+
+Use SSE only for one-way streams (status only), but WS is preferred here.
+
+Client Behavior
+
+Auth handshake on connect (JWT/cookie session).
+
+Auto-reconnect with backoff and “Reconnecting…” UI hint.
+
+Heartbeat/keepalive; detect stale socket.
+
+Event routing: a single WS client dispatches device updates to stores (Zustand/Redux) or invalidates React Query caches.
+
+Sync Model
+
+Devices → backend → push status deltas: { zoneId, status, at }.
+
+UI applies deltas immediately; keep optimistic → confirmed path tight.
+
+If backed by GraphQL, use subscriptions for the same effect.
+
+Security & Privacy (IoT-grade)
+Authentication & Authorization
+
+Never hardcode credentials. Use OAuth2/JWT with rotation where applicable.
+
+RBAC: roles (homeowner, engineer, admin) guard commands and settings server-side.
+
+Per-resource checks: server verifies device ownership before executing commands.
+
+Transport & Protocol
+
+HTTPS for REST/GraphQL; WSS for WebSockets; TLS for MQTT.
+
+No plaintext. Pin to secure origins only.
+
+Input Validation & Abuse Controls
+
+Validate/sanitize all inbound fields (backend).
+
+Rate limiting on command endpoints.
+
+Safety rules: block dangerous conflicting commands (e.g., mutually exclusive valves).
+
+Secrets & Storage
+
+Secrets via Vault (VAULT_ROLE_ID/VAULT_SECRET_ID) in dev or Docker secrets in prod (/run/secrets/automation_vault_*).
+
+Vite exposes only VITE_* env vars; do not embed secrets client-side.
+
+Prefer HttpOnly cookies over localStorage for long-lived sessions.
+
+Data Protection
+
+Treat schedules/usage as sensitive. Encrypt at rest server-side where applicable.
+
+Respect deletion and export on request (GDPR).
+
+Updates & Device Safety
+
+Firmware updates must be signed/verified (device side).
+
+Use command acknowledgements and prevent replay (nonces/sequence).
+
+Vite Tooling & Performance
+Recommended Plugins & Settings
+
+@vitejs/plugin-react-swc for fast dev/HMR and builds.
+
+vite-plugin-svgr to import SVGs as React components.
+
+(We currently do not use PWA SW to avoid ForwardAuth issues.)
+If re-introducing PWA: use vite-plugin-pwa with update on reload and exclude HTML from caching to prevent stale auth redirects.
+
+Bundle analysis: rollup-plugin-visualizer; maintain performance budgets (e.g., initial chunk < 300 KB gzip).
+
+Code-Splitting
+
+Route-level lazy imports for heavy admin/engineer tools.
+
+Manual chunks for large libs if needed (charts, MUI icons) to improve caching.
+
+Dev Proxy
+
+Use Vite dev server proxy to avoid CORS in dev (e.g., /api → http://localhost:8523).
+
+Testing Policy
+Unit & Integration (Client)
+
+Vitest + React Testing Library; colocate *.test.ts(x).
+
+Cover components, hooks, and controller services (mock HTTP/WS).
+
+Backend Tests
+
+Jest or Vitest for nodebackend; colocate *.test.ts.
+
+End-to-End (Client)
+
+Playwright configured in viteclientts/:
+
+Tests in viteclientts/tests/; config viteclientts/playwright.config.ts.
+
+Launches Vite dev on http://127.0.0.1:5173; page.goto('/').
+
+Browsers: chromium, firefox, webkit. Install: npx playwright install [--with-deps].
+
+Parallel locally; CI: workers: 1, retries: 2.
+
+Reports: HTML in viteclientts/playwright-report/; traces trace: 'on-first-retry'.
+
+Locators (strict & stable):
+
+Use roles/landmarks: getByRole('navigation', { name: 'Navigation' }), getByRole('main').
+
+After clicks, assert URL (e.g., /\/bewaesserung$/) before content assertions.
+
+Constrain headings by level/name where helpful.
+
+Accessibility Testing
+
+Include @testing-library/jest-dom a11y assertions.
+
+Periodically verify with NVDA/VoiceOver and keyboard-only runs.
+
+Until coverage improves
+
+Keep functions pure & small. Manually validate by running both apps locally.
 
 Commit & PR Guidelines
 
-Commits: Conventional Commits (feat:, fix:, refactor:).
+Commits: Conventional Commits (feat:, fix:, refactor: …).
 
-PRs: clear description, linked issues, repro steps, screenshots for UI changes.
+PRs: clear description, linked issues, repro/verification steps, and screenshots for UI changes.
 
-Build check: both backend and client must build before merge.
+Ensure both apps build (npm run build) and CHANGELOG.md is updated for user-visible changes.
 
-CHANGELOG.md: updated for user-visible changes; follow Keep a Changelog + SemVer.
+Changelog Header (must be exact)
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+Frontend UI Conventions (Villa Anna)
+7-Day Metrics on Bewässerung
+
+Suffix “(7 Tage bis gestern)”.
+
+Tooltip shows exact local range (e.g., “Zeitraum: 12.08.–18.08. (lokal)”) for averages and sums (temperature, humidity, rain sum, irrigation sum, ET₀ sum).
+
+Blocker Headers
+
+Show a small info icon with tooltip listing possible blockers (temperature, humidity, 24h rain, rain rate, deficit).
+
+Dashboard Integration
+
+VillaAnnaHomePage: real-time status cards replacing mocks.
+
+Cards: Blocker (via SSE), Verdunstung 7 Tage, Temperatur, Nächster Zeitplan.
+
+Data flow: Hooks fetch on mount with loading/error states; Blocker subscribes to /api/mqtt SSE and renders rule chips.
+
+Responsive: Cards adapt to screen sizes; consistent heights; good text wrapping.
+
+Zone names: Always human-readable (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle).
+
+Freshness indicator: Warn if /api/weather/latest.latest.timestamp older than 10 min; tooltip shows both snapshot and aggregated timestamps; “Aggregiert” shows meansTimestamp when present else aggregates.timestamp.
+
+Labels: Temperature card label “Temperatur (aktuell)”. 7-day averages labeled “(7 Tage bis gestern)” with range tooltip.
+
+Backend: Weather & Scheduling APIs
+WeatherLink Temperature API
+
+GET /api/weather/temperature — cache-only current °C from Redis weather:latest. 503 if cache missing. Response includes source: 'redis'.
+
+GET /api/weather/debug — raw WeatherLink current data for troubleshooting.
+
+Rate limiting: Internal only; endpoint itself never hits WeatherLink live.
+
+Frontend: VillaAnnaHomePage temp card reads /api/weather/latest (cache-only) and displays °C.
+
+Weather Latest Cache (Redis)
+
+Scheduler: every 5 min + 30 s (30 */5 * * * *).
+
+Keys:
+
+weather:latest → { temperatureC, humidity, rainRateMmPerHour, timestamp }
+
+Individual convenience keys: weather:latest:*
+
+Consumption: APIs and decision logic prefer cached values.
+
+Weather Aggregates Cache (Redis)
+
+Scheduler:
+
+Rolling rain (24h, 7d) every 5 min.
+
+7-day means (temp, humidity, wind, pressure, mean diurnal range) daily after midnight.
+
+Key: weather:agg:latest →
+{ rain24hMm, rain7dMm, temp7dAvgC, humidity7dAvgPct, wind7dAvgMS, pressure7dAvgHPa, temp7dRangeAvgC, timestamp, meansTimestamp? }
+
+Consumption: Decision uses these first; if missing, falls back to live (backend path only).
+
+Weather Cache API
+
+GET /api/weather/latest → { latest, aggregates }
+
+latest: { temperatureC, humidity, rainRateMmPerHour, timestamp }
+
+aggregates: as above
+
+Next Schedule API
+
+GET /api/schedule/next – next scheduled irrigation from Redis.
+
+Processing:
+
+Filter enabled (state === true)
+
+Parse recurrenceRule JSON → hour/minute
+
+Map topics → readable zone names (shared constants)
+
+Constants: nodebackend/src/utils/constants.ts
+
+irrigationSwitchTopics, irrigationSwitchSetTopics, irrigationSwitchDescriptions
+
+Frontend mirrors values.
+
+Evapotranspiration (ET₀)
+Method & Ops
+
+Formula: FAO-56 Penman–Monteith (daily, G≈0), summed weekly.
+
+Recompute: once/day at ~00:40 local; store weekly total only.
+
+Radiation: Angström–Prescott with cloud-cover daily means from Influx (defaults a_s=0.25, b_s=0.50).
+
+Humidity: ea = es * RHmean/100, es = (svp(Tmax)+svp(Tmin))/2.
+
+Wind: convert sensor height to 2 m using FAO log law.
+
+Longwave: standard emissivity/cloud correction with clamps (avoid unrealistic Rnl).
+
+Inputs (priority)
+
+Redis weather:daily:last7: last 7 full local days → tMinC, tMaxC, tAvgC, rhMeanPct, windMeanMS, pressureMeanHPa.
+
+Redis weather:agg:latest: 7-day means fallback (Tavg, RH, wind, pressure, mean diurnal range).
+
+Influx (cloud cover): daily means for the same 7-day window.
+
+Storage
+
+et0:weekly:YYYY-MM-DD and et0:weekly:latest (mm).
+
+Consumption & Debug
+
+Decision reads latest weekly ET₀ from Redis. Not included in queryAllData().
+
+Logs:
+
+Scheduler: ET₀ weekly sum (last 7 days): <mm>
+
+Decision: [ET0] Using weekly ET₀ from Redis: <mm>
+
+Inputs/derivations per day at debug (d1…d7).
+
+Manual run: computeWeeklyET0() (from index.ts or REPL).
+
+Inspect Redis: GET et0:weekly:latest, GET et0:weekly:YYYY-MM-DD, GET weather:daily:last7.
+
+Frontend API: /api/et0/latest serves latest weekly ET₀ for dashboard.
+
+Irrigation Decision (No AI)
+
+Source of truth: nodebackend/src/irrigationDecision.ts (rule-based).
+
+Returns: structured metrics (temps, humidity, rainfall, forecast, ET₀, deficit, blockers) for UI. No LLM text.
+
+Frontend: displays metrics inline under decision switch on Bewässerung page.
+
+Skip flag: GET/POST /api/decisionCheck toggles bypass via Redis skipDecisionCheck.
+
+Behavior: hard blockers (temperature, humidity, rainfall, rain rate, deficit < 5 mm). If none apply → allow irrigation.
+
+Inputs: reads exclusively from Redis caches (weather:latest, weather:agg:latest); never calls WeatherLink directly.
+
+OpenAI: not used; openai dep removed.
+
+Real-Time Data Integration (Backend Wiring)
+
+SSE for blockers: /api/mqtt SSE streams rule chips to UI.
+
+WebSocket (preferred for bi-directional): Use authenticated WSS when implementing live control + telemetry (see Real-Time Integration above).
+
+Security & Proxy Notes
+
+Auth & CSP: Traefik forwardauth enforces access and sets CSP; the app itself does not set CSP headers or accept CSP reports.
+
+PWA: Disabled. On boot, unregister any existing SWs to avoid cached index.html breaking forwardauth redirects. Optionally set proxy Cache-Control: no-store for HTML.
+
+Dev Server Notes
+
+Backend exits with a clear error if port 8523 is taken (EADDRINUSE). Stop previous instance before re-running.
+
+Optional Appendix (Design Tokens & Patterns)
+MUI Theme Defaults (preferred)
+
+Typography:
+
+Headings boldness: h1/h2: 600, h3/h4: 600, subheads 500.
+
+Body: readable sizes; avoid < 14px on mobile.
+
+Spacing: base unit 8px; consistent grid.
+
+Radius: 8px (MUI 2).
+
+Elevation: none (use borders/dividers).
+
+Semantic colors:
+
+success → irrigation OK, green dot + label
+
+warning → attention (e.g., stale data)
+
+error → faults/failures
+
+info → neutral notices
+
+Status Chip Pattern
+
+Small dot + short label (German), e.g., ● Läuft, ● Gestoppt, ● Verbindungsproblem.
+
+ARIA Landmarks
+
+Top nav: role="navigation", aria-label="Navigation".
+
+Page content: role="main".
+
+Link/button text in German, descriptive.
+
+Quick Checklist (what agents should default to)
+
+UI: flat, outlined cards, subtle status, labels in German, clear tooltips, progressive disclosure.
+
+A11y: WCAG AA contrast, keyboardable, ARIA names, landmarks.
+
+State: React Query for server data, Zustand/RTK for global UI state, controller hooks for commands, optimistic updates.
+
+Realtime: WSS for live state; reconnect; idempotent commands; reconcile optimistic state.
+
+Security: HTTPS/WSS, JWT/RBAC, rate limiting, no secrets in client, Vault/Docker secrets.
+
+Performance: SWC plugin, code-split heavy pages, analyze bundles, avoid caching HTML with auth.
+
+Testing: Vitest + RTL; Playwright E2E (dev server); role-based locators; a11y checks.
+
+Domain: ET₀ computed daily & summed weekly from caches; irrigation decision is rule-based, non-AI.
+
+End of AGENTS.md
