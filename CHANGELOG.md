@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Frontend (client): Integrate React Query on the VillaAnna home dashboard (ET₀, Wetter, Zeitplan) and wire `QueryClientProvider` at the app root.
+
+### Changed
+- Frontend (VillaAnnaHomePage): Comply with UI/UX guidance — label ET₀ card as "Verdunstung (7 Tage bis gestern)" and add a tooltip showing the exact local 7‑Tage Zeitraum; remove hover elevation from action cards (outlined + subtle hover background only); replace hardcoded colors with theme tokens; make the "Blocker" info icon keyboard accessible via an `IconButton`.
+- Frontend (Layout): Align content to `maxWidth: 1200` with header/content gutters per design; avoid double horizontal padding on mobile.
+- Backend: Store weekly ET₀ in Redis (`et0:weekly:YYYY-MM-DD` and `et0:weekly:latest`) instead of JSONL; scheduler writes to Redis, irrigation decision and `/api/et0/latest` read from Redis.
+
+### Fixed
+- Frontend: Correct import specifiers for `@tanstack/react-query` to resolve Vite import‑analysis error.
+
 ## [v19.6.0] - 2025-08-19
 
 ### Changed
@@ -1616,6 +1628,3 @@ Refactor irrigation decision logic and remove unused routes
 
 ### Removed
 - Some `console.logs`.
-## [Unreleased]
-### Changed
-- Backend: Store weekly ET₀ in Redis (`et0:weekly:YYYY-MM-DD` and `et0:weekly:latest`) instead of JSONL; scheduler writes to Redis, irrigation decision and `/api/et0/latest` read from Redis.

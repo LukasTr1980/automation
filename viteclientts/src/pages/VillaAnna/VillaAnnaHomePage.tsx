@@ -13,6 +13,8 @@ import {
   Tooltip,
   Skeleton
 } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import { useQuery } from '@tanstack/react-query';
 import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
 import { 
@@ -25,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useState, useEffect, type ReactNode } from 'react';
+import useSnackbar from '../../utils/useSnackbar';
 
 // Small helper to render relative age in minutes with German label
 function formatRelativeMinutes(ts: string): string {
@@ -53,21 +56,66 @@ function formatDateTimeDE(ts: string | null | undefined): string {
   }
 }
 
+// Computes the local date range label for the last 7 full days ending yesterday
+function formatLast7DaysRangeDE(): string {
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1); // yesterday local
+  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 6);
+  const fmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' });
+  return `Zeitraum: ${fmt.format(start)}–${fmt.format(end)} (lokal)`;
+}
+
 const HomePage = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [et0Data, setEt0Data] = useState<{ et0_week: number | null; unit: string } | null>(null);
-  const [temperatureData, setTemperatureData] = useState<{ temperature: number | null; unit: string } | null>(null);
-  const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
-  const [cacheStale, setCacheStale] = useState<boolean>(false);
-  const [latestTimestamp, setLatestTimestamp] = useState<string | null>(null);
-  const [aggregatesTimestamp, setAggregatesTimestamp] = useState<string | null>(null);
-  const [meansTimestamp, setMeansTimestamp] = useState<string | null>(null);
-  const [scheduleData, setScheduleData] = useState<{ nextScheduled: string; zone: string | null } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [tempLoading, setTempLoading] = useState(true);
-  const [scheduleLoading, setScheduleLoading] = useState(true);
+  const { showSnackbar } = useSnackbar();
+  // React Query: ET0 weekly
+  const et0Query = useQuery<{ et0_week: number | null; unit: string }>(
+    {
+      queryKey: ['et0', 'latest'],
+      queryFn: async () => {
+        const r = await fetch('/api/et0/latest');
+        if (!r.ok) throw new Error('ET0');
+        return r.json();
+      },
+      staleTime: 60 * 60 * 1000, // 1h; recomputed daily
+    }
+  );
+  // React Query: Weather latest + aggregates
+  type WeatherLatestResponse = {
+    latest?: { temperatureC?: number; humidity?: number; rainRateMmPerHour?: number; timestamp?: string };
+    aggregates?: { timestamp?: string; meansTimestamp?: string };
+  };
+  const weatherQuery = useQuery<WeatherLatestResponse>({
+    queryKey: ['weather', 'latest'],
+    queryFn: async () => {
+      const r = await fetch('/api/weather/latest');
+      if (!r.ok) throw new Error('weather');
+      return r.json();
+    },
+    staleTime: 2 * 60 * 1000, // 2m; backend cache updates every ~5m
+  });
+  // React Query: Next schedule
+  const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null }>({
+    queryKey: ['schedule', 'next'],
+    queryFn: async () => {
+      const r = await fetch('/api/schedule/next');
+      if (!r.ok) throw new Error('schedule');
+      return r.json();
+    },
+    staleTime: 60 * 1000, // 1m
+  });
+  // Derive values from weather query
+  const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
+  const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
+  const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
+  const cacheTimestamp = latestTimestamp;
+  const cacheStale = (() => {
+    if (!latestTimestamp) return true;
+    const ageMs = Date.now() - new Date(latestTimestamp).getTime();
+    return ageMs > 10 * 60 * 1000; // 10 minutes
+  })();
   
   // Decision metrics (from SSE) for blockers
   interface DecisionMetrics {
@@ -80,96 +128,16 @@ const HomePage = () => {
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [decision, setDecision] = useState<DecisionMetrics | null>(null);
 
-  // Removed legacy mock system status; using real data + cache freshness
-
-  // Fetch ET₀ data
+  // Snackbar on query errors (German messages)
   useEffect(() => {
-    const fetchEt0Data = async () => {
-      try {
-        const response = await fetch('/api/et0/latest');
-        if (response.ok) {
-          const data = await response.json();
-          setEt0Data(data);
-        } else {
-          console.warn('Failed to fetch ET₀ data:', response.statusText);
-          setEt0Data({ et0_week: null, unit: 'mm' });
-        }
-      } catch (error) {
-        console.error('Error fetching ET₀ data:', error);
-        setEt0Data({ et0_week: null, unit: 'mm' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEt0Data();
-  }, []);
-
-  // Fetch current temperature data (from Redis-only cache endpoint)
+    if (et0Query.isError) showSnackbar('Fehler beim Laden der ET₀-Daten', 'error');
+  }, [et0Query.isError, showSnackbar]);
   useEffect(() => {
-    const fetchTemperatureData = async () => {
-      try {
-        const response = await fetch('/api/weather/latest');
-        if (response.ok) {
-          const data = await response.json();
-          const temp = data?.latest?.temperatureC;
-          const tsLatest: string | undefined = data?.latest?.timestamp;
-          const tsAgg: string | undefined = data?.aggregates?.timestamp;
-          const tsMeans: string | undefined = data?.aggregates?.meansTimestamp;
-          setLatestTimestamp(tsLatest ?? null);
-          setAggregatesTimestamp(tsAgg ?? null);
-          setMeansTimestamp(tsMeans ?? null);
-          setTemperatureData({ temperature: typeof temp === 'number' ? temp : null, unit: 'C' });
-          // Freshness indicator reflects current snapshot only (latest)
-          if (tsLatest) {
-            const ageMs = Date.now() - new Date(tsLatest).getTime();
-            setCacheTimestamp(tsLatest);
-            setCacheStale(ageMs > 10 * 60 * 1000); // 10 minutes threshold
-          } else {
-            setCacheTimestamp(null);
-            setCacheStale(true);
-          }
-        } else {
-          console.warn('Failed to fetch temperature data:', response.statusText);
-          setTemperatureData({ temperature: null, unit: 'C' });
-          setCacheTimestamp(null);
-          setCacheStale(true);
-        }
-      } catch (error) {
-        console.error('Error fetching temperature data:', error);
-        setTemperatureData({ temperature: null, unit: 'C' });
-        setCacheTimestamp(null);
-        setCacheStale(true);
-      } finally {
-        setTempLoading(false);
-      }
-    };
-
-    fetchTemperatureData();
-  }, []);
-
-  // Fetch next schedule data
+    if (weatherQuery.isError) showSnackbar('Fehler beim Laden der Wetterdaten', 'error');
+  }, [weatherQuery.isError, showSnackbar]);
   useEffect(() => {
-    const fetchScheduleData = async () => {
-      try {
-        const response = await fetch('/api/schedule/next');
-        if (response.ok) {
-          const data = await response.json();
-          setScheduleData(data);
-        } else {
-          console.warn('Failed to fetch schedule data:', response.statusText);
-          setScheduleData({ nextScheduled: 'No schedules', zone: null });
-        }
-      } catch (error) {
-        console.error('Error fetching schedule data:', error);
-        setScheduleData({ nextScheduled: 'Error', zone: null });
-      } finally {
-        setScheduleLoading(false);
-      }
-    };
-
-    fetchScheduleData();
-  }, []);
+    if (scheduleQuery.isError) showSnackbar('Fehler beim Laden des Zeitplans', 'error');
+  }, [scheduleQuery.isError, showSnackbar]);
 
   // Subscribe to SSE for irrigation decision to derive blockers
   useEffect(() => {
@@ -204,7 +172,7 @@ const HomePage = () => {
 
   return (
     <Layout>
-      <Box sx={{ px: { xs: 0, md: 3 }, py: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
+      <Box sx={{ px: { xs: 0, md: 0 }, py: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
         {/* Header Section */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" sx={{ 
@@ -242,7 +210,9 @@ const HomePage = () => {
                     enterTouchDelay={0}
                     leaveTouchDelay={3000}
                   >
-                    <InfoOutlinedIcon aria-label="Mögliche Blocker" sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <IconButton size="small" aria-label="Mögliche Blocker" sx={{ color: 'text.secondary', p: 0.25 }}>
+                      <InfoOutlinedIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
                   </Tooltip>
                 </Typography>
                 {decisionLoading ? (
@@ -350,11 +320,17 @@ const HomePage = () => {
               <CardContent sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%' }}>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
-                      Verdunstung 7 Tage
-                    </Typography>
+                    <Tooltip title={formatLast7DaysRangeDE()} arrow placement="top" enterTouchDelay={0} leaveTouchDelay={3000}>
+                      <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
+                        Verdunstung (7 Tage bis gestern)
+                      </Typography>
+                    </Tooltip>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                      {loading ? '...' : (et0Data?.et0_week !== null && et0Data?.et0_week !== undefined) ? `${et0Data.et0_week} ${et0Data?.unit || 'mm'}` : 'k. A.'}
+                      {et0Query.isLoading
+                        ? '...'
+                        : (et0Query.data && et0Query.data.et0_week !== null && et0Query.data.et0_week !== undefined)
+                          ? `${et0Query.data.et0_week} ${et0Query.data.unit || 'mm'}`
+                          : 'k. A.'}
                     </Typography>
                   </Box>
                   <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 36, md: 40 }, height: { xs: 36, md: 40 }, flexShrink: 0 }}>
@@ -378,9 +354,11 @@ const HomePage = () => {
                       Temperatur (aktuell)
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                      {tempLoading ? (
+                      {weatherQuery.isLoading ? (
                         <Skeleton variant="text" width={60} />
-                      ) : (temperatureData?.temperature !== null && temperatureData?.temperature !== undefined) ? `${temperatureData.temperature}°${temperatureData?.unit || 'C'}` : 'k. A.'}
+                      ) : (typeof weatherQuery.data?.latest?.temperatureC === 'number')
+                        ? `${weatherQuery.data.latest.temperatureC}°C`
+                        : 'k. A.'}
                     </Typography>
                   </Box>
                   <Avatar sx={{ bgcolor: 'warning.main', color: 'common.white', width: { xs: 36, md: 40 }, height: { xs: 36, md: 40 }, flexShrink: 0 }}>
@@ -404,11 +382,11 @@ const HomePage = () => {
                       Nächster Zeitplan
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
-                      {scheduleLoading ? '...' : scheduleData?.nextScheduled || 'Kein Zeitplan'}
+                      {scheduleQuery.isLoading ? '...' : scheduleQuery.data?.nextScheduled || 'Kein Zeitplan'}
                     </Typography>
-                    {scheduleData?.zone && !scheduleLoading && scheduleData.nextScheduled !== 'No schedule' && scheduleData.nextScheduled !== 'Scheduled' && (
+                    {scheduleQuery.data?.zone && !scheduleQuery.isLoading && scheduleQuery.data.nextScheduled !== 'No schedule' && scheduleQuery.data.nextScheduled !== 'Scheduled' && (
                       <Typography variant="body2" sx={{ opacity: 0.8, fontSize: { xs: '0.65rem', md: '0.7rem' }, mt: 0.5 }}>
-                        {scheduleData.zone}
+                        {scheduleQuery.data.zone}
                       </Typography>
                     )}
                   </Box>
@@ -428,11 +406,8 @@ const HomePage = () => {
               <Card variant="outlined" sx={{ 
                 borderRadius: 2,
                 height: { xs: 200, md: 280 },
-                transition: 'all 0.3s ease',
-                '&:hover': { 
-                  transform: 'translateY(-4px)',
-                  boxShadow: theme.shadows[6]
-                }
+                transition: 'background-color 0.2s ease',
+                '&:hover': { backgroundColor: 'action.hover' }
               }}>
                 <CardActionArea sx={{ height: '100%' }}>
                   <CardContent sx={{ 
@@ -459,11 +434,7 @@ const HomePage = () => {
                     }}>
                       Manuelle Bewässerungssteuerung und Zonenverwaltung
                     </Typography>
-                    <Chip 
-                      label="Manuelle Steuerung" 
-                      size="small" 
-                      sx={{ mt: 2, bgcolor: 'primary.main', color: 'common.white' }}
-                    />
+                    <Chip label="Manuelle Steuerung" size="small" sx={{ mt: 2, bgcolor: 'primary.main', color: 'common.white' }} />
                   </CardContent>
                 </CardActionArea>
               </Card>
@@ -475,11 +446,8 @@ const HomePage = () => {
               <Card variant="outlined" sx={{ 
                 borderRadius: 2,
                 height: { xs: 200, md: 280 },
-                transition: 'all 0.3s ease',
-                '&:hover': { 
-                  transform: 'translateY(-4px)',
-                  boxShadow: theme.shadows[6]
-                }
+                transition: 'background-color 0.2s ease',
+                '&:hover': { backgroundColor: 'action.hover' }
               }}>
                 <CardActionArea sx={{ height: '100%' }}>
                   <CardContent sx={{ 
@@ -506,11 +474,7 @@ const HomePage = () => {
                     }}>
                       Geplante Bewässerung mit Countdown-Timer
                     </Typography>
-                    <Chip 
-                      label="Automatisiert" 
-                      size="small" 
-                      sx={{ mt: 2, bgcolor: '#7b1fa2', color: 'white' }}
-                    />
+                    <Chip label="Automatisiert" size="small" sx={{ mt: 2, bgcolor: 'secondary.main', color: 'common.white' }} />
                   </CardContent>
                 </CardActionArea>
               </Card>
@@ -561,7 +525,7 @@ const HomePage = () => {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography variant="body2" color="text.secondary">
-                Nächste Planung: {scheduleLoading ? '...' : (scheduleData?.nextScheduled || 'Kein Zeitplan')} {scheduleData?.zone ? `• ${scheduleData.zone}` : '• Automatikmodus aktiviert'}
+                Nächste Planung: {scheduleQuery.isLoading ? '...' : (scheduleQuery.data?.nextScheduled || 'Kein Zeitplan')} {scheduleQuery.data?.zone ? `• ${scheduleQuery.data.zone}` : '• Automatikmodus aktiviert'}
               </Typography>
             </Grid>
           </Grid>

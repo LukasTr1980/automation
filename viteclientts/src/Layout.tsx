@@ -54,7 +54,16 @@ const Layout: React.FC<LayoutProps> = ({
 
   return (
     <>
-      <Container component='main' sx={{ paddingBottom: 2 }} style={{ maxWidth: '700px' }}>
+      <Container
+        component='main'
+        maxWidth={false}
+        sx={{
+          pb: 2,
+          maxWidth: 1200,
+          mx: 'auto',
+          px: { xs: 2, md: 3 }
+        }}
+      >
         <Grid container paddingTop={isSmallScreen ? 3 : 6}>
           {showLogo && (
             <Grid component="div" size={12} sx={{ paddingBottom: { xs: 1, sm: 2 } }}>
