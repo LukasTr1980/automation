@@ -20,6 +20,7 @@ import {
   Tooltip,
   Divider
 } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
 import ThermostatAutoIcon from '@mui/icons-material/ThermostatAuto';
 import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
@@ -47,6 +48,7 @@ const BewaesserungPage = () => {
   const [switchesLoading, setSwitchesLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [switches, setSwitches] = useState([false, false, false, false, false]);
+  const [toggling, setToggling] = useState<boolean[]>([false, false, false, false, false]);
   const [, setirrigationNeededSwitch] = useState(false);
   const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
   const [orderedTasks, setOrderedTasks] = useState<GroupedTasks>({});
@@ -165,6 +167,7 @@ const BewaesserungPage = () => {
   const handleToggle = (index: number) => {
     const newSwitchState = switches.map((val, i) => (i === index ? !val : val));
     setSwitches(newSwitchState);
+    setToggling(prev => prev.map((v, i) => (i === index ? true : v)));
 
     axios.post(`${apiUrl}/simpleapi`, {
       topic: bewaesserungsTopicsSet[index],
@@ -175,7 +178,10 @@ const BewaesserungPage = () => {
           const translatedMessage = messages[backendMessageKey] || backendMessageKey;
           showSnackbar(translatedMessage);
       })
-      .catch(error => console.error('Error:', error));
+      .catch(error => console.error('Error:', error))
+      .finally(() => {
+        setToggling(prev => prev.map((v, i) => (i === index ? false : v)));
+      });
   };
 
   const handleDeleteTask = (taskId: string) => {
@@ -191,8 +197,8 @@ const BewaesserungPage = () => {
 
   return (
     <Layout>
-      {/* Page container aligned with HomePage */}
-      <Box sx={{ px: { xs: 0, md: 3 }, py: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
+      {/* Page container aligned with HomePage and Layout gutters */}
+      <Box sx={{ px: { xs: 0, md: 0 }, py: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
         {/* Header aligned with HomePage */}
         <Box sx={{ mb: 4 }}>
           <Typography
@@ -231,6 +237,7 @@ const BewaesserungPage = () => {
                         checked={val}
                         label={switchDescriptions[i]}
                         handleToggle={() => handleToggle(i)}
+                        disabled={toggling[i]}
                         id={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
                         name={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
                       />
@@ -430,7 +437,9 @@ const BewaesserungPage = () => {
                                 enterTouchDelay={0}
                                 leaveTouchDelay={3000}
                               >
-                                <InfoOutlinedIcon aria-label="Mögliche Blocker" sx={{ fontSize: 18, color: 'text.secondary' }} />
+                                <IconButton size="small" aria-label="Mögliche Blocker" sx={{ color: 'text.secondary', p: 0.25 }}>
+                                  <InfoOutlinedIcon sx={{ fontSize: 18 }} />
+                                </IconButton>
                               </Tooltip>
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>

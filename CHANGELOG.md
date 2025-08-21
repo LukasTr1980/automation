@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend (VillaAnnaHomePage): Comply with UI/UX guidance — label ET₀ card as "Verdunstung (7 Tage bis gestern)" and add a tooltip showing the exact local 7‑Tage Zeitraum; remove hover elevation from action cards (outlined + subtle hover background only); replace hardcoded colors with theme tokens; make the "Blocker" info icon keyboard accessible via an `IconButton`.
 - Frontend (Layout): Align content to `maxWidth: 1200` with header/content gutters per design; avoid double horizontal padding on mobile.
 - Frontend (NavBar): Mobile menu items render as semantic links with `aria-current` for the active route; menu closes on selection.
+- Frontend (Bewaesserung): Accessibility and layout tweaks — make the "Blocker" info icon focusable via `IconButton`, disable zone switches while a command is in flight, and align page gutters with Layout (no double padding).
 - Backend: Store weekly ET₀ in Redis (`et0:weekly:YYYY-MM-DD` and `et0:weekly:latest`) instead of JSONL; scheduler writes to Redis, irrigation decision and `/api/et0/latest` read from Redis.
 
 ### Fixed
