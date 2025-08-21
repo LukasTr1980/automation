@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed unused vars
 
+## [Unreleased]
+### Changed
+- Frontend (Layout): Global content width narrowed and unified across all pages per AGENTS.md. Introduced `CONTENT_MAX_WIDTH` and set Layout `Container` to `width: { xs: '100%', md: CONTENT_MAX_WIDTH }` with aligned gutters (`px: { xs: 2, md: 3 }`, `mx: 'auto'`).
+- Frontend (NavBar): Header wrapper uses the same `CONTENT_MAX_WIDTH` to keep header/content gutters perfectly aligned.
+- Frontend (Pages): Removed page-level `maxWidth` overrides and let pages inherit Layout width. Countdown and Bewässerung now share identical layout sizing.
+
+### Fixed
+- Frontend (Bewässerung): Eliminated subtle container width “breathing” when clicking the schedule copy button by anchoring page width via Layout instead of page-local sizing.
+- Frontend (Countdown): Same width stability when changing zones; page now relies on the global Layout width.
+
+
 ## [v19.7.1] - 2025-08-21
 ### Fixed
 - Fixed unused vars

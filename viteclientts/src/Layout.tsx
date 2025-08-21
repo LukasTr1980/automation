@@ -11,6 +11,7 @@ import {
 import logo from './images/logo-512x512.webp';
 import { LayoutProps, CopyrightProps } from './types/types';
 import { useUserStore } from './utils/store';
+import { CONTENT_MAX_WIDTH } from './utils/layout';
 const appVersion = import.meta.env.VITE_APP_VERSION;
 
 const Layout: React.FC<LayoutProps> = ({
@@ -59,7 +60,7 @@ const Layout: React.FC<LayoutProps> = ({
         maxWidth={false}
         sx={{
           pb: 2,
-          maxWidth: 1200,
+          width: { xs: '100%', md: CONTENT_MAX_WIDTH },
           mx: 'auto',
           px: { xs: 2, md: 3 }
         }}

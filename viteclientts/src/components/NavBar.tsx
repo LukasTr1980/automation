@@ -7,6 +7,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { CONTENT_MAX_WIDTH } from '../utils/layout';
 
 const NavBar: React.FC = () => {
   // Pages and labels used across desktop and mobile
@@ -36,7 +37,7 @@ const NavBar: React.FC = () => {
       backgroundColor: 'background.default'
     }}>
       <Box sx={{
-        maxWidth: 1200,
+        width: { xs: '100%', md: CONTENT_MAX_WIDTH },
         mx: 'auto',
         px: { xs: 2, md: 3 },
         py: 1,
