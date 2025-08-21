@@ -1,5 +1,5 @@
 //VillaAnnaCountdownPage.jsx
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Layout from '../../Layout';
 import {
@@ -22,13 +22,14 @@ import CountdownCard from '../../components/CountdownCard';
 import useSnackbar from '../../utils/useSnackbar';
 import { CountdownsState } from '../../types/types';
 import { messages } from '../../utils/messages';
+import { useQuery } from '@tanstack/react-query';
 
 const VillaAnnacountdownPage = () => {
     const { showSnackbar } = useSnackbar();
     const [selectedZone, setSelectedZone] = useState(zoneOrder[0]);
     const [selectedHour, setSelectedHour] = useState<string>('0');
     const [selectedMinute, setSelectedMinute] = useState<string>('10');
-    const [countdowns, setCountdowns] = useState<CountdownsState>({});
+    const [sending, setSending] = useState(false);
     const [fieldValidity, setFieldvalidity] = useState({
         hour: true,
         minute: true
@@ -50,6 +51,7 @@ const VillaAnnacountdownPage = () => {
 
         if (Object.values(isValid).every(Boolean)) {
             const selectedTopic = bewaesserungsTopicsSet[zoneOrder.indexOf(selectedZone)];
+            setSending(true);
             axios.post(`${apiUrl}/countdown/setCountdown`, {
                 topic: selectedTopic,
                 hours: selectedHour,
@@ -63,37 +65,28 @@ const VillaAnnacountdownPage = () => {
                 })
                 .catch(error => {
                     console.error('Error', error);
-                });
+                    showSnackbar('Fehler', 'error');
+                })
+                .finally(() => setSending(false));
         }
     };
 
-    // Define your fetching function
-    const fetchCurrentCountdowns = useCallback(async () => {
-        try {
-            const response = await axios.get(`${apiUrl}/countdown/currentCountdowns`);
-            setCountdowns(response.data);
-        } catch (error) {
-            console.error('Error fetching current countdowns', error);
-        }
-    }, [apiUrl]);  // dependencies for useCallback
-
-    useEffect(() => {
-        // Fetch on mount
-        fetchCurrentCountdowns();
-    }, [fetchCurrentCountdowns]);
-
-    // Simple polling for countdown updates
-    useEffect(() => {
-        const id = setInterval(() => {
-            fetchCurrentCountdowns();
-        }, 1000);
-        return () => clearInterval(id);
-    }, [fetchCurrentCountdowns]);
+    // React Query: poll current countdowns
+    const countdownsQuery = useQuery<CountdownsState>({
+        queryKey: ['countdowns', 'current'],
+        queryFn: async () => {
+            const res = await fetch(`${apiUrl}/countdown/currentCountdowns`);
+            if (!res.ok) throw new Error('countdowns');
+            return res.json();
+        },
+        refetchInterval: 1000,
+        refetchOnWindowFocus: false,
+    });
 
     return (
         <Layout>
-            {/* Page container aligned with HomePage */}
-            <Box sx={{ px: { xs: 0, md: 3 }, py: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
+            {/* Page container aligned with Layout gutters (avoid double padding) */}
+            <Box sx={{ px: { xs: 0, md: 0 }, py: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' }}>
                 {/* Header aligned with HomePage */}
                 <Box sx={{ mb: 4 }}>
                     <Typography
@@ -158,17 +151,17 @@ const VillaAnnacountdownPage = () => {
                                     />
                                 </Grid>
                                 <Grid size={12}>
-                                    <Button variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')}>
+                                    <Button variant='contained' color='primary' fullWidth onClick={() => handleSendTopic('start')} disabled={sending} aria-busy={sending}>
                                         Start
                                     </Button>
                                 </Grid>
                                 <Grid size={12}>
-                                    <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')}>
+                                    <Button variant='contained' color='info' fullWidth onClick={() => handleSendTopic('stop')} disabled={sending} aria-busy={sending}>
                                         Stopp
                                     </Button>
                                 </Grid>
                                 <Grid size={12}>
-                                    <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')}>
+                                    <Button variant='contained' color='warning' fullWidth onClick={() => handleSendTopic('reset')} disabled={sending} aria-busy={sending}>
                                         Zurücksetzen
                                     </Button>
                                 </Grid>
@@ -186,7 +179,7 @@ const VillaAnnacountdownPage = () => {
                         <CardContent>
                             {zoneOrder.map(zoneName => {
                                 const topic = bewaesserungsTopicsSet[zoneOrder.indexOf(zoneName)];
-                                const countdown = countdowns[topic];
+                                const countdown = (countdownsQuery.data || {})[topic];
                                 if (!countdown) return null; // Skip rendering if there's no countdown data for this topic
                                 return (
                                     <CountdownCard key={topic} zoneName={zoneName} countdown={countdown} />
