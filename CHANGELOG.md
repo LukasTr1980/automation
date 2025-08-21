@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v19.6.0] - 2025-08-19
 
 ### Changed
 - Backend: Add `meansTimestamp` to `weather:agg:latest` JSON to represent the last refresh of 7‑day means (daily after midnight). The 5‑minute job now preserves `meansTimestamp` while updating rolling rain totals, so consumers can distinguish “aggregated” time from “current” time.
