@@ -132,7 +132,15 @@ const NavBar: React.FC = () => {
             {pages.map((page) => {
               const active = location.pathname === page.path;
               return (
-                <MenuItem key={page.path} onClick={() => handleNavigate(page.path)} selected={active}>
+                <MenuItem
+                  key={page.path}
+                  component={RouterLink}
+                  to={page.path}
+                  onClick={handleCloseNavMenu}
+                  aria-current={active ? 'page' : undefined}
+                  selected={active}
+                  sx={{ textDecoration: 'none', color: 'text.primary' }}
+                >
                   {active && (
                     <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'primary.main', mr: 1 }} />
                   )}
