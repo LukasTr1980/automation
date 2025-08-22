@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.10.1] - 2025-08-22
+### Changed
+- Frontend (ScheduledTaskCard): Make row layout responsive on xs — month/day chips wrap to the next line, while actions (copy/delete) stay visible on the first line; relaxed min-widths and added ordering to prevent overflow.
+
+### Fixed
+- Frontend (ScheduledTaskCard): Removed redundant bottom border by rendering dividers only between rows, not after the last row.
+
+### Removed
+- Frontend: Deleted unused legacy button images in `viteclientts/src/images/`.
+- Frontend: Removed unused image preloading utilities (`viteclientts/src/utils/imagePreloader.tsx`, `viteclientts/src/utils/usePreloadImages.tsx`) and the associated `ImagePreloaderProps` type.
+
 ## [v19.10.0] - 2025-08-22
 ### Added
 - Frontend: Shared `ZoneSelector` component (outlined ToggleButtons) and adoption across Countdown, "Zeitplan erstellen" (SchedulerCard), and "Eingestellte Zeitpläne" to unify zone selection per AGENTS.md.

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import SwitchComponent from './switchComponent';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -121,9 +121,18 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
             const timeLabel = `${task.recurrenceRule.hour.toString().padStart(2, '0')}:${task.recurrenceRule.minute.toString().padStart(2, '0')}`;
 
             return (
-              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+              <Fragment key={i}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  py: 0.5,
+                  flexWrap: { xs: 'wrap', sm: 'nowrap' }
+                }}
+              >
                 {/* Left: status dot + status label + time */}
-                <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 160 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', minWidth: { xs: 0, sm: 160 } }}>
                   <Box
                     component="span"
                     aria-hidden
@@ -141,7 +150,18 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                 </Box>
 
                 {/* Middle: day and month chips */}
-                <Stack direction="row" spacing={0.5} sx={{ flex: 1, flexWrap: 'wrap' }} aria-label="Wiederholung">
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  sx={{
+                    flex: { xs: '1 1 100%', sm: '1 1 auto' },
+                    flexWrap: 'wrap',
+                    order: { xs: 3, sm: 2 },
+                    mt: { xs: 0.5, sm: 0 },
+                    minWidth: 0
+                  }}
+                  aria-label="Wiederholung"
+                >
                   <Chip size="small" variant="outlined" label={days} />
                   {task.recurrenceRule.month.map((m) => (
                     <Chip key={m} size="small" variant="outlined" label={months[m].substring(0, 3)} />
@@ -149,7 +169,12 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                 </Stack>
 
                 {/* Right: active hint + actions */}
-                <Stack direction="row" spacing={0} alignItems="center">
+                <Stack
+                  direction="row"
+                  spacing={0}
+                  alignItems="center"
+                  sx={{ ml: 'auto', flexShrink: 0, order: { xs: 2, sm: 3 } }}
+                >
                   {isActive && (
                     <Tooltip title="Aktiv (dieser Monat)" enterTouchDelay={0} leaveTouchDelay={10000}>
                       <Chip size="small" color="success" label="Aktiv" sx={{ mr: 0.5 }} />
@@ -167,9 +192,10 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                   </Tooltip>
                 </Stack>
               </Box>
+              {i < groupedTasksForDisplay[key].length - 1 && <Divider sx={{ my: 1 }} />}
+              </Fragment>
             );
           })}
-          {groupedTasksForDisplay[key].length > 1 && <Divider sx={{ mt: 1 }} />}
         </Box>
       ))}
     </>
