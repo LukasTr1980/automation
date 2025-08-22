@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { Box, Chip, Divider, Stack, Tooltip } from '@mui/material';
 import { useDaysOfWeek, useMonths } from './constants';
 import axios from 'axios';
 import useSnackbar from '../utils/useSnackbar';
@@ -101,53 +102,76 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
 
   return (
     <>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" component="div">{zoneName}</Typography>
-          <SwitchComponent checked={switchStates[cleanZoneName]} handleToggle={handleToggle(cleanZoneName)} />
-        </div>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>{zoneName}</Typography>
+        <SwitchComponent
+          checked={switchStates[cleanZoneName]}
+          handleToggle={handleToggle(cleanZoneName)}
+          label={switchStates[cleanZoneName] ? 'Aktiv' : 'Inaktiv'}
+        />
+      </Box>
 
-        {
-          // Iterate over the sorted group keys
-          sortedGroupKeys.map(key => (
-            <div key={key} style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '8px', margin: '10px 0', padding: '8px' }}>
-              {groupedTasksForDisplay[key].map((task, i) => {
-                const isActive = task.recurrenceRule.month.includes(currentMonth) && switchStates[cleanZoneName];
-                const status = customLabels && customLabels[task.state.toString()] ? customLabels[task.state.toString()] : (task.state ? "Ein" : "Aus");
-                const allDays = task.recurrenceRule.dayOfWeek.length === 7;
-                const days = allDays ? "Täglich" : task.recurrenceRule.dayOfWeek.map(day => daysOfWeek[day].substring(0, 3)).join(", ");
+      {sortedGroupKeys.map((key) => (
+        <Box key={key} sx={{ border: 1, borderColor: 'divider', borderRadius: 2, p: 1, mb: 1.5 }}>
+          {groupedTasksForDisplay[key].map((task, i) => {
+            const isActive = task.recurrenceRule.month.includes(currentMonth) && switchStates[cleanZoneName];
+            const status = customLabels && customLabels[task.state.toString()] ? customLabels[task.state.toString()] : (task.state ? 'Ein' : 'Aus');
+            const allDays = task.recurrenceRule.dayOfWeek.length === 7;
+            const days = allDays ? 'Täglich' : task.recurrenceRule.dayOfWeek.map((day) => daysOfWeek[day].substring(0, 3)).join(', ');
+            const timeLabel = `${task.recurrenceRule.hour.toString().padStart(2, '0')}:${task.recurrenceRule.minute.toString().padStart(2, '0')}`;
 
-                return (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: isActive ? 'rgba(76, 175, 80, 0.1)' : 'transparent', borderRadius: '6px', padding: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div>
-                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>{status}</Typography>
-                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                          {`${task.recurrenceRule.hour.toString().padStart(2, '0')}:${task.recurrenceRule.minute.toString().padStart(2, '0')}`}
-                        </Typography>
-                      </div>
-                      {isActive && <span style={{ fontWeight: 'bold', fontSize: '12px', marginLeft: '10px' }}>Aktiv</span>}
-                    </div>
-                    <div style={{ flex: 1, textAlign: 'right' }}>
-                      <Typography variant="body2" style={{ color: isActive ? 'bold' : 'normal' }}>
-                        {days}
-                        <br />
-                        {task.recurrenceRule.month.map(month => months[month].substring(0, 3)).join(", ")}
-                      </Typography>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', minWidth: '50px' }}>
-                      <IconButton aria-label='copy' onClick={() => handleCopy(task)}>
-                        <ContentCopyIcon />
-                      </IconButton>
-                      <IconButton aria-label='delete' onClick={() => handleDelete(task.taskId)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))
-        }
-</>
+            return (
+              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                {/* Left: status dot + status label + time */}
+                <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 160 }}>
+                  <Box
+                    component="span"
+                    aria-hidden
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%'
+,
+                      mr: 1,
+                      bgcolor: task.state ? 'success.main' : 'text.disabled',
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ mr: 1 }}>{status}</Typography>
+                  <Typography variant="body2" color="text.secondary">{timeLabel}</Typography>
+                </Box>
+
+                {/* Middle: day and month chips */}
+                <Stack direction="row" spacing={0.5} sx={{ flex: 1, flexWrap: 'wrap' }} aria-label="Wiederholung">
+                  <Chip size="small" variant="outlined" label={days} />
+                  {task.recurrenceRule.month.map((m) => (
+                    <Chip key={m} size="small" variant="outlined" label={months[m].substring(0, 3)} />
+                  ))}
+                </Stack>
+
+                {/* Right: active hint + actions */}
+                <Stack direction="row" spacing={0} alignItems="center">
+                  {isActive && (
+                    <Tooltip title="Aktiv (dieser Monat)" enterTouchDelay={0} leaveTouchDelay={10000}>
+                      <Chip size="small" color="success" label="Aktiv" sx={{ mr: 0.5 }} />
+                    </Tooltip>
+                  )}
+                  <Tooltip title="Zeitplan kopieren" enterTouchDelay={0}>
+                    <IconButton aria-label='Zeitplan kopieren' onClick={() => handleCopy(task)}>
+                      <ContentCopyIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Zeitplan löschen" enterTouchDelay={0}>
+                    <IconButton aria-label='Zeitplan löschen' onClick={() => handleDelete(task.taskId)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </Box>
+            );
+          })}
+          {groupedTasksForDisplay[key].length > 1 && <Divider sx={{ mt: 1 }} />}
+        </Box>
+      ))}
+    </>
   );
 }

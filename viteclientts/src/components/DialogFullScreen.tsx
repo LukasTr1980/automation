@@ -6,21 +6,20 @@ import { DialogFullScreenProps } from '../types/types';
 
 const DialogFullScreen: React.FC<DialogFullScreenProps> = ({ open, onClose, children, title, showButton = true, id }) => {
 
-  // Render dialog within the app root to avoid aria-hidden on #root when modal opens
-  const container = typeof document !== 'undefined' ? document.getElementById('root') ?? undefined : undefined;
-
   const titleId = id ? `${id}-title` : 'dialog-title';
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      container={container}
       aria-labelledby={titleId}
+      keepMounted
+      disableRestoreFocus
+      disableScrollLock
     >
       <DialogTitle id={titleId} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {title}
-        <IconButton edge="end" color='inherit' onClick={onClose} aria-label='close' autoFocus>
+        <IconButton edge="end" color='inherit' onClick={onClose} aria-label='close'>
           <CloseIcon />
         </IconButton>
       </DialogTitle>

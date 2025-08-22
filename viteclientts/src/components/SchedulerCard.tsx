@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { bewaesserungsTopicsSet, switchDescriptions, useDaysOfWeekNumbers, useMonthsNumbers } from './constants';
-import { WeekdaysSelect, MonthsSelect, HourField, MinuteField } from '.';
+import { WeekdaysSelect, MonthsSelect, HourField, MinuteField, ZoneSelector } from '.';
 import SwitchComponent from './switchComponent';
 import DialogFullScreen from './DialogFullScreen';
 import {
@@ -9,14 +9,13 @@ import {
   CardContent,
   CardHeader,
   Grid,
-  FormControl,
   FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
   Button,
 } from '@mui/material';
+import CalendarViewWeekIcon from '@mui/icons-material/CalendarViewWeek';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import CircularProgress from '@mui/material/CircularProgress';
 import useSnackbar from '../utils/useSnackbar';
 import { SchedulerCardProps } from '../types/types';
 import { messages } from '../utils/messages';
@@ -40,6 +39,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   const [selectedMinute, setSelectedMinute] = useState<string>('');
   const [weekDaysDialogOpen, setWeekDaysDialogOpen] = useState<boolean>(false);
   const [monthDialogOpen, setMonthDialogOpen] = useState<boolean>(false);
+  const [scheduling, setScheduling] = useState<boolean>(false);
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const selectedDayNames = selectedDays
@@ -61,8 +61,8 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
   // The label now only depends on the switch state. "Ein" / "Aus" are used as fallbacks.
   const currentLabel = switchState ? 'Ein' : 'Aus';
 
-  const handleTopicChange = (event: SelectChangeEvent<string>) => {
-    setSelectedTopic(event.target.value as string);
+  const handleTopicChange = (topic: string) => {
+    setSelectedTopic(topic);
   };
 
   const handleSwitchChange = (event: React.ChangeEvent<{ checked: boolean }>) => {
@@ -89,6 +89,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
     if (Object.values(isValid).every(Boolean)) {
       const stateValue = switchState;
 
+      setScheduling(true);
       axios
         .post(`${apiUrl}/scheduler`, {
           hour: selectedHour,
@@ -111,7 +112,8 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
           queryClient.invalidateQueries({ queryKey: ['scheduledTasks'] });
           showSnackbar(translatedMessage);
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Error:', error))
+        .finally(() => setScheduling(false));
     }
   };
 
@@ -144,18 +146,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
       <CardContent>
         <Grid container spacing={2}>
           <Grid size={12}>
-            <FormControl fullWidth>
-              <InputLabel id="mqtt-topic-label">
-                Zone
-              </InputLabel>
-              <Select labelId="mqtt-topic-label" value={selectedTopic} onChange={handleTopicChange}>
-                {mqttTopics.map((topic, i) => (
-                  <MenuItem value={topic} key={i}>
-                    {topicDescriptions[i] || topic}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <ZoneSelector value={selectedTopic} onChange={handleTopicChange} labels={topicDescriptions} values={mqttTopics} ariaLabel="Zone" />
           </Grid>
 
           <Grid size={12}>
@@ -174,13 +165,17 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
           <Grid size={12}>
             <Button
-              variant="contained"
+              variant="outlined"
               color={!fieldValidity.day ? 'error' : 'primary'}
               fullWidth
-              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); setWeekDaysDialogOpen(true); }}
+              type="button"
+              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); setTimeout(() => setWeekDaysDialogOpen(true), 0); }}
               aria-haspopup="dialog"
               aria-controls="weekdays-dialog"
               aria-pressed={selectedDays.length ? 'true' : 'false'}
+              startIcon={<CalendarViewWeekIcon />}
+              disableElevation
+              sx={{ borderRadius: 2, textTransform: 'none' }}
             >
               {weekDaysButtonText}
             </Button>
@@ -193,13 +188,17 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
           <Grid size={12}>
             <Button
-              variant="contained"
+              variant="outlined"
               color={!fieldValidity.month ? 'error' : 'primary'}
               fullWidth
-              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); setMonthDialogOpen(true); }}
+              type="button"
+              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); setTimeout(() => setMonthDialogOpen(true), 0); }}
               aria-haspopup="dialog"
               aria-controls="months-dialog"
               aria-pressed={selectedMonths.length ? 'true' : 'false'}
+              startIcon={<CalendarMonthIcon />}
+              disableElevation
+              sx={{ borderRadius: 2, textTransform: 'none' }}
             >
               {monthButtonText}
             </Button>
@@ -211,7 +210,17 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
           </Grid>
 
           <Grid size={12}>
-            <Button variant="contained" color="primary" fullWidth onClick={handleSchedule}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={handleSchedule}
+              disableElevation
+              disabled={scheduling}
+              aria-busy={scheduling ? 'true' : 'false'}
+              startIcon={scheduling ? <CircularProgress size={18} color='inherit' /> : <ScheduleIcon />}
+              sx={{ borderRadius: 2, textTransform: 'none' }}
+            >
               Planen
             </Button>
           </Grid>

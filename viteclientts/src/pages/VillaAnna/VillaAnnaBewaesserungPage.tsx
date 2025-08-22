@@ -35,9 +35,9 @@ import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import useSnackbar from '../../utils/useSnackbar';
 import { GroupedTasks, ScheduledTask, APIResponse } from '../../types/types';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
+// Tabs removed in favor of shared ZoneSelector
 import SkeletonLoader from '../../components/skeleton';
+import { ZoneSelector } from '../../components/index';
 import { messages } from '../../utils/messages';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 // Dialog removed: details shown inline
@@ -46,7 +46,7 @@ const BewaesserungPage = () => {
   const queryClient = useQueryClient();
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [skipDecision, setSkipDecision] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
+  const [selectedTasksTopic, setSelectedTasksTopic] = useState<string | null>(null);
   const [switchesLoading, setSwitchesLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [switches, setSwitches] = useState([false, false, false, false, false]);
@@ -198,9 +198,21 @@ const BewaesserungPage = () => {
     queryClient.invalidateQueries({ queryKey: ['scheduledTasks'] });
   };
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-  };
+  // Selected zone for "Eingestellte Zeitpläne": keep as MQTT topic for consistency
+  const tasksZones = Object.keys(orderedTasks);
+  const tasksZoneTopics = tasksZones.map((zoneName) => {
+    const idx = switchDescriptions.findIndex((desc) => desc === zoneName);
+    return idx >= 0 ? bewaesserungsTopicsSet[idx] : zoneName;
+  });
+
+  useEffect(() => {
+    if (!selectedTasksTopic && tasksZoneTopics.length > 0) {
+      setSelectedTasksTopic(tasksZoneTopics[0]);
+    } else if (selectedTasksTopic && tasksZoneTopics.length > 0 && !tasksZoneTopics.includes(selectedTasksTopic)) {
+      // Previously selected topic no longer present -> reset to first available
+      setSelectedTasksTopic(tasksZoneTopics[0]);
+    }
+  }, [selectedTasksTopic, tasksZoneTopics.join('|')]);
 
   // Dialog handlers removed
 
@@ -568,38 +580,35 @@ const BewaesserungPage = () => {
                 <>
                   {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne</Typography>}
 
-                  <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: { xs: 310, sm: '100%' } }}>
-                    <Tabs value={activeTab}
-                      onChange={handleTabChange}
-                      variant='scrollable'
-                      aria-label="Zone tabs"
-                      scrollButtons
-                      allowScrollButtonsMobile
-                    >
-                      {Object.keys(orderedTasks).map((zoneName) => (
-                        <Tab label={zoneName} key={zoneName} />
-                      ))}
-                    </Tabs>
-                  </Box>
+                  {tasksZoneTopics.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      <ZoneSelector
+                        value={selectedTasksTopic || tasksZoneTopics[0]}
+                        onChange={(topic) => setSelectedTasksTopic(topic)}
+                        labels={tasksZones}
+                        values={tasksZoneTopics}
+                        ariaLabel="Zone"
+                      />
+                    </Box>
+                  )}
 
-                  {Object.entries(orderedTasks).map(([zoneName, tasks]) => {
-                    if (zoneName === Object.keys(orderedTasks)[activeTab]) {
-                      const topicIndex = switchDescriptions.findIndex(desc => desc === zoneName);
-                      const redisKey = bewaesserungsTopicsSet[topicIndex];
-
-                      return (
-                        <ScheduledTaskCard
-                          key={`${zoneName}-${topicIndex}`}
-                          zoneName={zoneName}
-                          tasks={tasks}
-                          onDelete={handleDeleteTask}
-                          redisKey={redisKey}
-                          onCopyTask={setCopiedTask}
-                        />
-                      );
-                    }
-                    return null;
-                  })}
+                  {(() => {
+                    if (!selectedTasksTopic) return null;
+                    const idx = bewaesserungsTopicsSet.indexOf(selectedTasksTopic);
+                    const selectedZoneName = idx >= 0 ? switchDescriptions[idx] : tasksZones[0];
+                    const tasks = orderedTasks[selectedZoneName] || [];
+                    const redisKey = selectedTasksTopic;
+                    return (
+                      <ScheduledTaskCard
+                        key={`${selectedZoneName}-${redisKey}`}
+                        zoneName={selectedZoneName}
+                        tasks={tasks}
+                        onDelete={handleDeleteTask}
+                        redisKey={redisKey}
+                        onCopyTask={setCopiedTask}
+                      />
+                    );
+                  })()}
                 </>
               )}
             </CardContent>

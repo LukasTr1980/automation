@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.10.0] - 2025-08-22
+### Added
+- Frontend: Shared `ZoneSelector` component (outlined ToggleButtons) and adoption across Countdown, "Zeitplan erstellen" (SchedulerCard), and "Eingestellte Zeitpläne" to unify zone selection per AGENTS.md.
+
+### Changed
+- Frontend (SchedulerCard): Redesigned action buttons to flat/outlined style with clear icons, rounded corners, and loading/disabled feedback for "Planen".
+- Frontend (Eingestellte Zeitpläne): Replaced Tabs with the shared `ZoneSelector`; redesigned schedule rows to a flat list with a small status dot + label, compact day/month chips, and a subtle "Aktiv" chip; improved scanability and accessibility.
+- Frontend (Countdown/Bewässerung): Zone selectors now use the same consistent design and behavior.
+- Frontend (Stunde/Minute Felder): Numeric keypad friendly inputs, validation with clamping on blur, two-digit formatting, and clear helper text; consistent rounded outlined style.
+
+### Fixed
+- Frontend (Dialogs): Reduced aria-hidden/focus conflicts and scroll jumps with centralized blur-on-open, focus handoff to `main` on close, and disabled scroll lock; improved focus management without breaking the focus trap.
+
 ## [v19.9.0] - 2025-08-21
 ### Changed
 - Frontend (Tooltips): Standardized to the small info-icon pattern, increased persistence (`leaveDelay`/`leaveTouchDelay` = 10s), and removed `followCursor` to fix scroll/anchoring. Applied on VillaAnnaHomePage and VillaAnnaBewaesserungPage.

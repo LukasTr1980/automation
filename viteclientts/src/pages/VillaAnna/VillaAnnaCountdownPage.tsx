@@ -2,24 +2,13 @@
 import { useState } from 'react';
 import axios from 'axios';
 import Layout from '../../Layout';
-import {
-    FormControl,
-    Grid,
-    Card,
-    CardContent,
-    CardHeader,
-    Button,
-    Box,
-    Typography,
-    ToggleButton,
-    FormLabel,
-} from '@mui/material';
+import { Grid, Card, CardContent, CardHeader, Button, Box, Typography } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import CircularProgress from '@mui/material/CircularProgress';
 import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
-import { HourField, MinuteField } from '../../components/index';
+import { HourField, MinuteField, ZoneSelector } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import useSnackbar from '../../utils/useSnackbar';
 import { CountdownsState } from '../../types/types';
@@ -125,30 +114,16 @@ const VillaAnnacountdownPage = () => {
                         <CardContent>
                             <Grid container spacing={2}>
                                 <Grid size={12}>
-                                    <FormControl fullWidth component="fieldset" sx={{ mb: 1 }}>
-                                        <FormLabel id="zone-toggle-label" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>Zone</FormLabel>
-                                        <Box sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-start' }, mt: 1, flexWrap: 'wrap', gap: 1 }}>
-                                          {zoneOrder.map((zone, i) => (
-                                            <ToggleButton
-                                              key={bewaesserungsTopicsSet[i]}
-                                              value={zone}
-                                              selected={selectedZone === zone}
-                                              onClick={() => setSelectedZone(zone)}
-                                              aria-label={zone}
-                                              sx={{
-                                                borderRadius: 2,
-                                                textTransform: 'none',
-                                                px: 1.5,
-                                                py: 1,
-                                                minWidth: { xs: 120, sm: 140 },
-                                                justifyContent: 'center'
-                                              }}
-                                            >
-                                              {zone}
-                                            </ToggleButton>
-                                          ))}
-                                        </Box>
-                                    </FormControl>
+                                    <ZoneSelector
+                                      value={bewaesserungsTopicsSet[zoneOrder.indexOf(selectedZone)]}
+                                      onChange={(topic) => {
+                                        const idx = bewaesserungsTopicsSet.indexOf(topic);
+                                        if (idx >= 0) setSelectedZone(zoneOrder[idx]);
+                                      }}
+                                      labels={zoneOrder}
+                                      values={bewaesserungsTopicsSet}
+                                      ariaLabel="Zone"
+                                    />
                                 </Grid>
                                 <Grid size={6}>
                                     <HourField
