@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.12.0] - 2025-08-23
+### Added
+- Frontend (Home): Unified real-time irrigation status on VillaAnnaHomePage — shows whether irrigation is running (manual or countdown), with animated sprinkler symbol and per-zone chips; chips include remaining countdown time when applicable.
+- Frontend: New reusable `IrrigationIndicator` component (SVG + CSS keyframes) with reduced-motion support; used on the home page status line.
+
+### Changed
+- Frontend (Home): Moved “Schnellübersicht” above the action buttons for higher prominence; removed duplicate “Nächste Planung” there (kept the dedicated card as the single source).
+- Frontend (Home): Refactored status cards to icon-on-top vertical layout; increased avatar/icon sizes and normalized min-heights so icons align on one line across cards.
+- Frontend (Home): Added a Blocker icon card avatar and matched its border/spacing/height to the other cards.
+- Frontend (Home): Status line now uses label “Countdown aktiv” (was “Timer aktiv”); irrigation indicator turns blue when running via MUI theme tokens.
+
+### Fixed
+- Frontend: Sprinkler animation now runs reliably (moved from MUI keyframes to component-scoped CSS keyframes for inline SVG).
+- Frontend: Color resolution for SVG switched to `useTheme()` to avoid CSS var issues; fixed misalignment of cards and inconsistent spacing above/below “Schnellübersicht”.
+
 ## [v19.11.0] - 2025-08-23
 ### Added
 - Frontend: New reusable `InfoPopover` component that renders the small “i” info icons as click-to-open popovers. Popovers stay open until the user clicks/taps outside or presses ESC; content is announced via `role="tooltip"` and linked by `aria-describedby`.
