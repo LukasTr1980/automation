@@ -17,10 +17,8 @@ import {
   CardHeader,
   Button,
   Chip,
-  Tooltip,
   Divider
 } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
 import ThermostatAutoIcon from '@mui/icons-material/ThermostatAuto';
 import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
@@ -30,7 +28,8 @@ import CalendarViewWeekIcon from '@mui/icons-material/CalendarViewWeek';
 import WaterIcon from '@mui/icons-material/Water';
 import WavesIcon from '@mui/icons-material/Waves';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+// Info icon rendered via InfoPopover component
+import InfoPopover from '../../components/InfoPopover';
 import Layout from '../../Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import useSnackbar from '../../utils/useSnackbar';
@@ -329,18 +328,13 @@ const BewaesserungPage = () => {
                                   secondary={`${response.outTemp.toFixed(1)} °C`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                                <Tooltip 
-                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                  arrow
-                                  placement="top"
-                                  enterTouchDelay={0}
-                                  leaveTouchDelay={10000}
-                                  leaveDelay={10000}
-                                >
-                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
-                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                                  </IconButton>
-                                </Tooltip>
+                                {sevenDayFullRangeLabel && (
+                                  <InfoPopover
+                                    ariaLabel="Zeitraum anzeigen"
+                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
+                                    iconSize={16}
+                                  />
+                                )}
                               </Box>
                             </ListItem>
                             <Divider component="li" />
@@ -352,18 +346,13 @@ const BewaesserungPage = () => {
                                   secondary={`${response.humidity.toFixed(0)} %`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                                <Tooltip 
-                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                  arrow
-                                  placement="top"
-                                  enterTouchDelay={0}
-                                  leaveTouchDelay={10000}
-                                  leaveDelay={10000}
-                                >
-                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
-                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                                  </IconButton>
-                                </Tooltip>
+                                {sevenDayFullRangeLabel && (
+                                  <InfoPopover
+                                    ariaLabel="Zeitraum anzeigen"
+                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
+                                    iconSize={16}
+                                  />
+                                )}
                               </Box>
                             </ListItem>
                             <Divider component="li" />
@@ -402,18 +391,13 @@ const BewaesserungPage = () => {
                                   secondary={`${response.rainSum.toFixed(1)} mm`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                                <Tooltip 
-                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                  arrow
-                                  placement="top"
-                                  enterTouchDelay={0}
-                                  leaveTouchDelay={10000}
-                                  leaveDelay={10000}
-                                >
-                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
-                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                                  </IconButton>
-                                </Tooltip>
+                                {sevenDayFullRangeLabel && (
+                                  <InfoPopover
+                                    ariaLabel="Zeitraum anzeigen"
+                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
+                                    iconSize={16}
+                                  />
+                                )}
                               </Box>
                             </ListItem>
                             <Divider component="li" />
@@ -425,18 +409,13 @@ const BewaesserungPage = () => {
                                   secondary={`${response.irrigationDepthMm.toFixed(1)} mm`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                                <Tooltip 
-                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                  arrow
-                                  placement="top"
-                                  enterTouchDelay={0}
-                                  leaveTouchDelay={10000}
-                                  leaveDelay={10000}
-                                >
-                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
-                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                                  </IconButton>
-                                </Tooltip>
+                                {sevenDayFullRangeLabel && (
+                                  <InfoPopover
+                                    ariaLabel="Zeitraum anzeigen"
+                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
+                                    iconSize={16}
+                                  />
+                                )}
                               </Box>
                             </ListItem>
                             <Divider component="li" />
@@ -448,18 +427,13 @@ const BewaesserungPage = () => {
                                   secondary={`${response.et0_week.toFixed(1)} mm`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                                <Tooltip 
-                                  title={sevenDayFullRangeLabel ? `Zeitraum: ${sevenDayFullRangeLabel} (lokal)` : ''}
-                                  arrow
-                                  placement="top"
-                                  enterTouchDelay={0}
-                                  leaveTouchDelay={10000}
-                                  leaveDelay={10000}
-                                >
-                                  <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
-                                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                                  </IconButton>
-                                </Tooltip>
+                                {sevenDayFullRangeLabel && (
+                                  <InfoPopover
+                                    ariaLabel="Zeitraum anzeigen"
+                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
+                                    iconSize={16}
+                                  />
+                                )}
                               </Box>
                             </ListItem>
                             <Divider component="li" />
@@ -476,18 +450,11 @@ const BewaesserungPage = () => {
                           <Box mt={2}>
                             <Typography variant="subtitle1" gutterBottom align="center" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
                               Blocker Aktiv
-                              <Tooltip 
-                                title={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
-                                arrow
-                                placement="top"
-                                enterTouchDelay={0}
-                                leaveTouchDelay={10000}
-                                leaveDelay={10000}
-                              >
-                                <IconButton size="small" aria-label="Mögliche Blocker" sx={{ color: 'text.secondary', p: 0.25 }}>
-                                  <InfoOutlinedIcon sx={{ fontSize: 18 }} />
-                                </IconButton>
-                              </Tooltip>
+                              <InfoPopover
+                                ariaLabel="Mögliche Blocker"
+                                content={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
+                                iconSize={18}
+                              />
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                               {(() => {
@@ -498,29 +465,19 @@ const BewaesserungPage = () => {
                                 const rateActive = response.rainRate > 0;
                                 const deficitActive = response.deficitNow < 5;
                                 if (tempActive) chips.push(
-                                  <Tooltip title={`Ø-Temperatur 7 Tage: ${response.outTemp.toFixed(1)} °C`} key="b-temp" leaveDelay={10000} leaveTouchDelay={10000}>
-                                    <Chip color="error" variant="filled" icon={<ThermostatAutoIcon />} label="Ø-Temperatur ≤ 10 °C" />
-                                  </Tooltip>
+                                  <Chip key="b-temp" color="error" variant="filled" icon={<ThermostatAutoIcon />} label="Ø-Temperatur ≤ 10 °C" />
                                 );
                                 if (humActive) chips.push(
-                                  <Tooltip title={`Ø-Luftfeuchte 7 Tage: ${response.humidity.toFixed(0)} %`} key="b-hum" leaveDelay={10000} leaveTouchDelay={10000}>
-                                    <Chip color="error" variant="filled" icon={<OpacityOutlinedIcon />} label="Ø-Luftfeuchte ≥ 80 %" />
-                                  </Tooltip>
+                                  <Chip key="b-hum" color="error" variant="filled" icon={<OpacityOutlinedIcon />} label="Ø-Luftfeuchte ≥ 80 %" />
                                 );
                                 if (rain24Active) chips.push(
-                                  <Tooltip title={`Regen (24h): ${response.rainToday.toFixed(1)} mm`} key="b-r24" leaveDelay={10000} leaveTouchDelay={10000}>
-                                    <Chip color="error" variant="filled" icon={<WaterDropIcon />} label="Regen (24h) ≥ 3 mm" />
-                                  </Tooltip>
+                                  <Chip key="b-r24" color="error" variant="filled" icon={<WaterDropIcon />} label="Regen (24h) ≥ 3 mm" />
                                 );
                                 if (rateActive) chips.push(
-                                  <Tooltip title={`Regenrate: ${response.rainRate.toFixed(1)} mm/h`} key="b-rate" leaveDelay={10000} leaveTouchDelay={10000}>
-                                    <Chip color="error" variant="filled" icon={<SpeedIcon />} label="Regenrate > 0" />
-                                  </Tooltip>
+                                  <Chip key="b-rate" color="error" variant="filled" icon={<SpeedIcon />} label="Regenrate > 0" />
                                 );
                                 if (deficitActive) chips.push(
-                                  <Tooltip title={`Wasserdefizit: ${response.deficitNow.toFixed(1)} mm`} key="b-def" leaveDelay={10000} leaveTouchDelay={10000}>
-                                    <Chip color="error" variant="filled" icon={<TrendingDownIcon />} label="Defizit < 5 mm" />
-                                  </Tooltip>
+                                  <Chip key="b-def" color="error" variant="filled" icon={<TrendingDownIcon />} label="Defizit < 5 mm" />
                                 );
                                 return chips.length ? chips : [
                                   <Chip key="b-none" color="success" variant="outlined" label="Keine Blocker aktiv" />

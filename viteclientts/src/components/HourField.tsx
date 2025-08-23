@@ -44,6 +44,8 @@ const HourField: React.FC<HourFieldProps> = ({ selectedHour, setSelectedHour, er
   return (
     <TextField
       label={'Stunde'}
+      id="hour-field"
+      name="hour"
       type="text"
       value={selectedHour}
       onChange={handleChange}

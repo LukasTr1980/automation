@@ -19,7 +19,7 @@ const ZoneSelector: React.FC<ZoneSelectorProps> = ({
 }) => {
   return (
     <FormControl fullWidth component="fieldset" sx={{ mb: 1 }}>
-      <FormLabel id="zone-toggle-label" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>{ariaLabel}</FormLabel>
+      <FormLabel component="legend" id="zone-toggle-label" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>{ariaLabel}</FormLabel>
       <Box sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-start' }, mt: 1, flexWrap: 'wrap', gap: 1 }}>
         {labels.map((label, i) => (
           <ToggleButton
@@ -46,4 +46,3 @@ const ZoneSelector: React.FC<ZoneSelectorProps> = ({
 };
 
 export default ZoneSelector;
-

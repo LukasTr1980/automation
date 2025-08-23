@@ -43,6 +43,8 @@ const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMi
   return (
     <TextField
       label={'Minute'}
+      id="minute-field"
+      name="minute"
       type="text"
       value={selectedMinute}
       onChange={handleChange}

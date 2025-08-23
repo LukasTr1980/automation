@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { Box, Chip, Divider, Stack, Tooltip } from '@mui/material';
+import { Box, Chip, Divider, Stack } from '@mui/material';
 import { useDaysOfWeek, useMonths } from './constants';
 import axios from 'axios';
 import useSnackbar from '../utils/useSnackbar';
@@ -176,20 +176,14 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                   sx={{ ml: 'auto', flexShrink: 0, order: { xs: 2, sm: 3 } }}
                 >
                   {isActive && (
-                    <Tooltip title="Aktiv (dieser Monat)" enterTouchDelay={0} leaveTouchDelay={10000}>
-                      <Chip size="small" color="success" label="Aktiv" sx={{ mr: 0.5 }} />
-                    </Tooltip>
+                    <Chip size="small" color="success" label="Aktiv" sx={{ mr: 0.5 }} />
                   )}
-                  <Tooltip title="Zeitplan kopieren" enterTouchDelay={0}>
-                    <IconButton aria-label='Zeitplan kopieren' onClick={() => handleCopy(task)}>
-                      <ContentCopyIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Zeitplan löschen" enterTouchDelay={0}>
-                    <IconButton aria-label='Zeitplan löschen' onClick={() => handleDelete(task.taskId)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton aria-label='Zeitplan kopieren' onClick={() => handleCopy(task)}>
+                    <ContentCopyIcon />
+                  </IconButton>
+                  <IconButton aria-label='Zeitplan löschen' onClick={() => handleDelete(task.taskId)}>
+                    <DeleteIcon />
+                  </IconButton>
                 </Stack>
               </Box>
               {i < groupedTasksForDisplay[key].length - 1 && <Divider sx={{ my: 1 }} />}

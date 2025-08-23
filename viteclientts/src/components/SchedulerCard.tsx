@@ -151,7 +151,7 @@ const SchedulerCard: React.FC<SchedulerCardProps> = ({
 
           <Grid size={12}>
             <FormControlLabel
-              control={<SwitchComponent checked={switchState} handleToggle={handleSwitchChange} label={currentLabel} />}
+              control={<SwitchComponent id="scheduler-switch" name="scheduler-switch" checked={switchState} handleToggle={handleSwitchChange} label={currentLabel} />}
               label=""
             />
           </Grid>

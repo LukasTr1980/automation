@@ -10,10 +10,8 @@ import {
   Avatar,
   Chip,
   Stack,
-  Tooltip,
   Skeleton
 } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
@@ -25,7 +23,8 @@ import {
   Speed,
   TrendingDown
 } from '@mui/icons-material';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+// Info icon rendered via InfoPopover component
+import InfoPopover from '../../components/InfoPopover';
 import { useState, useEffect, type ReactNode } from 'react';
 import useSnackbar from '../../utils/useSnackbar';
 
@@ -203,18 +202,11 @@ const HomePage = () => {
               <CardContent sx={{ py: 1.5 }}>
                 <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem', mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   Blocker
-                  <Tooltip 
-                    title={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
-                    arrow
-                    placement="top"
-                    enterTouchDelay={0}
-                    leaveTouchDelay={10000}
-                    leaveDelay={10000}
-                  >
-                    <IconButton size="small" aria-label="Mögliche Blocker" sx={{ color: 'text.secondary', p: 0.25 }}>
-                      <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Tooltip>
+                  <InfoPopover
+                    ariaLabel="Mögliche Blocker"
+                    content={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
+                    iconSize={16}
+                  />
                 </Typography>
                 {decisionLoading ? (
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', pt: 0.5 }}>
@@ -232,64 +224,59 @@ const HomePage = () => {
                       const rateActive = decision.rainRate > 0;
                       const deficitActive = decision.deficitNow < 5;
                       if (tempActive) chips.push(
-                        <Tooltip title={`Ø-Temperatur 7 Tage: ${decision.outTemp.toFixed(1)} °C`} key="b-temp" leaveDelay={10000} leaveTouchDelay={10000}>
-                          <Chip 
-                            color="error" 
-                            variant="filled" 
-                            icon={<ThermostatAuto />} 
-                            label="Ø-Temperatur ≤ 10 °C" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        </Tooltip>
+                        <Chip 
+                          key="b-temp"
+                          color="error" 
+                          variant="filled" 
+                          icon={<ThermostatAuto />} 
+                          label="Ø-Temperatur ≤ 10 °C" 
+                          size="small"
+                          sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
+                        />
                       );
                       if (humActive) chips.push(
-                        <Tooltip title={`Ø-Luftfeuchte 7 Tage: ${decision.humidity.toFixed(0)} %`} key="b-hum" leaveDelay={10000} leaveTouchDelay={10000}>
-                          <Chip 
-                            color="error" 
-                            variant="filled" 
-                            icon={<OpacityOutlined />} 
-                            label="Ø-Luftfeuchte ≥ 80 %" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        </Tooltip>
+                        <Chip 
+                          key="b-hum"
+                          color="error" 
+                          variant="filled" 
+                          icon={<OpacityOutlined />} 
+                          label="Ø-Luftfeuchte ≥ 80 %" 
+                          size="small"
+                          sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
+                        />
                       );
                       if (rain24Active) chips.push(
-                        <Tooltip title={`Regen (24h): ${decision.rainToday.toFixed(1)} mm`} key="b-r24" leaveDelay={10000} leaveTouchDelay={10000}>
-                          <Chip 
-                            color="error" 
-                            variant="filled" 
-                            icon={<WaterDrop />} 
-                            label="Regen (24h) ≥ 3 mm" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        </Tooltip>
+                        <Chip 
+                          key="b-r24"
+                          color="error" 
+                          variant="filled" 
+                          icon={<WaterDrop />} 
+                          label="Regen (24h) ≥ 3 mm" 
+                          size="small"
+                          sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
+                        />
                       );
                       if (rateActive) chips.push(
-                        <Tooltip title={`Regenrate: ${decision.rainRate.toFixed(1)} mm/h`} key="b-rate" leaveDelay={10000} leaveTouchDelay={10000}>
-                          <Chip 
-                            color="error" 
-                            variant="filled" 
-                            icon={<Speed />} 
-                            label="Regenrate > 0" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        </Tooltip>
+                        <Chip 
+                          key="b-rate"
+                          color="error" 
+                          variant="filled" 
+                          icon={<Speed />} 
+                          label="Regenrate > 0" 
+                          size="small"
+                          sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
+                        />
                       );
                       if (deficitActive) chips.push(
-                        <Tooltip title={`Wasserdefizit: ${decision.deficitNow.toFixed(1)} mm`} key="b-def" leaveDelay={10000} leaveTouchDelay={10000}>
-                          <Chip 
-                            color="error" 
-                            variant="filled" 
-                            icon={<TrendingDown />} 
-                            label="Defizit < 5 mm" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        </Tooltip>
+                        <Chip 
+                          key="b-def"
+                          color="error" 
+                          variant="filled" 
+                          icon={<TrendingDown />} 
+                          label="Defizit < 5 mm" 
+                          size="small"
+                          sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
+                        />
                       );
                       return chips.length ? chips : [
                         <Chip 
@@ -325,11 +312,11 @@ const HomePage = () => {
                       <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
                         Verdunstung (7 Tage bis gestern)
                       </Typography>
-                      <Tooltip title={formatLast7DaysRangeDE()} arrow placement="top" enterTouchDelay={0} leaveTouchDelay={10000} leaveDelay={10000}>
-                        <IconButton size="small" aria-label="Zeitraum anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
-                          <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                        </IconButton>
-                      </Tooltip>
+                      <InfoPopover
+                        ariaLabel="Zeitraum anzeigen"
+                        content={formatLast7DaysRangeDE()}
+                        iconSize={16}
+                      />
                     </Box>
                     <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
                       {et0Query.isLoading
@@ -509,27 +496,18 @@ const HomePage = () => {
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
                   Datenaktualität: {cacheTimestamp ? formatRelativeMinutes(cacheTimestamp) : 'unbekannt'}
                 </Typography>
-                <Tooltip 
-                  arrow 
-                  placement="top"
-                  enterTouchDelay={0}
-                  leaveTouchDelay={10000}
-                  leaveDelay={10000}
-                  title={(() => {
+                <InfoPopover
+                  ariaLabel="Zeitstempel anzeigen"
+                  content={(() => {
                     if (!latestTimestamp && !aggregatesTimestamp) return 'Zeitpunkt unbekannt';
-                    // Prefer daily means timestamp for the aggregated part when available
                     const aggDisplay = meansTimestamp ?? aggregatesTimestamp ?? cacheTimestamp;
                     if (latestTimestamp && aggDisplay && latestTimestamp !== aggDisplay) {
                       return `Aktuell: ${formatDateTimeDE(latestTimestamp)} • Aggregiert: ${formatDateTimeDE(aggDisplay)}`;
                     }
-                    // Same (or only one available) → show single concise value
                     return `Stand: ${formatDateTimeDE(cacheTimestamp)}`;
                   })()}
-                >
-                  <IconButton size="small" aria-label="Zeitstempel anzeigen" sx={{ color: 'text.secondary', p: 0.25 }}>
-                    <InfoOutlinedIcon sx={{ fontSize: 16 }} />
-                  </IconButton>
-                </Tooltip>
+                  iconSize={16}
+                />
               </Box>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>

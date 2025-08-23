@@ -34,6 +34,8 @@ const MonthsSelect: React.FC<MonthsSelectProps> = ({ selectedMonths, setSelected
             key={`${month}-${index}`}
             control={
               <Checkbox
+                id={month === 'Jeden Monat' ? 'month-all' : `month-${monthsNumbers[month]}`}
+                name={month === 'Jeden Monat' ? 'month-all' : `month-${monthsNumbers[month]}`}
                 checked={month === 'Jeden Monat' ? selectedMonths.length === initialMonths.length : selectedMonths.includes(monthsNumbers[month])}
                 onChange={() => handleMonthSelect(month)}
               />

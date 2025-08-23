@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.11.0] - 2025-08-23
+### Added
+- Frontend: New reusable `InfoPopover` component that renders the small “i” info icons as click-to-open popovers. Popovers stay open until the user clicks/taps outside or presses ESC; content is announced via `role="tooltip"` and linked by `aria-describedby`.
+
+### Changed
+- Frontend (VillaAnnaHomePage, VillaAnnaBewaesserungPage): Replace info-icon Tooltips with persistent `InfoPopover`s; lock background scroll while open to behave more like a modal and improve outdoor/mobile usability.
+- Frontend (InfoPopover): MUI v6 compliance by using `slotProps.paper` instead of deprecated `PaperProps` and proper `ClickAwayListener` events.
+
+### Removed
+- Frontend: All other transient Tooltips (e.g., on Chips and action buttons) to reduce distraction and align with the design guideline to reserve popover behavior for explicit “i” icons.
+
+### Fixed
+- Frontend (A11y): Add `id`/`name` to form fields used by the scheduler (Hour, Minute, Weekdays, Months, Scheduler switch) to avoid autofill and label association warnings; convert `FormLabel` in `ZoneSelector` to `component="legend"` to properly label the surrounding fieldset.
+
 ## [v19.10.1] - 2025-08-22
 ### Changed
 - Frontend (ScheduledTaskCard): Make row layout responsive on xs — month/day chips wrap to the next line, while actions (copy/delete) stay visible on the first line; relaxed min-widths and added ordering to prevent overflow.

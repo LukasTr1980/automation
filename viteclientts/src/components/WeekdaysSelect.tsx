@@ -33,6 +33,8 @@ const WeekdaysSelect: React.FC<WeekdaysSelectProps> = ({ selectedDays, setSelect
             key={`${day}-${index}`}
             control={
               <Checkbox
+                id={day === 'Täglich' ? 'weekday-all' : `weekday-${daysOfWeekNumbers[day]}`}
+                name={day === 'Täglich' ? 'weekday-all' : `weekday-${daysOfWeekNumbers[day]}`}
                 checked={day === 'Täglich' ? selectedDays.length === daysOfWeek.length : selectedDays.includes(daysOfWeekNumbers[day])}
                 onChange={() => handleDaySelect(day)}
               />
