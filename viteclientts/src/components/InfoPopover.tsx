@@ -45,7 +45,7 @@ export default function InfoPopover({ content, ariaLabel, iconSize = 16 }: InfoP
         slotProps={{ paper: { sx: { p: 1, maxWidth: 280 } } }}
       >
         <ClickAwayListener onClickAway={handleClose} mouseEvent="onMouseDown" touchEvent="onTouchStart">
-          <Box role="tooltip" sx={{ fontSize: 13, lineHeight: 1.35 }}>
+          <Box role="tooltip" sx={{ fontSize: 14, lineHeight: 1.35 }}>
             {content}
           </Box>
         </ClickAwayListener>

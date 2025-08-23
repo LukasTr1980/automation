@@ -8,6 +8,8 @@ import { SnackbarProvider } from './components/snackbar/SnackbarContext';
 import CentralizedSnackbar from './components/snackbar/CentralizedSnackbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider } from '@mui/material/styles';
+import theme from './theme';
 import NavBar from './components/NavBar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -23,21 +25,23 @@ function App() {
   return (
     <SnackbarProvider>
       <ErrorBoundary>
-        <CssBaseline />
-        <QueryClientProvider client={queryClient}>
-          <Router>
-            <div className="App">
-              <NavBar />
-              <Routes>
-                <Route path='/' element={<VillaAnnaHomePage />} />
-                <Route path='/bewaesserung' element={<BewaesserungsPage />} />
-                <Route path='/countdown' element={<CountdownPage />} />
-                <Route path='*' element={<NotFoundPage />} />
-              </Routes>
-              <CentralizedSnackbar />
-            </div>
-          </Router>
-        </QueryClientProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <QueryClientProvider client={queryClient}>
+            <Router>
+              <div className="App">
+                <NavBar />
+                <Routes>
+                  <Route path='/' element={<VillaAnnaHomePage />} />
+                  <Route path='/bewaesserung' element={<BewaesserungsPage />} />
+                  <Route path='/countdown' element={<CountdownPage />} />
+                  <Route path='*' element={<NotFoundPage />} />
+                </Routes>
+                <CentralizedSnackbar />
+              </div>
+            </Router>
+          </QueryClientProvider>
+        </ThemeProvider>
       </ErrorBoundary>
     </SnackbarProvider>
   );

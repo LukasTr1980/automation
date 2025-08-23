@@ -226,15 +226,14 @@ const BewaesserungPage = () => {
             sx={{
               fontWeight: 600,
               color: 'primary.main',
-              mb: 1,
-              fontSize: { xs: '1.5rem', md: '2rem' }
+              mb: 1
             }}
           >
             Bewässerung
           </Typography>
           <Typography
             variant="subtitle1"
-            sx={{ color: 'text.secondary', fontSize: { xs: '0.9rem', md: '1rem' } }}
+            sx={{ color: 'text.secondary' }}
           >
             Manuelle Steuerung und Zeitpläne
           </Typography>

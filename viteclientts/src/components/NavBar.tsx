@@ -97,7 +97,8 @@ const NavBar: React.FC = () => {
                     bgcolor: 'primary.main'
                   }} />
                 )}
-                <Box component="span" sx={{ pl: active ? 1.5 : 0 }}>{page.label}</Box>
+                {/* Always reserve space to avoid layout shift */}
+                <Box component="span" sx={{ pl: 1.5 }}>{page.label}</Box>
               </Button>
             );
           })}
@@ -136,9 +137,8 @@ const NavBar: React.FC = () => {
                   selected={active}
                   sx={{ textDecoration: 'none', color: 'text.primary' }}
                 >
-                  {active && (
-                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'primary.main', mr: 1 }} />
-                  )}
+                  {/* Always render placeholder dot to keep alignment stable */}
+                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: active ? 'primary.main' : 'transparent', mr: 1 }} />
                   <Typography textAlign="center">{page.label}</Typography>
                 </MenuItem>
               );

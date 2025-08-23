@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.13.0] - 2025-08-23
+### Changed
+- Frontend (Typography): Centralize font sizing via global MUI theme (`viteclientts/src/theme.ts`) and wrap the app in `ThemeProvider` + `CssBaseline`. Removed ad‑hoc `fontSize` overrides on headings/subtitles on VillaAnnaHomePage and VillaAnnaBewaesserungPage to rely on theme variants.
+- Frontend (Styles): Removed hardcoded `h1` CSS size; kept flat, neutral page background per AGENTS.md. `InfoPopover` tooltip content raised to 14px for readability and WCAG.
+
+### Fixed
+- Frontend (NavBar): Eliminated label/button shift caused by the active state dot by always reserving space; mobile menu uses a transparent placeholder dot for stable alignment.
+- Frontend (Layout): Prevented layout shifts when scrollbars appear (including left‑anchored scrollbars) by adding `scrollbar-gutter: stable both-edges`.
+
 ## [v19.12.1] - 2025-08-23
 ### Added
 - Frontend (Home): Unified real-time irrigation status on VillaAnnaHomePage — shows whether irrigation is running (manual or countdown), with animated sprinkler symbol and per-zone chips; chips include remaining countdown time when applicable.

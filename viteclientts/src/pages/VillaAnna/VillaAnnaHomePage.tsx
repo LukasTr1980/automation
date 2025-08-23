@@ -205,14 +205,12 @@ const HomePage = () => {
           <Typography variant="h4" sx={{ 
             fontWeight: 600, 
             color: 'primary.main',
-            mb: 1,
-            fontSize: { xs: '1.5rem', md: '2rem' }
+            mb: 1
           }}>
             Villa Anna Bewässerungssystem
           </Typography>
           <Typography variant="subtitle1" sx={{ 
-            color: 'text.secondary',
-            fontSize: { xs: '0.9rem', md: '1rem' }
+            color: 'text.secondary'
           }}>
             Intelligente Bewässerungssteuerung und Überwachung
           </Typography>
@@ -240,7 +238,7 @@ const HomePage = () => {
                 <Avatar sx={{ bgcolor: 'error.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
                   <Block sx={{ fontSize: { xs: 26, md: 30 } }} />
                 </Avatar>
-                <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="body2" sx={{ opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
                   Blocker
                   <InfoPopover
                     ariaLabel="Mögliche Blocker"
@@ -331,7 +329,7 @@ const HomePage = () => {
                     })()}
                   </Box>
                 ) : (
-                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     Keine Daten
                   </Typography>
                 )}
@@ -350,7 +348,7 @@ const HomePage = () => {
                   <OpacityOutlined sx={{ fontSize: { xs: 26, md: 30 } }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
-                  <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
                     Verdunstung (7 Tage bis gestern)
                   </Typography>
                   <InfoPopover
@@ -359,7 +357,7 @@ const HomePage = () => {
                     iconSize={16}
                   />
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   {et0Query.isLoading
                     ? '...'
                     : (et0Query.data && et0Query.data.et0_week !== null && et0Query.data.et0_week !== undefined)
@@ -380,10 +378,10 @@ const HomePage = () => {
                 <Avatar sx={{ bgcolor: 'warning.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
                   <ThermostatAuto sx={{ fontSize: { xs: 26, md: 30 } }} />
                 </Avatar>
-                <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Temperatur (aktuell)
                 </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' } }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   {weatherQuery.isLoading ? (
                     <Skeleton variant="text" width={60} />
                   ) : (typeof weatherQuery.data?.latest?.temperatureC === 'number')
@@ -404,14 +402,14 @@ const HomePage = () => {
                 <Avatar sx={{ bgcolor: 'secondary.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
                   <Schedule sx={{ fontSize: { xs: 26, md: 30 } }} />
                 </Avatar>
-                <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.75rem' }}>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Nächster Zeitplan
                 </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', md: '1.1rem' }, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center' }}>
                   {scheduleQuery.isLoading ? '...' : scheduleQuery.data?.nextScheduled || 'Kein Zeitplan'}
                 </Typography>
                 {scheduleQuery.data?.zone && !scheduleQuery.isLoading && scheduleQuery.data.nextScheduled !== 'No schedule' && scheduleQuery.data.nextScheduled !== 'Scheduled' && (
-                  <Typography variant="body2" sx={{ opacity: 0.8, fontSize: { xs: '0.65rem', md: '0.7rem' }, mt: 0.25 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
                     {scheduleQuery.data.zone}
                   </Typography>
                 )}
@@ -560,15 +558,11 @@ const HomePage = () => {
                     </Avatar>
                     <Typography variant="h5" sx={{ 
                       fontWeight: 600, 
-                      mb: 1,
-                      fontSize: { xs: '1.25rem', md: '1.5rem' }
+                      mb: 1
                     }}>
                       Bewässerung
                     </Typography>
-                    <Typography variant="body2" sx={{ 
-                      color: 'text.secondary',
-                      fontSize: { xs: '0.8rem', md: '0.9rem' }
-                    }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       Manuelle Bewässerungssteuerung und Zonenverwaltung
                     </Typography>
                     <Chip label="Manuelle Steuerung" size="small" sx={{ mt: 2, bgcolor: 'primary.main', color: 'common.white' }} />
@@ -600,15 +594,11 @@ const HomePage = () => {
                     </Avatar>
                     <Typography variant="h5" sx={{ 
                       fontWeight: 600, 
-                      mb: 1,
-                      fontSize: { xs: '1.25rem', md: '1.5rem' }
+                      mb: 1
                     }}>
                       {isSmallScreen ? 'Countdown' : 'Bewässerungs Timer'}
                     </Typography>
-                    <Typography variant="body2" sx={{ 
-                      color: 'text.secondary',
-                      fontSize: { xs: '0.8rem', md: '0.9rem' }
-                    }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       Geplante Bewässerung mit Countdown-Timer
                     </Typography>
                     <Chip label="Automatisiert" size="small" sx={{ mt: 2, bgcolor: 'secondary.main', color: 'common.white' }} />

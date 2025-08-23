@@ -13,6 +13,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Prevent layout shift when the OS shows scrollbars
+   (including cases where the bar anchors on the left). */
+html, body {
+  /* Reserve gutter space to avoid reflow when scrollbars appear/disappear */
+  scrollbar-gutter: stable both-edges;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -30,10 +37,7 @@ body {
   min-height: calc(var(--vh, 1vh) * 100);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+/* Let MUI Typography variants control heading sizes consistently via theme */
 
 button {
   border-radius: 8px;
