@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.14.0] - 2025-08-24
+### Added
+- Frontend: Reusable `FreshnessStatus` component for displaying
+  - Datenaktualität Wetterstation (Redis snapshot age with green/yellow/red dot)
+  - Anzeigeaktualität (client fetch age with dot), now with seconds granularity for the first minute.
+  Used on VillaAnnaHomePage and VillaAnnaBewaesserungPage.
+
+### Changed
+- Frontend (Home/Bewässerung): Replace inline freshness logic with `FreshnessStatus`; clarify label to “Datenaktualität Wetterstation”.
+- Frontend (Home): Keep weather fresh without tab switching — 2‑minute refetch when visible, plus immediate refresh on window focus/visibility and SSE re‑subscribe for a fresh snapshot.
+- Frontend (Bewässerung): Same immediate refresh on focus/visibility and SSE re‑subscribe so Prüfpunkte/Blocker update right away on return.
+- Frontend (Home): Prevent desktop wrapping for freshness lines and irrigation status while allowing mobile wrapping.
+
+### Fixed
+- Frontend (Freshness): Avoid stale “vor X Minuten” by ticking labels while visible and reflecting client fetch time precisely; reduce confusion by separating server vs client freshness.
+
 ## [v19.13.0] - 2025-08-23
 ### Changed
 - Frontend (Typography): Centralize font sizing via global MUI theme (`viteclientts/src/theme.ts`) and wrap the app in `ThemeProvider` + `CssBaseline`. Removed ad‑hoc `fontSize` overrides on headings/subtitles on VillaAnnaHomePage and VillaAnnaBewaesserungPage to rely on theme variants.

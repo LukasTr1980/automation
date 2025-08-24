@@ -25,38 +25,19 @@ import {
 } from '@mui/icons-material';
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
-import { useState, useEffect, type ReactNode } from 'react';
+import FreshnessStatus from '../../components/FreshnessStatus';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import useSnackbar from '../../utils/useSnackbar';
 import { switchDescriptions, bewaesserungsTopics, bewaesserungsTopicsSet, zoneOrder } from '../../components/constants';
 import { type CountdownsState } from '../../types/types';
 import IrrigationIndicator from '../../components/IrrigationIndicator';
 
-// Small helper to render relative age in minutes with German label
-function formatRelativeMinutes(ts: string): string {
-  try {
-    const ms = Date.now() - new Date(ts).getTime();
-    const mins = Math.max(0, Math.round(ms / 60000));
-    if (mins <= 0) return 'gerade eben';
-    if (mins === 1) return 'vor 1 Minute';
-    return `vor ${mins} Minuten`;
-  } catch {
-    return 'unbekannt';
-  }
-}
+// Timing thresholds / intervals
+const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
 
-// Formats an ISO timestamp using German locale (short date + short time)
-function formatDateTimeDE(ts: string | null | undefined): string {
-  if (!ts) return 'unbekannt';
-  try {
-    const d = new Date(ts);
-    return new Intl.DateTimeFormat('de-DE', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(d);
-  } catch {
-    return 'unbekannt';
-  }
-}
+// Freshness formatting is handled inside FreshnessStatus component
+
+// formatDateTimeDE moved into FreshnessStatus
 
 // Computes the local date range label for the last 7 full days ending yesterday
 function formatLast7DaysRangeDE(): string {
@@ -83,6 +64,7 @@ const HomePage = () => {
         return r.json();
       },
       staleTime: 60 * 60 * 1000, // 1h; recomputed daily
+      refetchOnWindowFocus: false,
     }
   );
   // React Query: Weather latest + aggregates
@@ -98,6 +80,10 @@ const HomePage = () => {
       return r.json();
     },
     staleTime: 2 * 60 * 1000, // 2m; backend cache updates every ~5m
+    // Periodically refetch to keep the snapshot fresh even without tab blur/focus
+    refetchInterval: WEATHER_REFETCH_MS,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
   });
   // React Query: Next schedule
   const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null }>({
@@ -108,17 +94,15 @@ const HomePage = () => {
       return r.json();
     },
     staleTime: 60 * 1000, // 1m
+    refetchOnWindowFocus: false,
   });
   // Derive values from weather query
   const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
   const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
-  const cacheTimestamp = latestTimestamp;
-  const cacheStale = (() => {
-    if (!latestTimestamp) return true;
-    const ageMs = Date.now() - new Date(latestTimestamp).getTime();
-    return ageMs > 10 * 60 * 1000; // 10 minutes
-  })();
+
+  // Server-side freshness dot (Redis snapshot age)
+  // Freshness UI handled by FreshnessStatus
   
   // Decision metrics (from SSE) for blockers
   interface DecisionMetrics {
@@ -157,18 +141,42 @@ const HomePage = () => {
     if (scheduleQuery.isError) showSnackbar('Fehler beim Laden des Zeitplans', 'error');
   }, [scheduleQuery.isError, showSnackbar]);
 
-  // Subscribe to SSE for irrigation decision to derive blockers
+  // Instant refresh on tab/window focus and when page becomes visible
+  // (SSE re-subscribe is wired below via startSSE)
   useEffect(() => {
+    const onFocus = () => {
+      weatherQuery.refetch();
+      scheduleQuery.refetch();
+      et0Query.refetch();
+      startSSE();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') onFocus();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [weatherQuery.refetch, scheduleQuery.refetch, et0Query.refetch]);
+
+  // SSE for irrigation decision + switches, with ability to re-subscribe on focus
+  const sseRef = useRef<EventSource | null>(null);
+  const startSSE = () => {
+    if (sseRef.current) {
+      try { sseRef.current.close(); } catch {}
+      sseRef.current = null;
+    }
     const es = new EventSource(`${apiUrl}/mqtt`);
+    sseRef.current = es;
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data?.latestStates) {
-          // Initial switch states
           const initial = bewaesserungsTopics.map((topic) => data.latestStates[topic] === 'true');
           setSwitches(initial);
         } else if (data?.type === 'switchState') {
-          // Incremental switch state updates
           const idx = bewaesserungsTopics.indexOf(data.topic);
           if (idx !== -1) {
             setSwitches((prev) => prev.map((v, i) => (i === idx ? data.state === 'true' : v)));
@@ -189,13 +197,13 @@ const HomePage = () => {
       }
     };
     es.onerror = () => {
-      // stop loading on error to avoid spinner lock
       setDecisionLoading(false);
     };
-    return () => {
-      es.close();
-    };
-  }, []);
+  };
+  useEffect(() => {
+    startSSE();
+    return () => { if (sseRef.current) try { sseRef.current.close(); } catch {}; };
+  }, [apiUrl]);
 
   return (
     <Layout>
@@ -433,26 +441,14 @@ const HomePage = () => {
           </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: { xs: 'center', sm: 'flex-start' }, textAlign: { xs: 'center', sm: 'left' } }}>
-                {cacheStale && (
-                  <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'warning.main' }} />
-                )}
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
-                  Datenaktualität: {cacheTimestamp ? formatRelativeMinutes(cacheTimestamp) : 'unbekannt'}
-                </Typography>
-                <InfoPopover
-                  ariaLabel="Zeitstempel anzeigen"
-                  content={(() => {
-                    if (!latestTimestamp && !aggregatesTimestamp) return 'Zeitpunkt unbekannt';
-                    const aggDisplay = meansTimestamp ?? aggregatesTimestamp ?? cacheTimestamp;
-                    if (latestTimestamp && aggDisplay && latestTimestamp !== aggDisplay) {
-                      return `Aktuell: ${formatDateTimeDE(latestTimestamp)} • Aggregiert: ${formatDateTimeDE(aggDisplay)}`;
-                    }
-                    return `Stand: ${formatDateTimeDE(cacheTimestamp)}`;
-                  })()}
-                  iconSize={16}
-                />
-              </Box>
+              <FreshnessStatus
+                latestTimestamp={latestTimestamp}
+                aggregatesTimestamp={aggregatesTimestamp}
+                meansTimestamp={meansTimestamp}
+                clientIsFetching={weatherQuery.isFetching}
+                clientIsError={weatherQuery.isError as boolean}
+                clientUpdatedAt={weatherQuery.dataUpdatedAt}
+              />
             </Grid>
             {/* Live irrigation status with animated indicator (replaces duplicate next-schedule) */}
             {(() => {

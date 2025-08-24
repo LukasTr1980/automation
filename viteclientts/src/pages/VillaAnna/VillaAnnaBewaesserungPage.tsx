@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import axios from 'axios';
 import SwitchComponent from '../../components/switchComponent';
 import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
@@ -39,7 +39,11 @@ import SkeletonLoader from '../../components/skeleton';
 import { ZoneSelector } from '../../components/index';
 import { messages } from '../../utils/messages';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import FreshnessStatus from '../../components/FreshnessStatus';
 // Dialog removed: details shown inline
+
+// Timing intervals
+const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
 
 const BewaesserungPage = () => {
   const queryClient = useQueryClient();
@@ -74,6 +78,28 @@ const BewaesserungPage = () => {
   const { showSnackbar } = useSnackbar();
   // Dialog state removed
 
+  // React Query: Weather latest (+aggregates) for freshness display
+  type WeatherLatestResponse = {
+    latest?: { timestamp?: string };
+    aggregates?: { timestamp?: string; meansTimestamp?: string };
+  };
+  const weatherQuery = useQuery<WeatherLatestResponse>({
+    queryKey: ['weather', 'latest'],
+    queryFn: async () => {
+      const r = await fetch('/api/weather/latest');
+      if (!r.ok) throw new Error('weather');
+      return r.json();
+    },
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: WEATHER_REFETCH_MS,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+  });
+  const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
+  const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
+  const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
+  // Freshness UI handled by FreshnessStatus
+
   // Helper: label for last 7 full local days (yesterday back 7 days)
   const sevenDayFullRangeLabel = (() => {
     try {
@@ -90,36 +116,48 @@ const BewaesserungPage = () => {
     }
   })();
 
-  useEffect(() => {
+  // SSE wiring with ability to resubscribe on demand (e.g., on focus)
+  const sseRef = useRef<EventSource | null>(null);
+  const startSSE = () => {
+    // Close any existing connection first
+    if (sseRef.current) {
+      try { sseRef.current.close(); } catch {}
+      sseRef.current = null;
+    }
     const params = new URLSearchParams();
-    // If decision is skipped, instruct backend not to run the decision check for the
-    // initial irrigation evaluation pushed via the SSE endpoint.
     if (skipDecision) params.set('checkIrrigation', 'false');
     const url = `${apiUrl}/mqtt?${params.toString()}`;
-    const eventSource = new EventSource(url);
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      if (data.latestStates) { // Initial state
-        const initialSwitchStates = bewaesserungsTopics.map((topic) => data.latestStates[topic] === 'true');
-        setSwitches(initialSwitchStates);
-        setSwitchesLoading(false);
-      }
-      else if (data.type === 'switchState') { // Updates
-        const index = bewaesserungsTopics.indexOf(data.topic);
-        if (index !== -1) {
-          setSwitches(switches => switches.map((val, i) => (i === index ? data.state === 'true' : val)));
+    const es = new EventSource(url);
+    sseRef.current = es;
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.latestStates) {
+          const initialSwitchStates = bewaesserungsTopics.map((topic) => data.latestStates[topic] === 'true');
+          setSwitches(initialSwitchStates);
+          setSwitchesLoading(false);
+        } else if (data.type === 'switchState') {
+          const index = bewaesserungsTopics.indexOf(data.topic);
+          if (index !== -1) {
+            setSwitches((prev) => prev.map((val, i) => (i === index ? data.state === 'true' : val)));
+          }
+        } else if (data.type === 'irrigationNeeded') {
+          setirrigationNeededSwitch(data.state);
+          setResponse(data.response);
+          setDecisionLoading(false);
         }
-      } else if (data.type === 'irrigationNeeded') { // Irrigation needed state updates
-        setirrigationNeededSwitch(data.state);
-        setResponse(data.response);
-        setDecisionLoading(false);
+      } catch {
+        // ignore malformed events
       }
     };
-
-    return () => {
-      eventSource.close();
+    es.onerror = () => {
+      // if error, mark loading false to avoid spinners; will refresh on focus
+      setDecisionLoading(false);
     };
+  };
+  useEffect(() => {
+    startSSE();
+    return () => { if (sseRef.current) try { sseRef.current.close(); } catch {}; };
   }, [apiUrl, skipDecision]);
 
   // Load initial decision-skip state from backend
@@ -132,6 +170,7 @@ const BewaesserungPage = () => {
       return r.json();
     },
     staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
   useEffect(() => {
     if (typeof decisionCheckQuery.data?.skip !== 'undefined') {
@@ -148,6 +187,7 @@ const BewaesserungPage = () => {
       return r.json();
     },
     staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
   });
   useEffect(() => {
     if (!scheduledTasksQuery.data) return;
@@ -213,6 +253,24 @@ const BewaesserungPage = () => {
     }
   }, [selectedTasksTopic, tasksZoneTopics.join('|')]);
 
+  // Instant refresh on focus/visibility
+  useEffect(() => {
+    const onFocus = () => {
+      decisionCheckQuery.refetch();
+      scheduledTasksQuery.refetch();
+      weatherQuery.refetch();
+      // Re-subscribe to SSE to force fresh Prüfpunkte snapshot
+      startSSE();
+    };
+    const onVisibility = () => { if (document.visibilityState === 'visible') onFocus(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [decisionCheckQuery.refetch, scheduledTasksQuery.refetch, weatherQuery.refetch, skipDecision, apiUrl]);
+
   // Dialog handlers removed
 
   return (
@@ -275,6 +333,15 @@ const BewaesserungPage = () => {
               slotProps={{ title: { sx: { fontWeight: 600 } } }}
             />
             <CardContent>
+              {/* Freshness rows (Wetterstation + Client) */}
+              <FreshnessStatus
+                latestTimestamp={latestTimestamp}
+                aggregatesTimestamp={aggregatesTimestamp}
+                meansTimestamp={meansTimestamp}
+                clientIsFetching={weatherQuery.isFetching}
+                clientIsError={weatherQuery.isError as boolean}
+                clientUpdatedAt={weatherQuery.dataUpdatedAt}
+              />
               {skipDecision ? (
                 <Grid container spacing={2} justifyContent="space-between">
                   <Grid size={12}>
