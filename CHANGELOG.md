@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v19.15.0] - 2025-08-26
 ### Changed
 - Frontend (Home): Replaced skeleton loaders with subtle top `LinearProgress` overlays; kept previous data visible during refetch via React Query `placeholderData: (prev) => prev` to implement a SWR-style experience. Stabilized card layouts with fixed min-heights, tabular numerals, and reserved width for values to eliminate CLS.
 - Frontend (Home): Redesigned Blocker badges to compact dot + short German label (no border/padding) and tightened spacing; reduced reserved row height so multiple blockers fit without growing the card.
