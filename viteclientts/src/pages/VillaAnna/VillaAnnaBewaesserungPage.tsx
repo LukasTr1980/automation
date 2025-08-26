@@ -17,7 +17,8 @@ import {
   CardHeader,
   Button,
   Chip,
-  Divider
+  Divider,
+  LinearProgress
 } from '@mui/material';
 import ThermostatAutoIcon from '@mui/icons-material/ThermostatAuto';
 import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
@@ -31,11 +32,9 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
 import Layout from '../../Layout';
-import LoadingSpinner from '../../components/LoadingSpinner';
 import useSnackbar from '../../utils/useSnackbar';
 import { GroupedTasks, ScheduledTask, APIResponse } from '../../types/types';
 // Tabs removed in favor of shared ZoneSelector
-import SkeletonLoader from '../../components/skeleton';
 import { ZoneSelector } from '../../components/index';
 import { messages } from '../../utils/messages';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -94,6 +93,7 @@ const BewaesserungPage = () => {
     refetchInterval: WEATHER_REFETCH_MS,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
   const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
@@ -171,6 +171,7 @@ const BewaesserungPage = () => {
     },
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
   useEffect(() => {
     if (typeof decisionCheckQuery.data?.skip !== 'undefined') {
@@ -188,6 +189,7 @@ const BewaesserungPage = () => {
     },
     staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
   useEffect(() => {
     if (!scheduledTasksQuery.data) return;
@@ -298,40 +300,42 @@ const BewaesserungPage = () => {
         </Box>
 
         <Grid size={12}>
-          <Card variant='outlined' sx={{ borderRadius: 2 }}>
+          <Card variant='outlined' sx={{ borderRadius: 2, position: 'relative' }}>
             <CardHeader
               title={'Schalter'}
               slotProps={{ title: { sx: { fontWeight: 600 } } }}
             />
+            {switchesLoading && (
+              <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+            )}
             <CardContent>
-              {switchesLoading ? (
-                <LoadingSpinner />
-              ) : (
-                <Grid container spacing={2} justifyContent="space-between">
-                  {switches.map((val, i) => (
-                    <Grid key={i}>
-                      <SwitchComponent
-                        checked={val}
-                        label={switchDescriptions[i]}
-                        handleToggle={() => handleToggle(i)}
-                        disabled={toggling[i]}
-                        id={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
-                        name={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
-                      />
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
+              <Grid container spacing={2} justifyContent="space-between">
+                {switches.map((val, i) => (
+                  <Grid key={i}>
+                    <SwitchComponent
+                      checked={val}
+                      label={switchDescriptions[i]}
+                      handleToggle={() => handleToggle(i)}
+                      disabled={toggling[i] || switchesLoading}
+                      id={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
+                      name={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
 
         <Grid size={12} sx={{ mt: 2 }}>
-          <Card variant='outlined' sx={{ borderRadius: 2 }}>
+          <Card variant='outlined' sx={{ borderRadius: 2, position: 'relative' }}>
             <CardHeader
               title={'Smarte Entscheidung'}
               slotProps={{ title: { sx: { fontWeight: 600 } } }}
             />
+            {decisionLoading && (
+              <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+            )}
             <CardContent>
               {/* Freshness rows (Wetterstation + Client) */}
               <FreshnessStatus
@@ -375,7 +379,7 @@ const BewaesserungPage = () => {
                 <Grid container spacing={2} justifyContent="space-between">
                   {decisionLoading ? (
                     <Grid size={12}>
-                      <SkeletonLoader />
+                      <Box sx={{ minHeight: 180 }} />
                     </Grid>
                   ) : (
                     <>
@@ -591,49 +595,50 @@ const BewaesserungPage = () => {
         </Grid>
 
         <Grid size={12} sx={{ mt: 2 }}>
-          <Card variant='outlined' sx={{ borderRadius: 2 }}>
+          <Card variant='outlined' sx={{ borderRadius: 2, position: 'relative' }}>
             <CardHeader
               title={'Eingestellte Zeitpläne'}
               slotProps={{ title: { sx: { fontWeight: 600 } } }}
             />
+            {tasksLoading && (
+              <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+            )}
             <CardContent>
-              {tasksLoading ? (
-                <LoadingSpinner />
-              ) : (
-                <>
-                  {scheduledTasks.length === 0 && <Typography variant="body1">Keine eingestellten Zeitpläne</Typography>}
+              <>
+                {scheduledTasks.length === 0 && !tasksLoading && (
+                  <Typography variant="body1">Keine eingestellten Zeitpläne</Typography>
+                )}
 
-                  {tasksZoneTopics.length > 0 && (
-                    <Box sx={{ mb: 2 }}>
-                      <ZoneSelector
-                        value={selectedTasksTopic || tasksZoneTopics[0]}
-                        onChange={(topic) => setSelectedTasksTopic(topic)}
-                        labels={tasksZones}
-                        values={tasksZoneTopics}
-                        ariaLabel="Zone"
-                      />
-                    </Box>
-                  )}
+                {tasksZoneTopics.length > 0 && (
+                  <Box sx={{ mb: 2 }}>
+                    <ZoneSelector
+                      value={selectedTasksTopic || tasksZoneTopics[0]}
+                      onChange={(topic) => setSelectedTasksTopic(topic)}
+                      labels={tasksZones}
+                      values={tasksZoneTopics}
+                      ariaLabel="Zone"
+                    />
+                  </Box>
+                )}
 
-                  {(() => {
-                    if (!selectedTasksTopic) return null;
-                    const idx = bewaesserungsTopicsSet.indexOf(selectedTasksTopic);
-                    const selectedZoneName = idx >= 0 ? switchDescriptions[idx] : tasksZones[0];
-                    const tasks = orderedTasks[selectedZoneName] || [];
-                    const redisKey = selectedTasksTopic;
-                    return (
-                      <ScheduledTaskCard
-                        key={`${selectedZoneName}-${redisKey}`}
-                        zoneName={selectedZoneName}
-                        tasks={tasks}
-                        onDelete={handleDeleteTask}
-                        redisKey={redisKey}
-                        onCopyTask={setCopiedTask}
-                      />
-                    );
-                  })()}
-                </>
-              )}
+                {(() => {
+                  if (!selectedTasksTopic) return tasksLoading ? <Box sx={{ minHeight: 120 }} /> : null;
+                  const idx = bewaesserungsTopicsSet.indexOf(selectedTasksTopic);
+                  const selectedZoneName = idx >= 0 ? switchDescriptions[idx] : tasksZones[0];
+                  const tasks = orderedTasks[selectedZoneName] || [];
+                  const redisKey = selectedTasksTopic;
+                  return (
+                    <ScheduledTaskCard
+                      key={`${selectedZoneName}-${redisKey}`}
+                      zoneName={selectedZoneName}
+                      tasks={tasks}
+                      onDelete={handleDeleteTask}
+                      redisKey={redisKey}
+                      onCopyTask={setCopiedTask}
+                    />
+                  );
+                })()}
+              </>
             </CardContent>
           </Card>
         </Grid>

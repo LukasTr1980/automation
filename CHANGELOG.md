@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Frontend (Home): Replaced skeleton loaders with subtle top `LinearProgress` overlays; kept previous data visible during refetch via React Query `placeholderData: (prev) => prev` to implement a SWR-style experience. Stabilized card layouts with fixed min-heights, tabular numerals, and reserved width for values to eliminate CLS.
+- Frontend (Home): Redesigned Blocker badges to compact dot + short German label (no border/padding) and tightened spacing; reduced reserved row height so multiple blockers fit without growing the card.
+- Frontend (Bewässerung): Applied the same overlay loader pattern to Schalter, Smarte Entscheidung, and Eingestellte Zeitpläne. Content remains mounted; controls disable while fetching; small reserved boxes replace spinners/skeletons to avoid layout shift.
+- Frontend (Bewässerung): Added fixed-height, scrollable container for “Smarte Entscheidung” (`min/maxHeight` responsive for xs/md) to prevent page reflow when metrics and blockers render.
+
+### Removed
+- Frontend: Deleted legacy loading components `viteclientts/src/components/LoadingSpinner.tsx` and `viteclientts/src/components/skeleton.tsx`, and removed the unused `LoadingSpinnerProps` type.
+
+### Fixed
+- Frontend (Bewässerung): Resolved a stray closing tag in `VillaAnnaBewaesserungPage.tsx` that caused Vite HMR reload failures; stabilized loaders to prevent CLS on refresh.
+
 ## [v19.14.0] - 2025-08-24
 ### Added
 - Frontend: Reusable `FreshnessStatus` component for displaying

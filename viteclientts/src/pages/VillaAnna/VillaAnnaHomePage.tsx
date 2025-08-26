@@ -9,7 +9,7 @@ import {
   useTheme,
   Avatar,
   Chip,
-  Skeleton
+  LinearProgress
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../../Layout';
@@ -19,8 +19,6 @@ import {
   Schedule, 
   ThermostatAuto,
   OpacityOutlined,
-  Speed,
-  TrendingDown,
   Block
 } from '@mui/icons-material';
 // Info icon rendered via InfoPopover component
@@ -52,6 +50,14 @@ const HomePage = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // Lightweight status chip with small colored dot + short label
+  const DotLabel = ({ color, label }: { color: string; label: string }) => (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, lineHeight: 1 }}>
+      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color, flex: '0 0 auto' }} />
+      <Typography variant="caption" sx={{ fontWeight: 600 }}>{label}</Typography>
+    </Box>
+  );
+
   const { showSnackbar } = useSnackbar();
   const apiUrl = import.meta.env.VITE_API_URL || '/api';
   // React Query: ET0 weekly
@@ -65,6 +71,7 @@ const HomePage = () => {
       },
       staleTime: 60 * 60 * 1000, // 1h; recomputed daily
       refetchOnWindowFocus: false,
+      placeholderData: (prev) => prev,
     }
   );
   // React Query: Weather latest + aggregates
@@ -84,6 +91,7 @@ const HomePage = () => {
     refetchInterval: WEATHER_REFETCH_MS,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
   // React Query: Next schedule
   const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null }>({
@@ -95,6 +103,7 @@ const HomePage = () => {
     },
     staleTime: 60 * 1000, // 1m
     refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
   // Derive values from weather query
   const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
@@ -231,8 +240,12 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 140, md: 160 }
+              minHeight: { xs: 140, md: 160 },
+              position: 'relative'
             }}>
+              {decisionLoading && (
+                <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+              )}
               <CardContent
                 sx={{
                   height: '100%',
@@ -255,85 +268,36 @@ const HomePage = () => {
                   />
                 </Typography>
                 {decisionLoading ? (
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center', pt: 0.5 }}>
-                    <Skeleton variant="rounded" width={120} height={28} />
-                    <Skeleton variant="rounded" width={140} height={28} />
-                    <Skeleton variant="rounded" width={110} height={28} />
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center', pt: 0.5, minHeight: { xs: 28, md: 32 } }}>
+                    {/* reserved space while loading; no skeletons to avoid CLS */}
                   </Box>
                 ) : decision ? (
-                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center', minHeight: { xs: 28, md: 32 } }}>
                     {(() => {
-                      const chips: ReactNode[] = [];
+                      const items: ReactNode[] = [];
                       const tempActive = decision.outTemp <= 10;
                       const humActive = decision.humidity >= 80;
                       const rain24Active = decision.rainToday >= 3;
                       const rateActive = decision.rainRate > 0;
                       const deficitActive = decision.deficitNow < 5;
-                      if (tempActive) chips.push(
-                          <Chip 
-                            key="b-temp"
-                            color="error" 
-                            variant="filled" 
-                            icon={<ThermostatAuto />} 
-                            label="Ø-Temperatur ≤ 10 °C" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        );
-                        if (humActive) chips.push(
-                          <Chip 
-                            key="b-hum"
-                            color="error" 
-                            variant="filled" 
-                            icon={<OpacityOutlined />} 
-                            label="Ø-Luftfeuchte ≥ 80 %" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        );
-                        if (rain24Active) chips.push(
-                          <Chip 
-                            key="b-r24"
-                            color="error" 
-                            variant="filled" 
-                            icon={<WaterDrop />} 
-                            label="Regen (24h) ≥ 3 mm" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        );
-                        if (rateActive) chips.push(
-                          <Chip 
-                            key="b-rate"
-                            color="error" 
-                            variant="filled" 
-                            icon={<Speed />} 
-                            label="Regenrate > 0" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        );
-                        if (deficitActive) chips.push(
-                          <Chip 
-                            key="b-def"
-                            color="error" 
-                            variant="filled" 
-                            icon={<TrendingDown />} 
-                            label="Defizit < 5 mm" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        );
-                        return chips.length ? chips : [
-                          <Chip 
-                            key="b-none" 
-                            color="success" 
-                            variant="outlined" 
-                            label="Keine Blocker aktiv" 
-                            size="small"
-                            sx={{ height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', display: 'block', lineHeight: 1.2, py: 0.25, overflowWrap: 'anywhere' } }}
-                          />
-                        ];
+                      if (tempActive) items.push(
+                        <DotLabel key="b-temp" color={theme.palette.error.main} label="Temp ≤ 10 °C" />
+                      );
+                      if (humActive) items.push(
+                        <DotLabel key="b-hum" color={theme.palette.error.main} label="Feuchte ≥ 80 %" />
+                      );
+                      if (rain24Active) items.push(
+                        <DotLabel key="b-r24" color={theme.palette.error.main} label="Regen 24h ≥ 3 mm" />
+                      );
+                      if (rateActive) items.push(
+                        <DotLabel key="b-rate" color={theme.palette.error.main} label="Regenrate > 0" />
+                      );
+                      if (deficitActive) items.push(
+                        <DotLabel key="b-def" color={theme.palette.error.main} label="Defizit < 5 mm" />
+                      );
+                      return items.length ? items : [
+                        <DotLabel key="b-none" color={theme.palette.success.main} label="Keine Blocker" />
+                      ];
                     })()}
                   </Box>
                 ) : (
@@ -349,8 +313,12 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 140, md: 160 }
+              minHeight: { xs: 140, md: 160 },
+              position: 'relative'
             }}>
+              {et0Query.isFetching && (
+                <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+              )}
               <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
                 <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
                   <OpacityOutlined sx={{ fontSize: { xs: 26, md: 30 } }} />
@@ -365,12 +333,16 @@ const HomePage = () => {
                     iconSize={16}
                   />
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {et0Query.isLoading
-                    ? '...'
-                    : (et0Query.data && et0Query.data.et0_week !== null && et0Query.data.et0_week !== undefined)
-                      ? `${et0Query.data.et0_week} ${et0Query.data.unit || 'mm'}`
-                      : 'k. A.'}
+                <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
+                  {(() => {
+                    const hasNumber = typeof et0Query.data?.et0_week === 'number';
+                    const text = hasNumber ? `${et0Query.data!.et0_week} ${et0Query.data!.unit || 'mm'}` : 'k. A.';
+                    return (
+                      <Box component="span" sx={{ display: 'inline-block', minWidth: '7ch', fontVariantNumeric: 'tabular-nums' }}>
+                        {et0Query.isLoading && !hasNumber ? '–' : text}
+                      </Box>
+                    );
+                  })()}
                 </Typography>
               </CardContent>
             </Card>
@@ -380,8 +352,12 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 140, md: 160 }
+              minHeight: { xs: 140, md: 160 },
+              position: 'relative'
             }}>
+              {weatherQuery.isFetching && (
+                <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+              )}
               <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
                 <Avatar sx={{ bgcolor: 'warning.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
                   <ThermostatAuto sx={{ fontSize: { xs: 26, md: 30 } }} />
@@ -389,12 +365,16 @@ const HomePage = () => {
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Temperatur (aktuell)
                 </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  {weatherQuery.isLoading ? (
-                    <Skeleton variant="text" width={60} />
-                  ) : (typeof weatherQuery.data?.latest?.temperatureC === 'number')
-                    ? `${weatherQuery.data.latest.temperatureC}°C`
-                    : 'k. A.'}
+                <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
+                  {(() => {
+                    const hasNumber = typeof weatherQuery.data?.latest?.temperatureC === 'number';
+                    const text = hasNumber ? `${weatherQuery.data!.latest!.temperatureC}°C` : 'k. A.';
+                    return (
+                      <Box component="span" sx={{ display: 'inline-block', minWidth: '6ch', fontVariantNumeric: 'tabular-nums' }}>
+                        {weatherQuery.isLoading && !hasNumber ? '–' : text}
+                      </Box>
+                    );
+                  })()}
                 </Typography>
               </CardContent>
             </Card>
@@ -404,8 +384,12 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 140, md: 160 }
+              minHeight: { xs: 140, md: 160 },
+              position: 'relative'
             }}>
+              {scheduleQuery.isFetching && (
+                <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+              )}
               <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
                 <Avatar sx={{ bgcolor: 'secondary.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
                   <Schedule sx={{ fontSize: { xs: 26, md: 30 } }} />
@@ -413,14 +397,23 @@ const HomePage = () => {
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Nächster Zeitplan
                 </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center' }}>
-                  {scheduleQuery.isLoading ? '...' : scheduleQuery.data?.nextScheduled || 'Kein Zeitplan'}
+                <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center' }} aria-live="polite">
+                  {(() => {
+                    const text = scheduleQuery.data?.nextScheduled || 'Kein Zeitplan';
+                    return (
+                      <Box component="span" sx={{ display: 'inline-block', minWidth: '14ch' }}>
+                        {scheduleQuery.isLoading && !scheduleQuery.data ? '–' : text}
+                      </Box>
+                    );
+                  })()}
                 </Typography>
-                {scheduleQuery.data?.zone && !scheduleQuery.isLoading && scheduleQuery.data.nextScheduled !== 'No schedule' && scheduleQuery.data.nextScheduled !== 'Scheduled' && (
-                  <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
-                    {scheduleQuery.data.zone}
-                  </Typography>
-                )}
+                <Box sx={{ minHeight: 24 }}>
+                  {scheduleQuery.data?.zone && scheduleQuery.data.nextScheduled !== 'No schedule' && scheduleQuery.data.nextScheduled !== 'Scheduled' && (
+                    <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
+                      {scheduleQuery.data.zone}
+                    </Typography>
+                  )}
+                </Box>
               </CardContent>
             </Card>
           </Grid>

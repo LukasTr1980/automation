@@ -149,9 +149,6 @@ export type HourFieldProps = {
     max?: number;
 };
 
-export type LoadingSpinnerProps = {
-    size?: number;
-};
 
 // Removed SocketProvider
 
