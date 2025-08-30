@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.16.0] - 2025-08-30
+### Added
+- Backend: New endpoint `/api/irrigation/last` that queries InfluxDB for the most recent irrigation start and maps zone keys to human‑readable names (e.g., „Stefan Nord“).
+- Frontend (Home): "Schnellübersicht" now shows the last irrigation with a water‑drop icon and clear label "Letzte Bewässerung: <Datum, Uhrzeit> – <Zone>"; powered by React Query against `/api/irrigation/last`.
+
+### Changed
+- Frontend (Home): Refined "Schnellübersicht" into an outlined card with balanced 3‑column layout on md+ (Freshness • Status • Letzte Bewässerung) and compact typography consistent with the design system.
+- Backend (Dev UX): Replaced hardcoded dev bind host with `DEV_HOST` environment variable; logs include bound host when set.
+- Frontend (Dev UX): Default dev host set via `.env.development` (`VITE_DEV_HOST=0.0.0.0`) to support WSL/Windows access; still safe to override with `127.0.0.1` locally.
+
+### Fixed
+- Dev server startup friction on WSL: avoided `EADDRNOTAVAIL` by removing hardcoded IPs and using configurable hosts for both backend and Vite.
+
 ## [v19.15.0] - 2025-08-26
 ### Changed
 - Frontend (Home): Replaced skeleton loaders with subtle top `LinearProgress` overlays; kept previous data visible during refetch via React Query `placeholderData: (prev) => prev` to implement a SWR-style experience. Stabilized card layouts with fixed min-heights, tabular numerals, and reserved width for values to eliminate CLS.

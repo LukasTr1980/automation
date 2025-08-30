@@ -33,7 +33,8 @@ const httpServer = http.createServer(app);
 const io = configureSocket(httpServer);
 
 // Graceful shutdown and clearer EADDRINUSE handling
-const host = isDev ? '192.168.1.185' : undefined;
+// In dev, optionally bind to DEV_HOST; otherwise bind all interfaces (WireGuard/LAN friendly)
+const host = isDev ? (process.env.DEV_HOST || undefined) : undefined;
 httpServer.on('error', (err: NodeJS.ErrnoException) => {
   if (err && err.code === 'EADDRINUSE') {
     logger.error(`Port ${port} ${host ? `on ${host} ` : ''}already in use. Stop the existing server before starting a new one.`);
@@ -60,7 +61,7 @@ app.get('*', apiLimiter, (req: Request, res: Response) => {
 
 if (isDev) {
   httpServer.listen(port, host, async () => {
-    logger.info(`APIs are listening on port ${port}`);
+    logger.info(`APIs are listening on port ${port}${host ? ` (host ${host})` : ''}`);
     loadScheduledTasks().catch(logger.error);
     await subscribeToRedisKey(io);
 

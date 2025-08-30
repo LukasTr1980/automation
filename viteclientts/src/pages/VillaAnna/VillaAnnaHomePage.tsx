@@ -93,6 +93,20 @@ const HomePage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+  // React Query: Last irrigation (from Influx)
+  const lastIrrigationQuery = useQuery<{ last: { timestamp: string; zone?: string | null; zoneLabel?: string | null } | null }>(
+    {
+      queryKey: ['irrigation', 'last'],
+      queryFn: async () => {
+        const r = await fetch('/api/irrigation/last');
+        if (!r.ok) throw new Error('irrigation_last');
+        return r.json();
+      },
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      placeholderData: (prev) => prev,
+    }
+  );
   // React Query: Next schedule
   const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null }>({
     queryKey: ['schedule', 'next'],
@@ -149,6 +163,9 @@ const HomePage = () => {
   useEffect(() => {
     if (scheduleQuery.isError) showSnackbar('Fehler beim Laden des Zeitplans', 'error');
   }, [scheduleQuery.isError, showSnackbar]);
+  useEffect(() => {
+    if (lastIrrigationQuery.isError) showSnackbar('Fehler beim Laden der Bewässerungshistorie', 'error');
+  }, [lastIrrigationQuery.isError, showSnackbar]);
 
   // Instant refresh on tab/window focus and when page becomes visible
   // (SSE re-subscribe is wired below via startSSE)
@@ -419,21 +436,18 @@ const HomePage = () => {
           </Grid>
         </Grid>
 
-        {/* Quick Info (moved above action cards for visibility) */}
-        <Box sx={{ 
-          mt: 2, 
-          mb: 3,
-          p: { xs: 2, md: 3 }, 
-          bgcolor: 'background.paper',
-          borderRadius: 2,
-          border: '1px solid',
-          borderColor: 'divider'
-        }}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}>
-            Schnellübersicht
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+        {/* Schnellübersicht: outlined Card, compact typography */}
+        <Card variant="outlined" sx={{ mt: 2, mb: 3, borderRadius: 2 }}>
+          <CardContent sx={{ pt: 2 }}>
+            <Typography
+              component="h2"
+              variant="subtitle2"
+              sx={{ mb: 1.5, fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}
+            >
+              Schnellübersicht
+            </Typography>
+            <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FreshnessStatus
                 latestTimestamp={latestTimestamp}
                 aggregatesTimestamp={aggregatesTimestamp}
@@ -462,13 +476,13 @@ const HomePage = () => {
               const zonesTitle = allActive.length ? `Zonen: ${allActive.join(', ')}` : undefined;
 
               return (
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
-                      justifyContent: { xs: 'center', sm: 'flex-start' },
+                      justifyContent: { xs: 'center', md: 'flex-start' },
                       flexWrap: { xs: 'wrap', md: 'nowrap' },
                     }}
                   >
@@ -520,8 +534,50 @@ const HomePage = () => {
                 </Grid>
               );
             })()}
-          </Grid>
-        </Box>
+            {/* Letzte Bewässerung */}
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  minHeight: 28,
+                }}
+              >
+                <WaterDrop sx={{ color: 'info.main', fontSize: 18, flex: '0 0 auto' }} aria-hidden />
+                {lastIrrigationQuery.isLoading ? (
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Lade letzte Bewässerung…</Typography>
+                ) : lastIrrigationQuery.data?.last ? (
+                  <Typography
+                    variant="body2"
+                    sx={{ lineHeight: 1.2 }}
+                    title={(() => {
+                      const t = new Date(lastIrrigationQuery.data!.last!.timestamp);
+                      return new Intl.DateTimeFormat('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(t);
+                    })()}
+                  >
+                    <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400, mr: 0.5 }}>
+                      Letzte Bewässerung:
+                    </Box>
+                    <Box component="span" sx={{ fontWeight: 600 }}>
+                      {(() => {
+                        const t = new Date(lastIrrigationQuery.data!.last!.timestamp);
+                        const dt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(t);
+                        const tm = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(t);
+                        const zl = lastIrrigationQuery.data!.last!.zoneLabel ?? null;
+                        return zl ? `${dt}, ${tm} – ${zl}` : `${dt}, ${tm}`;
+                      })()}
+                    </Box>
+                  </Typography>
+                ) : (
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Letzte Bewässerung: Keine Aufzeichnungen</Typography>
+                )}
+              </Box>
+            </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
 
         {/* Action Cards */}
         <Grid container spacing={3} justifyContent="center" sx={{ maxWidth: 800, mx: 'auto' }}>

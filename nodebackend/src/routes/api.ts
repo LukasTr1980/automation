@@ -13,6 +13,7 @@ import countdownRouter from './countdownRoute.js';
 import et0Router from './et0Route.js';
 import currentWeatherRouter from './currentWeatherRoute.js';
 import nextScheduleRouter from './nextScheduleRoute.js';
+import irrigationRouter from './irrigationRoute.js';
 
 const router = express.Router();
 
@@ -28,5 +29,6 @@ router.use('/countdown', apiLimiter, countdownRouter);
 router.use('/et0', apiLimiter, et0Router);
 router.use('/weather', apiLimiter, currentWeatherRouter);
 router.use('/schedule', apiLimiter, nextScheduleRouter);
+router.use('/irrigation', apiLimiter, irrigationRouter);
 
 export default router;
