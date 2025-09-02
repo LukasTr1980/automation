@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.17.0] - 2025-09-02
+### Changed
+- Backend (Irrigation Decision): Cap effective 7‑day rain + forecast by root‑zone storage (TAW) to avoid week‑long skips after extreme rain on shallow soils. Defaults: `IRR_ROOT_DEPTH_M=0.30`, `IRR_AWC_MM_PER_M=100`. Logs show capping details. Past irrigation remains fully credited.
+- Backend (Irrigation Decision): Add tunable threshold `IRR_MIN_DEFICIT_MM` (default `5`). Can be negative (e.g., `-12`) to allow earlier watering after TAW cap while rain/rate blockers are clear.
+- Frontend (Bewässerung): Show "Angerechneter Regen (7 Tage + Prognose, gekappt)" with tooltip explaining TAW‑Kappung and raw vs. angerechneter Regen; deficit blocker label now reflects backend threshold.
+- Frontend (Bewässerung): Subtle highlight when Kappung aktiv ist — Icon und Wert in `warning`-Farbton, ansonsten neutral.
+
 ## [v19.16.0] - 2025-08-30
 ### Added
 - Backend: New endpoint `/api/irrigation/last` that queries InfluxDB for the most recent irrigation start and maps zone keys to human‑readable names (e.g., „Stefan Nord“).

@@ -134,6 +134,7 @@ const HomePage = () => {
     rainToday: number;
     rainRate: number;
     deficitNow: number;
+    minDeficitMm?: number;
   }
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [decision, setDecision] = useState<DecisionMetrics | null>(null);
@@ -215,6 +216,7 @@ const HomePage = () => {
             rainToday: r.rainToday,
             rainRate: r.rainRate,
             deficitNow: r.deficitNow,
+            minDeficitMm: r.minDeficitMm,
           });
           setDecisionLoading(false);
         }
@@ -280,7 +282,7 @@ const HomePage = () => {
                   Blocker
                   <InfoPopover
                     ariaLabel="Mögliche Blocker"
-                    content={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
+                    content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < ${decision?.minDeficitMm ?? 5} mm`}
                     iconSize={16}
                   />
                 </Typography>
@@ -296,7 +298,7 @@ const HomePage = () => {
                       const humActive = decision.humidity >= 80;
                       const rain24Active = decision.rainToday >= 3;
                       const rateActive = decision.rainRate > 0;
-                      const deficitActive = decision.deficitNow < 5;
+                      const deficitActive = decision.deficitNow < (decision?.minDeficitMm ?? 5);
                       if (tempActive) items.push(
                         <DotLabel key="b-temp" color={theme.palette.error.main} label="Temp ≤ 10 °C" />
                       );
@@ -310,7 +312,7 @@ const HomePage = () => {
                         <DotLabel key="b-rate" color={theme.palette.error.main} label="Regenrate > 0" />
                       );
                       if (deficitActive) items.push(
-                        <DotLabel key="b-def" color={theme.palette.error.main} label="Defizit < 5 mm" />
+                        <DotLabel key="b-def" color={theme.palette.error.main} label={`Defizit < ${decision?.minDeficitMm ?? 5} mm`} />
                       );
                       return items.length ? items : [
                         <DotLabel key="b-none" color={theme.palette.success.main} label="Keine Blocker" />

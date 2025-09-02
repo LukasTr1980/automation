@@ -15,6 +15,10 @@ export interface DecisionMetrics {
   rainNextDay: number;
   rainProbNextDay: number;
   rainSum: number;
+  rainPlusForecastRaw: number;      // 7d rain + weighted forecast (uncapped)
+  rainPlusForecastCapped: number;   // capped at TAW
+  tawMm: number;                    // total available water used for capping
+  minDeficitMm: number;             // threshold used for deficit blocker
   irrigationDepthMm: number;
   et0_week: number;
   effectiveForecast: number;
@@ -106,8 +110,26 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
 
   // 3) Unified deficit calculation (German-only values are in FE)
   const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
-  // Integrate 7-day rainfall into current weekly water balance
-  const effectiveRain = d.rainSum + effectiveForecast + d.irrigationDepthMm;
+
+  // --- Bucket-based cap for effective rainfall over a 7-day horizon ---------
+  // We cap the credit from 7-day rain + forecast by the root-zone storage (TAW).
+  // Rationale: with shallow soil over concrete, excess rain drains and cannot
+  // offset ET0 for a full week. This prevents week-long skips after downpours.
+  const ROOT_DEPTH_M = Number(process.env.IRR_ROOT_DEPTH_M ?? 0.30); // effective root depth (m)
+  const AWC_MM_PER_M = Number(process.env.IRR_AWC_MM_PER_M ?? 100);  // available water capacity per meter (mm/m)
+  const TAW = ROOT_DEPTH_M * AWC_MM_PER_M;                            // total available water (mm)
+
+  const rainPlusForecast = d.rainSum + effectiveForecast;
+  const effectiveRainCapped = Math.min(Math.max(rainPlusForecast, 0), TAW);
+
+  if (!Number.isFinite(TAW) || TAW <= 0) {
+    logger.warn(`[Decision] Invalid TAW derived from env (ROOT_DEPTH_M=${ROOT_DEPTH_M}, AWC_MM_PER_M=${AWC_MM_PER_M}); skipping rain cap`);
+  } else if (rainPlusForecast > TAW) {
+    logger.info(`[Decision] Capping effective rain at TAW: rain+forecast=${fmt(rainPlusForecast)} mm → ${fmt(effectiveRainCapped)} mm (TAW=${fmt(TAW)} mm)`);
+  }
+
+  // Count past irrigation fully (what we actually applied) and capped natural inputs
+  const effectiveRain = effectiveRainCapped + d.irrigationDepthMm;
   const deficitNow = d.et0_week - effectiveRain;
 
   /* ---------- Hard rules ----------------------------------------------------
@@ -122,7 +144,11 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
 
   logger.debug(`DeficitNow with probability-weighted forecast: ${fmt(deficitNow)} mm`);
 
-  if (deficitNow < 5) blockers.push(`Deficit < 5 mm (${fmt(deficitNow)} mm)`);
+  // Allow tuning when irrigation should kick in.
+  // Default keeps previous behavior (5 mm). Can be set negative to allow earlier watering
+  // after the TAW cap (e.g., -12 mm ≈ -0.4 * TAW).
+  const MIN_DEFICIT = Number(process.env.IRR_MIN_DEFICIT_MM ?? 5);
+  if (deficitNow < MIN_DEFICIT) blockers.push(`Deficit < ${fmt(MIN_DEFICIT)} mm (${fmt(deficitNow)} mm)`);
 
   if (blockers.length) {
     const msg = `Blocked: ${blockers.join("; ")}`;
@@ -137,6 +163,10 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
         rainNextDay: d.rainNextDay,
         rainProbNextDay: d.rainProbNextDay,
         rainSum: d.rainSum,
+        rainPlusForecastRaw: rainPlusForecast,
+        rainPlusForecastCapped: effectiveRainCapped,
+        tawMm: TAW,
+        minDeficitMm: MIN_DEFICIT,
         irrigationDepthMm: d.irrigationDepthMm,
         et0_week: d.et0_week,
         effectiveForecast,
@@ -157,6 +187,10 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       rainNextDay: d.rainNextDay,
       rainProbNextDay: d.rainProbNextDay,
       rainSum: d.rainSum,
+      rainPlusForecastRaw: rainPlusForecast,
+      rainPlusForecastCapped: effectiveRainCapped,
+      tawMm: TAW,
+      minDeficitMm: MIN_DEFICIT,
       irrigationDepthMm: d.irrigationDepthMm,
       et0_week: d.et0_week,
       effectiveForecast,

@@ -25,6 +25,7 @@ import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import SpeedIcon from '@mui/icons-material/Speed';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CalendarViewWeekIcon from '@mui/icons-material/CalendarViewWeek';
 import WaterIcon from '@mui/icons-material/Water';
 import WavesIcon from '@mui/icons-material/Waves';
@@ -65,6 +66,10 @@ const BewaesserungPage = () => {
     rainNextDay: number;
     rainProbNextDay: number;
     rainSum: number;
+    rainPlusForecastRaw: number;
+    rainPlusForecastCapped: number;
+    tawMm: number;
+    minDeficitMm: number;
     irrigationDepthMm: number;
     et0_week: number;
     effectiveForecast: number;
@@ -472,6 +477,30 @@ const BewaesserungPage = () => {
                             </ListItem>
                             <Divider component="li" />
                             <ListItem>
+                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
+                                <FilterAltIcon color={response.rainPlusForecastRaw > response.tawMm ? 'warning' : 'action'} />
+                              </ListItemIcon>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
+                                <ListItemText
+                                  primary={`Angerechneter Regen (7 Tage + Prognose, gekappt)`}
+                                  secondary={`${response.rainPlusForecastCapped.toFixed(1)} mm`}
+                                  slotProps={{
+                                    primary: { align: 'center' },
+                                    secondary: {
+                                      align: 'center',
+                                      sx: response.rainPlusForecastRaw > response.tawMm ? { color: 'warning.main', fontWeight: 500 } : undefined,
+                                    }
+                                  }}
+                                />
+                                <InfoPopover
+                                  ariaLabel="Hinweis zur Kappung"
+                                  content={`Kappung an Speicherkapazität (TAW=${response.tawMm.toFixed(0)} mm). Roh: ${(response.rainPlusForecastRaw).toFixed(1)} mm; Angerechnet: ${response.rainPlusForecastCapped.toFixed(1)} mm.`}
+                                  iconSize={16}
+                                />
+                              </Box>
+                            </ListItem>
+                            <Divider component="li" />
+                            <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WaterIcon color="action" /></ListItemIcon>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                 <ListItemText
@@ -522,7 +551,7 @@ const BewaesserungPage = () => {
                               Blocker Aktiv
                               <InfoPopover
                                 ariaLabel="Mögliche Blocker"
-                                content={'Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < 5 mm'}
+                                content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < ${(response?.minDeficitMm ?? 5).toFixed(0)} mm`}
                                 iconSize={18}
                               />
                             </Typography>
@@ -533,7 +562,7 @@ const BewaesserungPage = () => {
                                 const humActive = response.humidity >= 80;
                                 const rain24Active = response.rainToday >= 3;
                                 const rateActive = response.rainRate > 0;
-                                const deficitActive = response.deficitNow < 5;
+                                const deficitActive = response.deficitNow < response.minDeficitMm;
                                 if (tempActive) chips.push(
                                   <Chip key="b-temp" color="error" variant="filled" icon={<ThermostatAutoIcon />} label="Ø-Temperatur ≤ 10 °C" />
                                 );
@@ -547,7 +576,7 @@ const BewaesserungPage = () => {
                                   <Chip key="b-rate" color="error" variant="filled" icon={<SpeedIcon />} label="Regenrate > 0" />
                                 );
                                 if (deficitActive) chips.push(
-                                  <Chip key="b-def" color="error" variant="filled" icon={<TrendingDownIcon />} label="Defizit < 5 mm" />
+                                  <Chip key="b-def" color="error" variant="filled" icon={<TrendingDownIcon />} label={`Defizit < ${response.minDeficitMm.toFixed(0)} mm`} />
                                 );
                                 return chips.length ? chips : [
                                   <Chip key="b-none" color="success" variant="outlined" label="Keine Blocker aktiv" />
