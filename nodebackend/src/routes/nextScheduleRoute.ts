@@ -22,6 +22,40 @@ interface TaskWithTopic extends TaskDetail {
   topic: string;
 }
 
+function parseRecurrence(rule: unknown): RecurrenceRule | null {
+  try {
+    let r = rule as any;
+    if (typeof r === 'string') {
+      try { r = JSON.parse(r); } catch { /* ignore */ }
+    }
+    if (!r || typeof r !== 'object') return null;
+    const hour = Number(r.hour);
+    const minute = Number(r.minute);
+    const dayOfWeek = Array.isArray(r.dayOfWeek) ? r.dayOfWeek.map((n: any) => Number(n)).filter((n: number) => Number.isInteger(n)) : [];
+    const month = Array.isArray(r.month) ? r.month.map((n: any) => Number(n)).filter((n: number) => Number.isInteger(n)) : [];
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+    return { hour, minute, dayOfWeek, month } as RecurrenceRule;
+  } catch {
+    return null;
+  }
+}
+
+function nextOccurrence(rule: RecurrenceRule, from = new Date()): Date | null {
+  const maxDays = 370; // a bit more than a year
+  for (let i = 0; i < maxDays; i++) {
+    const base = new Date(from);
+    base.setHours(0, 0, 0, 0);
+    base.setDate(base.getDate() + i);
+    const cand = new Date(base.getFullYear(), base.getMonth(), base.getDate(), rule.hour, rule.minute, 0, 0);
+    // Month filter (0..11)
+    if (rule.month && rule.month.length > 0 && !rule.month.includes(cand.getMonth())) continue;
+    // Day-of-week filter (0..6; 0=Sunday)
+    if (rule.dayOfWeek && rule.dayOfWeek.length > 0 && !rule.dayOfWeek.includes(cand.getDay())) continue;
+    if (cand >= from) return cand;
+  }
+  return null;
+}
+
 router.get('/next', async (req, res) => {
   try {
     const allTasks = await getScheduledTasks();
@@ -54,9 +88,28 @@ router.get('/next', async (req, res) => {
       });
     }
 
-    // For simplicity, just take the first enabled task
-    // In a real implementation, you'd want to parse the recurrenceRule to find the actual next execution time
-    const firstTask = enabledIrrigationTasks[0];
+    // Compute actual next occurrence across all enabled tasks
+    let bestTask: TaskWithTopic | null = null;
+    let bestWhen: Date | null = null;
+    const now = new Date();
+    for (const t of enabledIrrigationTasks) {
+      const r = parseRecurrence(t.recurrenceRule);
+      if (!r) continue;
+      const when = nextOccurrence(r, now);
+      if (!when) continue;
+      if (!bestWhen || when < bestWhen) {
+        bestWhen = when;
+        bestTask = t;
+      }
+    }
+    if (!bestTask || !bestWhen) {
+      logger.info('No valid upcoming irrigation occurrence found', { label: 'NextScheduleRoute' });
+      return res.json({ 
+        nextTask: null,
+        nextScheduled: 'No active schedules',
+        zone: null
+      });
+    }
 
     // Convert topic to zone name using the same mapping as frontend constants
     const bewaesserungsTopics = irrigationSwitchTopics;
@@ -64,37 +117,44 @@ router.get('/next', async (req, res) => {
     const switchDescriptions = irrigationSwitchDescriptions;
 
     // Find the index in either topics array to map to switchDescriptions
-    let topicIndex = bewaesserungsTopics.indexOf(firstTask.topic);
+    let topicIndex = bewaesserungsTopics.indexOf(bestTask.topic);
     if (topicIndex === -1) {
-      topicIndex = bewaesserungsTopicsSet.indexOf(firstTask.topic);
+      topicIndex = bewaesserungsTopicsSet.indexOf(bestTask.topic);
     }
     
-    const zoneName = topicIndex !== -1 ? switchDescriptions[topicIndex] : firstTask.topic;
+    const zoneName = topicIndex !== -1 ? switchDescriptions[topicIndex] : bestTask.topic;
 
     // Extract time information from recurrenceRule
     let timeDisplay = 'Scheduled';
     let scheduleDetails = null;
     
     try {
-      let ruleObj = firstTask.recurrenceRule;
+      let ruleObj = bestTask.recurrenceRule;
       
       // If it's a string, try to parse it as JSON, otherwise use it as-is if it's already an object
       if (typeof ruleObj === 'string') {
         try {
           ruleObj = JSON.parse(ruleObj);
         } catch (_parseError) {
-          logger.warn(`RecurrenceRule is a string but not valid JSON: ${firstTask.recurrenceRule}`, { label: 'NextScheduleRoute' });
+          logger.warn(`RecurrenceRule is a string but not valid JSON: ${bestTask.recurrenceRule}`, { label: 'NextScheduleRoute' });
         }
       }
       
-      if (ruleObj && typeof ruleObj === 'object' && 'hour' in ruleObj && 'minute' in ruleObj) {
-        const rule = ruleObj as RecurrenceRule;
-        // Format time as HH:MM
+      const rule = parseRecurrence(ruleObj);
+      if (rule) {
         const hours = String(rule.hour).padStart(2, '0');
         const minutes = String(rule.minute).padStart(2, '0');
-        timeDisplay = `${hours}:${minutes}`;
-        
-        // Include additional schedule details
+        // Prefer concrete next occurrence including local date if not today
+        const today = new Date(); today.setHours(0,0,0,0);
+        const when = bestWhen!;
+        const whenDay = new Date(when.getFullYear(), when.getMonth(), when.getDate());
+        if (whenDay.getTime() !== today.getTime()) {
+          // e.g., Mo 07:30
+          const weekday = ['So','Mo','Di','Mi','Do','Fr','Sa'][when.getDay()];
+          timeDisplay = `${weekday} ${hours}:${minutes}`;
+        } else {
+          timeDisplay = `${hours}:${minutes}`;
+        }
         scheduleDetails = {
           hour: rule.hour,
           minute: rule.minute,
@@ -102,21 +162,21 @@ router.get('/next', async (req, res) => {
           month: rule.month || []
         };
       } else {
-        logger.warn(`RecurrenceRule doesn't have expected hour/minute properties for task ${firstTask.taskId}:`, ruleObj, { label: 'NextScheduleRoute' });
+        logger.warn(`Invalid recurrenceRule for task ${bestTask.taskId}`, { label: 'NextScheduleRoute' });
       }
     } catch (error) {
-      logger.error(`Error processing recurrenceRule for task ${firstTask.taskId}:`, error as Error, { label: 'NextScheduleRoute' });
+      logger.error(`Error processing recurrenceRule for task ${bestTask.taskId}:`, error as Error, { label: 'NextScheduleRoute' });
     }
 
     logger.info(`Next irrigation scheduled: ${timeDisplay} for ${zoneName}`, { label: 'NextScheduleRoute' });
     
     res.json({
-      nextTask: firstTask,
+      nextTask: bestTask,
       nextScheduled: timeDisplay,
       zone: zoneName,
-      topic: firstTask.topic,
+      topic: bestTask.topic,
       scheduleDetails: scheduleDetails,
-      taskId: firstTask.taskId
+      taskId: bestTask.taskId
     });
   } catch (error) {
     logger.error('Error fetching next schedule', error as Error, { label: 'NextScheduleRoute' });

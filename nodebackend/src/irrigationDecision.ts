@@ -5,6 +5,7 @@ import { getWeeklyIrrigationDepthMm } from "./utils/irrigationDepthService.js";
 import { readLatestWeeklyET0FromRedis } from "./utils/et0Storage.js";
 import { readLatestWeatherFromRedis } from "./utils/weatherLatestStorage.js";
 import { readWeatherAggregatesFromRedis } from "./utils/weatherAggregatesStorage.js";
+import { ensureSoilBucket, getTawMm } from "./utils/soilBucket.js";
 
 // ---------- Frontend Contract (structured metrics) ---------------------------
 export interface DecisionMetrics {
@@ -18,7 +19,10 @@ export interface DecisionMetrics {
   rainPlusForecastRaw: number;      // 7d rain + weighted forecast (uncapped)
   rainPlusForecastCapped: number;   // capped at TAW
   tawMm: number;                    // total available water used for capping
-  minDeficitMm: number;             // threshold used for deficit blocker
+  minDeficitMm: number;             // legacy metric (not used for blockers)
+  soilStorageMm?: number;           // current soil storage (S)
+  depletionMm?: number;             // TAW - S
+  triggerMm?: number;               // trigger threshold for depletion
   irrigationDepthMm: number;
   et0_week: number;
   effectiveForecast: number;
@@ -132,6 +136,14 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const effectiveRain = effectiveRainCapped + d.irrigationDepthMm;
   const deficitNow = d.et0_week - effectiveRain;
 
+  // 4) Soil bucket decision logic (preferred)
+  const bucket = await ensureSoilBucket(zoneName);
+  const tawMm = getTawMm() || bucket.tawMm;
+  const depletion = Math.max(0, tawMm - bucket.sMm);
+  const TRIGGER_MM = Number(process.env.IRR_BUCKET_TRIGGER_MM ?? NaN);
+  const TRIGGER_FRAC = Number(process.env.IRR_BUCKET_TRIGGER_FRAC ?? 0.33);
+  const triggerMm = Number.isFinite(TRIGGER_MM) ? TRIGGER_MM : (tawMm * TRIGGER_FRAC);
+
   /* ---------- Hard rules ----------------------------------------------------
    * If any rule matches, block irrigation (result=false).
    * -------------------------------------------------------------------------*/
@@ -144,11 +156,8 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
 
   logger.debug(`DeficitNow with probability-weighted forecast: ${fmt(deficitNow)} mm`);
 
-  // Allow tuning when irrigation should kick in.
-  // Default keeps previous behavior (5 mm). Can be set negative to allow earlier watering
-  // after the TAW cap (e.g., -12 mm ≈ -0.4 * TAW).
-  const MIN_DEFICIT = Number(process.env.IRR_MIN_DEFICIT_MM ?? 5);
-  if (deficitNow < MIN_DEFICIT) blockers.push(`Deficit < ${fmt(MIN_DEFICIT)} mm (${fmt(deficitNow)} mm)`);
+  // Soil bucket depletion is the sole water-balance blocker
+  if (depletion < triggerMm) blockers.push(`Boden nicht trocken genug: Entzug < ${fmt(triggerMm)} mm (aktuell ${fmt(depletion)} mm)`);
 
   if (blockers.length) {
     const msg = `Blocked: ${blockers.join("; ")}`;
@@ -166,7 +175,10 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
         rainPlusForecastRaw: rainPlusForecast,
         rainPlusForecastCapped: effectiveRainCapped,
         tawMm: TAW,
-        minDeficitMm: MIN_DEFICIT,
+        minDeficitMm: 0,
+        soilStorageMm: bucket.sMm,
+        depletionMm: depletion,
+        triggerMm: triggerMm,
         irrigationDepthMm: d.irrigationDepthMm,
         et0_week: d.et0_week,
         effectiveForecast,
@@ -190,7 +202,10 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       rainPlusForecastRaw: rainPlusForecast,
       rainPlusForecastCapped: effectiveRainCapped,
       tawMm: TAW,
-      minDeficitMm: MIN_DEFICIT,
+      minDeficitMm: 0,
+      soilStorageMm: bucket.sMm,
+      depletionMm: depletion,
+      triggerMm: triggerMm,
       irrigationDepthMm: d.irrigationDepthMm,
       et0_week: d.et0_week,
       effectiveForecast,

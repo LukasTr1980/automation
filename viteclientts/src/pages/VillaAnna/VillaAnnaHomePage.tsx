@@ -134,7 +134,9 @@ const HomePage = () => {
     rainToday: number;
     rainRate: number;
     deficitNow: number;
-    minDeficitMm?: number;
+    // Soil-bucket primary trigger
+    depletionMm?: number;
+    triggerMm?: number;
   }
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [decision, setDecision] = useState<DecisionMetrics | null>(null);
@@ -216,7 +218,8 @@ const HomePage = () => {
             rainToday: r.rainToday,
             rainRate: r.rainRate,
             deficitNow: r.deficitNow,
-            minDeficitMm: r.minDeficitMm,
+            depletionMm: r.depletionMm,
+            triggerMm: r.triggerMm,
           });
           setDecisionLoading(false);
         }
@@ -282,7 +285,7 @@ const HomePage = () => {
                   Blocker
                   <InfoPopover
                     ariaLabel="Mögliche Blocker"
-                    content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Defizit < ${decision?.minDeficitMm ?? 5} mm`}
+                    content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Entzug < Startschwelle (MAD ≈ ${(decision?.triggerMm ?? 0).toFixed?.(0) ?? decision?.triggerMm ?? 0} mm)`}
                     iconSize={16}
                   />
                 </Typography>
@@ -298,7 +301,7 @@ const HomePage = () => {
                       const humActive = decision.humidity >= 80;
                       const rain24Active = decision.rainToday >= 3;
                       const rateActive = decision.rainRate > 0;
-                      const deficitActive = decision.deficitNow < (decision?.minDeficitMm ?? 5);
+                      const drynessActive = typeof decision.depletionMm === 'number' && typeof decision.triggerMm === 'number' && decision.depletionMm < decision.triggerMm;
                       if (tempActive) items.push(
                         <DotLabel key="b-temp" color={theme.palette.error.main} label="Temp ≤ 10 °C" />
                       );
@@ -311,8 +314,8 @@ const HomePage = () => {
                       if (rateActive) items.push(
                         <DotLabel key="b-rate" color={theme.palette.error.main} label="Regenrate > 0" />
                       );
-                      if (deficitActive) items.push(
-                        <DotLabel key="b-def" color={theme.palette.error.main} label={`Defizit < ${decision?.minDeficitMm ?? 5} mm`} />
+                      if (drynessActive) items.push(
+                        <DotLabel key="b-dry" color={theme.palette.error.main} label={`Entzug < Startschwelle`} />
                       );
                       return items.length ? items : [
                         <DotLabel key="b-none" color={theme.palette.success.main} label="Keine Blocker" />

@@ -13,6 +13,7 @@ import { readWeatherAggregatesFromRedis } from "./weatherAggregatesStorage.js";
 import { readDailyLast7FromRedis } from "./weatherDailyStorage.js";
 import logger from "../logger.js";
 import { writeWeeklyET0ToRedis } from "./et0Storage.js";
+import { writeEt0DailyLast7ToRedis } from "./et0DailyStorage.js";
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
 const LAT = Number(process.env.LAT ?? 46.5668);
@@ -172,6 +173,33 @@ export async function computeWeeklyET0(): Promise<number> {
         }
 
         const et0Sum = +et0s.reduce((a, b) => a + b, 0).toFixed(2);
+
+        // Persist ET0 daily last-7 (dates aligned with daily aggregates if available)
+        try {
+            const dates: string[] = [];
+            if (daily?.days?.length === et0s.length) {
+                for (let i = 0; i < daily.days.length; i++) {
+                    dates.push(daily.days[i].date);
+                }
+            } else {
+                // Fallback: synthesize local dates for the previous 7 full days
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(localMidnight);
+                    d.setDate(d.getDate() - (6 - i) - 1); // map i:0..6 → d-7..d-1
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    dates.push(`${y}-${m}-${day}`);
+                }
+            }
+            const payload = {
+                days: et0s.map((v, i) => ({ date: dates[i] ?? `d${i+1}` , et0mm: +v.toFixed(2) })),
+                timestamp: new Date().toISOString()
+            };
+            await writeEt0DailyLast7ToRedis(payload);
+        } catch (e) {
+            logger.error('Failed to persist ET0 daily last-7', e as Error, { label: 'Evapotranspiration' });
+        }
 
         await writeWeeklyET0ToRedis(et0Sum);
         logger.info(

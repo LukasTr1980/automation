@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.18.0] - 2025-09-03
+### Added
+- Backend: Redis-gestützter Boden-Speicher (Soil Bucket) pro Zone mit täglicher Wasserbilanz: `S = clamp(S + rain24h_eff − ET0_vortag, 0..TAW)`. Speicherung unter `soil:bucket:<zone>`; Initialisierung auf 50% TAW.
+- Backend: ET₀-Tageswerte der letzten 7 vollen Tage werden in Redis unter `et0:daily:last7` abgelegt (zusätzlich zur Wochensumme `et0:weekly:latest`).
+- Backend/Scheduler: Bei Bewässerungsstart wird der Soil Bucket sofort um einen Lauf aufgefüllt (`RUN_DEPTH_MM` aus Pumpenspezifikation), auf `TAW` gekappt.
+- Frontend (Bewässerung): Anzeige neuer Werte „Boden‑Speicher (S)“ sowie „Entzug / Startschwelle (MAD)“. Blocker-Hinweise und Chips entsprechend ergänzt.
+
+### Changed
+- Backend (Irrigation Decision): Entscheidungslogik stellt von Defizit‑Modell auf Soil‑Bucket (Entzug ≥ Startschwelle/MAD) um. Regen‑/Regenrate‑ und Klima‑Blocker unverändert.
+- Backend (Irrigation Decision): Defizit‑Blocker entfernt; `deficitNow` bleibt als Diagnosewert. `minDeficitMm` bleibt im Response auf 0 für Legacy‑Kompatibilität.
+- Frontend (Home & Bewässerung): Defizit‑Blocker aus UI entfernt; Benennung der Schwelle auf „Startschwelle (MAD)“ geändert, Tooltips angepasst.
+
+### Fixed
+- Backend `/api/schedule/next`: Nächsten Zeitplan korrekt bestimmen, indem die nächste Ausführung aller aktiven Tasks berechnet wird (statt „ersten Task“ zu nehmen). Anzeige ggf. mit Wochentag, wenn nicht heute. Behebt falsche Zone in der Home‑Card (z. B. „Lukas Süd“ statt „Stefan Nord“).
+
+### Notes
+- TAW bleibt konfigurierbar über `IRR_ROOT_DEPTH_M` und `IRR_AWC_MM_PER_M`. Startschwelle per `IRR_BUCKET_TRIGGER_MM` (fix) oder `IRR_BUCKET_TRIGGER_FRAC` (Standard 0.33) steuerbar.
+
 ## [v19.17.0] - 2025-09-02
 ### Changed
 - Backend (Irrigation Decision): Cap effective 7‑day rain + forecast by root‑zone storage (TAW) to avoid week‑long skips after extreme rain on shallow soils. Defaults: `IRR_ROOT_DEPTH_M=0.30`, `IRR_AWC_MM_PER_M=100`. Logs show capping details. Past irrigation remains fully credited.

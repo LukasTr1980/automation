@@ -10,6 +10,8 @@ import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
 import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
 import { recordIrrigationStartInflux } from './clients/influxdb-client.js';
+import { dailySoilBalance, addIrrigationToBucket } from './utils/soilBucket.js';
+import { RUN_DEPTH_MM } from './utils/irrigationDepthService.js';
 import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from './clients/weatherlink-client.js';
 import { writeLatestWeatherToRedis } from './utils/weatherLatestStorage.js';
 import { writeWeatherAggregatesToRedis, readWeatherAggregatesFromRedis } from './utils/weatherAggregatesStorage.js';
@@ -97,6 +99,16 @@ schedule.scheduleJob('40 0 * * *', async () => {
     logger.info(`ET₀ Weekly (daily run): ${sum} mm`);
   } catch (err) {
     logger.error('ET₀ daily recompute failed:', err);
+  }
+});
+
+// Apply daily soil water balance shortly after ET0 is computed
+schedule.scheduleJob('45 0 * * *', async () => {
+  try {
+    // Currently we track a single zone bucket aligned with decision logic
+    await dailySoilBalance('lukasSued');
+  } catch (err) {
+    logger.error('Soil bucket daily balance failed:', err);
   }
 });
 
@@ -233,6 +245,11 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
             } else {
               logger.info(`Irrigation started for zone ${zoneName} (decision check skipped)`);
               await recordIrrigationStartInflux(zoneName);
+              try {
+                await addIrrigationToBucket(zoneName, RUN_DEPTH_MM);
+              } catch (e) {
+                logger.error('Failed to apply irrigation to soil bucket', e);
+              }
             }
           });
         } else {
@@ -244,6 +261,11 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
               } else {
                 logger.info(`Irrigation started for zone ${zoneName}`);
                 await recordIrrigationStartInflux(zoneName);
+                try {
+                  await addIrrigationToBucket(zoneName, RUN_DEPTH_MM);
+                } catch (e) {
+                  logger.error('Failed to apply irrigation to soil bucket', e);
+                }
               }
             });
           } else {
