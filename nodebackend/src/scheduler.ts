@@ -11,6 +11,7 @@ import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
 import { recordIrrigationStartInflux } from './clients/influxdb-client.js';
 import { dailySoilBalance, addIrrigationToBucket } from './utils/soilBucket.js';
+import { broadcastPayloadToSseClients } from './utils/sseHandler.js';
 import { RUN_DEPTH_MM } from './utils/irrigationDepthService.js';
 import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from './clients/weatherlink-client.js';
 import { writeLatestWeatherToRedis } from './utils/weatherLatestStorage.js';
@@ -247,6 +248,10 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
               await recordIrrigationStartInflux(zoneName);
               try {
                 await addIrrigationToBucket(zoneName, RUN_DEPTH_MM);
+                // Notify SSE clients that a scheduled irrigation has started
+                try {
+                  broadcastPayloadToSseClients({ type: 'irrigationStart', source: 'scheduled', zone: zoneName, at: new Date().toISOString() });
+                } catch {}
               } catch (e) {
                 logger.error('Failed to apply irrigation to soil bucket', e);
               }
@@ -263,6 +268,10 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
                 await recordIrrigationStartInflux(zoneName);
                 try {
                   await addIrrigationToBucket(zoneName, RUN_DEPTH_MM);
+                  // Notify SSE clients that a scheduled irrigation has started
+                  try {
+                    broadcastPayloadToSseClients({ type: 'irrigationStart', source: 'scheduled', zone: zoneName, at: new Date().toISOString() });
+                  } catch {}
                 } catch (e) {
                   logger.error('Failed to apply irrigation to soil bucket', e);
                 }

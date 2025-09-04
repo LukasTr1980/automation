@@ -509,13 +509,13 @@ const BewaesserungPage = () => {
                                   <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><Inventory2OutlinedIcon color="action" /></ListItemIcon>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                     <ListItemText
-                                      primary={`Boden-Speicher (S)`}
-                                      secondary={`${response.soilStorageMm.toFixed(1)} mm`}
+                                      primary={`Boden-Speicher (S / Kapazität)`}
+                                      secondary={`${response.soilStorageMm.toFixed(1)} mm / ${response.tawMm.toFixed(0)} mm`}
                                       slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                     />
                                     <InfoPopover
                                       ariaLabel="Hinweis zum Boden-Speicher"
-                                      content={`Speicher 0–TAW. TAW=${response.tawMm.toFixed(0)} mm. S ist verfügbare Bodenfeuchte.`}
+                                      content={`Speicher 0–Kapazität (Kappung). Kapazität = ${response.tawMm.toFixed(0)} mm. S ist die aktuell verfügbare Bodenfeuchte.`}
                                       iconSize={16}
                                     />
                                   </Box>
@@ -525,13 +525,13 @@ const BewaesserungPage = () => {
                                   <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><Inventory2OutlinedIcon color={(response.depletionMm < (response.triggerMm ?? Number.POSITIVE_INFINITY)) ? 'warning' : 'action'} /></ListItemIcon>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                     <ListItemText
-                                      primary={`Entzug / Startschwelle (MAD)`}
+                                      primary={`Entzug / Startschwelle`}
                                       secondary={`${response.depletionMm.toFixed(1)} mm / ${(response.triggerMm ?? 0).toFixed(1)} mm`}
                                       slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                     />
                                     <InfoPopover
                                       ariaLabel="Hinweis zum Entzug"
-                                      content={`Entzug = TAW − S. Geplante Bewässerung ab Entzug ≥ Startschwelle (MAD). TAW=${response.tawMm.toFixed(0)} mm.`}
+                                      content={`Entzug = Kapazität − S. Bewässerung ab Entzug ≥ Startschwelle. Kapazität = ${response.tawMm.toFixed(0)} mm.`}
                                       iconSize={16}
                                     />
                                   </Box>
@@ -545,7 +545,7 @@ const BewaesserungPage = () => {
                               Blocker Aktiv
                               <InfoPopover
                                 ariaLabel="Mögliche Blocker"
-                                content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Entzug < Startschwelle (MAD ≈ ${(response?.triggerMm ?? 0).toFixed(0)} mm)`}
+                                content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Entzug < Startschwelle (≈ ${(response?.triggerMm ?? 0).toFixed(0)} mm)`}
                                 iconSize={18}
                               />
                             </Typography>
@@ -570,7 +570,7 @@ const BewaesserungPage = () => {
                                   <Chip key="b-rate" color="error" variant="filled" icon={<SpeedIcon />} label="Regenrate > 0" />
                                 );
                                 if (drynessActive) chips.push(
-                                  <Chip key="b-dry" color="error" variant="filled" icon={<Inventory2OutlinedIcon />} label={`Entzug < Startschwelle (MAD)`} />
+                                  <Chip key="b-dry" color="error" variant="filled" icon={<Inventory2OutlinedIcon />} label={`Entzug < Startschwelle`} />
                                 );
                                 return chips.length ? chips : [
                                   <Chip key="b-none" color="success" variant="outlined" label="Keine Blocker aktiv" />

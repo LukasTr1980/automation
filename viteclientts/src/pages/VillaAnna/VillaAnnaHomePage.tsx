@@ -9,7 +9,8 @@ import {
   useTheme,
   Avatar,
   Chip,
-  LinearProgress
+  LinearProgress,
+  Divider
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../../Layout';
@@ -18,8 +19,8 @@ import {
   WaterDrop, 
   Schedule, 
   ThermostatAuto,
-  OpacityOutlined,
-  Block
+  Block,
+  Inventory2Outlined
 } from '@mui/icons-material';
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
@@ -133,6 +134,8 @@ const HomePage = () => {
     rainToday: number;
     rainRate: number;
     // Soil-bucket primary trigger
+    soilStorageMm?: number;
+    tawMm?: number;
     depletionMm?: number;
     triggerMm?: number;
   }
@@ -208,6 +211,7 @@ const HomePage = () => {
           if (idx !== -1) {
             setSwitches((prev) => prev.map((v, i) => (i === idx ? data.state === 'true' : v)));
           }
+          // Do not auto-refresh S on manual switch; wait for explicit 'irrigationStart' event
         } else if (data?.type === 'irrigationNeeded' && data.response) {
           const r = data.response;
           setDecision({
@@ -215,10 +219,15 @@ const HomePage = () => {
             humidity: r.humidity,
             rainToday: r.rainToday,
             rainRate: r.rainRate,
+            soilStorageMm: r.soilStorageMm,
+            tawMm: r.tawMm,
             depletionMm: r.depletionMm,
             triggerMm: r.triggerMm,
           });
           setDecisionLoading(false);
+        } else if (data?.type === 'irrigationStart' && data?.source === 'scheduled') {
+          // Scheduled irrigation just started → refresh soil bucket immediately
+          setTimeout(() => startSSE(), 150);
         }
       } catch {
         // ignore malformed events
@@ -232,6 +241,14 @@ const HomePage = () => {
     startSSE();
     return () => { if (sseRef.current) try { sseRef.current.close(); } catch {}; };
   }, [apiUrl]);
+
+  // Periodic refresh: re-subscribe every 2 minutes to keep soil bucket fresh without manual reload
+  useEffect(() => {
+    const id = setInterval(() => {
+      startSSE();
+    }, 2 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <Layout>
@@ -282,7 +299,7 @@ const HomePage = () => {
                   Blocker
                   <InfoPopover
                     ariaLabel="Mögliche Blocker"
-                    content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Entzug < Startschwelle (MAD ≈ ${(decision?.triggerMm ?? 0).toFixed?.(0) ?? decision?.triggerMm ?? 0} mm)`}
+                    content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Entzug < Startschwelle (≈ ${(decision?.triggerMm ?? 0).toFixed?.(0) ?? decision?.triggerMm ?? 0} mm)`}
                     iconSize={16}
                   />
                 </Typography>
@@ -328,6 +345,9 @@ const HomePage = () => {
             </Card>
           </Grid>
           
+          {/* Removed Verdunstung card from top per AGENTS.md dashboard integration */}
+
+          {/* Soil storage snapshot */}
           <Grid size={{ xs: 6, md: 3 }}>
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
@@ -335,34 +355,67 @@ const HomePage = () => {
               minHeight: { xs: 140, md: 160 },
               position: 'relative'
             }}>
-              {et0YesterdayQuery.isFetching && (
+              {decisionLoading && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
               <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
-                <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
-                  <OpacityOutlined sx={{ fontSize: { xs: 26, md: 30 } }} />
+                <Avatar sx={{ bgcolor: 'success.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
+                  <Inventory2Outlined sx={{ fontSize: { xs: 26, md: 30 } }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Verdunstung (gestern)
+                    Boden‑Speicher
                   </Typography>
                   <InfoPopover
-                    ariaLabel="Zeitraum anzeigen"
-                    content={formatYesterdayDE()}
+                    ariaLabel="Hinweis zum Boden‑Speicher"
+                    content={`Speicher 0–Kapazität (Kappung). Kapazität = ${decision?.tawMm?.toFixed?.(0) ?? 'k. A.'} mm. S ist die aktuell verfügbare Bodenfeuchte.`}
                     iconSize={16}
                   />
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
+                <Box sx={{ width: '100%', maxWidth: 240, px: 2 }}>
                   {(() => {
-                    const hasNumber = typeof et0YesterdayQuery.data?.et0mm === 'number';
-                    const text = hasNumber ? `${et0YesterdayQuery.data!.et0mm} ${et0YesterdayQuery.data!.unit || 'mm'}` : 'k. A.';
+                    const s = decision?.soilStorageMm;
+                    const cap = decision?.tawMm;
+                    const pct = (typeof s === 'number' && typeof cap === 'number' && cap > 0)
+                      ? Math.max(0, Math.min(100, (s / cap) * 100))
+                      : null;
                     return (
-                      <Box component="span" sx={{ display: 'inline-block', minWidth: '7ch', fontVariantNumeric: 'tabular-nums' }}>
-                        {et0YesterdayQuery.isLoading && !hasNumber ? '–' : text}
-                      </Box>
+                      <>
+                        <LinearProgress
+                          variant={pct === null ? 'indeterminate' : 'determinate'}
+                          value={pct ?? undefined}
+                          aria-label="Füllstand Boden‑Speicher"
+                          sx={{ height: 8, borderRadius: 5, backgroundColor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 5 } }}
+                        />
+                        <Typography variant="h6" sx={{ fontWeight: 600, mt: 1 }}>
+                          {typeof s === 'number' && typeof cap === 'number' ? (
+                            <Box component="span" sx={{ display: 'inline-block', minWidth: '10ch', fontVariantNumeric: 'tabular-nums' }}>
+                              {s.toFixed(1)} mm / {cap.toFixed(0)} mm
+                            </Box>
+                          ) : (
+                            <Box component="span" sx={{ color: 'text.secondary' }}>k. A.</Box>
+                          )}
+                        </Typography>
+                        {(() => {
+                          const dep = decision?.depletionMm;
+                          const thr = decision?.triggerMm;
+                          const drynessActive = typeof dep === 'number' && typeof thr === 'number' && dep < thr;
+                          return (
+                            <Box sx={{ mt: 0.75, display: 'flex', justifyContent: 'center' }}>
+                              <Chip
+                                size="small"
+                                variant={drynessActive ? 'filled' : 'outlined'}
+                                color={drynessActive ? 'warning' : 'success'}
+                                label={drynessActive ? 'Nicht trocken genug' : 'Trocken genug'}
+                                sx={{ fontWeight: 600 }}
+                              />
+                            </Box>
+                          );
+                        })()}
+                      </>
                     );
                   })()}
-                </Typography>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -448,117 +501,51 @@ const HomePage = () => {
             >
               Schnellübersicht
             </Typography>
-            <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <FreshnessStatus
-                latestTimestamp={latestTimestamp}
-                aggregatesTimestamp={aggregatesTimestamp}
-                meansTimestamp={meansTimestamp}
-                clientIsFetching={weatherQuery.isFetching}
-                clientIsError={weatherQuery.isError as boolean}
-                clientUpdatedAt={weatherQuery.dataUpdatedAt}
-              />
-            </Grid>
-            {/* Live irrigation status with animated indicator (replaces duplicate next-schedule) */}
-            {(() => {
-              const activeSwitchNames = switches
-                .map((on, i) => (on ? switchDescriptions[i] : null))
-                .filter(Boolean) as string[];
-              const countdowns = countdownsQuery.data || {};
-              const activeCountdownEntries = Object.entries(countdowns)
-                .filter(([_, c]) => !!c && c!.control?.toLowerCase() === 'start' && (c!.value ?? 0) > 0);
-              const activeCountdownIndices = activeCountdownEntries
-                .map(([topic]) => bewaesserungsTopicsSet.indexOf(topic))
-                .filter((i) => i >= 0);
-              const activeCountdownNames: string[] = activeCountdownIndices
-                .map((idx) => zoneOrder[idx] || switchDescriptions[idx] || String(idx));
-              const allActive = Array.from(new Set([...activeSwitchNames, ...activeCountdownNames]));
-              const isRunning = allActive.length > 0;
-              const hasCountdown = activeCountdownNames.length > 0;
-              const zonesTitle = allActive.length ? `Zonen: ${allActive.join(', ')}` : undefined;
-
-              return (
-                <Grid size={{ xs: 12, md: 3 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      justifyContent: { xs: 'center', md: 'flex-start' },
-                      flexWrap: { xs: 'wrap', md: 'nowrap' },
-                    }}
-                  >
-                    <IrrigationIndicator running={isRunning} ariaLabel={isRunning ? 'Bewässerung läuft' : 'Bewässerung gestoppt'} title={zonesTitle} />
-                    <Chip
-                      size="small"
-                      variant={isRunning ? 'filled' : 'outlined'}
-                      color={isRunning ? 'success' : 'default'}
-                      label={isRunning ? (hasCountdown ? 'Countdown aktiv' : 'Läuft') : 'Gestoppt'}
-                      sx={{ fontWeight: 600, mr: 0.5 }}
-                    />
-                    {(() => {
-                      const activeByIndex = new Set<number>();
-                      switches.forEach((on, i) => { if (on) activeByIndex.add(i); });
-                      activeCountdownIndices.forEach((i) => activeByIndex.add(i));
-                      const timeByIndex = new Map<number, number>();
-                      activeCountdownEntries.forEach(([topic, c]) => {
-                        const idx = bewaesserungsTopicsSet.indexOf(topic);
-                        if (idx >= 0 && c) timeByIndex.set(idx, c.value);
-                      });
-                      const fmt = (s: number) => {
-                        const hrs = Math.floor(s / 3600);
-                        const mins = Math.floor((s % 3600) / 60);
-                        const secs = s % 60;
-                        if (hrs > 0) return `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-                        return `${mins}:${String(secs).padStart(2, '0')}`;
-                      };
-                      return Array.from(activeByIndex.values()).map((i) => {
-                        const zoneName = zoneOrder[i] || switchDescriptions[i] || `Zone ${i+1}`;
-                        const t = timeByIndex.get(i);
-                        const isCountdown = typeof t === 'number' && t > 0;
-                        return (
-                          <Chip
-                            key={`zone-${i}`}
-                            size="small"
-                            variant="outlined"
-                            label={
-                              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: isCountdown ? 'info.main' : 'success.main' }} />
-                                <span>{zoneName}{isCountdown ? ` · ${fmt(t!)}` : ''}</span>
-                              </Box>
-                            }
-                            sx={{ '& .MuiChip-label': { px: 1 } }}
-                          />
-                        );
-                      });
-                    })()}
-                  </Box>
-                </Grid>
-              );
-            })()}
-            {/* Letzte Bewässerung */}
-            <Grid size={{ xs: 12, md: 3 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.75,
-                  justifyContent: { xs: 'center', md: 'flex-start' },
-                  minHeight: 28,
-                }}
-              >
-                <WaterDrop sx={{ color: 'info.main', fontSize: 18, flex: '0 0 auto' }} aria-hidden />
+            {/* Top row: Freshness • Status • Last irrigation */}
+            {/* Sections layout: Freshness | Status | Last irrigation */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, columnGap: { xs: 0, md: 2 }, rowGap: { xs: 0.75, md: 0 } }}>
+              <Box sx={{ py: { xs: 0, md: 0.5 }, pr: { md: 2 } }}>
+                <FreshnessStatus
+                  latestTimestamp={latestTimestamp}
+                  aggregatesTimestamp={aggregatesTimestamp}
+                  meansTimestamp={meansTimestamp}
+                  clientIsFetching={weatherQuery.isFetching}
+                  clientIsError={weatherQuery.isError as boolean}
+                  clientUpdatedAt={weatherQuery.dataUpdatedAt}
+                />
+              </Box>
+              <Box sx={{ py: { xs: 0, md: 0.5 }, px: { md: 2 }, borderLeft: { md: '1px solid' }, borderRight: { md: '1px solid' }, borderColor: { md: 'divider' }, display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'center' }, flexWrap: { xs: 'wrap', md: 'nowrap' }, gap: { xs: 0.75, md: 1 } }}>
+                {(() => {
+                  const activeSwitchNames = switches
+                    .map((on, i) => (on ? switchDescriptions[i] : null))
+                    .filter(Boolean) as string[];
+                  const countdowns = countdownsQuery.data || {};
+                  const activeCountdownEntries = Object.entries(countdowns)
+                    .filter(([_, c]) => !!c && c!.control?.toLowerCase() === 'start' && (c!.value ?? 0) > 0);
+                  const activeCountdownIndices = activeCountdownEntries
+                    .map(([topic]) => bewaesserungsTopicsSet.indexOf(topic))
+                    .filter((i) => i >= 0);
+                  const activeCountdownNames: string[] = activeCountdownIndices
+                    .map((idx) => zoneOrder[idx] || switchDescriptions[idx] || String(idx));
+                  const allActive = Array.from(new Set([...activeSwitchNames, ...activeCountdownNames]));
+                  const isRunning = allActive.length > 0;
+                  const hasCountdown = activeCountdownNames.length > 0;
+                  const zonesTitle = allActive.length ? `Zonen: ${allActive.join(', ')}` : undefined;
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <IrrigationIndicator running={isRunning} ariaLabel={isRunning ? 'Bewässerung läuft' : 'Bewässerung gestoppt'} title={zonesTitle} />
+                      <Chip size="small" variant={isRunning ? 'filled' : 'outlined'} color={isRunning ? 'success' : 'default'} label={isRunning ? (hasCountdown ? 'Countdown aktiv' : 'Läuft') : 'Gestoppt'} sx={{ fontWeight: 600 }} />
+                    </Box>
+                  );
+                })()}
+              </Box>
+              <Box sx={{ py: { xs: 0, md: 0.5 }, pl: { md: 2 }, display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'flex-end' }, minWidth: 0 }}>
+                <WaterDrop sx={{ color: 'info.main', fontSize: 18, flex: '0 0 auto', mr: 0.75 }} aria-hidden />
                 {lastIrrigationQuery.isLoading ? (
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>Lade letzte Bewässerung…</Typography>
                 ) : lastIrrigationQuery.data?.last ? (
-                  <Typography
-                    variant="body2"
-                    sx={{ lineHeight: 1.2 }}
-                    title={(() => {
-                      const t = new Date(lastIrrigationQuery.data!.last!.timestamp);
-                      return new Intl.DateTimeFormat('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(t);
-                    })()}
-                  >
+                  <Typography variant="body2" noWrap sx={{ lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    title={(() => { const t = new Date(lastIrrigationQuery.data!.last!.timestamp); return new Intl.DateTimeFormat('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(t); })()}>
                     <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400, mr: 0.5 }}>
                       Letzte Bewässerung:
                     </Box>
@@ -576,8 +563,26 @@ const HomePage = () => {
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>Letzte Bewässerung: Keine Aufzeichnungen</Typography>
                 )}
               </Box>
-            </Grid>
-            </Grid>
+            </Box>
+
+            <Divider sx={{ my: 1.25 }} />
+
+            {/* Bottom: compact key/value sections */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, columnGap: 2, rowGap: 0.75 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, justifyContent: 'flex-start' }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Verdunstung (gestern)</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }} aria-live="polite">
+                  {typeof et0YesterdayQuery.data?.et0mm === 'number' ? `${et0YesterdayQuery.data!.et0mm} ${et0YesterdayQuery.data!.unit || 'mm'}` : (et0YesterdayQuery.isLoading ? '–' : 'k. A.')}
+                </Typography>
+                <InfoPopover ariaLabel="Zeitraum anzeigen" content={formatYesterdayDE()} iconSize={14} />
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Entzug / Startschwelle</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }} aria-live="polite">
+                  {typeof decision?.depletionMm === 'number' && typeof decision?.triggerMm === 'number' ? `${decision.depletionMm.toFixed(1)} mm / ${decision.triggerMm.toFixed(1)} mm` : 'k. A.'}
+                </Typography>
+              </Box>
+            </Box>
           </CardContent>
         </Card>
 

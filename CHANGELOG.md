@@ -8,11 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Backend: New endpoint `GET /api/et0/yesterday` returns ET₀ (mm) for the previous day from Redis (`et0:daily:last7`).
+- Frontend (Home): New "Boden‑Speicher" card with dynamic fill bar (S/Kapazität) and a compact dryness status chip.
+- Backend (SSE): New broadcast helper and `irrigationStart` event (`source: 'scheduled'`) emitted when a scheduled run starts; used by the client to refresh soil storage immediately.
 
 ### Changed
 - Frontend (Home/Irrigation): Switch evapotranspiration display from weekly sum (7 days through yesterday) to daily value (yesterday); tooltips show the local date.
 - Backend (Scheduler): Nightly job now refreshes only ET₀ daily last‑7 in Redis; logs reflect daily refresh.
 - Docs (AGENTS.md): English‑only policy enforced; ET₀ and 7‑day metrics guidance updated to remove weekly ET₀ and 7‑day rain from UI; blockers reflect soil‑bucket dryness threshold.
+- Frontend (Home): Schnellübersicht redesigned into sections (Freshness • Status • Letzte Bewässerung) with a divider and a compact two‑column key‑value row for "Verdunstung (gestern)" and "Entzug/Startschwelle"; improved mobile spacing/wrapping and ellipsis for long zone names.
+- Frontend (Home): Unified top‑card loaders; removed scattered badges/chips to reduce visual noise; consistent alignment with design tokens.
+- Frontend (Irrigation): Clarified soil labels to plain German ("Boden‑Speicher (S / Kapazität)", "Entzug / Startschwelle"), removed TAW/MAD jargon in tooltips and chips.
 
 ### Removed
 - Backend (Decision/API): Removed unused fields from decision payload (`deficitNow`, `minDeficitMm`, `irrigationDepthMm`, `rainSum`, `rainPlusForecastRaw`, `rainPlusForecastCapped`).
@@ -20,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend (Decision): Removed 7‑day rain + forecast capping logic (TAW cap) and all related logs.
 - Frontend (Irrigation): Removed “Wasserdefizit”, “Regen Summe (7 Tage)”, and “Angerechneter Regen (7 Tage + Prognose, gekappt)” from the decision list.
 - Frontend (Home): Removed any remaining deficit mentions and weekly ET₀ UI.
+- Frontend (Home): Removed the standalone "Verdunstung (gestern)" top card; value now appears compactly in Schnellübersicht.
 
 ## [v19.18.0] - 2025-09-03
 ### Added
