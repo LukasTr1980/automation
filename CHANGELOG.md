@@ -6,24 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Frontend (Home/Irrigation): Switched evapotranspiration display from weekly sum (7 days through yesterday) to daily value (yesterday). Tooltips show the local date.
+### Added
+- Backend: New endpoint `GET /api/et0/yesterday` returns ET₀ (mm) for the previous day from Redis (`et0:daily:last7`).
 
 ## [v19.18.0] - 2025-09-03
 ### Added
-- Backend: Redis-gestützter Boden-Speicher (Soil Bucket) pro Zone mit täglicher Wasserbilanz: `S = clamp(S + rain24h_eff − ET0_vortag, 0..TAW)`. Speicherung unter `soil:bucket:<zone>`; Initialisierung auf 50% TAW.
-- Backend: ET₀-Tageswerte der letzten 7 vollen Tage werden in Redis unter `et0:daily:last7` abgelegt (zusätzlich zur Wochensumme `et0:weekly:latest`).
-- Backend/Scheduler: Bei Bewässerungsstart wird der Soil Bucket sofort um einen Lauf aufgefüllt (`RUN_DEPTH_MM` aus Pumpenspezifikation), auf `TAW` gekappt.
-- Frontend (Bewässerung): Anzeige neuer Werte „Boden‑Speicher (S)“ sowie „Entzug / Startschwelle (MAD)“. Blocker-Hinweise und Chips entsprechend ergänzt.
+- Backend: Redis-backed soil storage (Soil Bucket) per zone with daily water balance: `S = clamp(S + rain24h_eff − ET0_yesterday, 0..TAW)`. Stored under `soil:bucket:<zone>`; initialized at 50% TAW.
+- Backend: ET₀ daily values for the last 7 full days are stored in Redis under `et0:daily:last7` (in addition to the weekly sum `et0:weekly:latest`).
+- Backend/Scheduler: On irrigation start, immediately credit the soil bucket with one run depth (`RUN_DEPTH_MM` from pump specification), capped at `TAW`.
+- Frontend (Irrigation): Display new values “Soil Storage (S)” and “Depletion / Start Threshold (MAD)”. Blocker hints and chips updated accordingly.
 
 ### Changed
-- Backend (Irrigation Decision): Entscheidungslogik stellt von Defizit‑Modell auf Soil‑Bucket (Entzug ≥ Startschwelle/MAD) um. Regen‑/Regenrate‑ und Klima‑Blocker unverändert.
-- Backend (Irrigation Decision): Defizit‑Blocker entfernt; `deficitNow` bleibt als Diagnosewert. `minDeficitMm` bleibt im Response auf 0 für Legacy‑Kompatibilität.
-- Frontend (Home & Bewässerung): Defizit‑Blocker aus UI entfernt; Benennung der Schwelle auf „Startschwelle (MAD)“ geändert, Tooltips angepasst.
+- Backend (Irrigation Decision): Switch logic from deficit model to soil-bucket (irrigate when depletion ≥ start threshold/MAD). Rain/rain-rate and climate blockers unchanged.
+- Backend (Irrigation Decision): Remove deficit blocker; `deficitNow` remains for diagnostics. `minDeficitMm` remains 0 in the response for legacy compatibility.
+- Frontend (Home & Irrigation): Remove deficit blocker from UI; rename threshold to “Start Threshold (MAD)” and adjust tooltips.
 
 ### Fixed
-- Backend `/api/schedule/next`: Nächsten Zeitplan korrekt bestimmen, indem die nächste Ausführung aller aktiven Tasks berechnet wird (statt „ersten Task“ zu nehmen). Anzeige ggf. mit Wochentag, wenn nicht heute. Behebt falsche Zone in der Home‑Card (z. B. „Lukas Süd“ statt „Stefan Nord“).
+- Backend `/api/schedule/next`: Determine the next schedule by computing the next execution across all active tasks (instead of taking the “first task”). Show weekday if not today. Fix wrong zone on the Home card (e.g., “Lukas Süd” vs “Stefan Nord”).
 
 ### Notes
-- TAW bleibt konfigurierbar über `IRR_ROOT_DEPTH_M` und `IRR_AWC_MM_PER_M`. Startschwelle per `IRR_BUCKET_TRIGGER_MM` (fix) oder `IRR_BUCKET_TRIGGER_FRAC` (Standard 0.33) steuerbar.
+- TAW remains configurable via `IRR_ROOT_DEPTH_M` and `IRR_AWC_MM_PER_M`. Start threshold controlled by `IRR_BUCKET_TRIGGER_MM` (fixed) or `IRR_BUCKET_TRIGGER_FRAC` (default 0.33).
 
 ## [v19.17.0] - 2025-09-02
 ### Changed

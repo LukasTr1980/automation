@@ -109,6 +109,22 @@ const BewaesserungPage = () => {
   const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
   // Freshness UI handled by FreshnessStatus
 
+  // React Query: ET0 daily (yesterday)
+  const et0YesterdayQuery = useQuery<{ date: string; et0mm: number | null; unit?: string }>({
+    queryKey: ['et0', 'yesterday'],
+    queryFn: async () => {
+      const r = await fetch('/api/et0/yesterday');
+      if (!r.ok) throw new Error('et0');
+      return r.json();
+    },
+    staleTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
+  });
+  useEffect(() => {
+    if (et0YesterdayQuery.isError) showSnackbar('Fehler beim Laden der ET₀-Daten', 'error');
+  }, [et0YesterdayQuery.isError, showSnackbar]);
+
   // Helper: label for last 7 full local days (yesterday back 7 days)
   const sevenDayFullRangeLabel = (() => {
     try {
@@ -120,6 +136,17 @@ const BewaesserungPage = () => {
       start.setDate(start.getDate() - 7); // 7 full days back
       const fmt = (d: Date) => new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(d);
       return `${fmt(start)}–${fmt(end)}`;
+    } catch {
+      return '';
+    }
+  })();
+
+  // Helper: label for yesterday (local)
+  const yesterdayLabel = (() => {
+    try {
+      const now = new Date();
+      const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(y);
     } catch {
       return '';
     }
@@ -526,14 +553,14 @@ const BewaesserungPage = () => {
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WavesIcon color="action" /></ListItemIcon>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                 <ListItemText
-                                  primary={`Verdunstung Summe (7 Tage bis gestern)`}
-                                  secondary={`${response.et0_week.toFixed(1)} mm`}
+                                  primary={`Verdunstung (gestern)`}
+                                  secondary={`${typeof et0YesterdayQuery.data?.et0mm === 'number' ? et0YesterdayQuery.data!.et0mm.toFixed(1) : 'k. A.'} mm`}
                                   slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                 />
-                                {sevenDayFullRangeLabel && (
+                                {yesterdayLabel && (
                                   <InfoPopover
-                                    ariaLabel="Zeitraum anzeigen"
-                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
+                                    ariaLabel="Datum anzeigen"
+                                    content={`Datum: ${yesterdayLabel} (lokal)`}
                                     iconSize={16}
                                   />
                                 )}

@@ -262,6 +262,7 @@ Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json`
 - Commits: Conventional Commits (`feat:`, `fix:`, `refactor:`, …).
 - PRs: clear description, linked issues, repro/verification steps, screenshots for UI changes.
 - Ensure both apps build (`npm run build`) and `CHANGELOG.md` is updated for user‑visible changes.
+- CHANGELOG language: English only. Do not write German text in CHANGELOG entries; translate any German content to English before merging.
 
 ### Changelog Header (must be exact)
 ```
@@ -439,4 +440,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `irrigationSwitchTopics`, `irrigationSwitchSetTopics`, `irrigationSwitchDescriptions`
 
 End of AGENTS.md
-

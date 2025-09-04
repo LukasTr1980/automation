@@ -37,13 +37,12 @@ const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
 
 // formatDateTimeDE moved into FreshnessStatus
 
-// Computes the local date range label for the last 7 full days ending yesterday
-function formatLast7DaysRangeDE(): string {
+// Compute local label for yesterday's date
+function formatYesterdayDE(): string {
   const now = new Date();
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1); // yesterday local
-  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 6);
+  const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
   const fmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' });
-  return `Zeitraum: ${fmt.format(start)}–${fmt.format(end)} (lokal)`;
+  return `Datum: ${fmt.format(y)} (lokal)`;
 }
 
 const HomePage = () => {
@@ -60,12 +59,12 @@ const HomePage = () => {
 
   const { showSnackbar } = useSnackbar();
   const apiUrl = import.meta.env.VITE_API_URL || '/api';
-  // React Query: ET0 weekly
-  const et0Query = useQuery<{ et0_week: number | null; unit: string }>(
+  // React Query: ET0 daily (yesterday)
+  const et0YesterdayQuery = useQuery<{ date: string; et0mm: number | null; unit?: string }>(
     {
-      queryKey: ['et0', 'latest'],
+      queryKey: ['et0', 'yesterday'],
       queryFn: async () => {
-        const r = await fetch('/api/et0/latest');
+        const r = await fetch('/api/et0/yesterday');
         if (!r.ok) throw new Error('ET0');
         return r.json();
       },
@@ -158,8 +157,8 @@ const HomePage = () => {
 
   // Snackbar on query errors (German messages)
   useEffect(() => {
-    if (et0Query.isError) showSnackbar('Fehler beim Laden der ET₀-Daten', 'error');
-  }, [et0Query.isError, showSnackbar]);
+    if (et0YesterdayQuery.isError) showSnackbar('Fehler beim Laden der ET₀-Daten', 'error');
+  }, [et0YesterdayQuery.isError, showSnackbar]);
   useEffect(() => {
     if (weatherQuery.isError) showSnackbar('Fehler beim Laden der Wetterdaten', 'error');
   }, [weatherQuery.isError, showSnackbar]);
@@ -176,7 +175,7 @@ const HomePage = () => {
     const onFocus = () => {
       weatherQuery.refetch();
       scheduleQuery.refetch();
-      et0Query.refetch();
+      et0YesterdayQuery.refetch();
       startSSE();
     };
     const onVisibility = () => {
@@ -188,7 +187,7 @@ const HomePage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [weatherQuery.refetch, scheduleQuery.refetch, et0Query.refetch]);
+  }, [weatherQuery.refetch, scheduleQuery.refetch, et0YesterdayQuery.refetch]);
 
   // SSE for irrigation decision + switches, with ability to re-subscribe on focus
   const sseRef = useRef<EventSource | null>(null);
@@ -338,7 +337,7 @@ const HomePage = () => {
               minHeight: { xs: 140, md: 160 },
               position: 'relative'
             }}>
-              {et0Query.isFetching && (
+              {et0YesterdayQuery.isFetching && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
               <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
@@ -347,21 +346,21 @@ const HomePage = () => {
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Verdunstung (7 Tage bis gestern)
+                    Verdunstung (gestern)
                   </Typography>
                   <InfoPopover
                     ariaLabel="Zeitraum anzeigen"
-                    content={formatLast7DaysRangeDE()}
+                    content={formatYesterdayDE()}
                     iconSize={16}
                   />
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
                   {(() => {
-                    const hasNumber = typeof et0Query.data?.et0_week === 'number';
-                    const text = hasNumber ? `${et0Query.data!.et0_week} ${et0Query.data!.unit || 'mm'}` : 'k. A.';
+                    const hasNumber = typeof et0YesterdayQuery.data?.et0mm === 'number';
+                    const text = hasNumber ? `${et0YesterdayQuery.data!.et0mm} ${et0YesterdayQuery.data!.unit || 'mm'}` : 'k. A.';
                     return (
                       <Box component="span" sx={{ display: 'inline-block', minWidth: '7ch', fontVariantNumeric: 'tabular-nums' }}>
-                        {et0Query.isLoading && !hasNumber ? '–' : text}
+                        {et0YesterdayQuery.isLoading && !hasNumber ? '–' : text}
                       </Box>
                     );
                   })()}
