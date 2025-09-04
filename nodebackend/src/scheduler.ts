@@ -92,11 +92,11 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
   }
 });
 
-// Compute weekly ET₀ once per day shortly after local midnight
+// Compute ET₀ daily last-7 once per day shortly after local midnight
 schedule.scheduleJob('40 0 * * *', async () => {
   try {
     const sum = await computeWeeklyET0();
-    logger.info(`ET₀ Weekly (daily run): ${sum} mm`);
+    logger.info(`ET₀ daily last-7 refreshed (sum=${sum} mm)`);
   } catch (err) {
     logger.error('ET₀ daily recompute failed:', err);
   }

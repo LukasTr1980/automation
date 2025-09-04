@@ -11,8 +11,7 @@ import { loadScheduledTasks } from './scheduler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import apiRouter from './routes/api.js';
 import logger from './logger.js';
-import { computeWeeklyET0 } from './utils/evapotranspiration.js';
-import { isTodayEt0PresentInRedis } from './utils/et0Storage.js';
+// Weekly ET0 computation removed; daily ET0 is computed by scheduler.
 import { isDev } from './envSwitcher.js';
 
 const app = express();
@@ -65,12 +64,7 @@ if (isDev) {
     loadScheduledTasks().catch(logger.error);
     await subscribeToRedisKey(io);
 
-    try {
-      const sum = await computeWeeklyET0();
-      logger.info(`ET₀ Weekly (Dev-Run): ${sum} mm`, { label: 'Index' });
-    } catch (error) {
-      logger.error('Error computing weekly ET₀', error);	
-    }
+    // No ET₀ compute on boot; daily job handles it.
   });
 } else {
   httpServer.listen(port, async () => {
@@ -78,17 +72,6 @@ if (isDev) {
     loadScheduledTasks().catch(logger.error);
 
     await subscribeToRedisKey(io);
-
-    try {
-      const hasToday = await isTodayEt0PresentInRedis();
-      if (!hasToday) {
-        const sum = await computeWeeklyET0();
-        logger.info(`ET₀ Weekly (First-Run): ${sum} mm`, { label: 'Index' });
-      } else {
-        logger.info(`ET₀ Weekly present on boot in Redis`, { label: 'Index' });
-      }
-    } catch (error) {
-      logger.error('Error ensuring weekly ET₀ on boot', error);
-    }
+    // No ET₀ compute on boot; daily job handles it.
   });
 }

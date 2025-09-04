@@ -25,11 +25,8 @@ import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import SpeedIcon from '@mui/icons-material/Speed';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import CalendarViewWeekIcon from '@mui/icons-material/CalendarViewWeek';
-import WaterIcon from '@mui/icons-material/Water';
+// WaterIcon removed; irrigation weekly sum no longer shown
 import WavesIcon from '@mui/icons-material/Waves';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
@@ -66,18 +63,12 @@ const BewaesserungPage = () => {
     rainRate: number;
     rainNextDay: number;
     rainProbNextDay: number;
-    rainSum: number;
-    rainPlusForecastRaw: number;
-    rainPlusForecastCapped: number;
     tawMm: number;
-    minDeficitMm: number;
     soilStorageMm?: number;
     depletionMm?: number;
     triggerMm?: number;
-    irrigationDepthMm: number;
-    et0_week: number;
+    // weekly ET₀ removed from payload/UI
     effectiveForecast: number;
-    deficitNow: number;
     blockers: string[];
   }
 
@@ -488,66 +479,9 @@ const BewaesserungPage = () => {
                                 slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
-                            <Divider component="li" />
-                            <ListItem>
-                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><CalendarViewWeekIcon color="action" /></ListItemIcon>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
-                                <ListItemText
-                                  primary={`Regen Summe (7 Tage bis gestern)`}
-                                  secondary={`${response.rainSum.toFixed(1)} mm`}
-                                  slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                                />
-                                {sevenDayFullRangeLabel && (
-                                  <InfoPopover
-                                    ariaLabel="Zeitraum anzeigen"
-                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
-                                    iconSize={16}
-                                  />
-                                )}
-                              </Box>
-                            </ListItem>
-                            <Divider component="li" />
-                            <ListItem>
-                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}>
-                                <FilterAltIcon color={response.rainPlusForecastRaw > response.tawMm ? 'warning' : 'action'} />
-                              </ListItemIcon>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
-                                <ListItemText
-                                  primary={`Angerechneter Regen (7 Tage + Prognose, gekappt)`}
-                                  secondary={`${response.rainPlusForecastCapped.toFixed(1)} mm`}
-                                  slotProps={{
-                                    primary: { align: 'center' },
-                                    secondary: {
-                                      align: 'center',
-                                      sx: response.rainPlusForecastRaw > response.tawMm ? { color: 'warning.main', fontWeight: 500 } : undefined,
-                                    }
-                                  }}
-                                />
-                                <InfoPopover
-                                  ariaLabel="Hinweis zur Kappung"
-                                  content={`Kappung an Speicherkapazität (TAW=${response.tawMm.toFixed(0)} mm). Roh: ${(response.rainPlusForecastRaw).toFixed(1)} mm; Angerechnet: ${response.rainPlusForecastCapped.toFixed(1)} mm.`}
-                                  iconSize={16}
-                                />
-                              </Box>
-                            </ListItem>
-                            <Divider component="li" />
-                            <ListItem>
-                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WaterIcon color="action" /></ListItemIcon>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
-                                <ListItemText
-                                  primary={`Bewässerung Summe (7 Tage bis gestern)`}
-                                  secondary={`${response.irrigationDepthMm.toFixed(1)} mm`}
-                                  slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                                />
-                                {sevenDayFullRangeLabel && (
-                                  <InfoPopover
-                                    ariaLabel="Zeitraum anzeigen"
-                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
-                                    iconSize={16}
-                                  />
-                                )}
-                              </Box>
-                            </ListItem>
+                            {/* Removed: 7-day rain sum (not used) */}
+                            {/* Removed: capped 7‑day rain + forecast (not used) */}
+                            {/* Weekly ET₀ removed: not used by decision */}
                             <Divider component="li" />
                             <ListItem>
                               <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><WavesIcon color="action" /></ListItemIcon>
@@ -566,15 +500,7 @@ const BewaesserungPage = () => {
                                 )}
                               </Box>
                             </ListItem>
-                            <Divider component="li" />
-                            <ListItem>
-                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><TrendingDownIcon color="action" /></ListItemIcon>
-                              <ListItemText
-                                primary={`Wasserdefizit`}
-                                secondary={`${response.deficitNow.toFixed(1)} mm`}
-                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                              />
-                            </ListItem>
+                            {/* Wasserdefizit intentionally not displayed per UI guidance */}
                             {/* Soil bucket metrics (optional) */}
                             {typeof response.soilStorageMm === 'number' && typeof response.depletionMm === 'number' && (
                               <>

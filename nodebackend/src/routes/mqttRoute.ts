@@ -28,7 +28,7 @@ router.get('/', async (req: Request, res: Response) => {
         const irrigationNeededData = {
             type: 'irrigationNeeded',
             state: false,
-            response: ''
+            response: null
         };
         res.write(`data: ${JSON.stringify(irrigationNeededData)}\n\n`);
     }

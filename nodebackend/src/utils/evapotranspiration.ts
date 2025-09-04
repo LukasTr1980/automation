@@ -12,7 +12,6 @@ import { querySingleData } from "../clients/influxdb-client.js";
 import { readWeatherAggregatesFromRedis } from "./weatherAggregatesStorage.js";
 import { readDailyLast7FromRedis } from "./weatherDailyStorage.js";
 import logger from "../logger.js";
-import { writeWeeklyET0ToRedis } from "./et0Storage.js";
 import { writeEt0DailyLast7ToRedis } from "./et0DailyStorage.js";
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
@@ -196,14 +195,12 @@ export async function computeWeeklyET0(): Promise<number> {
                 days: et0s.map((v, i) => ({ date: dates[i] ?? `d${i+1}` , et0mm: +v.toFixed(2) })),
                 timestamp: new Date().toISOString()
             };
-            await writeEt0DailyLast7ToRedis(payload);
+        await writeEt0DailyLast7ToRedis(payload);
         } catch (e) {
             logger.error('Failed to persist ET0 daily last-7', e as Error, { label: 'Evapotranspiration' });
         }
-
-        await writeWeeklyET0ToRedis(et0Sum);
         logger.info(
-            `ET₀ weekly sum (last 7 days): ${et0Sum.toFixed(2)} mm | ` +
+            `ET₀ daily last-7 refreshed. Sum=${et0Sum.toFixed(2)} mm | ` +
             `Inputs: ` + (daily?.days?.length ? `daily aggregates from Redis (preferred), ` : ``) +
             `Tavg7=${(Tavg7 as number).toFixed(2)}°C dT7=${(dTavg as number).toFixed(2)}°C RH7=${(RH7 as number).toFixed(1)}% ` +
             `wind@${WIND_Z}m=${(windAtSensor7 as number).toFixed(2)} m/s P=${(P_hPa7 / 10).toFixed(2)} kPa ` +

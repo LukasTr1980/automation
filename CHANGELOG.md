@@ -6,10 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Frontend (Home/Irrigation): Switched evapotranspiration display from weekly sum (7 days through yesterday) to daily value (yesterday). Tooltips show the local date.
 ### Added
 - Backend: New endpoint `GET /api/et0/yesterday` returns ET₀ (mm) for the previous day from Redis (`et0:daily:last7`).
+
+### Changed
+- Frontend (Home/Irrigation): Switch evapotranspiration display from weekly sum (7 days through yesterday) to daily value (yesterday); tooltips show the local date.
+- Backend (Scheduler): Nightly job now refreshes only ET₀ daily last‑7 in Redis; logs reflect daily refresh.
+- Docs (AGENTS.md): English‑only policy enforced; ET₀ and 7‑day metrics guidance updated to remove weekly ET₀ and 7‑day rain from UI; blockers reflect soil‑bucket dryness threshold.
+
+### Removed
+- Backend (Decision/API): Removed unused fields from decision payload (`deficitNow`, `minDeficitMm`, `irrigationDepthMm`, `rainSum`, `rainPlusForecastRaw`, `rainPlusForecastCapped`).
+- Backend (ET₀ Weekly): Removed weekly ET₀ storage helpers and API; deleted `nodebackend/src/utils/et0Storage.ts` and `/api/et0/latest` route; boot‑time weekly checks removed.
+- Backend (Decision): Removed 7‑day rain + forecast capping logic (TAW cap) and all related logs.
+- Frontend (Irrigation): Removed “Wasserdefizit”, “Regen Summe (7 Tage)”, and “Angerechneter Regen (7 Tage + Prognose, gekappt)” from the decision list.
+- Frontend (Home): Removed any remaining deficit mentions and weekly ET₀ UI.
 
 ## [v19.18.0] - 2025-09-03
 ### Added

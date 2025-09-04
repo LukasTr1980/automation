@@ -51,7 +51,7 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 - Comments (code): English only.
 - Logs (code): English only.
 - UI (visible text): German only (static strings).
-- Docs: English only (CHANGELOG.md, AGENTS.md).
+- Docs: English only (CHANGELOG.md, AGENTS.md). Strict: AGENTS.md must be written entirely in English; do not include German prose. It is acceptable to quote German UI strings as examples where relevant.
 
 ---
 
@@ -280,14 +280,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 7‑Day Metrics on Bewässerung
 - Suffix “(7 Tage bis gestern)”.
-- Tooltip shows exact local range (e.g., “Zeitraum: 12.08.–18.08. (lokal)”) for averages and sums (temperature, humidity, rain sum, irrigation sum, ET₀ sum).
+- Tooltip shows exact local range (e.g., UI string “Zeitraum: 12.08.–18.08. (lokal)”) for averages (temperature, humidity). Do not display 7‑day rain sums or weekly ET₀.
 
 ### Blocker Headers
-- Small info icon with tooltip listing possible blockers (temperature, humidity, 24h rain, rain rate, deficit).
+- Small info icon with tooltip listing possible blockers (temperature, humidity, 24h rain, rain rate, soil bucket: depletion < start threshold).
 
 ### Dashboard Integration
 - `VillaAnnaHomePage`: real‑time status cards replacing mocks.
-- Cards: Blocker (via SSE), Verdunstung 7 Tage, Temperatur, Nächster Zeitplan.
+- Cards: Blocker (via SSE), Temperatur, Nächster Zeitplan.
 - Data flow: Hooks fetch on mount with loading/error states; Blocker subscribes to `/api/mqtt` SSE and renders rule chips.
 - Responsive: Cards adapt to screen sizes; consistent heights; good text wrapping.
 - Zone names: Human‑readable always (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle).
@@ -338,8 +338,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Evapotranspiration (ET₀)
 
 ### Method & Ops
-- Formula: FAO‑56 Penman–Monteith (daily, G≈0), summed weekly.
-- Recompute: once/day at ~00:40 local; store weekly total only.
+- Formula: FAO‑56 Penman–Monteith (daily, G≈0). Daily values are stored and used for the soil‑bucket balance.
 - Radiation: Angström–Prescott with cloud‑cover daily means from Influx (defaults `a_s=0.25`, `b_s=0.50`).
 - Humidity: `ea = es * RHmean/100`, `es = (svp(Tmax)+svp(Tmin))/2`.
 - Wind: convert sensor height to 2 m using FAO log law.
@@ -351,26 +350,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Influx (cloud cover): daily means for the same 7‑day window.
 
 ### Storage
-- `et0:weekly:YYYY-MM-DD` and `et0:weekly:latest` (mm).
+- Daily ET₀ values: `et0:daily:last7` (mm).
 
 ### Consumption & Debug
-- Decision reads latest weekly ET₀ from Redis. Not included in `queryAllData()`.
-- Logs:
-  - Scheduler: `ET₀ weekly sum (last 7 days): <mm>`
-  - Decision: `[ET0] Using weekly ET₀ from Redis: <mm>`
-  - Inputs/derivations per day at debug (`d1…d7`).
-- Manual run: `computeWeeklyET0()` (from `index.ts` or REPL).
-- Inspect Redis: `GET et0:weekly:latest`, `GET et0:weekly:YYYY-MM-DD`, `GET weather:daily:last7`.
-- Frontend API: `/api/et0/latest` serves latest weekly ET₀ for dashboard.
+- Decision uses daily ET₀ via the soil‑bucket balance (see `dailySoilBalance`). Weekly ET₀ is not used for decisions and is not shown in the UI.
+- Inspect Redis: `GET weather:daily:last7` (daily ET₀ values).
 
 ---
 
 ## Irrigation Decision (No AI)
 - Source of truth: `nodebackend/src/irrigationDecision.ts` (rule‑based).
-- Returns: structured metrics (temps, humidity, rainfall, forecast, ET₀, deficit, blockers) for UI. No LLM text.
+- Returns: structured metrics (temps, humidity, rainfall, forecast, blockers) for UI. No LLM text.
 - Frontend: displays metrics inline under decision switch on Bewässerung page.
 - Skip flag: `GET/POST /api/decisionCheck` toggles bypass via Redis `skipDecisionCheck`.
-- Behavior: hard blockers (temperature, humidity, rainfall, rain rate, deficit < 5 mm). If none apply → allow irrigation.
+- Behavior: hard blockers (temperature, humidity, rainfall, rain rate, soil bucket: depletion < start threshold). If none apply → allow irrigation.
 - Inputs: reads exclusively from Redis caches (`weather:latest`, `weather:agg:latest`); never calls WeatherLink directly.
 - OpenAI: not used; `openai` dep removed.
 

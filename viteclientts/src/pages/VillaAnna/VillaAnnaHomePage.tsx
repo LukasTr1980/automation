@@ -132,7 +132,6 @@ const HomePage = () => {
     humidity: number;
     rainToday: number;
     rainRate: number;
-    deficitNow: number;
     // Soil-bucket primary trigger
     depletionMm?: number;
     triggerMm?: number;
@@ -216,7 +215,6 @@ const HomePage = () => {
             humidity: r.humidity,
             rainToday: r.rainToday,
             rainRate: r.rainRate,
-            deficitNow: r.deficitNow,
             depletionMm: r.depletionMm,
             triggerMm: r.triggerMm,
           });
