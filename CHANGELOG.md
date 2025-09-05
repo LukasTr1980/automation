@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.20.0] - 2025-09-05
+### Added
+- Frontend (Home/Freshness): Added third freshness dot for Soil Storage showing whether the daily update ran today; tooltip shows exact timestamp and explains the midnight update schedule.
+- Backend (SSE/Decision): `soilUpdatedAt` added to `irrigationNeeded.response` so the client can compute Soil Storage freshness.
+
+### Changed
+- Frontend (Home): Converted Temperature card into Evaporation card — ET₀ (yesterday) is the primary value; current temperature is shown as a small secondary line. Uses the MUI `Waves` icon for consistency.
+- Frontend (Home/Schnellübersicht): Moved the Soil Storage update info from the card into Freshness; kept layout consistent with mobile by adding separators and improved wrapping.
+- Frontend (Home/Schnellübersicht): Replaced status Chip with compact dot+label pattern; fixed date truncation by allowing wrapping for "Letzte Bewässerung".
+
+### Fixed
+- Frontend (Home): Prevented truncation of the last‑irrigation date and ensured consistent dividers between sections on mobile/desktop.
+
 ## [v19.19.1] - 2025-09-05
 ### Fixed
 - Backend (Soil Bucket): Prevent over-crediting soil storage when multiple zones start on the same day. Irrigation depth is now credited once per day globally instead of once per zone.

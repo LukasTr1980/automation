@@ -9,8 +9,7 @@ import {
   useTheme,
   Avatar,
   Chip,
-  LinearProgress,
-  Divider
+  LinearProgress
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../../Layout';
@@ -18,9 +17,9 @@ import { Link as RouterLink } from 'react-router-dom';
 import { 
   WaterDrop, 
   Schedule, 
-  ThermostatAuto,
   Block,
-  Inventory2Outlined
+  Inventory2Outlined,
+  Waves as WavesIcon
 } from '@mui/icons-material';
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
@@ -138,6 +137,7 @@ const HomePage = () => {
     tawMm?: number;
     depletionMm?: number;
     triggerMm?: number;
+    soilUpdatedAt?: string;
   }
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [decision, setDecision] = useState<DecisionMetrics | null>(null);
@@ -223,6 +223,7 @@ const HomePage = () => {
             tawMm: r.tawMm,
             depletionMm: r.depletionMm,
             triggerMm: r.triggerMm,
+            soilUpdatedAt: r.soilUpdatedAt,
           });
           setDecisionLoading(false);
         } else if (data?.type === 'irrigationStart' && data?.source === 'scheduled') {
@@ -368,7 +369,7 @@ const HomePage = () => {
                   </Typography>
                   <InfoPopover
                     ariaLabel="Hinweis zum Boden‑Speicher"
-                    content={`Speicher 0–Kapazität (Kappung). Kapazität = ${decision?.tawMm?.toFixed?.(0) ?? 'k. A.'} mm. S ist die aktuell verfügbare Bodenfeuchte.`}
+                    content={`Speicher 0–Kapazität (Kappung). Kapazität = ${decision?.tawMm?.toFixed?.(0) ?? 'k. A.'} mm. Startschwelle ≈ ${typeof decision?.triggerMm === 'number' ? decision!.triggerMm!.toFixed(1) : 'k. A.'} mm. S ist die aktuell verfügbare Bodenfeuchte.`}
                     iconSize={16}
                   />
                 </Box>
@@ -412,6 +413,7 @@ const HomePage = () => {
                             </Box>
                           );
                         })()}
+                        {/* Boden‑Speicher Aktualisierungshinweis wurde in die Schnellübersicht (Freshness) verschoben */}
                       </>
                     );
                   })()}
@@ -427,27 +429,44 @@ const HomePage = () => {
               minHeight: { xs: 140, md: 160 },
               position: 'relative'
             }}>
-              {weatherQuery.isFetching && (
+              {(et0YesterdayQuery.isFetching || weatherQuery.isFetching) && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
               <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
-                <Avatar sx={{ bgcolor: 'warning.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
-                  <ThermostatAuto sx={{ fontSize: { xs: 26, md: 30 } }} />
+                <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
+                  <WavesIcon sx={{ fontSize: { xs: 26, md: 30 } }} />
                 </Avatar>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Temperatur (aktuell)
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    Verdunstung (gestern)
+                  </Typography>
+                  <InfoPopover ariaLabel="Zeitraum anzeigen" content={formatYesterdayDE()} iconSize={16} />
+                </Box>
                 <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
                   {(() => {
-                    const hasNumber = typeof weatherQuery.data?.latest?.temperatureC === 'number';
-                    const text = hasNumber ? `${weatherQuery.data!.latest!.temperatureC}°C` : 'k. A.';
+                    const hasNumber = typeof et0YesterdayQuery.data?.et0mm === 'number';
+                    const text = hasNumber ? `${et0YesterdayQuery.data!.et0mm} ${et0YesterdayQuery.data!.unit || 'mm'}` : 'k. A.';
                     return (
                       <Box component="span" sx={{ display: 'inline-block', minWidth: '6ch', fontVariantNumeric: 'tabular-nums' }}>
-                        {weatherQuery.isLoading && !hasNumber ? '–' : text}
+                        {(et0YesterdayQuery.isLoading && !hasNumber) ? '–' : text}
                       </Box>
                     );
                   })()}
                 </Typography>
+                {/* Secondary metric: current temperature */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    Temperatur (aktuell)
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }} aria-live="polite">
+                    {(() => {
+                      const hasNumber = typeof weatherQuery.data?.latest?.temperatureC === 'number';
+                      return hasNumber
+                        ? `${weatherQuery.data!.latest!.temperatureC}°C`
+                        : (weatherQuery.isLoading ? '–' : 'k. A.');
+                    })()}
+                  </Typography>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -491,30 +510,53 @@ const HomePage = () => {
           </Grid>
         </Grid>
 
-        {/* Schnellübersicht: outlined Card, compact typography */}
+        {/* Schnellübersicht: outlined Card, compact and responsive */}
         <Card variant="outlined" sx={{ mt: 2, mb: 3, borderRadius: 2 }}>
           <CardContent sx={{ pt: 2 }}>
-            <Typography
-              component="h2"
-              variant="subtitle2"
-              sx={{ mb: 1.5, fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}
-            >
+            <Typography component="h2" variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}>
               Schnellübersicht
             </Typography>
-            {/* Top row: Freshness • Status • Last irrigation */}
-            {/* Sections layout: Freshness | Status | Last irrigation */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, columnGap: { xs: 0, md: 2 }, rowGap: { xs: 0.75, md: 0 } }}>
+
+            {/* Top: Frische | Bewässerungsstatus | Letzte Bewässerung */}
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                md: '1.05fr 0.95fr 1.4fr',
+              },
+              columnGap: { xs: 0, md: 2 },
+              rowGap: { xs: 1, md: 0 },
+              alignItems: 'stretch',
+            }}>
+              {/* Freshness */}
               <Box sx={{ py: { xs: 0, md: 0.5 }, pr: { md: 2 } }}>
                 <FreshnessStatus
                   latestTimestamp={latestTimestamp}
                   aggregatesTimestamp={aggregatesTimestamp}
                   meansTimestamp={meansTimestamp}
+                  soilUpdatedAt={decision?.soilUpdatedAt ?? null}
                   clientIsFetching={weatherQuery.isFetching}
                   clientIsError={weatherQuery.isError as boolean}
                   clientUpdatedAt={weatherQuery.dataUpdatedAt}
                 />
               </Box>
-              <Box sx={{ py: { xs: 0, md: 0.5 }, px: { md: 2 }, borderLeft: { md: '1px solid' }, borderRight: { md: '1px solid' }, borderColor: { md: 'divider' }, display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'center' }, flexWrap: { xs: 'wrap', md: 'nowrap' }, gap: { xs: 0.75, md: 1 } }}>
+
+              {/* Irrigation status (dot + label, no heavy chips) */}
+              <Box sx={{
+                py: { xs: 1, md: 0.5 },
+                px: { md: 2 },
+                borderLeft: { md: '1px solid' },
+                borderRight: { md: '1px solid' },
+                borderTop: { xs: '1px solid', md: 'none' },
+                borderColor: 'divider',
+                display: 'flex',
+                alignItems: { xs: 'flex-start', md: 'center' },
+                justifyContent: { xs: 'flex-start', md: 'center' },
+                flexDirection: { xs: 'row', md: 'row' },
+                flexWrap: { xs: 'wrap', md: 'nowrap' },
+                gap: { xs: 0.75, md: 1 },
+                minWidth: 0,
+              }}>
                 {(() => {
                   const activeSwitchNames = switches
                     .map((on, i) => (on ? switchDescriptions[i] : null))
@@ -532,57 +574,79 @@ const HomePage = () => {
                   const hasCountdown = activeCountdownNames.length > 0;
                   const zonesTitle = allActive.length ? `Zonen: ${allActive.join(', ')}` : undefined;
                   return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <IrrigationIndicator running={isRunning} ariaLabel={isRunning ? 'Bewässerung läuft' : 'Bewässerung gestoppt'} title={zonesTitle} />
-                      <Chip size="small" variant={isRunning ? 'filled' : 'outlined'} color={isRunning ? 'success' : 'default'} label={isRunning ? (hasCountdown ? 'Countdown aktiv' : 'Läuft') : 'Gestoppt'} sx={{ fontWeight: 600 }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, md: 1 }, minWidth: 0 }}>
+                      <IrrigationIndicator
+                        running={isRunning}
+                        ariaLabel={isRunning ? 'Bewässerung läuft' : 'Bewässerung gestoppt'}
+                        title={zonesTitle}
+                        size={isSmallScreen ? 24 : 32}
+                      />
+                      <Box sx={{ flex: '0 0 auto' }}>
+                        {isRunning ? (
+                          <>
+                            <DotLabel color={theme.palette.success.main} label={hasCountdown ? 'Countdown aktiv' : 'Läuft'} />
+                          </>
+                        ) : (
+                          <DotLabel color={theme.palette.text.disabled} label={'Gestoppt'} />
+                        )}
+                      </Box>
                     </Box>
                   );
                 })()}
               </Box>
-              <Box sx={{ py: { xs: 0, md: 0.5 }, pl: { md: 2 }, display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', md: 'flex-end' }, minWidth: 0 }}>
+
+              {/* Last irrigation (wrap gracefully, never cut off) */}
+              <Box sx={{
+                py: { xs: 1, md: 0.5 },
+                pl: { md: 2 },
+                display: 'flex',
+                alignItems: { xs: 'flex-start', md: 'center' },
+                justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                minWidth: 0,
+                gap: 0.75,
+                borderTop: { xs: '1px solid', md: 'none' },
+                borderColor: 'divider',
+              }}>
                 <WaterDrop sx={{ color: 'info.main', fontSize: 18, flex: '0 0 auto', mr: 0.75 }} aria-hidden />
-                {lastIrrigationQuery.isLoading ? (
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Lade letzte Bewässerung…</Typography>
-                ) : lastIrrigationQuery.data?.last ? (
-                  <Typography variant="body2" noWrap sx={{ lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                    title={(() => { const t = new Date(lastIrrigationQuery.data!.last!.timestamp); return new Intl.DateTimeFormat('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(t); })()}>
-                    <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400, mr: 0.5 }}>
-                      Letzte Bewässerung:
-                    </Box>
-                    <Box component="span" sx={{ fontWeight: 600 }}>
-                      {(() => {
-                        const t = new Date(lastIrrigationQuery.data!.last!.timestamp);
-                        const dt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(t);
-                        const tm = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(t);
-                        const zl = lastIrrigationQuery.data!.last!.zoneLabel ?? null;
-                        return zl ? `${dt}, ${tm} – ${zl}` : `${dt}, ${tm}`;
-                      })()}
-                    </Box>
-                  </Typography>
-                ) : (
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Letzte Bewässerung: Keine Aufzeichnungen</Typography>
-                )}
+                <Box sx={{ minWidth: 0 }}>
+                  {lastIrrigationQuery.isLoading ? (
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>Lade letzte Bewässerung…</Typography>
+                  ) : lastIrrigationQuery.data?.last ? (
+                    <>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
+                        Letzte Bewässerung
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.3 }}
+                        title={(() => {
+                          const t = new Date(lastIrrigationQuery.data!.last!.timestamp);
+                          return new Intl.DateTimeFormat('de-DE', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }).format(t);
+                        })()}
+                      >
+                        {(() => {
+                          const t = new Date(lastIrrigationQuery.data!.last!.timestamp);
+                          const dt = new Intl.DateTimeFormat('de-DE', { year: 'numeric', day: '2-digit', month: '2-digit' }).format(t);
+                          const tm = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(t);
+                          const zl = lastIrrigationQuery.data!.last!.zoneLabel ?? null;
+                          return zl ? `${dt}, ${tm} – ${zl}` : `${dt}, ${tm}`;
+                        })()}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>Letzte Bewässerung: Keine Aufzeichnungen</Typography>
+                  )}
+                </Box>
               </Box>
             </Box>
 
-            <Divider sx={{ my: 1.25 }} />
-
-            {/* Bottom: compact key/value sections */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, columnGap: 2, rowGap: 0.75 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, justifyContent: 'flex-start' }}>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Verdunstung (gestern)</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }} aria-live="polite">
-                  {typeof et0YesterdayQuery.data?.et0mm === 'number' ? `${et0YesterdayQuery.data!.et0mm} ${et0YesterdayQuery.data!.unit || 'mm'}` : (et0YesterdayQuery.isLoading ? '–' : 'k. A.')}
-                </Typography>
-                <InfoPopover ariaLabel="Zeitraum anzeigen" content={formatYesterdayDE()} iconSize={14} />
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Entzug / Startschwelle</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }} aria-live="polite">
-                  {typeof decision?.depletionMm === 'number' && typeof decision?.triggerMm === 'number' ? `${decision.depletionMm.toFixed(1)} mm / ${decision.triggerMm.toFixed(1)} mm` : 'k. A.'}
-                </Typography>
-              </Box>
-            </Box>
+            {/* Bottom section entfernt: Entzug/Startschwelle zieht in Boden‑Speicher Info */}
           </CardContent>
         </Card>
 

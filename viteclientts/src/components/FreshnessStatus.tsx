@@ -6,6 +6,7 @@ type Props = {
   latestTimestamp?: string | null;
   aggregatesTimestamp?: string | null;
   meansTimestamp?: string | null;
+  soilUpdatedAt?: string | null;
   clientIsFetching: boolean;
   clientIsError: boolean;
   clientUpdatedAt?: number;
@@ -41,6 +42,7 @@ export default function FreshnessStatus({
   latestTimestamp,
   aggregatesTimestamp,
   meansTimestamp,
+  soilUpdatedAt,
   clientIsFetching,
   clientIsError,
   clientUpdatedAt,
@@ -68,8 +70,23 @@ export default function FreshnessStatus({
 
   const cacheTimestamp = latestTimestamp ?? null;
 
+  // Soil-bucket: success if updated today (local date matches today)
+  const soilStatus = (() => {
+    if (!soilUpdatedAt) return { color: 'warning.main', label: 'Boden‑Speicher: nicht aktualisiert' } as const;
+    try {
+      const d = new Date(soilUpdatedAt);
+      const now = new Date();
+      const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+      return sameDay
+        ? { color: 'success.main', label: 'Boden‑Speicher: heute aktualisiert' }
+        : { color: 'warning.main', label: 'Boden‑Speicher: nicht aktualisiert' };
+    } catch {
+      return { color: 'warning.main', label: 'Boden‑Speicher: nicht aktualisiert' } as const;
+    }
+  })();
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, alignItems: { xs: 'center', sm: 'flex-start' } }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, alignItems: 'flex-start' }}>
       {/* Wetterstation freshness */}
       <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' }, whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
         <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: serverStatusColor, flex: '0 0 auto' }} />
@@ -85,6 +102,22 @@ export default function FreshnessStatus({
               return `Aktuell: ${formatDateTimeDE(latestTimestamp)} • Aggregiert: ${formatDateTimeDE(aggDisplay)}`;
             }
             return `Stand: ${formatDateTimeDE(cacheTimestamp)}`;
+          })()}
+          iconSize={16}
+        />
+      </Box>
+
+      {/* Soil storage freshness */}
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' }, whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
+        <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: soilStatus.color, flex: '0 0 auto' }} />
+        <Typography variant="body2" color="text.secondary">
+          {soilStatus.label}
+        </Typography>
+        <InfoPopover
+          ariaLabel="Boden‑Speicher Aktualisierung"
+          content={(() => {
+            const when = soilUpdatedAt ? formatDateTimeDE(soilUpdatedAt) : 'unbekannt';
+            return `Letzte Aktualisierung: ${when}. Der Boden‑Speicher wird täglich nach Mitternacht (ca. 00:45) anhand von ET₀ (gestern) und Tagesniederschlag neu berechnet.`;
           })()}
           iconSize={16}
         />

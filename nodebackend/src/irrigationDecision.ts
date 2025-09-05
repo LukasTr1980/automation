@@ -17,6 +17,7 @@ export interface DecisionMetrics {
   soilStorageMm?: number;           // current soil storage (S)
   depletionMm?: number;             // TAW - S
   triggerMm?: number;               // trigger threshold for depletion
+  soilUpdatedAt?: string;           // last update timestamp for soil bucket
   effectiveForecast: number;
   blockers: string[];
 }
@@ -127,6 +128,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
         depletionMm: depletion,
         triggerMm: triggerMm,
         effectiveForecast,
+        soilUpdatedAt: bucket.updatedAt,
         blockers,
       }
     };
@@ -147,6 +149,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       depletionMm: depletion,
       triggerMm: triggerMm,
       effectiveForecast,
+      soilUpdatedAt: bucket.updatedAt,
       blockers,
     }
   };
