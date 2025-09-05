@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.19.1] - 2025-09-05
+### Fixed
+- Backend (Soil Bucket): Prevent over-crediting soil storage when multiple zones start on the same day. Irrigation depth is now credited once per day globally instead of once per zone.
+
+### Changed
+- Backend (Scheduler/Soil): Introduced `addIrrigationToGlobalBucketOnce` with a Redis-backed daily idempotency key (`soil:bucket:applied:YYYY-MM-DD`, TTL ~36h). The scheduler now calls this helper on irrigation start, ensuring only a single credit per day. The authority bucket is configurable via `IRR_BUCKET_AUTHORITY_ZONE` (default `lukasSued`).
+
 ## [v19.19.0]
 ### Added
 - Backend: New endpoint `GET /api/et0/yesterday` returns ET₀ (mm) for the previous day from Redis (`et0:daily:last7`).

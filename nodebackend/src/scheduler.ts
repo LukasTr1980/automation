@@ -10,7 +10,7 @@ import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
 import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
 import { recordIrrigationStartInflux } from './clients/influxdb-client.js';
-import { dailySoilBalance, addIrrigationToBucket } from './utils/soilBucket.js';
+import { dailySoilBalance, addIrrigationToGlobalBucketOnce } from './utils/soilBucket.js';
 import { broadcastPayloadToSseClients } from './utils/sseHandler.js';
 import { RUN_DEPTH_MM } from './utils/irrigationDepthService.js';
 import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from './clients/weatherlink-client.js';
@@ -247,7 +247,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
               logger.info(`Irrigation started for zone ${zoneName} (decision check skipped)`);
               await recordIrrigationStartInflux(zoneName);
               try {
-                await addIrrigationToBucket(zoneName, RUN_DEPTH_MM);
+                await addIrrigationToGlobalBucketOnce(RUN_DEPTH_MM);
                 // Notify SSE clients that a scheduled irrigation has started
                 try {
                   broadcastPayloadToSseClients({ type: 'irrigationStart', source: 'scheduled', zone: zoneName, at: new Date().toISOString() });
@@ -267,7 +267,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
                 logger.info(`Irrigation started for zone ${zoneName}`);
                 await recordIrrigationStartInflux(zoneName);
                 try {
-                  await addIrrigationToBucket(zoneName, RUN_DEPTH_MM);
+                  await addIrrigationToGlobalBucketOnce(RUN_DEPTH_MM);
                   // Notify SSE clients that a scheduled irrigation has started
                   try {
                     broadcastPayloadToSseClients({ type: 'irrigationStart', source: 'scheduled', zone: zoneName, at: new Date().toISOString() });

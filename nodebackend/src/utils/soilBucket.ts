@@ -71,6 +71,35 @@ export async function addIrrigationToBucket(zone: string, depthMm: number): Prom
   }
 }
 
+// Idempotent application: ensure irrigation is only counted once across zones within a time window
+export async function addIrrigationToGlobalBucketOnce(depthMm: number): Promise<boolean> {
+  try {
+    const client = await connectToRedis();
+    // Daily idempotency key (local date)
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const dayKey = `${yyyy}-${mm}-${dd}`;
+    const dailyKey = `soil:bucket:applied:${dayKey}`;
+    // Try to set once per day; expire after 36h to avoid key buildup
+    const appliedToday = await client.setnx(dailyKey, '1');
+    if (appliedToday === 0) {
+      logger.info(`[Soil] Skipping irrigation add: already applied for ${dayKey}`);
+      return false;
+    }
+    await client.expire(dailyKey, 36 * 3600);
+
+    const authorityZone = process.env.IRR_BUCKET_AUTHORITY_ZONE || 'lukasSued';
+    await addIrrigationToBucket(authorityZone, depthMm);
+    logger.info(`[Soil] Applied irrigation for ${dayKey} once to authority zone=${authorityZone}`);
+    return true;
+  } catch (err) {
+    logger.error('[Soil] Failed to apply idempotent irrigation to global bucket', err as Error);
+    return false;
+  }
+}
+
 // Daily balance using yesterday's ET0 and rolling 24h rain (approx)
 export async function dailySoilBalance(zone: string): Promise<void> {
   try {
@@ -99,4 +128,3 @@ export async function dailySoilBalance(zone: string): Promise<void> {
     logger.error(`[Soil] Failed daily soil balance for ${zone}`, err as Error);
   }
 }
-
