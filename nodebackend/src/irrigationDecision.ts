@@ -95,7 +95,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const tawMm = getTawMm() || bucket.tawMm;
   const depletion = Math.max(0, tawMm - bucket.sMm);
   const TRIGGER_MM = Number(process.env.IRR_BUCKET_TRIGGER_MM ?? NaN);
-  const TRIGGER_FRAC = Number(process.env.IRR_BUCKET_TRIGGER_FRAC ?? 0.33);
+  const TRIGGER_FRAC = Number(process.env.IRR_BUCKET_TRIGGER_FRAC ?? 0.50);
   const triggerMm = Number.isFinite(TRIGGER_MM) ? TRIGGER_MM : (tawMm * TRIGGER_FRAC);
 
   /* ---------- Hard rules ----------------------------------------------------

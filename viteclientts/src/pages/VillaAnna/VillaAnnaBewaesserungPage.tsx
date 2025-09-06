@@ -67,6 +67,8 @@ const BewaesserungPage = () => {
     soilStorageMm?: number;
     depletionMm?: number;
     triggerMm?: number;
+    // Timestamp when soil-bucket was last updated (for FreshnessStatus)
+    soilUpdatedAt?: string;
     // weekly ET₀ removed from payload/UI
     effectiveForecast: number;
     blockers: string[];
@@ -369,6 +371,7 @@ const BewaesserungPage = () => {
                 latestTimestamp={latestTimestamp}
                 aggregatesTimestamp={aggregatesTimestamp}
                 meansTimestamp={meansTimestamp}
+                soilUpdatedAt={response?.soilUpdatedAt ?? null}
                 clientIsFetching={weatherQuery.isFetching}
                 clientIsError={weatherQuery.isError as boolean}
                 clientUpdatedAt={weatherQuery.dataUpdatedAt}
@@ -522,7 +525,7 @@ const BewaesserungPage = () => {
                                 </ListItem>
                                 <Divider component="li" />
                                 <ListItem>
-                                  <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><Inventory2OutlinedIcon color={(response.depletionMm < (response.triggerMm ?? Number.POSITIVE_INFINITY)) ? 'warning' : 'action'} /></ListItemIcon>
+                                  <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><Inventory2OutlinedIcon color={'action'} /></ListItemIcon>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                     <ListItemText
                                       primary={`Entzug / Startschwelle`}

@@ -397,22 +397,7 @@ const HomePage = () => {
                             <Box component="span" sx={{ color: 'text.secondary' }}>k. A.</Box>
                           )}
                         </Typography>
-                        {(() => {
-                          const dep = decision?.depletionMm;
-                          const thr = decision?.triggerMm;
-                          const drynessActive = typeof dep === 'number' && typeof thr === 'number' && dep < thr;
-                          return (
-                            <Box sx={{ mt: 0.75, display: 'flex', justifyContent: 'center' }}>
-                              <Chip
-                                size="small"
-                                variant={drynessActive ? 'filled' : 'outlined'}
-                                color={drynessActive ? 'warning' : 'success'}
-                                label={drynessActive ? 'Nicht trocken genug' : 'Trocken genug'}
-                                sx={{ fontWeight: 600 }}
-                              />
-                            </Box>
-                          );
-                        })()}
+                        {/* Status chips (z. B. "Nicht trocken genug") entfernt – Redundanz mit Blocker-Anzeige */}
                         {/* Boden‑Speicher Aktualisierungshinweis wurde in die Schnellübersicht (Freshness) verschoben */}
                       </>
                     );

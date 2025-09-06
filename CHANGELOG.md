@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.20.1] - 2025-09-06
+### Changed
+- Frontend (Irrigation): Keep Soil Storage icon color neutral (no warning state); rely on blocker chips to convey status.
+- Frontend (Home): Removed Soil Storage status chip ("Not dry enough" / "Dry enough") from the card to avoid redundancy with the Blocker section.
+
+### Fixed
+- Frontend (Irrigation): Soil Storage freshness now shows the correct update timestamp by passing `soilUpdatedAt` into `FreshnessStatus`.
+
 ## [v19.20.0] - 2025-09-05
 ### Added
 - Frontend (Home/Freshness): Added third freshness dot for Soil Storage showing whether the daily update ran today; tooltip shows exact timestamp and explains the midnight update schedule.
