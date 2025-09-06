@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Frontend (Home/Mobile): Tightened Grid spacing for status and action cards to reduce excessive gutters on small screens, following AGENTS.md Mobile Gutters.
+- Frontend (Home/Schnellübersicht): Increased sprinkler indicator size on mobile from 24px to 30px for better legibility.
+
 ## [v19.20.1] - 2025-09-06
 ### Changed
 - Frontend (Irrigation): Keep Soil Storage icon color neutral (no warning state); rely on blocker chips to convey status.

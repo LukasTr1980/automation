@@ -255,7 +255,7 @@ const HomePage = () => {
     <Layout>
       <Box sx={{ px: { xs: 0, md: 0 }, py: { xs: 2, md: 3 }, width: '100%', mx: 'auto' }}>
         {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: { xs: 2, md: 4 } }}>
           <Typography variant="h4" sx={{ 
             fontWeight: 600, 
             color: 'primary.main',
@@ -272,7 +272,12 @@ const HomePage = () => {
 
         {/* Status Cards */
         /* Left card: show active blockers (from SSE) instead of fake system status */}
-        <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid
+          container
+          rowSpacing={{ xs: 1, md: 3 }}
+          columnSpacing={{ xs: 1, md: 3 }}
+          sx={{ mb: { xs: 2, md: 3 } }}
+        >
           <Grid size={{ xs: 6, md: 3 }}>
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
@@ -496,7 +501,7 @@ const HomePage = () => {
         </Grid>
 
         {/* Schnellübersicht: outlined Card, compact and responsive */}
-        <Card variant="outlined" sx={{ mt: 2, mb: 3, borderRadius: 2 }}>
+        <Card variant="outlined" sx={{ mt: { xs: 1.5, md: 2 }, mb: { xs: 2, md: 3 }, borderRadius: 2 }}>
           <CardContent sx={{ pt: 2 }}>
             <Typography component="h2" variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}>
               Schnellübersicht
@@ -564,7 +569,7 @@ const HomePage = () => {
                         running={isRunning}
                         ariaLabel={isRunning ? 'Bewässerung läuft' : 'Bewässerung gestoppt'}
                         title={zonesTitle}
-                        size={isSmallScreen ? 24 : 32}
+                        size={isSmallScreen ? 30 : 32}
                       />
                       <Box sx={{ flex: '0 0 auto' }}>
                         {isRunning ? (
@@ -636,7 +641,13 @@ const HomePage = () => {
         </Card>
 
         {/* Action Cards */}
-        <Grid container spacing={3} justifyContent="center" sx={{ maxWidth: 800, mx: 'auto' }}>
+        <Grid
+          container
+          rowSpacing={{ xs: 1.5, md: 3 }}
+          columnSpacing={{ xs: 1, md: 3 }}
+          justifyContent="center"
+          sx={{ maxWidth: 800, mx: 'auto' }}
+        >
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
             <RouterLink to="/bewaesserung" style={{ textDecoration: 'none' }}>
               <Card variant="outlined" sx={{ 
