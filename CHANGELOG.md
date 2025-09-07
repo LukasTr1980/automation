@@ -6,9 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v19.21.0] - 2025-09-07
 ### Changed
 - Frontend (Home/Mobile): Tightened Grid spacing for status and action cards to reduce excessive gutters on small screens, following AGENTS.md Mobile Gutters.
 - Frontend (Home/Schnellübersicht): Increased sprinkler indicator size on mobile from 24px to 30px for better legibility.
+- Frontend (Home/Schnellübersicht): When irrigation is running, show only the sprinkler animation plus the active zone name(s); remove the "Läuft/Countdown aktiv" label. When stopped, continue to show "Gestoppt".
 - Frontend (Irrigation/Schalter): Redesigned the switch area from a tall list to compact "pill" controls in a responsive grid; right-aligns switches consistently, reduces padding, and adds a small status dot per zone.
 - Frontend (Irrigation/Schalter): Desktop layout now stacks label above the switch to avoid truncation of zone names; mobile keeps inline layout. Ensures 5-up alignment on md+.
 

@@ -531,7 +531,7 @@ const HomePage = () => {
                 />
               </Box>
 
-              {/* Irrigation status (dot + label, no heavy chips) */}
+              {/* Irrigation status (dot + label + zones) */}
               <Box sx={{
                 py: { xs: 1, md: 0.5 },
                 px: { md: 2 },
@@ -561,8 +561,8 @@ const HomePage = () => {
                     .map((idx) => zoneOrder[idx] || switchDescriptions[idx] || String(idx));
                   const allActive = Array.from(new Set([...activeSwitchNames, ...activeCountdownNames]));
                   const isRunning = allActive.length > 0;
-                  const hasCountdown = activeCountdownNames.length > 0;
                   const zonesTitle = allActive.length ? `Zonen: ${allActive.join(', ')}` : undefined;
+                  const zonesInline = allActive.join(', ');
                   return (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, md: 1 }, minWidth: 0 }}>
                       <IrrigationIndicator
@@ -571,15 +571,24 @@ const HomePage = () => {
                         title={zonesTitle}
                         size={isSmallScreen ? 30 : 32}
                       />
-                      <Box sx={{ flex: '0 0 auto' }}>
-                        {isRunning ? (
-                          <>
-                            <DotLabel color={theme.palette.success.main} label={hasCountdown ? 'Countdown aktiv' : 'Läuft'} />
-                          </>
-                        ) : (
+                      {!isRunning && (
+                        <Box sx={{ flex: '0 0 auto' }}>
                           <DotLabel color={theme.palette.text.disabled} label={'Gestoppt'} />
-                        )}
-                      </Box>
+                        </Box>
+                      )}
+                      {isRunning && zonesInline && (
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 600,
+                            color: 'text.primary',
+                            ml: 0.25,
+                            minWidth: 0,
+                          }}
+                        >
+                          {zonesInline}
+                        </Typography>
+                      )}
                     </Box>
                   );
                 })()}
