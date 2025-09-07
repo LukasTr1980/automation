@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import axios from 'axios';
-import SwitchComponent from '../../components/switchComponent';
 import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
 import SchedulerCard from '../../components/SchedulerCard';
@@ -17,6 +16,8 @@ import {
   CardHeader,
   Button,
   Chip,
+  Switch,
+  CircularProgress,
   Divider,
   LinearProgress
 } from '@mui/material';
@@ -338,20 +339,65 @@ const BewaesserungPage = () => {
               <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
             )}
             <CardContent>
-              <Grid container spacing={2} justifyContent="space-between">
-                {switches.map((val, i) => (
-                  <Grid key={i}>
-                    <SwitchComponent
-                      checked={val}
-                      label={switchDescriptions[i]}
-                      handleToggle={() => handleToggle(i)}
-                      disabled={toggling[i] || switchesLoading}
-                      id={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
-                      name={`switch-${switchDescriptions[i].toLowerCase().replace(/\s+/g, '-')}-${i}`}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
+              <Box role="group" aria-label="Zonensteuerung">
+                <Grid container spacing={{ xs: 1, sm: 1.5 }} columns={{ xs: 12, sm: 12, md: 5 }}>
+                  {switches.map((isOn, i) => {
+                    const labelId = `zone-pill-${i}`;
+                    const isBusy = toggling[i] || switchesLoading;
+                    return (
+                      <Grid key={i} size={{ xs: 12, sm: 6, md: 1 }}>
+                        <Box
+                          sx={{
+                            width: '100%',
+                            display: 'flex',
+                            flexDirection: { xs: 'row', md: 'column' },
+                            alignItems: { xs: 'center', md: 'flex-start' },
+                            gap: 0.75,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            borderRadius: 2,
+                            px: 1,
+                            py: 0.5,
+                            minHeight: 36,
+                            '&:hover': { backgroundColor: 'action.hover' },
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, width: { xs: 'auto', md: '100%' } }}>
+                            <Box
+                              component="span"
+                              aria-hidden
+                              sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: isOn ? 'success.main' : 'text.disabled' }}
+                            />
+                            <Typography
+                              id={labelId}
+                              variant="body2"
+                              sx={{
+                                fontWeight: 600,
+                                whiteSpace: { xs: 'nowrap', md: 'normal' },
+                                overflow: { xs: 'hidden', md: 'visible' },
+                                textOverflow: { xs: 'ellipsis', md: 'clip' },
+                              }}
+                            >
+                              {switchDescriptions[i]}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: { xs: 'auto', md: 0 }, mt: { md: 0.25 } }}>
+                            {isBusy && <CircularProgress size={12} thickness={6} aria-label="Wird geschaltet" />}
+                            <Switch
+                              size="small"
+                              checked={isOn}
+                              onChange={() => handleToggle(i)}
+                              disabled={isBusy}
+                              sx={{ m: 0 }}
+                              slotProps={{ input: { 'aria-labelledby': labelId } }}
+                            />
+                          </Box>
+                        </Box>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Box>
             </CardContent>
           </Card>
         </Grid>

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Frontend (Home/Mobile): Tightened Grid spacing for status and action cards to reduce excessive gutters on small screens, following AGENTS.md Mobile Gutters.
 - Frontend (Home/Schnellübersicht): Increased sprinkler indicator size on mobile from 24px to 30px for better legibility.
+- Frontend (Irrigation/Schalter): Redesigned the switch area from a tall list to compact "pill" controls in a responsive grid; right-aligns switches consistently, reduces padding, and adds a small status dot per zone.
+- Frontend (Irrigation/Schalter): Desktop layout now stacks label above the switch to avoid truncation of zone names; mobile keeps inline layout. Ensures 5-up alignment on md+.
+
+### Fixed
+- Frontend (Irrigation/Schalter): Replaced deprecated `inputProps` on MUI `Switch` with `slotProps.input` and tightened aria labelling to remove deprecation warnings.
 
 ## [v19.20.1] - 2025-09-06
 ### Changed
