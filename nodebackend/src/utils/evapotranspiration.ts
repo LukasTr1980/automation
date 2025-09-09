@@ -8,11 +8,8 @@
 //  – Sums to a weekly value and stores the sum in Redis.
 // -----------------------------------------------------------------------------
 
-import { querySingleData } from "../clients/influxdb-client.js";
-import { readWeatherAggregatesFromRedis } from "./weatherAggregatesStorage.js";
-import { readDailyLast7FromRedis } from "./weatherDailyStorage.js";
-import logger from "../logger.js";
-import { writeEt0DailyLast7ToRedis } from "./et0DailyStorage.js";
+// NOTE: Avoid heavy imports (Vault/Influx/Redis) at module load to keep
+// manual testing cheap. These are dynamically imported inside functions.
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
 const LAT = Number(process.env.LAT ?? 46.5668);
@@ -30,10 +27,10 @@ const MEAS_CLOUDS = "dwd.clouds";
 
 // ───────────── FAO‑Hilfsfunktionen ──────────────────────────────────────────
 const svp = (T: number) => 0.6108 * Math.exp((17.27 * T) / (T + 237.3));
-const svpSlope = (T: number) => 4098 * svp(T) / Math.pow(T + 237.3, 2);
+const svpSlope = (T: number) => (4098 * svp(T)) / Math.pow(T + 237.3, 2);
 const psychro = (P: number) => 0.665e-3 * P;          // P [kPa]
 const rad = (deg: number) => (deg * Math.PI) / 180;
-function Ra(latDeg: number, doy: number) {
+export function Ra(latDeg: number, doy: number) {
     const G = 0.0820, lat = rad(latDeg);
     const dr = 1 + 0.033 * Math.cos((2 * Math.PI * doy) / 365);
     const d = 0.409 * Math.sin((2 * Math.PI * doy) / 365 - 1.39);
@@ -59,7 +56,8 @@ from(bucket: "${bucket}")
 // Sensor-Queries for weekly computation only
 
 async function influxSeriesNumbers(flux: string): Promise<number[]> {
-    const rows: any[] = await querySingleData(flux);
+    const { querySingleData } = await import("../clients/influxdb-client.js");
+    const rows: any[] = await querySingleData(flux as any);
     return rows.map(r => parseFloat(r._value));
 }
 
@@ -67,10 +65,64 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
 
 // Convert wind speed measured at height z to 2 m using FAO‑56 log law.
 // u2 = uz * (4.87 / ln(67.8 z − 5.42))
-function windAt2m(uAtZ: number, zMeters = 10): number {
+export function windAt2m(uAtZ: number, zMeters = 10): number {
     const denom = Math.log(67.8 * zMeters - 5.42);
     if (!isFinite(denom) || denom <= 0) return uAtZ * 0.748; // fallback to 10 m → 2 m factor
     return uAtZ * (4.87 / denom);
+}
+
+// ───────────── Pure daily ET₀ (FAO‑56 Penman–Monteith) ─────────────────────
+// Allows manual testing with arbitrary inputs without touching Redis/Influx.
+export type DailyEt0Input = {
+    doy: number;                     // day of year (1..366), local
+    tminC: number;                   // °C
+    tmaxC: number;                   // °C
+    rhMeanPct: number;               // %
+    windAtSensorMS: number;          // m/s measured at windSensorHeightM
+    pressureHPa: number;             // hPa
+    cloudPct: number;                // 0..100 (used for Angström–Prescott)
+    latDeg?: number;                 // default env LAT
+    elevMeters?: number;             // default env ELEV
+    albedo?: number;                 // default env ALBEDO
+    angstromAS?: number;             // default env AP_A_S
+    angstromBS?: number;             // default env AP_B_S
+    windSensorHeightM?: number;      // default env WIND_Z
+};
+
+export function computeDailyET0FAO56(input: DailyEt0Input): number {
+    const latDeg = input.latDeg ?? LAT;
+    const elev = input.elevMeters ?? ELEV;
+    const albedo = input.albedo ?? ALBEDO;
+    const aS = input.angstromAS ?? AP_A_S;
+    const bS = input.angstromBS ?? AP_B_S;
+    const windZ = input.windSensorHeightM ?? WIND_Z;
+
+    const Tmin = input.tminC;
+    const Tmax = input.tmaxC;
+    const Tavg = (Tmin + Tmax) / 2;
+    const RH = input.rhMeanPct;
+    const uAtZ = input.windAtSensorMS;
+    const P_kPa = (input.pressureHPa ?? 1013) / 10; // convert hPa → kPa
+    const cloud = input.cloudPct;
+
+    const RaMJ = Ra(latDeg, input.doy);
+    const nOverN = Math.min(1, Math.max(0, 1 - cloud / 100));
+    const Rs = (aS + bS * nOverN) * RaMJ;          // MJ m-2 d-1
+    const Rso = (0.75 + 2e-5 * elev) * RaMJ;       // MJ m-2 d-1
+    const Rs_Rso = Math.min(1, Math.max(0, Rs / Rso));
+    const Rns = (1 - albedo) * Rs;
+    const es = (svp(Tmax) + svp(Tmin)) / 2;        // kPa
+    const ea = es * RH / 100;                      // kPa
+    const Tk4 = (Math.pow(Tmax + 273.15, 4) + Math.pow(Tmin + 273.15, 4)) / 2;
+    const emissivity = Math.max(0.05, 0.34 - 0.14 * Math.sqrt(Math.max(ea, 0)));
+    const cloudCorr = Math.max(0.05, 1.35 * Rs_Rso - 0.35);
+    const Rnl = 4.903e-9 * Tk4 * emissivity * cloudCorr; // MJ m-2 d-1
+    const Rn = Rns - Rnl;                         // MJ m-2 d-1
+    const Δ = svpSlope(Tavg);                     // kPa °C-1
+    const γ = psychro(P_kPa);                     // kPa °C-1
+    const u2 = windAt2m(uAtZ, windZ);             // m s-1 at 2 m
+    const et0 = (0.408 * Δ * Rn + γ * 900 / (Tavg + 273.15) * u2 * (es - ea)) / (Δ + γ * (1 + 0.34 * u2));
+    return Math.max(0, et0);
 }
 
 // ───────────── Hauptfunktion ────────────────────────────────────────────────
@@ -78,6 +130,17 @@ function windAt2m(uAtZ: number, zMeters = 10): number {
 
 export async function computeWeeklyET0(): Promise<number> {
     try {
+        const [
+            { default: logger },
+            { readDailyLast7FromRedis },
+            { readWeatherAggregatesFromRedis },
+            { writeEt0DailyLast7ToRedis },
+        ] = await Promise.all([
+            import("../logger.js"),
+            import("./weatherDailyStorage.js"),
+            import("./weatherAggregatesStorage.js"),
+            import("./et0DailyStorage.js"),
+        ] as const);
         const endDate = new Date();
         // Align to local midnight (today 00:00) to cover the previous 7 full days
         const localMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
@@ -209,6 +272,7 @@ export async function computeWeeklyET0(): Promise<number> {
         );
         return et0Sum;
     } catch (err) {
+        const { default: logger } = await import("../logger.js");
         logger.error('Error computing weekly ET₀', err as Error, { label: 'Evapotranspiration' });
         throw err;
     }
