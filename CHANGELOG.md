@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend: Moved forecast display from Irrigation page to Home page as a dedicated card; unified icon style with filled circular avatars (blue for rain, green for no rain).
 - Assets: Updated `umbrella.svg` (white fill + thicker stroke) to match the icon style and improve legibility on colored backgrounds.
 - Docs: Consolidated SVG icon guidance into `AGENTS.md` (removed the local icons README); clarified location and usage patterns.
+- Frontend (Home/Clouds): Use neutral grey avatar background for cloud cover icon instead of blue to reflect neutrality.
 
 ### Removed
 - Frontend (Irrigation): Removed the inline "Prognose (morgen, gewichtet)" list row from `VillaAnnaBewaesserungPage` in favor of the new Home card.

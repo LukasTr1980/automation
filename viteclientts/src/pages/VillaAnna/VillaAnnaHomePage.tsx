@@ -551,7 +551,7 @@ const HomePage = () => {
                 height: '100%',
               }}>
                 <Avatar sx={{
-                  bgcolor: (typeof cloudQuery.data?.cloud === 'number') ? 'info.main' : 'transparent',
+                  bgcolor: (typeof cloudQuery.data?.cloud === 'number') ? 'grey.700' : 'transparent',
                   color: 'common.white',
                   width: { xs: 48, md: 56 },
                   height: { xs: 48, md: 56 },
