@@ -33,6 +33,7 @@ import ForecastCard from '../../components/ForecastCard';
 import cloud25Url from '../../assets/icons/cloud-25.svg';
 import cloud50Url from '../../assets/icons/cloud-50.svg';
 import cloud100Url from '../../assets/icons/cloud-100.svg';
+import sunUrl from '../../assets/icons/sun.svg';
 
 // Timing thresholds / intervals
 const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
@@ -562,7 +563,7 @@ const HomePage = () => {
                   {(() => {
                     const v = cloudQuery.data?.cloud;
                     if (typeof v !== 'number') return null;
-                    const url = v < 33 ? cloud25Url : v < 75 ? cloud50Url : cloud100Url;
+                    const url = v <= 10 ? sunUrl : (v < 33 ? cloud25Url : v < 75 ? cloud50Url : cloud100Url);
                     return (
                       <Box component="img" src={url} alt="" aria-hidden sx={{ width: { xs: 26, md: 30 }, height: { xs: 26, md: 30 }, display: 'block', filter: 'brightness(0) invert(1)' }} />
                     );
