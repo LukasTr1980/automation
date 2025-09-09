@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode, MouseEvent } from 'react';
-import { IconButton, Popover, Box, ClickAwayListener } from '@mui/material';
+import { IconButton, Box, ClickAwayListener, Popper, Paper } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 type InfoPopoverProps = {
@@ -35,21 +35,22 @@ export default function InfoPopover({ content, ariaLabel, iconSize = 16 }: InfoP
       >
         <InfoOutlinedIcon sx={{ fontSize: iconSize }} />
       </IconButton>
-      <Popover
+      <Popper
         id={id}
         open={open}
         anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        slotProps={{ paper: { sx: { p: 1, maxWidth: 280 } } }}
+        placement="top"
+        container={typeof document !== 'undefined' ? document.getElementById('root') : undefined}
+        modifiers={[{ name: 'offset', options: { offset: [0, 8] } }]}
       >
         <ClickAwayListener onClickAway={handleClose} mouseEvent="onMouseDown" touchEvent="onTouchStart">
-          <Box role="tooltip" sx={{ fontSize: 14, lineHeight: 1.35 }}>
-            {content}
-          </Box>
+          <Paper elevation={1} sx={{ p: 1, maxWidth: 280 }}>
+            <Box role="tooltip" sx={{ fontSize: 14, lineHeight: 1.35 }}>
+              {content}
+            </Box>
+          </Paper>
         </ClickAwayListener>
-      </Popover>
+      </Popper>
     </>
   );
 }

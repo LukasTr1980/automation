@@ -203,6 +203,7 @@ const HomePage = () => {
       weatherQuery.refetch();
       scheduleQuery.refetch();
       et0YesterdayQuery.refetch();
+      cloudQuery.refetch();
       startSSE();
     };
     const onVisibility = () => {
@@ -214,7 +215,7 @@ const HomePage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [weatherQuery.refetch, scheduleQuery.refetch, et0YesterdayQuery.refetch]);
+  }, [weatherQuery.refetch, scheduleQuery.refetch, et0YesterdayQuery.refetch, cloudQuery.refetch]);
 
   // SSE for irrigation decision + switches, with ability to re-subscribe on focus
   const sseRef = useRef<EventSource | null>(null);

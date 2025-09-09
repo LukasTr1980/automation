@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v19.22.0] - 2025-09-09
 ### Added
 - Backend: Manual ET0 CLI (`npm run et0`) that calls the exact FAO‑56 implementation (`computeDailyET0FAO56`) from `nodebackend/src/utils/evapotranspiration.ts` for ad‑hoc testing with custom inputs.
 - Docs: README instructions on running the manual ET0 calculation with an example.
@@ -25,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Frontend (Irrigation): Removed the inline "Prognose (morgen, gewichtet)" list row from `VillaAnnaBewaesserungPage` in favor of the new Home card.
+
+### Fixed
+- Frontend (Tooltips): Prevent scrollbar disappearance and layout shift by switching Info tooltips from `Popover` (Modal) to `Popper` (no body scroll lock) and portaling into `#root`.
+- Frontend (Home/Clouds): Refresh cloud cover on window focus by refetching the query to keep the snapshot current.
 
 ## [v19.21.0] - 2025-09-07
 ### Changed
