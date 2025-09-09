@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frontend: `viteclientts/src/assets/icons/` folder for external/custom SVG icons.
 - Frontend/Types: SVG module declarations (`viteclientts/src/types/svg.d.ts`) for URL and optional `?react` imports.
 - Dev (Home): Preview flag `?previewForecast=sun|rain` to simulate forecast states without backend changes (dev only).
+- Backend: New endpoint `GET /api/clouds/current` returns latest cloud cover (%) from Influx measurement `dwd.clouds`.
+- Frontend (Home): New Cloud Cover card showing current cloud cover with matching SVG (25/50/100) and percent value.
 
 ### Changed
 - Frontend: Moved forecast display from Irrigation page to Home page as a dedicated card; unified icon style with filled circular avatars (blue for rain, green for no rain).

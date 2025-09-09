@@ -30,6 +30,9 @@ import { switchDescriptions, bewaesserungsTopics, bewaesserungsTopicsSet, zoneOr
 import { type CountdownsState } from '../../types/types';
 import IrrigationIndicator from '../../components/IrrigationIndicator';
 import ForecastCard from '../../components/ForecastCard';
+import cloud25Url from '../../assets/icons/cloud-25.svg';
+import cloud50Url from '../../assets/icons/cloud-50.svg';
+import cloud100Url from '../../assets/icons/cloud-100.svg';
 
 // Timing thresholds / intervals
 const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
@@ -119,6 +122,20 @@ const HomePage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+
+  // React Query: Current cloud cover percentage
+  const cloudQuery = useQuery<{ cloud: number | null }>({
+    queryKey: ['clouds', 'current'],
+    queryFn: async () => {
+      const r = await fetch('/api/clouds/current');
+      if (!r.ok) throw new Error('clouds');
+      return r.json();
+    },
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
+  });
   // Derive values from weather query
   const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
@@ -174,6 +191,9 @@ const HomePage = () => {
   useEffect(() => {
     if (lastIrrigationQuery.isError) showSnackbar('Fehler beim Laden der Bewässerungshistorie', 'error');
   }, [lastIrrigationQuery.isError, showSnackbar]);
+  useEffect(() => {
+    if (cloudQuery.isError) showSnackbar('Fehler beim Laden der Bewölkung', 'error');
+  }, [cloudQuery.isError, showSnackbar]);
 
   // Instant refresh on tab/window focus and when page becomes visible
   // (SSE re-subscribe is wired below via startSSE)
@@ -507,13 +527,57 @@ const HomePage = () => {
           </Grid>
 
           {/* Wetterprognose (morgen) */}
-          <Grid size={{ xs: 12, md: 3 }}>
+          <Grid size={{ xs: 6, md: 3 }}>
             <ForecastCard
               loading={decisionLoading}
               rainNextDay={decision?.rainNextDay ?? null}
               rainProbNextDay={decision?.rainProbNextDay ?? null}
               effectiveForecast={decision?.effectiveForecast ?? null}
             />
+          </Grid>
+
+          {/* Bewölkung (aktuell) */}
+          <Grid size={{ xs: 6, md: 3 }}>
+            <Card variant="outlined" sx={{ borderRadius: 2, height: '100%', minHeight: { xs: 140, md: 160 }, position: 'relative' }}>
+              {cloudQuery.isFetching && (
+                <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+              )}
+              <CardContent sx={{
+                display: 'grid',
+                gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' },
+                justifyItems: 'center',
+                rowGap: 0.75,
+                textAlign: 'center',
+                height: '100%',
+              }}>
+                <Avatar sx={{
+                  bgcolor: (typeof cloudQuery.data?.cloud === 'number') ? 'info.main' : 'transparent',
+                  color: 'common.white',
+                  width: { xs: 48, md: 56 },
+                  height: { xs: 48, md: 56 },
+                  alignSelf: 'center',
+                  border: (typeof cloudQuery.data?.cloud === 'number') ? 'none' : '1px solid',
+                  borderColor: (typeof cloudQuery.data?.cloud === 'number') ? 'transparent' : 'divider',
+                }}>
+                  {(() => {
+                    const v = cloudQuery.data?.cloud;
+                    if (typeof v !== 'number') return null;
+                    const url = v < 33 ? cloud25Url : v < 75 ? cloud50Url : cloud100Url;
+                    return (
+                      <Box component="img" src={url} alt="" aria-hidden sx={{ width: { xs: 26, md: 30 }, height: { xs: 26, md: 30 }, display: 'block', filter: 'brightness(0) invert(1)' }} />
+                    );
+                  })()}
+                </Avatar>
+                <Box>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    Bewölkung (aktuell)
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
+                    {typeof cloudQuery.data?.cloud === 'number' ? `${cloudQuery.data.cloud.toFixed(0)} %` : 'k. A.'}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
 
