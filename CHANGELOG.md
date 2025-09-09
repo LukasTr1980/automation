@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Backend: Manual ET0 CLI (`npm run et0`) that calls the exact FAO‑56 implementation (`computeDailyET0FAO56`) from `nodebackend/src/utils/evapotranspiration.ts` for ad‑hoc testing with custom inputs.
 - Docs: README instructions on running the manual ET0 calculation with an example.
+- Frontend (Home): Forecast card showing tomorrow's rain amount and probability with clear iconography (umbrella for rain, sun for no rain). Matches top card sizing and accessibility patterns.
+- Frontend: `viteclientts/src/assets/icons/` folder for external/custom SVG icons.
+- Frontend/Types: SVG module declarations (`viteclientts/src/types/svg.d.ts`) for URL and optional `?react` imports.
+- Dev (Home): Preview flag `?previewForecast=sun|rain` to simulate forecast states without backend changes (dev only).
+
+### Changed
+- Frontend: Moved forecast display from Irrigation page to Home page as a dedicated card; unified icon style with filled circular avatars (blue for rain, green for no rain).
+- Assets: Updated `umbrella.svg` (white fill + thicker stroke) to match the icon style and improve legibility on colored backgrounds.
+- Docs: Consolidated SVG icon guidance into `AGENTS.md` (removed the local icons README); clarified location and usage patterns.
+
+### Removed
+- Frontend (Irrigation): Removed the inline "Prognose (morgen, gewichtet)" list row from `VillaAnnaBewaesserungPage` in favor of the new Home card.
 
 ## [v19.21.0] - 2025-09-07
 ### Changed

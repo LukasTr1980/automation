@@ -217,6 +217,14 @@ Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json`
   - If re‑introducing: use `vite-plugin-pwa` with update on reload and exclude HTML from caching to prevent stale auth redirects.
 - Bundle analysis: `rollup-plugin-visualizer`; maintain performance budgets (e.g., initial chunk < 300 KB gzip).
 
+### SVG Icons
+- Location: put external/custom SVGs under `viteclientts/src/assets/icons/`.
+- Default usage: import as URL and render via `<img>` (no extra plugin required).
+  - Example: `import sunUrl from '../assets/icons/sun.svg'` then `<img src={sunUrl} alt="..." />`.
+- Optional: enable `vite-plugin-svgr` to import as React components when needed.
+  - Example (once enabled): `import Logo from '../assets/icons/logo.svg?react'` and use `<Logo role="img" aria-label="..." />`.
+- Accessibility: always provide an accessible name (`alt` for `<img>`, or `aria-label`/`title` for components) when the icon conveys meaning.
+
 ### Code‑Splitting
 - Route‑level lazy imports for heavy admin/engineer tools.
 - Manual chunks for large libs (charts, MUI icons) to improve caching.

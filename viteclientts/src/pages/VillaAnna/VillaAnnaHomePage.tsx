@@ -29,6 +29,7 @@ import useSnackbar from '../../utils/useSnackbar';
 import { switchDescriptions, bewaesserungsTopics, bewaesserungsTopicsSet, zoneOrder } from '../../components/constants';
 import { type CountdownsState } from '../../types/types';
 import IrrigationIndicator from '../../components/IrrigationIndicator';
+import ForecastCard from '../../components/ForecastCard';
 
 // Timing thresholds / intervals
 const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
@@ -132,6 +133,9 @@ const HomePage = () => {
     humidity: number;
     rainToday: number;
     rainRate: number;
+    rainNextDay?: number;
+    rainProbNextDay?: number;
+    effectiveForecast?: number;
     // Soil-bucket primary trigger
     soilStorageMm?: number;
     tawMm?: number;
@@ -219,6 +223,9 @@ const HomePage = () => {
             humidity: r.humidity,
             rainToday: r.rainToday,
             rainRate: r.rainRate,
+            rainNextDay: r.rainNextDay,
+            rainProbNextDay: r.rainProbNextDay,
+            effectiveForecast: r.effectiveForecast,
             soilStorageMm: r.soilStorageMm,
             tawMm: r.tawMm,
             depletionMm: r.depletionMm,
@@ -497,6 +504,16 @@ const HomePage = () => {
                 </Box>
               </CardContent>
             </Card>
+          </Grid>
+
+          {/* Wetterprognose (morgen) */}
+          <Grid size={{ xs: 12, md: 3 }}>
+            <ForecastCard
+              loading={decisionLoading}
+              rainNextDay={decision?.rainNextDay ?? null}
+              rainProbNextDay={decision?.rainProbNextDay ?? null}
+              effectiveForecast={decision?.effectiveForecast ?? null}
+            />
           </Grid>
         </Grid>
 

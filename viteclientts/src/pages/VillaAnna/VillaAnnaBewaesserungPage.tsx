@@ -25,7 +25,6 @@ import ThermostatAutoIcon from '@mui/icons-material/ThermostatAuto';
 import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import SpeedIcon from '@mui/icons-material/Speed';
-import QueryStatsIcon from '@mui/icons-material/QueryStats';
 // WaterIcon removed; irrigation weekly sum no longer shown
 import WavesIcon from '@mui/icons-material/Waves';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
@@ -516,15 +515,6 @@ const BewaesserungPage = () => {
                               <ListItemText
                                 primary={`Regenrate (aktuell)`}
                                 secondary={`${response.rainRate.toFixed(1)} mm/h`}
-                                slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
-                              />
-                            </ListItem>
-                            <Divider component="li" />
-                            <ListItem>
-                              <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><QueryStatsIcon color="action" /></ListItemIcon>
-                              <ListItemText
-                                primary={`Prognose (morgen, gewichtet)`}
-                                secondary={`${response.rainNextDay.toFixed(1)} mm × ${response.rainProbNextDay.toFixed(0)} % Wahrscheinlichkeit = ${response.effectiveForecast.toFixed(1)} mm`}
                                 slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                               />
                             </ListItem>
