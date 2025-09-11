@@ -39,9 +39,14 @@ export function Ra(latDeg: number, doy: number) {
         (ws * Math.sin(lat) * Math.sin(d) + Math.cos(lat) * Math.cos(d) * Math.sin(ws));
 }
 
-// ───────────── Flux‑Query‑Builder ───────────────────────────────────────────
+// ───────────── Influx Abfragen (Rohdaten) ───────────────────────────────────
+// Für die Tagesmittel der Bewölkung werden Rohwerte (15‑min) der letzten 7
+// vollen Tage abgefragt und anschließend tagsüber (Sonnenaufgang‑bis‑Sonnenuntergang)
+// lokal gemittelt.
 
-const fluxDailySeriesLast7 = (bucket: string, m: string, field: string, fn: "min" | "max" | "mean") => `import "date"
+const LON = Number(process.env.LON ?? 11.5599);
+
+const fluxCloudsRawLast7 = (bucket: string, m: string, field: string) => `import "date"
 import "timezone"
 option location = timezone.location(name: "Europe/Rome")
 stop = date.truncate(t: now(), unit: 1d)
@@ -50,15 +55,78 @@ from(bucket: "${bucket}")
   |> range(start: start, stop: stop)
   |> filter(fn: (r) => r._measurement == "${m}")
   |> filter(fn: (r) => r._field == "${field}")
-  |> aggregateWindow(every: 1d, fn: ${fn}, createEmpty: true)
-  |> keep(columns: ["_time", "_value"])`;
+  |> keep(columns: ["_time", "_value"]) 
+  |> sort(columns: ["_time"])`;
 
-// Sensor-Queries for weekly computation only
+type CloudSample = { time: number; value: number };
 
-async function influxSeriesNumbers(flux: string): Promise<number[]> {
+async function influxCloudRawSeriesLast7(bucket: string): Promise<CloudSample[]> {
     const { querySingleData } = await import("../clients/influxdb-client.js");
+    const flux = fluxCloudsRawLast7(bucket, MEAS_CLOUDS, 'value_numeric');
     const rows: any[] = await querySingleData(flux as any);
-    return rows.map(r => parseFloat(r._value));
+    return rows
+        .map(r => ({ time: Date.parse(r._time as string), value: Number(r._value) }))
+        .filter(r => Number.isFinite(r.time) && Number.isFinite(r.value));
+}
+
+// ───────────── Sonnenauf-/untergang (NOAA‑Approx.) ─────────────────────────
+// Berechnet lokale Zeiten (Europe/Rome über JS‑Date mit lokaler TZ) für einen
+// gegebenen Tag. Rückgabe sind Datum/Zeiten im lokalen Kalendersinn.
+function normalizeDeg(d: number) { const n = d % 360; return n < 0 ? n + 360 : n; }
+function degToRad(d: number) { return (d * Math.PI) / 180; }
+
+function dayOfYearLocal(d: Date): number {
+    const start = new Date(d.getFullYear(), 0, 0);
+    const ms = d.getTime() - start.getTime();
+    return Math.floor(ms / 86400000);
+}
+
+function calcSunTimeHoursLocal(N: number, lat: number, lon: number, isSunrise: boolean, tzHours: number): number {
+    const lngHour = lon / 15;
+    const t = N + ((isSunrise ? 6 : 18) - lngHour) / 24;
+    const M = 0.9856 * t - 3.289;
+    let L = normalizeDeg(M + 1.916 * Math.sin(degToRad(M)) + 0.020 * Math.sin(2 * degToRad(M)) + 282.634);
+    let RA = (Math.atan(0.91764 * Math.tan(degToRad(L))) * 180) / Math.PI;
+    RA = normalizeDeg(RA);
+    // Quadrant correction
+    const Lquad = Math.floor(L / 90) * 90;
+    const RAquad = Math.floor(RA / 90) * 90;
+    RA = RA + (Lquad - RAquad);
+    RA = RA / 15;
+    const sinDec = 0.39782 * Math.sin(degToRad(L));
+    const cosDec = Math.cos(Math.asin(sinDec));
+    const zenith = 90.833; // "official" sunrise
+    const cosH = (Math.cos(degToRad(zenith)) - sinDec * Math.sin(degToRad(lat))) / (cosDec * Math.cos(degToRad(lat)));
+    // Guard: if sun never rises/sets (not expected at our latitude), fallback to 12h day
+    if (cosH > 1 || cosH < -1) {
+        return isSunrise ? 6 + tzHours : 18 + tzHours;
+    }
+    let H = Math.acos(cosH) * 180 / Math.PI;
+    H = isSunrise ? 360 - H : H;
+    H = H / 15;
+    const T = H + RA - 0.06571 * t - 6.622;
+    let UT = T - lngHour;
+    while (UT < 0) UT += 24; while (UT >= 24) UT -= 24;
+    const local = UT + tzHours;
+    return (local + 24) % 24;
+}
+
+import { getTimezoneOffset as getTzOffset } from "date-fns-tz";
+
+export function computeSunTimesLocal(day: Date, lat: number, lon: number, timeZone = "Europe/Rome") {
+    const base = new Date(day.getFullYear(), day.getMonth(), day.getDate()); // local midnight
+    const tzMs = getTzOffset(timeZone, base); // e.g., 7200000 for CEST
+    const tzHours = tzMs / 3600000;
+    const N = dayOfYearLocal(base);
+    const srH = calcSunTimeHoursLocal(N, lat, lon, true, tzHours);
+    const ssH = calcSunTimeHoursLocal(N, lat, lon, false, tzHours);
+    const mkDate = (hours: number) => {
+        const h = Math.floor(hours);
+        const m = Math.floor((hours - h) * 60);
+        const s = Math.floor((hours - h - m / 60) * 3600);
+        return new Date(base.getFullYear(), base.getMonth(), base.getDate(), h, m, s, 0);
+    };
+    return { sunrise: mkDate(srH), sunset: mkDate(ssH) };
 }
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
@@ -145,9 +213,7 @@ export async function computeWeeklyET0(): Promise<number> {
         // Align to local midnight (today 00:00) to cover the previous 7 full days
         const localMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
         const SEVEN_DAYS = 7 * 24 * 3600;
-        const [cloudsRaw] = await Promise.all([
-            influxSeriesNumbers(fluxDailySeriesLast7(CLOUD_BUCKET, MEAS_CLOUDS, 'value_numeric', 'mean')),
-        ] as const);
+        const cloudSamples = await influxCloudRawSeriesLast7(CLOUD_BUCKET);
         
         // Read daily aggregates (preferred) and 7-day means (fallbacks)
         const [daily, agg] = await Promise.all([
@@ -165,19 +231,48 @@ export async function computeWeeklyET0(): Promise<number> {
         const n = 7;
         const idx = Array.from({ length: n }, (_, i) => i);
 
-        // Ensure we have 7 usable cloud values [0..100], fill gaps with last valid or 60 %
-        const cloudsW: number[] = [];
-        let lastValid = 60; // default fallback
+        // Tagesmittel per Tag: nur Samples zwischen Sonnenaufgang und Sonnenuntergang (lokal)
+        const startWindow = new Date(localMidnight);
+        startWindow.setDate(startWindow.getDate() - 7);
+        const dayStart: Date[] = [];
         for (let i = 0; i < n; i++) {
-            const v = Number.isFinite(cloudsRaw?.[i]) ? Number(cloudsRaw[i]) : NaN;
-            if (Number.isFinite(v)) {
-                lastValid = clamp(v, 0, 100);
+            const d = new Date(startWindow);
+            d.setDate(startWindow.getDate() + i);
+            dayStart.push(d);
+        }
+        const dayEnd = dayStart.map(d => { const e = new Date(d); e.setDate(e.getDate() + 1); return e; });
+        const sunTimes = dayStart.map(d => computeSunTimesLocal(d, LAT, LON));
+        // Mittelwerte pro Tag (tagsüber)
+        const cloudsDailyRaw: Array<number | null> = [];
+        for (let i = 0; i < n; i++) {
+            const { sunrise, sunset } = sunTimes[i];
+            const vals: number[] = [];
+            for (const s of cloudSamples) {
+                const t = new Date(s.time);
+                if (t >= dayStart[i] && t < dayEnd[i] && t >= sunrise && t <= sunset) {
+                    vals.push(s.value);
+                }
+            }
+            if (vals.length > 0) {
+                const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+                cloudsDailyRaw.push(mean);
+            } else {
+                cloudsDailyRaw.push(null);
+            }
+        }
+        // Gaps schließen: Last‑valid, initial 60%
+        const cloudsW: number[] = [];
+        let lastValid = 60;
+        for (let i = 0; i < n; i++) {
+            const v = cloudsDailyRaw[i];
+            if (Number.isFinite(v as number)) {
+                lastValid = clamp(v as number, 0, 100);
                 cloudsW.push(lastValid);
             } else {
                 cloudsW.push(lastValid);
             }
         }
-        logger.info(`[ET0] Cloud cover daily means used: ${cloudsW.map(v => v.toFixed(0)).join(', ')} %`, { label: 'Evapotranspiration' });
+        logger.info(`[ET0] Cloud cover daily means (daylight-only) used: ${cloudsW.map(v => v.toFixed(0)).join(', ')} %`, { label: 'Evapotranspiration' });
         
         const et0s: number[] = [];
         for (const i of idx) {

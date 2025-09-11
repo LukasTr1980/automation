@@ -9,7 +9,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "eslint . --cache",
-    "et0": "npm run build && node build/tools/et0cli.js"
+    "et0": "npm run build && node build/tools/et0cli.js",
+    "test:suntimes": "npm run build && node build/utils/evapotranspiration.test.js"
   },
   "keywords": [],
   "author": "",

@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Backend/Utils: Exported `computeSunTimesLocal` and added a lightweight test script for sunrise/sunset plausibility.
+- Backend/Scripts: `npm run test:suntimes` builds and runs `build/utils/evapotranspiration.test.js`, printing sunrise, sunset, and day length for sample dates.
+
+### Changed
+- Backend/ET₀: Cloud cover daily means now use daylight-only samples (between local sunrise and sunset, DST-aware via `Europe/Rome`) instead of full-day or fixed-hour windows. This improves Angström–Prescott (n/N) realism and downstream ET₀.
+- Backend/ET₀: Logging clarifies when daylight-only cloud means are used.
+
+### Removed
+- Backend/ET₀: Deleted unused Flux daily aggregation helper and related function in `evapotranspiration.ts` that previously filtered by fixed hours.
+
+### Notes
+- No API changes. Behavior change only affects weekly ET₀ computation and depends on `dwd.clouds` 15‑min series availability.
 
 ## [v19.22.0] - 2025-09-09
 ### Added
