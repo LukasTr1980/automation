@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v19.23.0] - 2025-09-12
 ### Added
 - Backend/Utils: Exported `computeSunTimesLocal` and added a lightweight test script for sunrise/sunset plausibility.
 - Backend/Scripts: `npm run test:suntimes` builds and runs `build/utils/evapotranspiration.test.js`, printing sunrise, sunset, and day length for sample dates.
