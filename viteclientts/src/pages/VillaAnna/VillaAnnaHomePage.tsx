@@ -311,7 +311,7 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 140, md: 160 },
+              minHeight: { xs: 120, md: 140 },
               position: 'relative'
             }}>
               {decisionLoading && (
@@ -321,14 +321,16 @@ const HomePage = () => {
                 sx={{
                   height: '100%',
                   display: 'grid',
-                  gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' },
+                  gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' },
                   justifyItems: 'center',
-                  rowGap: 0.75,
-                  textAlign: 'center'
+                  rowGap: { xs: 0.5, md: 0.5 },
+                  textAlign: 'center',
+                  px: { xs: 1, md: 1.5 },
+                  py: { xs: 1, md: 1.25 },
                 }}
               >
-                <Avatar sx={{ bgcolor: 'error.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
-                  <Block sx={{ fontSize: { xs: 26, md: 30 } }} />
+                <Avatar sx={{ bgcolor: 'error.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
+                  <Block sx={{ fontSize: { xs: 24, md: 28 } }} />
                 </Avatar>
                 <Typography variant="body2" sx={{ opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
                   Blocker
@@ -387,15 +389,15 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 140, md: 160 },
+              minHeight: { xs: 120, md: 140 },
               position: 'relative'
             }}>
               {decisionLoading && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
-              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
-                <Avatar sx={{ bgcolor: 'success.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
-                  <Inventory2Outlined sx={{ fontSize: { xs: 26, md: 30 } }} />
+              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' }, justifyItems: 'center', rowGap: { xs: 0.5, md: 0.5 }, px: { xs: 1, md: 1.5 }, py: { xs: 1, md: 1.25 } }}>
+                <Avatar sx={{ bgcolor: 'success.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
+                  <Inventory2Outlined sx={{ fontSize: { xs: 24, md: 28 } }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
@@ -407,7 +409,7 @@ const HomePage = () => {
                     iconSize={16}
                   />
                 </Box>
-                <Box sx={{ width: '100%', maxWidth: 240, px: 2 }}>
+                <Box sx={{ maxWidth: 240, mx: 'auto', px: 0, display: 'grid', justifyItems: 'center' }}>
                   {(() => {
                     const s = decision?.soilStorageMm;
                     const cap = decision?.tawMm;
@@ -416,23 +418,44 @@ const HomePage = () => {
                       : null;
                     return (
                       <>
-                        <LinearProgress
-                          variant={pct === null ? 'indeterminate' : 'determinate'}
-                          value={pct ?? undefined}
-                          aria-label="Füllstand Boden‑Speicher"
-                          sx={{ height: 8, borderRadius: 5, backgroundColor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 5 } }}
-                        />
-                        <Typography variant="h6" sx={{ fontWeight: 600, mt: 1 }}>
+                        {/* Progress bar */}
+                        <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
+                          <LinearProgress
+                            variant={pct === null ? 'indeterminate' : 'determinate'}
+                            value={pct ?? undefined}
+                            aria-label="Füllstand Boden‑Speicher"
+                            sx={{ width: { xs: 120, md: 140 }, height: 8, borderRadius: 5, backgroundColor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 5 } }}
+                          />
+                        </Box>
+                        {/* Value under bar */}
+                        <Typography variant="h6" sx={{ fontWeight: 600, mt: 0.5, fontSize: { xs: '1.05rem', md: '1.25rem' } }}>
                           {typeof s === 'number' && typeof cap === 'number' ? (
-                            <Box component="span" sx={{ display: 'inline-block', minWidth: '10ch', fontVariantNumeric: 'tabular-nums' }}>
-                              {s.toFixed(1)} mm / {cap.toFixed(0)} mm
+                            <Box component="span" sx={{ display: 'inline-block', minWidth: '10ch', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                              {`${s.toFixed(1)}\u202Fmm / ${cap.toFixed(0)}\u202Fmm`}
                             </Box>
                           ) : (
                             <Box component="span" sx={{ color: 'text.secondary' }}>k. A.</Box>
                           )}
                         </Typography>
+                        {/* Updated line below value */}
+                        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.25 }} aria-live="polite">
+                          {(() => {
+                            const ts = decision?.soilUpdatedAt ?? null;
+                            if (!ts) return 'Aktualisiert: unbekannt';
+                            try {
+                              const d = new Date(ts);
+                              const now = new Date();
+                              const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+                              const time = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(d);
+                              if (sameDay) return `Aktualisiert: ${time}`;
+                              const date = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(d);
+                              return `Aktualisiert: ${date}, ${time}`;
+                            } catch {
+                              return 'Aktualisiert: unbekannt';
+                            }
+                          })()}
+                        </Typography>
                         {/* Status chips (z. B. "Nicht trocken genug") entfernt – Redundanz mit Blocker-Anzeige */}
-                        {/* Boden‑Speicher Aktualisierungshinweis wurde in die Schnellübersicht (Freshness) verschoben */}
                       </>
                     );
                   })()}
@@ -445,15 +468,15 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 140, md: 160 },
+              minHeight: { xs: 120, md: 140 },
               position: 'relative'
             }}>
               {(et0YesterdayQuery.isFetching || weatherQuery.isFetching) && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
-              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
-                <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
-                  <WavesIcon sx={{ fontSize: { xs: 26, md: 30 } }} />
+              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' }, justifyItems: 'center', rowGap: { xs: 0.5, md: 0.5 }, px: { xs: 1, md: 1.5 }, py: { xs: 1, md: 1.25 } }}>
+                <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
+                  <WavesIcon sx={{ fontSize: { xs: 24, md: 28 } }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
@@ -494,15 +517,15 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 140, md: 160 },
+              minHeight: { xs: 120, md: 140 },
               position: 'relative'
             }}>
               {scheduleQuery.isFetching && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
-              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' }, justifyItems: 'center', rowGap: 0.75 }}>
-                <Avatar sx={{ bgcolor: 'secondary.main', color: 'common.white', width: { xs: 48, md: 56 }, height: { xs: 48, md: 56 }, alignSelf: 'center' }}>
-                  <Schedule sx={{ fontSize: { xs: 26, md: 30 } }} />
+              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' }, justifyItems: 'center', rowGap: { xs: 0.5, md: 0.5 }, px: { xs: 1, md: 1.5 }, py: { xs: 1, md: 1.25 } }}>
+                <Avatar sx={{ bgcolor: 'secondary.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
+                  <Schedule sx={{ fontSize: { xs: 24, md: 28 } }} />
                 </Avatar>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Nächster Zeitplan
@@ -540,25 +563,27 @@ const HomePage = () => {
 
           {/* Bewölkung (aktuell) */}
           <Grid size={{ xs: 6, md: 3 }}>
-            <Card variant="outlined" sx={{ borderRadius: 2, height: '100%', minHeight: { xs: 140, md: 160 }, position: 'relative' }}>
+            <Card variant="outlined" sx={{ borderRadius: 2, height: '100%', minHeight: { xs: 120, md: 140 }, position: 'relative' }}>
               {cloudQuery.isFetching && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
               <CardContent sx={{
                 display: 'grid',
-                gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' },
+                gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' },
                 justifyItems: 'center',
-                rowGap: 0.75,
+                rowGap: { xs: 0.5, md: 0.5 },
                 textAlign: 'center',
                 height: '100%',
+                px: { xs: 1, md: 1.5 },
+                py: { xs: 1, md: 1.25 },
               }}>
                 <Avatar sx={{
                   bgcolor: (typeof cloudQuery.data?.cloud === 'number')
                     ? ((cloudQuery.data!.cloud as number) <= 10 ? 'warning.main' : 'grey.700')
                     : 'transparent',
                   color: 'common.white',
-                  width: { xs: 48, md: 56 },
-                  height: { xs: 48, md: 56 },
+                  width: { xs: 44, md: 52 },
+                  height: { xs: 44, md: 52 },
                   alignSelf: 'center',
                   border: (typeof cloudQuery.data?.cloud === 'number') ? 'none' : '1px solid',
                   borderColor: (typeof cloudQuery.data?.cloud === 'number') ? 'transparent' : 'divider',
@@ -586,8 +611,8 @@ const HomePage = () => {
         </Grid>
 
         {/* Schnellübersicht: outlined Card, compact and responsive */}
-        <Card variant="outlined" sx={{ mt: { xs: 1.5, md: 2 }, mb: { xs: 2, md: 3 }, borderRadius: 2 }}>
-          <CardContent sx={{ pt: 2 }}>
+        <Card variant="outlined" sx={{ mt: { xs: 1, md: 1.5 }, mb: { xs: 1.5, md: 2 }, borderRadius: 2 }}>
+          <CardContent sx={{ pt: { xs: 1, md: 1.25 }, pb: { xs: 1, md: 1.25 }, px: { xs: 1, md: 1.5 } }}>
             <Typography component="h2" variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}>
               Schnellübersicht
             </Typography>
@@ -600,7 +625,7 @@ const HomePage = () => {
                 md: '1.05fr 0.95fr 1.4fr',
               },
               columnGap: { xs: 0, md: 2 },
-              rowGap: { xs: 1, md: 0 },
+              rowGap: { xs: 0.75, md: 0 },
               alignItems: 'stretch',
             }}>
               {/* Freshness */}
@@ -610,6 +635,7 @@ const HomePage = () => {
                   aggregatesTimestamp={aggregatesTimestamp}
                   meansTimestamp={meansTimestamp}
                   soilUpdatedAt={decision?.soilUpdatedAt ?? null}
+                  hideSoilFreshness
                   clientIsFetching={weatherQuery.isFetching}
                   clientIsError={weatherQuery.isError as boolean}
                   clientUpdatedAt={weatherQuery.dataUpdatedAt}

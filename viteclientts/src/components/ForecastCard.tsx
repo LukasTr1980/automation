@@ -20,26 +20,28 @@ export default function ForecastCard({ loading = false, rainNextDay = null, rain
   }, [hasValues, rainNextDay, rainProbNextDay]);
 
   return (
-    <Card variant="outlined" sx={{ borderRadius: 2, position: 'relative', height: '100%', minHeight: { xs: 140, md: 160 } }}>
+    <Card variant="outlined" sx={{ borderRadius: 2, position: 'relative', height: '100%', minHeight: { xs: 120, md: 140 } }}>
       {loading && (
         <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
       )}
       <CardContent
         sx={{
           display: 'grid',
-          gridTemplateRows: { xs: '56px auto auto', md: '64px auto auto' },
+          gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' },
           justifyItems: 'center',
-          rowGap: 0.75,
+          rowGap: { xs: 0.5, md: 0.5 },
           textAlign: 'center',
           height: '100%',
+          px: { xs: 1, md: 1.5 },
+          py: { xs: 1, md: 1.25 },
         }}
       >
         <Avatar
           sx={{
             bgcolor: forecastRain === null ? 'transparent' : (forecastRain ? 'primary.main' : 'success.main'),
             color: forecastRain === null ? undefined : 'common.white',
-            width: { xs: 48, md: 56 },
-            height: { xs: 48, md: 56 },
+            width: { xs: 44, md: 52 },
+            height: { xs: 44, md: 52 },
             alignSelf: 'center',
             border: forecastRain === null ? '1px solid' : 'none',
             borderColor: forecastRain === null ? 'divider' : 'transparent',
@@ -52,7 +54,7 @@ export default function ForecastCard({ loading = false, rainNextDay = null, rain
               src={umbrellaUrl}
               alt=""
               aria-hidden
-              sx={{ width: { xs: 26, md: 30 }, height: { xs: 26, md: 30 }, display: 'block', filter: 'brightness(0) invert(1)' }}
+              sx={{ width: { xs: 24, md: 28 }, height: { xs: 24, md: 28 }, display: 'block', filter: 'brightness(0) invert(1)' }}
             />
           ) : (
             <Box
@@ -60,7 +62,7 @@ export default function ForecastCard({ loading = false, rainNextDay = null, rain
               src={sunUrl}
               alt=""
               aria-hidden
-              sx={{ width: { xs: 26, md: 30 }, height: { xs: 26, md: 30 }, display: 'block', filter: 'brightness(0) invert(1)' }}
+              sx={{ width: { xs: 24, md: 28 }, height: { xs: 24, md: 28 }, display: 'block', filter: 'brightness(0) invert(1)' }}
             />
           )}
         </Avatar>
@@ -77,13 +79,13 @@ export default function ForecastCard({ loading = false, rainNextDay = null, rain
               iconSize={16}
             />
           </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
+          <Typography variant="h6" sx={{ fontWeight: 600, mt: 0.25, fontSize: { xs: '1.05rem', md: '1.25rem' } }} aria-live="polite">
             {hasValues
               ? `${(rainNextDay as number).toFixed(1)} mm · ${(rainProbNextDay as number).toFixed(0)} %`
               : 'k. A.'}
           </Typography>
           {forecastRain !== null && (
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
               {forecastRain ? 'Regen vorhergesagt' : 'Kein Regen erwartet'}
             </Typography>
           )}

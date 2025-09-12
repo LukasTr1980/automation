@@ -7,6 +7,8 @@ type Props = {
   aggregatesTimestamp?: string | null;
   meansTimestamp?: string | null;
   soilUpdatedAt?: string | null;
+  // When true, hides the soil-bucket freshness row (used on Home page where it moves into the card)
+  hideSoilFreshness?: boolean;
   clientIsFetching: boolean;
   clientIsError: boolean;
   clientUpdatedAt?: number;
@@ -43,6 +45,7 @@ export default function FreshnessStatus({
   aggregatesTimestamp,
   meansTimestamp,
   soilUpdatedAt,
+  hideSoilFreshness = false,
   clientIsFetching,
   clientIsError,
   clientUpdatedAt,
@@ -107,21 +110,23 @@ export default function FreshnessStatus({
         />
       </Box>
 
-      {/* Soil storage freshness */}
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' }, whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
-        <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: soilStatus.color, flex: '0 0 auto' }} />
-        <Typography variant="body2" color="text.secondary">
-          {soilStatus.label}
-        </Typography>
-        <InfoPopover
-          ariaLabel="Boden‑Speicher Aktualisierung"
-          content={(() => {
-            const when = soilUpdatedAt ? formatDateTimeDE(soilUpdatedAt) : 'unbekannt';
-            return `Letzte Aktualisierung: ${when}. Der Boden‑Speicher wird täglich nach Mitternacht (ca. 00:45) anhand von ET₀ (gestern) und Tagesniederschlag neu berechnet.`;
-          })()}
-          iconSize={16}
-        />
-      </Box>
+      {/* Soil storage freshness (optional) */}
+      {!hideSoilFreshness && (
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' }, whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
+          <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: soilStatus.color, flex: '0 0 auto' }} />
+          <Typography variant="body2" color="text.secondary">
+            {soilStatus.label}
+          </Typography>
+          <InfoPopover
+            ariaLabel="Boden‑Speicher Aktualisierung"
+            content={(() => {
+              const when = soilUpdatedAt ? formatDateTimeDE(soilUpdatedAt) : 'unbekannt';
+              return `Letzte Aktualisierung: ${when}. Der Boden‑Speicher wird täglich nach Mitternacht (ca. 00:45) anhand von ET₀ (gestern) und Tagesniederschlag neu berechnet.`;
+            })()}
+            iconSize={16}
+          />
+        </Box>
+      )}
 
       {/* Client freshness */}
       <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' }, whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>

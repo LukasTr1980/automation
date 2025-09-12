@@ -9,16 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Backend/Utils: Exported `computeSunTimesLocal` and added a lightweight test script for sunrise/sunset plausibility.
 - Backend/Scripts: `npm run test:suntimes` builds and runs `build/utils/evapotranspiration.test.js`, printing sunrise, sunset, and day length for sample dates.
+- Frontend/Freshness: New optional prop `hideSoilFreshness` on `FreshnessStatus` to suppress the soil-bucket freshness row when the timestamp is rendered inside the Soil Storage card.
 
 ### Changed
 - Backend/ET₀: Cloud cover daily means now use daylight-only samples (between local sunrise and sunset, DST-aware via `Europe/Rome`) instead of full-day or fixed-hour windows. This improves Angström–Prescott (n/N) realism and downstream ET₀.
 - Backend/ET₀: Logging clarifies when daylight-only cloud means are used.
+- Frontend (Home/Soil Storage): Moved the soil-bucket "last updated" information from the overview to the Soil Storage card itself. The card now shows the progress bar, then the value line `S mm / capacity mm`, and below that the "Aktualisiert: HH:MM" line.
+- Frontend (Home): Tightened spacing on all small status cards (Blockers, Soil Storage, Evaporation, Next Schedule, Cloud Cover) — reduced min-heights, smaller avatars on xs/md, and lower CardContent padding and row gaps for a more compact layout.
+- Frontend (Home): Unified centering rules and sizing so the Soil Storage card aligns visually with "Next Schedule" and the other cards.
+- Frontend (Home/ForecastCard): Matched card structure to status cards (minHeight, grid rows, paddings, avatar/icon sizes) for consistent look and feel.
 
 ### Removed
 - Backend/ET₀: Deleted unused Flux daily aggregation helper and related function in `evapotranspiration.ts` that previously filtered by fixed hours.
 
 ### Notes
 - No API changes. Behavior change only affects weekly ET₀ computation and depends on `dwd.clouds` 15‑min series availability.
+
+### Fixed
+- Frontend (Home/Soil Storage): Fixed layout overlap and subtle right drift on desktop; progress/value/updated lines are now centered and wrap safely on small widths without clipping.
+- Frontend (Home): Removed the duplicate soil-bucket freshness line from the overview once the timestamp is displayed inside the card.
 
 ## [v19.22.0] - 2025-09-09
 ### Added
