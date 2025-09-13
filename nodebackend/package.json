@@ -28,7 +28,7 @@
     "node-schedule": "^2.1.1",
     "node-vault": "^0.10.2",
     "socket.io": "^4.7.5",
-    "uuid": "^11",
+    "uuid": "^13.0.0",
     "winston": "^3.11.0"
   },
   "devDependencies": {
