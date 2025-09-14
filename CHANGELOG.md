@@ -6,7 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Dependencie upgrade uuid from v11 to v13
+
+## [v19.24.0] - 2025-09-14
+### Changed
+- Backend: Upgrade Express from 4.18 to 5.x; replaced `bodyParser.json()` with `express.json()`; updated SPA catch-all route to a path-to-regexp v3+ compatible RegExp that excludes `/api` to preserve JSON 404 semantics.
+- Backend: Upgrade `dotenv` from v16 to v17; set `quiet: true` on `config()` to suppress new default runtime logs; no functional changes.
+- Backend: Upgrade `express-rate-limit` from v7 to v8; existing options (`windowMs`, `max`, custom `handler`) remain compatible.
+- Backend: Upgrade `uuid` from v11 to v13; existing ESM usage `import { v4 as uuidv4 } from 'uuid'` remains compatible.
+- Frontend build: Upgrade Vite from v6 to v7 and `@vitejs/plugin-react` from v4 to v5; production build validated.
+
+### Notes
+- Engines: Vite 7 and `@vitejs/plugin-react` 5 require Node ^20.19.0 or >=22.12.0 (Docker uses Node 22).
+- Express 5 uses path-to-regexp v3+; avoid string paths like `'/*'`—use a RegExp or `:param(*)` pattern for catch-all routes.
 
 ## [v19.23.0] - 2025-09-12
 ### Added

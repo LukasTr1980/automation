@@ -9,7 +9,8 @@ const devEnvPath = path.join(__dirname, '..', '.env.dev');
 const isDev = fs.existsSync(devEnvPath);
 
 if (isDev) {
-    dotenv.config({ path: devEnvPath });
+    // Suppress the informational runtime log introduced in dotenv v17
+    dotenv.config({ path: devEnvPath, quiet: true });
 }
 
 interface Config {

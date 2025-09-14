@@ -1,7 +1,6 @@
 //ATTENTION TO IMPORT ORDER, MAY BREAK APPLICATION
 import './dotenvConfig.js'; //To make env variables immediately available
 import express, { Request, Response } from 'express';
-import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import http from 'http';
@@ -21,7 +20,8 @@ const __dirname = path.dirname(__filename);
 const clientAppDistPath = isDev ? path.join(__dirname, '..', 'viteclientts', 'dist') : '/usr/src/viteclientts/dist/';
 
 app.set('trust proxy', 1);
-app.use(bodyParser.json());
+// Use built-in body parsing provided by Express 5
+app.use(express.json());
 
 // CSP and security headers are handled by Traefik ForwardAuth; no app-level CSP here.
 
@@ -54,7 +54,9 @@ process.once('SIGTERM', shutdown);
 
 app.use(apiLimiter, express.static(path.join(clientAppDistPath)));
 
-app.get('*', apiLimiter, (req: Request, res: Response) => {
+// Catch-all for SPA routes. In Express 5 (path-to-regexp v3+), use a RegExp.
+// Exclude API paths explicitly to avoid hijacking unknown API routes.
+app.get(/^(?!\/api(?:$|\/)).*/, apiLimiter, (req: Request, res: Response) => {
   res.sendFile(path.join(clientAppDistPath, 'index.html'));
 });
 
