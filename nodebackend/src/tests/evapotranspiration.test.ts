@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { computeSunTimesLocal } from './evapotranspiration.js';
+import { computeSunTimesLocal } from '../utils/evapotranspiration.js';
 
 function hm(d: Date) {
   return d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
