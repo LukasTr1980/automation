@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Backend (Soil Bucket): Queue each day's irrigation depth in Redis and apply it during the midnight soil balance job so sequential zones no longer trigger premature dryness blockers.
+
 ## [v19.24.0] - 2025-09-14
 ### Changed
 - Backend: Upgrade Express from 4.18 to 5.x; replaced `bodyParser.json()` with `express.json()`; updated SPA catch-all route to a path-to-regexp v3+ compatible RegExp that excludes `/api` to preserve JSON 404 semantics.
