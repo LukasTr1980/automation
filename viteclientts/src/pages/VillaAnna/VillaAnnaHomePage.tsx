@@ -137,6 +137,19 @@ const HomePage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+  const cloudValue = cloudQuery.data?.cloud;
+  const hasCloudValue = typeof cloudValue === 'number';
+  const isSunny = hasCloudValue && (cloudValue as number) <= 10;
+  const isLightCloud = hasCloudValue && (cloudValue as number) > 10 && (cloudValue as number) < 33;
+  const cloudAvatarBg = !hasCloudValue
+    ? 'transparent'
+    : isSunny
+      ? 'warning.light'
+      : isLightCloud
+        ? 'grey.400'
+        : 'grey.700';
+  const cloudAvatarColor = 'common.white';
+  const cloudIconFilter = 'brightness(0) invert(1)';
   // Derive values from weather query
   const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
@@ -475,7 +488,7 @@ const HomePage = () => {
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
               <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' }, justifyItems: 'center', rowGap: { xs: 0.5, md: 0.5 }, px: { xs: 1, md: 1.5 }, py: { xs: 1, md: 1.25 } }}>
-                <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
+                <Avatar sx={{ bgcolor: 'warning.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
                   <WavesIcon sx={{ fontSize: { xs: 24, md: 28 } }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
@@ -578,22 +591,20 @@ const HomePage = () => {
                 py: { xs: 1, md: 1.25 },
               }}>
                 <Avatar sx={{
-                  bgcolor: (typeof cloudQuery.data?.cloud === 'number')
-                    ? ((cloudQuery.data!.cloud as number) <= 10 ? 'warning.main' : 'grey.700')
-                    : 'transparent',
-                  color: 'common.white',
+                  bgcolor: cloudAvatarBg,
+                  color: cloudAvatarColor,
                   width: { xs: 44, md: 52 },
                   height: { xs: 44, md: 52 },
                   alignSelf: 'center',
-                  border: (typeof cloudQuery.data?.cloud === 'number') ? 'none' : '1px solid',
-                  borderColor: (typeof cloudQuery.data?.cloud === 'number') ? 'transparent' : 'divider',
+                  border: hasCloudValue ? 'none' : '1px solid',
+                  borderColor: hasCloudValue ? 'transparent' : 'divider',
                 }}>
                   {(() => {
                     const v = cloudQuery.data?.cloud;
                     if (typeof v !== 'number') return null;
                     const url = v <= 10 ? sunUrl : (v < 33 ? cloud25Url : v < 75 ? cloud50Url : cloud100Url);
                     return (
-                      <Box component="img" src={url} alt="" aria-hidden sx={{ width: { xs: 26, md: 30 }, height: { xs: 26, md: 30 }, display: 'block', filter: 'brightness(0) invert(1)' }} />
+                      <Box component="img" src={url} alt="" aria-hidden sx={{ width: { xs: 26, md: 30 }, height: { xs: 26, md: 30 }, display: 'block', filter: cloudIconFilter }} />
                     );
                   })()}
                 </Avatar>

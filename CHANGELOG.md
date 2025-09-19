@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.24.1] - 2025-09-19
+
 ### Changed
 - Backend (Soil Bucket): Queue each day's irrigation depth in Redis and apply it during the midnight soil balance job so sequential zones no longer trigger premature dryness blockers.
+- Frontend (Home/Evaporation): Updated the Verdunstung card avatar to a warm warning tone so the icon no longer resembles water controls.
+- Frontend (Home/Forecast & Cloud Cover): Adjusted sunny states to use the yellow warning palette and lightened lightly cloudy avatars while keeping the sun glyph white for consistent iconography.
 
 ## [v19.24.0] - 2025-09-14
 ### Changed

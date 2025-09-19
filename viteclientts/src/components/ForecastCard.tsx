@@ -38,7 +38,7 @@ export default function ForecastCard({ loading = false, rainNextDay = null, rain
       >
         <Avatar
           sx={{
-            bgcolor: forecastRain === null ? 'transparent' : (forecastRain ? 'primary.main' : 'success.main'),
+            bgcolor: forecastRain === null ? 'transparent' : (forecastRain ? 'primary.main' : 'warning.light'),
             color: forecastRain === null ? undefined : 'common.white',
             width: { xs: 44, md: 52 },
             height: { xs: 44, md: 52 },
