@@ -1,9 +1,8 @@
-import { queryAllData } from "./clients/influxdb-client.js";
-import type { WeatherData } from "./clients/influxdb-client.js";
 import logger from "./logger.js";
 import { readLatestWeatherFromRedis } from "./utils/weatherLatestStorage.js";
 import { readWeatherAggregatesFromRedis } from "./utils/weatherAggregatesStorage.js";
 import { ensureSoilBucket, getTawMm } from "./utils/soilBucket.js";
+import { readLatestOdhRainForecast } from "./utils/odhRainRecorder.js";
 
 // ---------- Frontend Contract (structured metrics) ---------------------------
 export interface DecisionMetrics {
@@ -30,13 +29,25 @@ export interface CompletionResponse {
 // ---------- Helpers ---------------------------------------------------------
 const fmt = (n: number, d = 1) => n.toFixed(d);
 
-type EnrichedWeatherData = WeatherData & { rainRate: number; rainToday: number; outTemp: number; humidity: number };
+type DecisionContext = {
+  rainNextDay: number;
+  rainProbNextDay: number;
+  rainRate: number;
+  rainToday: number;
+  outTemp: number;
+  humidity: number;
+};
 
 // ---------- Decision logic ---------------------------------------------------
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // 1) Gather current metrics plus weekly irrigation depth
-  const weatherData = await queryAllData();
   const zoneName = "lukasSued";
+  const odhForecast = await readLatestOdhRainForecast();
+  if (!odhForecast) {
+    logger.warn("[ODH] No next-day rain forecast found in QuestDB; defaulting to 0 values");
+  }
+  const rainNextDay = odhForecast?.rainTotalMm ?? 0;
+  const rainProbNextDay = odhForecast?.rainProbabilityMaxPct ?? 0;
   // Read rain rate from Redis latest cache
   let rainRateWL = 0;
   let wlOk = false;
@@ -71,13 +82,14 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // No WeatherLink API calls here; rely on Redis values
 
   // 2) Build typed, immutable data object
-  const d: EnrichedWeatherData = {
-    ...weatherData,
+  const d: DecisionContext = {
+    rainNextDay,
+    rainProbNextDay,
     rainToday,
     outTemp: outTemp7,
     humidity: humidity7,
     rainRate: wlOk ? rainRateWL : 0,
-  }
+  };
 
   if (wlOk) {
     logger.info(`[WEATHERLINK] rainRate OK: ${fmt(rainRateWL)} mm/h`);

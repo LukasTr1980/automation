@@ -18,7 +18,7 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 
 ## Repository Map
 - `nodebackend/`: TypeScript backend (ES modules). Source in `src/`, build in `build/`.
-  - Key folders: `clients/` (Vault, Redis, MQTT, InfluxDB), `routes/`, `middleware/`, `utils/`
+  - Key folders: `clients/` (Vault, Redis, MQTT, QuestDB), `routes/`, `middleware/`, `utils/`
   - Entry: `src/index.ts` (HTTP on port 8523)
 - `viteclientts/`: React + Vite + TypeScript client. Source in `src/`, static in `public/`, build in `dist/`.
 - CI & Ops: `.github/workflows/` (Docker build); multi‑stage `Dockerfile` builds backend and client.
@@ -347,7 +347,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Method & Ops
 - Formula: FAO‑56 Penman–Monteith (daily, G≈0). Daily values are stored and used for the soil‑bucket balance.
-- Radiation: Angström–Prescott with cloud‑cover daily means from Influx (defaults `a_s=0.25`, `b_s=0.50`).
+- Radiation: Angström–Prescott with cloud-cover daily means from QuestDB (defaults `a_s=0.25`, `b_s=0.50`).
 - Humidity: `ea = es * RHmean/100`, `es = (svp(Tmax)+svp(Tmin))/2`.
 - Wind: convert sensor height to 2 m using FAO log law.
 - Longwave: standard emissivity/cloud correction with clamps (avoid unrealistic `Rnl`).
@@ -355,7 +355,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Inputs (priority)
 - Redis `weather:daily:last7`: last 7 full local days → `tMinC`, `tMaxC`, `tAvgC`, `rhMeanPct`, `windMeanMS`, `pressureMeanHPa`.
 - Redis `weather:agg:latest`: 7‑day means fallback (Tavg, RH, wind, pressure, mean diurnal range).
-- Influx (cloud cover): daily means for the same 7‑day window.
+- QuestDB (cloud cover): daily means for the same 7-day window.
 
 ### Storage
 - Daily ET₀ values: `et0:daily:last7` (mm).

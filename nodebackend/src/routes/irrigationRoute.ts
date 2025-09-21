@@ -1,62 +1,61 @@
 import express, { Request, Response } from 'express';
-import { flux as fluxTag } from '@influxdata/influxdb-client';
 import logger from '../logger.js';
-import { getInfluxDbClientAutomation } from '../configs.js';
+import { execute } from '../clients/questdbClient.js';
 import { irrigationSwitchTopics, irrigationSwitchDescriptions } from '../utils/constants.js';
+import { QUESTDB_TABLE_IRRIGATION_START_EVENTS } from '../utils/irrigationStartRecorder.js';
 
 const router = express.Router();
 
-// Helper: map zone key (e.g., 'stefanNord') to human-readable label (e.g., 'Stefan Nord')
 function mapZoneLabel(zoneKey: string | undefined): string | null {
   if (!zoneKey) return null;
-  const idx = irrigationSwitchTopics.findIndex(t => t.endsWith('/' + zoneKey));
+  const idx = irrigationSwitchTopics.findIndex((topic) => topic.endsWith(`/${zoneKey}`));
   return idx >= 0 ? irrigationSwitchDescriptions[idx] : null;
 }
 
 router.get('/last', async (_req: Request, res: Response) => {
   try {
-    const influx = await getInfluxDbClientAutomation();
-    const queryApi = influx.getQueryApi('villaanna');
+    const result = await execute(
+      `SELECT event_ts, zone, recorded_via
+         FROM "${QUESTDB_TABLE_IRRIGATION_START_EVENTS}"
+         WHERE started = true
+         ORDER BY event_ts DESC
+         LIMIT 1`
+    );
 
-    // Find most recent irrigation_start across zones (looks back 365d)
-    const flux = fluxTag`
-      from(bucket: "automation")
-        |> range(start: -365d)
-        |> filter(fn: (r) => r["_measurement"] == "irrigation_start")
-        |> filter(fn: (r) => r["_field"] == "started")
-        |> keep(columns: ["_time", "_value", "zone"]) 
-        |> sort(columns: ["_time"], desc: true)
-        |> limit(n: 1)
-    `;
-
-    const rows: any[] = [];
-    await new Promise<void>((resolve, reject) => {
-      queryApi.queryRows(flux, {
-        next(row: unknown, tableMeta: any) {
-          rows.push(tableMeta.toObject(row as any));
-        },
-        error(err: unknown) {
-          logger.error('Error querying last irrigation from InfluxDB', err);
-          reject(err);
-        },
-        complete() {
-          resolve();
-        },
-      });
-    });
-
-    if (!rows.length) {
-      return res.json({ last: null, source: 'influx' });
+    if (!result.rowCount) {
+      return res.json({ last: null, source: 'questdb' });
     }
 
-    const row = rows[0];
-    const zoneKey = row.zone as string | undefined;
+    const row = result.rows[0] as Record<string, unknown>;
+    const zoneKey = typeof row.zone === 'string' ? row.zone : undefined;
     const zoneLabel = mapZoneLabel(zoneKey);
-    const timestamp = row._time as string; // ISO timestamp
+    const recordedVia = typeof row.recorded_via === 'string' ? row.recorded_via : null;
+    const timestampValue = row.event_ts;
+    let timestamp: string | null = null;
 
-    return res.json({ last: { timestamp, zone: zoneKey ?? null, zoneLabel }, source: 'influx' });
-  } catch (e) {
-    logger.error('Failed to fetch last irrigation from InfluxDB', e);
+    if (timestampValue instanceof Date) {
+      timestamp = timestampValue.toISOString();
+    } else if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
+      const parsed = new Date(timestampValue);
+      timestamp = Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+    }
+
+    if (!timestamp) {
+      logger.warn('QuestDB returned irrigation start without parsable timestamp', row);
+      return res.json({ last: null, source: 'questdb' });
+    }
+
+    return res.json({
+      last: {
+        timestamp,
+        zone: zoneKey ?? null,
+        zoneLabel,
+        recordedVia,
+      },
+      source: 'questdb',
+    });
+  } catch (error) {
+    logger.error('Failed to fetch last irrigation from QuestDB', error);
     return res.status(500).json({ error: 'failedToFetchLastIrrigation' });
   }
 });

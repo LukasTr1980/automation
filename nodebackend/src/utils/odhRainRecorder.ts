@@ -13,6 +13,7 @@ import logger from "../logger.js";
 import {
     insertRow as insertQuestDbRow,
     registerQuestDbTableSchema,
+    execute,
 } from "../clients/questdbClient.js";
 import {
     addDays,
@@ -110,4 +111,53 @@ export async function odhRecordNextDayRain() {
     const result = { date: tomorrowIso, rainSum, probMax };
     logger.info(`odhRecordNextDayRain → ${JSON.stringify(result)} (QuestDB)`);
     return result;
+}
+
+export interface OdhNextDayRainForecast {
+    observationTs: string;
+    forecastDateTs: string | null;
+    rainTotalMm: number;
+    rainProbabilityMaxPct: number;
+}
+
+export async function readLatestOdhRainForecast(): Promise<OdhNextDayRainForecast | null> {
+    const query = `
+        SELECT observation_ts, forecast_date_ts, rain_total_mm, rain_probability_max_pct
+        FROM "${QUESTDB_TABLE_FORECASTS}"
+        WHERE forecast_id = $1 AND language = $2
+        ORDER BY observation_ts DESC
+        LIMIT 1
+    `;
+
+    const result = await execute(query, [FC_ID, LANG]);
+    if (!result.rowCount || !result.rows.length) {
+        return null;
+    }
+
+    const row = result.rows[0] as Record<string, unknown>;
+
+    const toIsoString = (value: unknown): string | null => {
+        if (value instanceof Date) return value.toISOString();
+        if (typeof value === "string" || typeof value === "number") {
+            const parsed = new Date(value);
+            if (!Number.isNaN(parsed.getTime())) return parsed.toISOString();
+        }
+        return null;
+    };
+
+    const toNumber = (value: unknown): number => {
+        if (typeof value === "number" && Number.isFinite(value)) return value;
+        if (typeof value === "string" && value.trim() !== "") {
+            const parsed = Number(value);
+            if (Number.isFinite(parsed)) return parsed;
+        }
+        return 0;
+    };
+
+    return {
+        observationTs: toIsoString(row.observation_ts) ?? new Date().toISOString(),
+        forecastDateTs: toIsoString(row.forecast_date_ts),
+        rainTotalMm: toNumber(row.rain_total_mm),
+        rainProbabilityMaxPct: toNumber(row.rain_probability_max_pct),
+    };
 }

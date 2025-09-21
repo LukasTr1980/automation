@@ -14,7 +14,6 @@ if (isDev) {
 }
 
 interface Config {
-    influxDbUrl: string;
     baseUrl: string;
     redisHost: string;
     mongoDbHost: string;
@@ -25,7 +24,6 @@ interface Config {
 }
 
 const devConfig: Config = {
-    influxDbUrl: 'http://10.25.159.4:8086',
     baseUrl: 'http://192.168.1.2:8087',
     redisHost: '10.25.159.4',
     mongoDbHost: '10.25.159.4:27017',
@@ -36,7 +34,6 @@ const devConfig: Config = {
 }
 
 const prodConfig: Config = {
-    influxDbUrl: 'http://influxdb_container:8086',
     baseUrl: 'http://10.25.159.1:8087',
     redisHost: 'redis_container',
     mongoDbHost: 'mongo_container:27017',
@@ -49,7 +46,6 @@ const prodConfig: Config = {
 const selectedConfig: Config = isDev ? devConfig : prodConfig;
 
 export const {
-    influxDbUrl,
     baseUrl,
     redisHost,
     mongoDbHost,

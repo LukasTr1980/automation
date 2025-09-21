@@ -1,9 +1,9 @@
 import { EventEmitter } from 'events';
-import { writeToInflux } from '../clients/influxdb-client.js';
 import { mqttClientPromise } from '../clients/mqttClient.js';
 import { broadcastToSseClients, addSseClient } from './sseHandler.js';
 import logger from '../logger.js';
 import { irrigationSwitchTopics } from './constants.js';
+import { recordIrrigationSwitchEvent } from './irrigationSwitchRecorder.js';
 
 class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();
@@ -34,9 +34,9 @@ async function main() {
         // Broadcast the message to all active SSE clients
         broadcastToSseClients(topic, msg);
 
-        // Only write to Influx for specific topics
+        // Only log switch events for tracked irrigation topics
         if (mqttTopics.includes(topic)) {
-            await writeToInflux(topic, msg);
+            await recordIrrigationSwitchEvent(topic, msg, 'realtime');
         }
     });
 }
@@ -48,7 +48,9 @@ const SAVE_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
 setInterval(() => {
     for (const [topic, state] of Object.entries(latestStates)) {
         if (mqttTopics.includes(topic) && state !== null) {
-            writeToInflux(topic, state);
+            recordIrrigationSwitchEvent(topic, state, 'hourlySnapshot').catch((err) => {
+                logger.error('Failed to persist hourly switch snapshot to QuestDB', err);
+            });
         }
     }
 }, SAVE_INTERVAL);

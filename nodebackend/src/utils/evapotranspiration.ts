@@ -2,13 +2,13 @@
 // -----------------------------------------------------------------------------
 //  WEEKLY ET₀ (FAO‑56)
 //  – Inputs: 7‑day averages from Redis (Tavg, RH, Wind @ sensor height, Pressure, mean daily range)
-//  – Cloud cover daily means from Influx (measurement "dwd.clouds").
+//  - Cloud cover daily means sourced from QuestDB (table "weather_dwd_icon_observations").
 //  – Computes daily ET₀ for last 7 full days (approximation using 7‑day means) and
 //    uses cloud cover to estimate Rs via Angström–Prescott (n/N ≈ 1 − cloud/100).
 //  – Sums to a weekly value and stores the sum in Redis.
 // -----------------------------------------------------------------------------
 
-// NOTE: Avoid heavy imports (Vault/Influx/Redis) at module load to keep
+// NOTE: Avoid heavy imports (Vault/QuestDB/Redis) at module load to keep
 // manual testing cheap. These are dynamically imported inside functions.
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
@@ -36,9 +36,9 @@ export function Ra(latDeg: number, doy: number) {
         (ws * Math.sin(lat) * Math.sin(d) + Math.cos(lat) * Math.cos(d) * Math.sin(ws));
 }
 
-// ───────────── Influx Abfragen (Rohdaten) ───────────────────────────────────
-// Für die Tagesmittel der Bewölkung werden Rohwerte (15‑min) der letzten 7
-// vollen Tage abgefragt und anschließend tagsüber (Sonnenaufgang‑bis‑Sonnenuntergang)
+// ───────────── QuestDB Abfragen (Rohdaten) ──────────────────────────────────
+// Für die Tagesmittel der Bewölkung werden Rohwerte (15-min) der letzten 7
+// vollen Tage abgefragt und anschließend tagsüber (Sonnenaufgang-bis-Sonnenuntergang)
 // lokal gemittelt.
 
 const LON = Number(process.env.LON ?? 11.5599);
@@ -129,7 +129,7 @@ export function windAt2m(uAtZ: number, zMeters = 10): number {
 }
 
 // ───────────── Pure daily ET₀ (FAO‑56 Penman–Monteith) ─────────────────────
-// Allows manual testing with arbitrary inputs without touching Redis/Influx.
+// Allows manual testing with arbitrary inputs without touching Redis/QuestDB.
 export type DailyEt0Input = {
     doy: number;                     // day of year (1..366), local
     tminC: number;                   // °C

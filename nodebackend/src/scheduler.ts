@@ -9,7 +9,7 @@ import { computeWeeklyET0 } from './utils/evapotranspiration.js';
 import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
 import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
-import { recordIrrigationStartInflux } from './clients/influxdb-client.js';
+import { recordIrrigationStartQuestDb } from './utils/irrigationStartRecorder.js';
 import { dailySoilBalance, addIrrigationToGlobalBucketOnce } from './utils/soilBucket.js';
 import { broadcastPayloadToSseClients } from './utils/sseHandler.js';
 import { RUN_DEPTH_MM } from './utils/irrigationDepthService.js';
@@ -245,7 +245,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
               logger.error('Error while publishing message:', err);
             } else {
               logger.info(`Irrigation started for zone ${zoneName} (decision check skipped)`);
-              await recordIrrigationStartInflux(zoneName);
+              await recordIrrigationStartQuestDb(zoneName, 'skipDecisionCheck');
               try {
                 await addIrrigationToGlobalBucketOnce(RUN_DEPTH_MM);
                 // Notify SSE clients that a scheduled irrigation has started
@@ -265,7 +265,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
                 logger.error('Error while publishing message:', err);
               } else {
                 logger.info(`Irrigation started for zone ${zoneName}`);
-                await recordIrrigationStartInflux(zoneName);
+                await recordIrrigationStartQuestDb(zoneName, 'decisionApproved');
                 try {
                   await addIrrigationToGlobalBucketOnce(RUN_DEPTH_MM);
                   // Notify SSE clients that a scheduled irrigation has started

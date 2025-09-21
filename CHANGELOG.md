@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend/Dependencies: Added `pg` and `@types/pg` alongside a dedicated QuestDB client built on the Postgres wire protocol.
 - Backend/Config: Exposed `questDbHost` and `questDbPort` via `envSwitcher.ts` for dev and production environments.
 - Backend: Global QuestDB schema registry ensures tables are lazily created before inserts and deduplicates concurrent initialization.
+- Backend: Introduced irrigation event recorders for QuestDB (`irrigation_start_events`, `irrigation_switch_events`) used by MQTT and scheduler flows.
+- Backend: Added `readLatestOdhRainForecast()` helper to retrieve next-day rain totals/probabilities from QuestDB for decision logic and UI payloads.
 
 ### Changed
 - Backend (Server Startup): API boot now verifies QuestDB connectivity and closes the shared pool during shutdown to avoid hanging resources.
@@ -18,9 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend (Clouds API): `/api/clouds/current` now serves data from QuestDB instead of Influx, keeping all cloud cover reads on the new store.
 - Backend (ET₀): Weekly computation reads the last 7 days of daylight-only cloud samples from QuestDB, replacing the previous Flux query.
 - Backend (ODH Rain Recorder): Next-day rain amount/probability are stored in QuestDB (`weather_odh_rain_forecasts`) and no longer written to Influx.
+- Backend (Scheduler/MQTT): Manual and scheduled irrigation starts now persist to QuestDB; MQTT switch telemetry logs both live events and hourly snapshots via the new recorder helpers.
+- Backend (Irrigation): `/api/irrigation/last` queries QuestDB for the latest irrigation start (including recorded source metadata).
+- Backend (Decision): Irrigation decision payload reads next-day rain metrics from QuestDB instead of Influx and keeps `effectiveForecast` purely QuestDB-backed.
+- Docs: `AGENTS.md` updated to reference QuestDB everywhere Influx was previously mentioned.
 
 ### Removed
 - Backend/Tooling: Dropped the standalone QuestDB connection test script and npm alias in favor of the startup health check.
+- Backend/Infrastructure: Removed all remaining InfluxDB code paths (client, Flux queries, config tokens, dependency) now that QuestDB owns the telemetry pipeline.
 
 ## [v19.24.1] - 2025-09-19
 
