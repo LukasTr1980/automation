@@ -55,6 +55,10 @@ router.get('/last', async (_req: Request, res: Response) => {
       source: 'questdb',
     });
   } catch (error) {
+    if (error instanceof Error && error.message.includes('table does not exist')) {
+      logger.info('irrigation_start_events missing in QuestDB; returning empty last irrigation payload');
+      return res.json({ last: null, source: 'questdb' });
+    }
     logger.error('Failed to fetch last irrigation from QuestDB', error);
     return res.status(500).json({ error: 'failedToFetchLastIrrigation' });
   }
