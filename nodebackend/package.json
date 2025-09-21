@@ -29,13 +29,15 @@
     "node-vault": "^0.10.2",
     "socket.io": "^4.7.5",
     "uuid": "^13.0.0",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "pg": "^8.13.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@types/express": "^5",
     "@types/node": "^22.5.5",
     "@types/node-schedule": "^2.1.6",
+    "@types/pg": "^8.11.6",
     "eslint": "^9.10.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.2",

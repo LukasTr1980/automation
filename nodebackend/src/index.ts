@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import http from 'http';
 import { subscribeToRedisKey } from './clients/redisClient.js';
+import { closePool as closeQuestDbPool, verifyConnection as verifyQuestDbConnection } from './clients/questdbClient.js';
 import configureSocket from './socketConfig.js';
 import { loadScheduledTasks } from './scheduler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
@@ -45,6 +46,9 @@ httpServer.on('error', (err: NodeJS.ErrnoException) => {
 
 const shutdown = () => {
   logger.info('Shutting down HTTP server...');
+  void closeQuestDbPool().catch((error) => {
+    logger.error('Error closing QuestDB pool during shutdown', error);
+  });
   httpServer.close(() => process.exit(0));
   // Fallback exit if close hangs
   setTimeout(() => process.exit(0), 2000).unref();
@@ -60,20 +64,40 @@ app.get(/^(?!\/api(?:$|\/)).*/, apiLimiter, (req: Request, res: Response) => {
   res.sendFile(path.join(clientAppDistPath, 'index.html'));
 });
 
+async function runStartupTasks(): Promise<void> {
+  try {
+    await verifyQuestDbConnection();
+  } catch (error) {
+    logger.error('QuestDB connectivity check failed during startup', error);
+    throw error;
+  }
+
+  loadScheduledTasks().catch(logger.error);
+  await subscribeToRedisKey(io);
+}
+
 if (isDev) {
   httpServer.listen(port, host, async () => {
     logger.info(`APIs are listening on port ${port}${host ? ` (host ${host})` : ''}`);
-    loadScheduledTasks().catch(logger.error);
-    await subscribeToRedisKey(io);
+    try {
+      await runStartupTasks();
+    } catch (error) {
+      logger.error('Startup tasks failed', error);
+      process.exit(1);
+    }
 
     // No ET₀ compute on boot; daily job handles it.
   });
 } else {
   httpServer.listen(port, async () => {
     logger.info(`APIs are listening on port ${port}`);
-    loadScheduledTasks().catch(logger.error);
+    try {
+      await runStartupTasks();
+    } catch (error) {
+      logger.error('Startup tasks failed', error);
+      process.exit(1);
+    }
 
-    await subscribeToRedisKey(io);
     // No ET₀ compute on boot; daily job handles it.
   });
 }

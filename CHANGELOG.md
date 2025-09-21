@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Backend/Dependencies: Added `pg` and `@types/pg` alongside a dedicated QuestDB client built on the Postgres wire protocol.
+- Backend/Config: Exposed `questDbHost` and `questDbPort` via `envSwitcher.ts` for dev and production environments.
+- Backend: Global QuestDB schema registry ensures tables are lazily created before inserts and deduplicates concurrent initialization.
+
+### Changed
+- Backend (Server Startup): API boot now verifies QuestDB connectivity and closes the shared pool during shutdown to avoid hanging resources.
+- Backend (CloudCover Recorder): Writes cloud and rain metrics to QuestDB's `weather_dwd_icon_observations` using the shared table registry; the recorder now registers its schema once and removes local checks.
+- Backend: QuestDB client now supports table schema registration and automatic creation for future writes.
+
+### Removed
+- Backend/Tooling: Dropped the standalone QuestDB connection test script and npm alias in favor of the startup health check.
 
 ## [v19.24.1] - 2025-09-19
 
