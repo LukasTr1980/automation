@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend: QuestDB client now supports table schema registration and automatic creation for future writes.
 - Backend (Clouds API): `/api/clouds/current` now serves data from QuestDB instead of Influx, keeping all cloud cover reads on the new store.
 - Backend (ET₀): Weekly computation reads the last 7 days of daylight-only cloud samples from QuestDB, replacing the previous Flux query.
+- Backend (ODH Rain Recorder): Next-day rain amount/probability are stored in QuestDB (`weather_odh_rain_forecasts`) and no longer written to Influx.
 
 ### Removed
 - Backend/Tooling: Dropped the standalone QuestDB connection test script and npm alias in favor of the startup health check.

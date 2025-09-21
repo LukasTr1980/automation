@@ -4,7 +4,7 @@ import { execute as questDbQuery } from '../clients/questdbClient.js';
 
 const router = express.Router();
 
-// GET /api/clouds/current – latest cloud cover percentage from Influx (measurement: dwd.clouds)
+// GET /api/clouds/current – latest cloud cover percentage from QuestDB (table: weather_dwd_icon_observations)
 router.get('/current', async (req, res) => {
   try {
     const { rows } = await questDbQuery(

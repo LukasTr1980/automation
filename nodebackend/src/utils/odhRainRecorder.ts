@@ -2,15 +2,18 @@
 // -----------------------------------------------------------------------------
 //  Summiert die Regenmenge & max. Regen-Wahrscheinlichkeit für **morgen**
 //  (lokal Europe/Rome) aus dem 3-h-Raster eines ODH-Forecasts
-//  und schreibt beide Werte als separate Measurements in InfluxDB.
+//  und persistiert beide Werte zentral in QuestDB.
 //
 //  ENV-Variablen
 //    ODH_FORECAST_ID   z. B. “forecast_021019” (Kastelruth)
 //    ODH_LANG          de | it | en …  (optional, default de)
 // -----------------------------------------------------------------------------
 
-import { writeToInflux } from "../clients/influxdb-client.js";
 import logger from "../logger.js";
+import {
+    insertRow as insertQuestDbRow,
+    registerQuestDbTableSchema,
+} from "../clients/questdbClient.js";
 import {
     addDays,
     formatISO,
@@ -24,8 +27,20 @@ import { toZonedTime } from "date-fns-tz";
 // ───────── Config ───────────────────────────────────────────────────────────
 const FC_ID = process.env.ODH_FORECAST_ID ?? "forecast_021019";
 const LANG = process.env.ODH_LANG ?? "de";
-const MEAS_RAIN = "odh.rainNextDay";
-const MEAS_PROB = "odh.rainProbNextDay";
+const QUESTDB_TABLE_FORECASTS = "weather_odh_rain_forecasts";
+const QUESTDB_SOURCE_LABEL = "odh_forecast";
+
+registerQuestDbTableSchema(QUESTDB_TABLE_FORECASTS, () => `
+    CREATE TABLE IF NOT EXISTS "${QUESTDB_TABLE_FORECASTS}" (
+        observation_ts TIMESTAMP,
+        forecast_date_ts TIMESTAMP,
+        rain_total_mm DOUBLE,
+        rain_probability_max_pct DOUBLE,
+        forecast_id SYMBOL,
+        language SYMBOL,
+        data_source SYMBOL
+    ) timestamp(observation_ts) PARTITION BY DAY
+`);
 
 // ───────── Helper: fetch mit IPv4 & Retry ───────────────────────────────────
 async function fetchJsonRetry(
@@ -49,6 +64,7 @@ async function fetchJsonRetry(
 
 // ───────── Hauptfunktion ────────────────────────────────────────────────────
 export async function odhRecordNextDayRain() {
+    const observationTimestamp = new Date();
     const url = `https://tourism.api.opendatahub.com/v1/Weather/Forecast/${FC_ID}?language=${LANG}`;
     const data = await fetchJsonRetry(url);
 
@@ -81,11 +97,17 @@ export async function odhRecordNextDayRain() {
         0
     );
 
-    // ---------- InfluxDB: zwei Measurements -----------------------------------
-    await writeToInflux("", rainSum.toFixed(2), MEAS_RAIN);
-    await writeToInflux("", probMax.toFixed(0), MEAS_PROB);
+    await insertQuestDbRow(QUESTDB_TABLE_FORECASTS, {
+        observation_ts: observationTimestamp,
+        forecast_date_ts: startRome,
+        rain_total_mm: rainSum,
+        rain_probability_max_pct: probMax,
+        forecast_id: FC_ID,
+        language: LANG,
+        data_source: QUESTDB_SOURCE_LABEL,
+    });
 
     const result = { date: tomorrowIso, rainSum, probMax };
-    logger.info(`odhRecordNextDayRain → ${JSON.stringify(result)}`);
+    logger.info(`odhRecordNextDayRain → ${JSON.stringify(result)} (QuestDB)`);
     return result;
 }

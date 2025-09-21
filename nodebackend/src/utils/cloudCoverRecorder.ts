@@ -1,10 +1,9 @@
 // src/utils/cloudCoverRecorder.ts
 // -----------------------------------------------------------------------------
 //  Holt aktuelle Bewölkung (15‑min) + 24‑h‑Regen via DWD‑ICON‑D2 (Open‑Meteo)
-//  und schreibt sie mit IPv4‑erzwingendem Agent + Retry‑Logik in InfluxDB.
+//  und persistiert sie mit IPv4‑erzwingendem Agent + Retry‑Logik in QuestDB.
 // -----------------------------------------------------------------------------
 
-import { writeToInflux } from "../clients/influxdb-client.js";
 import {
     insertRow as insertQuestDbRow,
     registerQuestDbTableSchema,
@@ -14,10 +13,6 @@ import logger from "../logger.js";
 // ───────── Standort ─────────────────────────────────────────────────────────
 const LAT = Number(process.env.LAT ?? 46.5668);
 const LON = Number(process.env.LON ?? 11.5599);
-
-// ───────── Influx‑Messungen ─────────────────────────────────────────────────
-const INFLUX_MEASUREMENT_CLOUD_COVER = "dwd.clouds";
-const INFLUX_MEASUREMENT_RAIN_24H = "dwd.rain24h";
 
 // ───────── QuestDB‑Konstanten ───────────────────────────────────────────────
 const QUESTDB_TABLE_OBSERVATIONS = "weather_dwd_icon_observations";
@@ -67,14 +62,9 @@ export async function recordCurrentCloudCover() {
     if (!cloudArr?.length) throw new Error("cloud_cover missing in response");
     // Erstes (einzige) Element ist der Wert für das aktuelle 15‑min‑Intervall
     const cloud = cloudArr[0]!;
-    await writeToInflux("", cloud.toFixed(0), INFLUX_MEASUREMENT_CLOUD_COVER);
-    logger.info(`CloudCover ${cloud}% → Influx (${INFLUX_MEASUREMENT_CLOUD_COVER})`);
-
     // -------- rain forecast (24 h) -------------------------------------------
     const rainArr = j.hourly?.precipitation as number[] | undefined;
     const rain24 = rainArr?.reduce((sum, v) => sum + v, 0) ?? 0;
-    await writeToInflux("", rain24.toFixed(2), INFLUX_MEASUREMENT_RAIN_24H);
-    logger.info(`Rain24h ${rain24.toFixed(2)} mm → Influx (${INFLUX_MEASUREMENT_RAIN_24H})`);
 
     await insertQuestDbRow(QUESTDB_TABLE_OBSERVATIONS, {
         observation_ts: observationTimestamp,
