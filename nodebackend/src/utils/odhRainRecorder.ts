@@ -129,7 +129,16 @@ export async function readLatestOdhRainForecast(): Promise<OdhNextDayRainForecas
         LIMIT 1
     `;
 
-    const result = await execute(query, [FC_ID, LANG]);
+    let result;
+    try {
+        result = await execute(query, [FC_ID, LANG]);
+    } catch (error) {
+        if (error instanceof Error && error.message.includes('table does not exist')) {
+            logger.info('QuestDB table weather_odh_rain_forecasts missing; returning empty forecast payload');
+            return null;
+        }
+        throw error;
+    }
     if (!result.rowCount || !result.rows.length) {
         return null;
     }
