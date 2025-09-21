@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v19.25.0] - 2025-09-21
 ### Added
 - Backend/Dependencies: Added `pg` and `@types/pg` alongside a dedicated QuestDB client built on the Postgres wire protocol.
 - Backend/Config: Exposed `questDbHost` and `questDbPort` via `envSwitcher.ts` for dev and production environments.
@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend: Added `readLatestOdhRainForecast()` helper to retrieve next-day rain totals/probabilities from QuestDB for decision logic and UI payloads.
 
 ### Changed
-- Backend (Server Startup): API boot now verifies QuestDB connectivity and closes the shared pool during shutdown to avoid hanging resources.
 - Backend (CloudCover Recorder): Writes cloud and rain metrics to QuestDB's `weather_dwd_icon_observations` using the shared table registry; the recorder now registers its schema once and removes local checks.
 - Backend: QuestDB client now supports table schema registration and automatic creation for future writes.
 - Backend (Clouds API): `/api/clouds/current` now serves data from QuestDB instead of Influx, keeping all cloud cover reads on the new store.
@@ -23,7 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend (Scheduler/MQTT): Manual and scheduled irrigation starts now persist to QuestDB; MQTT switch telemetry logs both live events and hourly snapshots via the new recorder helpers.
 - Backend (Irrigation): `/api/irrigation/last` queries QuestDB for the latest irrigation start (including recorded source metadata).
 - Backend (Decision): Irrigation decision payload reads next-day rain metrics from QuestDB instead of Influx and keeps `effectiveForecast` purely QuestDB-backed.
+- Frontend (Villa Anna Home/Bewässerung): Display “k. A.” when QuestDB rain forecasts are unavailable instead of showing zero values.
 - Docs: `AGENTS.md` updated to reference QuestDB everywhere Influx was previously mentioned.
+
+### Fixed
+- Backend (Clouds API): Uses `dateadd` for QuestDB interval arithmetic and keeps the route responsive even when no measurements are available.
+- Backend (Irrigation Route): Returns an empty payload instead of HTTP 500 when `irrigation_start_events` has not been created yet.
+- Backend (Forecast Helper): Tolerates missing QuestDB tables and emits `null` metrics when no ODH forecast is present.
 
 ### Removed
 - Backend/Tooling: Dropped the standalone QuestDB connection test script and npm alias in favor of the startup health check.
