@@ -50,7 +50,7 @@ async function questDbCloudSeriesLast7(): Promise<CloudSample[]> {
     const { rows } = await execute(
         `SELECT observation_ts, cloud_cover_pct
          FROM ${CLOUD_TABLE}
-         WHERE observation_ts >= now() - interval '8' day
+         WHERE observation_ts >= dateadd('d', -8, now())
          ORDER BY observation_ts`
     );
     return rows
