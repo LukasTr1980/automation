@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/current', async (req, res) => {
   try {
     const { rows } = await questDbQuery(
-      "SELECT cloud_cover_pct FROM weather_dwd_icon_observations WHERE observation_ts >= now() - 3h ORDER BY observation_ts DESC LIMIT 1"
+      "SELECT cloud_cover_pct FROM weather_dwd_icon_observations WHERE observation_ts >= dateadd('h', -3, now()) ORDER BY observation_ts DESC LIMIT 1"
     );
     const v = rows?.[0]?.cloud_cover_pct;
     if (typeof v !== 'number' || !isFinite(v)) {
