@@ -29,8 +29,9 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 ## Golden Rules (Do / Don’t)
 - Do: Keep docs English; UI strings German; logs/comments English.
 - Do: Map backend message keys → German via `viteclientts/src/utils/messages.ts` using `messages[key] || key`.
-- Do: Use WSS/WebSockets for bi‑directional control; SSE only for one‑way blockers stream.
+- Do: Use WSS/WebSockets for bi-directional control; SSE only for one-way blockers stream.
 - Do: Keep server state in React Query; UI state separate.
+- Do: Wait for explicit user instruction before creating git commits; never commit autonomously.
 - Don’t: Reintroduce i18n or locale switching.
 - Don’t: Call WeatherLink live from backend APIs; use Redis caches only.
 - Don’t: Embed secrets in client; only expose `VITE_*` env vars.

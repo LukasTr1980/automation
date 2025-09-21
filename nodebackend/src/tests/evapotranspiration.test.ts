@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import logger from '../logger.js';
 import { computeSunTimesLocal } from '../utils/evapotranspiration.js';
 
 function hm(d: Date) {
@@ -32,7 +33,7 @@ function run() {
   assert(ss1 > sr1, 'Sunset must be after sunrise (summer)');
   const len1 = ss1 - sr1;
   assert(len1 > 14 && len1 < 17, `Expected summer day length 14–17h, got ${len1}`);
-  console.log(`[SunTimes] ${d1.toISOString().slice(0,10)} sunrise=${fmt(s1.sunrise)} sunset=${fmt(s1.sunset)} length=${fmtLen(len1)} (local)`);
+  logger.info(`[SunTimes] ${d1.toISOString().slice(0,10)} sunrise=${fmt(s1.sunrise)} sunset=${fmt(s1.sunset)} length=${fmtLen(len1)} (local)`);
 
   // Winter solstice (approx) – short day
   const d2 = new Date(2024, 11, 21);
@@ -44,9 +45,9 @@ function run() {
   assert(ss2 > sr2, 'Sunset must be after sunrise (winter)');
   const len2 = ss2 - sr2;
   assert(len2 > 8 && len2 < 10.5, `Expected winter day length 8–10.5h, got ${len2}`);
-  console.log(`[SunTimes] ${d2.toISOString().slice(0,10)} sunrise=${fmt(s2.sunrise)} sunset=${fmt(s2.sunset)} length=${fmtLen(len2)} (local)`);
+  logger.info(`[SunTimes] ${d2.toISOString().slice(0,10)} sunrise=${fmt(s2.sunrise)} sunset=${fmt(s2.sunset)} length=${fmtLen(len2)} (local)`);
 
-  console.log('[SunTimes Tests] OK');
+  logger.info('[SunTimes Tests] OK');
 }
 
 run();

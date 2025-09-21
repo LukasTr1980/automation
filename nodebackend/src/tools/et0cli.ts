@@ -3,6 +3,7 @@
 //   npm run et0 -- --doy 180 --tmin 15 --tmax 25 --rh 60 --wind 3.2 --pressure 900 --cloud 45
 
 import { computeDailyET0FAO56, type DailyEt0Input } from "../utils/evapotranspiration.js";
+import logger from "../logger.js";
 
 type ArgSpec = {
   name: string;
@@ -52,12 +53,12 @@ function parseArgs(argv: string[]) {
 }
 
 function printUsageAndExit(msg?: string, code = 1) {
-  if (msg) console.error(msg);
-  console.error(
-    "\nUsage: et0 --doy <1..366> --tmin <°C> --tmax <°C> --rh <percent> --wind <m/s@Z> --pressure <hPa> --cloud <0..100> [--lat <deg>] [--elev <m>] [--albedo <0..1>] [--aS <num>] [--bS <num>] [--windZ <m>] [--verbose]"
+  if (msg) logger.error(msg);
+  logger.error(
+    "Usage: et0 --doy <1..366> --tmin <°C> --tmax <°C> --rh <percent> --wind <m/s@Z> --pressure <hPa> --cloud <0..100> [--lat <deg>] [--elev <m>] [--albedo <0..1>] [--aS <num>] [--bS <num>] [--windZ <m>] [--verbose]"
   );
-  console.error(
-    "\nExample: --doy 180 --tmin 15 --tmax 25 --rh 60 --wind 3.2 --pressure 900 --cloud 45 --lat 46.5668 --elev 1060 --windZ 10"
+  logger.error(
+    "Example: --doy 180 --tmin 15 --tmax 25 --rh 60 --wind 3.2 --pressure 900 --cloud 45 --lat 46.5668 --elev 1060 --windZ 10"
   );
   process.exit(code);
 }
@@ -98,9 +99,9 @@ async function main() {
     const et0 = computeDailyET0FAO56(input);
     const verbose = Boolean(args.verbose);
     if (verbose) {
-      console.log("Inputs:", JSON.stringify(input, null, 2));
+      logger.info(`Inputs: ${JSON.stringify(input, null, 2)}`);
     }
-    console.log(`ET0: ${et0.toFixed(2)} mm/day`);
+    logger.info(`ET0: ${et0.toFixed(2)} mm/day`);
   } catch (e) {
     printUsageAndExit((e as Error).message);
   }

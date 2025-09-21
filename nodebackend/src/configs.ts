@@ -36,7 +36,7 @@ if (!isDev) {
         vaultRoleId = fs.readFileSync('/run/secrets/automation_vault_role_id', 'utf-8').trim();
         vaultSecretId = fs.readFileSync('/run/secrets/automation_vault_secret_id', 'utf-8').trim();
     } catch (error) {
-        console.error('Error reading Vault credentials from Docker secrets:', error);
+        logger.error('Error reading Vault credentials from Docker secrets:', error);
         throw error;
     }
 } else {

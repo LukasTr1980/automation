@@ -168,6 +168,6 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       blockers,
     }
   };
-  logger.info(`${result.result ? "ON" : "OFF"}`);
+  logger.info(`[IRRIGATION DECISION] Allowing irrigation for ${zoneName}: depletion ${fmt(depletion)} mm ≥ trigger ${fmt(triggerMm)} mm; no blockers`);
   return result;
 }

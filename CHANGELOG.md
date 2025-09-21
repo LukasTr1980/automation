@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Backend (Irrigation Decision): Success log now spells out the active zone plus depletion and trigger thresholds so operations staff can interpret `ON` decisions without cross-referencing code.
+- Backend (Tooling/Config): CLI ET₀ helper, sun-times regression test, and Vault secret loader now emit through the shared Winston logger to keep formatting and routing consistent.
+
+### Docs
+- Docs: `AGENTS.md` clarifies that agents must not create commits without explicit user instruction and normalizes the WebSocket guidance formatting.
+
 ## [v19.25.0] - 2025-09-21
 ### Added
 - Backend/Dependencies: Added `pg` and `@types/pg` alongside a dedicated QuestDB client built on the Postgres wire protocol.
