@@ -61,8 +61,8 @@ const BewaesserungPage = () => {
     humidity: number;
     rainToday: number;
     rainRate: number;
-    rainNextDay: number;
-    rainProbNextDay: number;
+    rainNextDay: number | null;
+    rainProbNextDay: number | null;
     tawMm: number;
     soilStorageMm?: number;
     depletionMm?: number;
@@ -70,7 +70,7 @@ const BewaesserungPage = () => {
     // Timestamp when soil-bucket was last updated (for FreshnessStatus)
     soilUpdatedAt?: string;
     // weekly ET₀ removed from payload/UI
-    effectiveForecast: number;
+    effectiveForecast: number | null;
     blockers: string[];
   }
 

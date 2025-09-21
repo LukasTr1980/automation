@@ -10,14 +10,14 @@ export interface DecisionMetrics {
   humidity: number;
   rainToday: number;
   rainRate: number;
-  rainNextDay: number;
-  rainProbNextDay: number;
+  rainNextDay: number | null;
+  rainProbNextDay: number | null;
   tawMm: number;                    // total available water (TAW)
   soilStorageMm?: number;           // current soil storage (S)
   depletionMm?: number;             // TAW - S
   triggerMm?: number;               // trigger threshold for depletion
   soilUpdatedAt?: string;           // last update timestamp for soil bucket
-  effectiveForecast: number;
+  effectiveForecast: number | null;
   blockers: string[];
 }
 
@@ -30,8 +30,8 @@ export interface CompletionResponse {
 const fmt = (n: number, d = 1) => n.toFixed(d);
 
 type DecisionContext = {
-  rainNextDay: number;
-  rainProbNextDay: number;
+  rainNextDay: number | null;
+  rainProbNextDay: number | null;
   rainRate: number;
   rainToday: number;
   outTemp: number;
@@ -44,10 +44,10 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   const zoneName = "lukasSued";
   const odhForecast = await readLatestOdhRainForecast();
   if (!odhForecast) {
-    logger.warn("[ODH] No next-day rain forecast found in QuestDB; defaulting to 0 values");
+    logger.warn("[ODH] No next-day rain forecast found in QuestDB; returning null payload");
   }
-  const rainNextDay = odhForecast?.rainTotalMm ?? 0;
-  const rainProbNextDay = odhForecast?.rainProbabilityMaxPct ?? 0;
+  const rainNextDay = odhForecast?.rainTotalMm ?? null;
+  const rainProbNextDay = odhForecast?.rainProbabilityMaxPct ?? null;
   // Read rain rate from Redis latest cache
   let rainRateWL = 0;
   let wlOk = false;
@@ -98,7 +98,10 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   }
 
   // 3) Unified deficit calculation (German-only values are in FE)
-  const effectiveForecast = d.rainNextDay * (d.rainProbNextDay / 100);
+  const effectiveForecast =
+    d.rainNextDay !== null && d.rainProbNextDay !== null
+      ? d.rainNextDay * (d.rainProbNextDay / 100)
+      : null;
 
   // Diagnostic weekly deficit removed; rely on soil-bucket depletion for decisions
 

@@ -164,9 +164,9 @@ const HomePage = () => {
     humidity: number;
     rainToday: number;
     rainRate: number;
-    rainNextDay?: number;
-    rainProbNextDay?: number;
-    effectiveForecast?: number;
+    rainNextDay?: number | null;
+    rainProbNextDay?: number | null;
+    effectiveForecast?: number | null;
     // Soil-bucket primary trigger
     soilStorageMm?: number;
     tawMm?: number;
