@@ -20,10 +20,7 @@ const AP_A_S = Number(process.env.ANGSTROM_A_S ?? 0.25); // Angström a_s
 const AP_B_S = Number(process.env.ANGSTROM_B_S ?? 0.50); // Angström b_s
 
 // Standard‑Buckets
-const CLOUD_BUCKET = process.env.CLOUD_BUCKET ?? "automation"; // Wolken‑Recorder
-
-// Measurements (clouds from Influx; temps, RH, wind, pressure from WeatherLink)
-const MEAS_CLOUDS = "dwd.clouds";
+const CLOUD_TABLE = "weather_dwd_icon_observations";
 
 // ───────────── FAO‑Hilfsfunktionen ──────────────────────────────────────────
 const svp = (T: number) => 0.6108 * Math.exp((17.27 * T) / (T + 237.3));
@@ -46,27 +43,19 @@ export function Ra(latDeg: number, doy: number) {
 
 const LON = Number(process.env.LON ?? 11.5599);
 
-const fluxCloudsRawLast7 = (bucket: string, m: string, field: string) => `import "date"
-import "timezone"
-option location = timezone.location(name: "Europe/Rome")
-stop = date.truncate(t: now(), unit: 1d)
-start = date.sub(d: 7d, from: stop)
-from(bucket: "${bucket}")
-  |> range(start: start, stop: stop)
-  |> filter(fn: (r) => r._measurement == "${m}")
-  |> filter(fn: (r) => r._field == "${field}")
-  |> keep(columns: ["_time", "_value"]) 
-  |> sort(columns: ["_time"])`;
-
 type CloudSample = { time: number; value: number };
 
-async function influxCloudRawSeriesLast7(bucket: string): Promise<CloudSample[]> {
-    const { querySingleData } = await import("../clients/influxdb-client.js");
-    const flux = fluxCloudsRawLast7(bucket, MEAS_CLOUDS, 'value_numeric');
-    const rows: any[] = await querySingleData(flux as any);
+async function questDbCloudSeriesLast7(): Promise<CloudSample[]> {
+    const { execute } = await import("../clients/questdbClient.js");
+    const { rows } = await execute(
+        `SELECT observation_ts, cloud_cover_pct
+         FROM ${CLOUD_TABLE}
+         WHERE observation_ts >= now() - interval '8' day
+         ORDER BY observation_ts`
+    );
     return rows
-        .map(r => ({ time: Date.parse(r._time as string), value: Number(r._value) }))
-        .filter(r => Number.isFinite(r.time) && Number.isFinite(r.value));
+        .map((r: any) => ({ time: Date.parse(String(r.observation_ts)), value: Number(r.cloud_cover_pct) }))
+        .filter((r) => Number.isFinite(r.time) && Number.isFinite(r.value));
 }
 
 // ───────────── Sonnenauf-/untergang (NOAA‑Approx.) ─────────────────────────
@@ -85,7 +74,7 @@ function calcSunTimeHoursLocal(N: number, lat: number, lon: number, isSunrise: b
     const lngHour = lon / 15;
     const t = N + ((isSunrise ? 6 : 18) - lngHour) / 24;
     const M = 0.9856 * t - 3.289;
-    let L = normalizeDeg(M + 1.916 * Math.sin(degToRad(M)) + 0.020 * Math.sin(2 * degToRad(M)) + 282.634);
+    const L = normalizeDeg(M + 1.916 * Math.sin(degToRad(M)) + 0.020 * Math.sin(2 * degToRad(M)) + 282.634);
     let RA = (Math.atan(0.91764 * Math.tan(degToRad(L))) * 180) / Math.PI;
     RA = normalizeDeg(RA);
     // Quadrant correction
@@ -213,7 +202,7 @@ export async function computeWeeklyET0(): Promise<number> {
         // Align to local midnight (today 00:00) to cover the previous 7 full days
         const localMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
         const SEVEN_DAYS = 7 * 24 * 3600;
-        const cloudSamples = await influxCloudRawSeriesLast7(CLOUD_BUCKET);
+        const cloudSamples = await questDbCloudSeriesLast7();
         
         // Read daily aggregates (preferred) and 7-day means (fallbacks)
         const [daily, agg] = await Promise.all([

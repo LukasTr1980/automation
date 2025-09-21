@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Backend (Server Startup): API boot now verifies QuestDB connectivity and closes the shared pool during shutdown to avoid hanging resources.
 - Backend (CloudCover Recorder): Writes cloud and rain metrics to QuestDB's `weather_dwd_icon_observations` using the shared table registry; the recorder now registers its schema once and removes local checks.
 - Backend: QuestDB client now supports table schema registration and automatic creation for future writes.
+- Backend (Clouds API): `/api/clouds/current` now serves data from QuestDB instead of Influx, keeping all cloud cover reads on the new store.
+- Backend (ET₀): Weekly computation reads the last 7 days of daylight-only cloud samples from QuestDB, replacing the previous Flux query.
 
 ### Removed
 - Backend/Tooling: Dropped the standalone QuestDB connection test script and npm alias in favor of the startup health check.
