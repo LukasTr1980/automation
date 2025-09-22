@@ -50,6 +50,39 @@ function formatYesterdayDE(): string {
   return `Datum: ${fmt.format(y)} (lokal)`;
 }
 
+const VILLA_ANNA_TIME_ZONE = 'Europe/Berlin';
+
+function formatLastIrrigationTimestamp(timestamp: string): { date: string; time: string; tooltip: string } | null {
+  const parsedDate = new Date(timestamp);
+  if (Number.isNaN(parsedDate.getTime())) return null;
+
+  const dateFormatter = new Intl.DateTimeFormat('de-DE', {
+    timeZone: VILLA_ANNA_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const timeFormatter = new Intl.DateTimeFormat('de-DE', {
+    timeZone: VILLA_ANNA_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const tooltipFormatter = new Intl.DateTimeFormat('de-DE', {
+    timeZone: VILLA_ANNA_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  return {
+    date: dateFormatter.format(parsedDate),
+    time: timeFormatter.format(parsedDate),
+    tooltip: tooltipFormatter.format(parsedDate),
+  };
+}
+
 const HomePage = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -111,6 +144,10 @@ const HomePage = () => {
       placeholderData: (prev) => prev,
     }
   );
+  const lastIrrigation = lastIrrigationQuery.data?.last ?? null;
+  const formattedLastIrrigation = lastIrrigation?.timestamp
+    ? formatLastIrrigationTimestamp(lastIrrigation.timestamp)
+    : null;
   // React Query: Next schedule
   const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null }>({
     queryKey: ['schedule', 'next'],
@@ -732,7 +769,7 @@ const HomePage = () => {
                 <Box sx={{ minWidth: 0 }}>
                   {lastIrrigationQuery.isLoading ? (
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>Lade letzte Bewässerung…</Typography>
-                  ) : lastIrrigationQuery.data?.last ? (
+                  ) : lastIrrigation && formattedLastIrrigation ? (
                     <>
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
                         Letzte Bewässerung
@@ -740,23 +777,12 @@ const HomePage = () => {
                       <Typography
                         variant="body2"
                         sx={{ fontWeight: 600, whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.3 }}
-                        title={(() => {
-                          const t = new Date(lastIrrigationQuery.data!.last!.timestamp);
-                          return new Intl.DateTimeFormat('de-DE', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          }).format(t);
-                        })()}
+                        title={formattedLastIrrigation.tooltip}
                       >
                         {(() => {
-                          const t = new Date(lastIrrigationQuery.data!.last!.timestamp);
-                          const dt = new Intl.DateTimeFormat('de-DE', { year: 'numeric', day: '2-digit', month: '2-digit' }).format(t);
-                          const tm = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(t);
-                          const zl = lastIrrigationQuery.data!.last!.zoneLabel ?? null;
-                          return zl ? `${dt}, ${tm} – ${zl}` : `${dt}, ${tm}`;
+                          const zl = lastIrrigation.zoneLabel ?? null;
+                          const base = `${formattedLastIrrigation.date}, ${formattedLastIrrigation.time}`;
+                          return zl ? `${base} – ${zl}` : base;
                         })()}
                       </Typography>
                     </>

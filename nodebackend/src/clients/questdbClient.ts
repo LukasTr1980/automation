@@ -1,4 +1,4 @@
-import { Pool, PoolClient, QueryResult } from "pg";
+import { Pool, PoolClient, QueryResult, types as pgTypes } from "pg";
 import { questDbHost, questDbPort } from "../envSwitcher.js";
 import * as vaultClient from "./vaultClient.js";
 import logger from "../logger.js";
@@ -13,6 +13,20 @@ let pool: Pool | undefined;
 let credentials: QuestDbCredentials | undefined;
 const tableSchemaFactories = new Map<string, () => string>();
 const tableInitializationPromises = new Map<string, Promise<void>>();
+
+// Force pg to return timestamp values as strings, not JS Date, to avoid
+// implicit timezone shifts on "timestamp without time zone" (OID 1114) and
+// "timestamptz" (OID 1184). We normalize/interpret as UTC downstream.
+const OID_TIMESTAMP = 1114; // timestamp without time zone
+const OID_TIMESTAMPTZ = 1184; // timestamp with time zone
+pgTypes.setTypeParser(OID_TIMESTAMP, (val: string) => {
+  const s = (val ?? '').toString().trim();
+  if (!s) return s;
+  const isoCandidate = s.includes('T') ? s : s.replace(' ', 'T');
+  const hasZone = /([zZ]|[+-]\d{2}:?\d{2})$/.test(isoCandidate);
+  return hasZone ? isoCandidate : `${isoCandidate}Z`;
+});
+pgTypes.setTypeParser(OID_TIMESTAMPTZ, (val: string) => (val ?? '').toString());
 
 function assertIdentifier(identifier: string, label: string): void {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(identifier)) {

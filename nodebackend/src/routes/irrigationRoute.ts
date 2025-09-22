@@ -12,6 +12,9 @@ function mapZoneLabel(zoneKey: string | undefined): string | null {
   return idx >= 0 ? irrigationSwitchDescriptions[idx] : null;
 }
 
+// Normalization is no longer needed here because the pg type parser
+// returns QuestDB timestamps as strings (UTC with 'Z').
+
 router.get('/last', async (_req: Request, res: Response) => {
   try {
     const result = await execute(
@@ -32,12 +35,15 @@ router.get('/last', async (_req: Request, res: Response) => {
     const recordedVia = typeof row.source === 'string' ? row.source : null;
     const timestampValue = row.event_ts;
     let timestamp: string | null = null;
-
     if (timestampValue instanceof Date) {
       timestamp = timestampValue.toISOString();
-    } else if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
+    } else if (typeof timestampValue === 'number') {
       const parsed = new Date(timestampValue);
       timestamp = Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+    } else if (typeof timestampValue === 'string') {
+      // QuestDB returns UTC with 'Z' via HTTP; pg type parser is configured to return strings
+      // so preserve the server-provided value as-is.
+      timestamp = timestampValue.trim() || null;
     }
 
     if (!timestamp) {

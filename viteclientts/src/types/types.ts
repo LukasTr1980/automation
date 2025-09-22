@@ -172,7 +172,7 @@ export type MonthsNumbers = {
     [key: string]: number;
 }
 
-export type ConvertToGermanDateFunction = (unixTimeStamp: number | null) => string | null;
+// Removed legacy Moment-based date helper type (ConvertToGermanDateFunction)
 
 
 export interface ErrorResponse {
