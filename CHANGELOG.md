@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.25.2] - 2025-09-22
+### Fixed
+- Backend (Irrigation Route): Read the QuestDB `source` column for last irrigation events so the Villa Anna dashboard no longer fails on invalid `recorded_via` field lookups.
+
 ## [v19.25.1] - 2025-09-21
 ### Changed
 - Backend (Irrigation Decision): Success log now spells out the active zone plus depletion and trigger thresholds so operations staff can interpret `ON` decisions without cross-referencing code.

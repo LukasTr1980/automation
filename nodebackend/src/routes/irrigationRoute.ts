@@ -15,7 +15,7 @@ function mapZoneLabel(zoneKey: string | undefined): string | null {
 router.get('/last', async (_req: Request, res: Response) => {
   try {
     const result = await execute(
-      `SELECT event_ts, zone, recorded_via
+      `SELECT event_ts, zone, source
          FROM "${QUESTDB_TABLE_IRRIGATION_START_EVENTS}"
          WHERE started = true
          ORDER BY event_ts DESC
@@ -29,7 +29,7 @@ router.get('/last', async (_req: Request, res: Response) => {
     const row = result.rows[0] as Record<string, unknown>;
     const zoneKey = typeof row.zone === 'string' ? row.zone : undefined;
     const zoneLabel = mapZoneLabel(zoneKey);
-    const recordedVia = typeof row.recorded_via === 'string' ? row.recorded_via : null;
+    const recordedVia = typeof row.source === 'string' ? row.source : null;
     const timestampValue = row.event_ts;
     let timestamp: string | null = null;
 
