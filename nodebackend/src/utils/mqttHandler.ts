@@ -3,7 +3,7 @@ import { mqttClientPromise } from '../clients/mqttClient.js';
 import { broadcastToSseClients, addSseClient } from './sseHandler.js';
 import logger from '../logger.js';
 import { irrigationSwitchTopics } from './constants.js';
-import { recordIrrigationSwitchEvent } from './irrigationSwitchRecorder.js';
+import { recordIrrigationEvent } from './irrigationEventsRecorder.js';
 
 class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();
@@ -36,24 +36,20 @@ async function main() {
 
         // Only log switch events for tracked irrigation topics
         if (mqttTopics.includes(topic)) {
-            await recordIrrigationSwitchEvent(topic, msg, 'realtime');
+            const segments = topic.split('/');
+            const zone = segments.length ? segments[segments.length - 1] : topic;
+            const lower = msg.trim().toLowerCase();
+            const boolValue = lower === 'true' ? true : lower === 'false' ? false : null;
+            if (boolValue !== null) {
+              await recordIrrigationEvent(zone, boolValue, 'manual', msg);
+            } else {
+              logger.warn(`Ignoring non-boolean irrigation switch payload for ${topic}: ${msg}`);
+            }
         }
     });
 }
 
 main();
-
-// Your interval saving mechanism remains the same
-const SAVE_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
-setInterval(() => {
-    for (const [topic, state] of Object.entries(latestStates)) {
-        if (mqttTopics.includes(topic) && state !== null) {
-            recordIrrigationSwitchEvent(topic, state, 'hourlySnapshot').catch((err) => {
-                logger.error('Failed to persist hourly switch snapshot to QuestDB', err);
-            });
-        }
-    }
-}, SAVE_INTERVAL);
 
 // Individual exports for each entity
 export { latestStates, addSseClient, stateChangeEmitter };

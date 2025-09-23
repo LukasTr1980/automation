@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.26.0] - 2025-09-23
+### Changed
+- Backend (Irrigation Logging): Unified QuestDB irrigation tables into a single `irrigation_events` table. Both manual (MQTT) and scheduled starts are recorded via one recorder with `state_raw`, `state_boolean`, and `recorded_via`.
+- Backend (Irrigation Route): `/api/irrigation/last` now filters for `recorded_via = 'auto'` to show only scheduled starts on the Villa Anna home card.
+
+### Removed
+- Backend: Removed legacy recorders for `irrigation_start_events` and `irrigation_switch_events`, and dropped the hourly switch snapshot write.
+
+### Fixed
+- Backend (MQTT): Ignore non‑boolean switch payloads instead of persisting ambiguous states; only `"true"`/`"false"` are logged.
+
 ## [v19.25.2] - 2025-09-22
 ### Fixed
 - Backend (Irrigation Route): Read the QuestDB `source` column for last irrigation events so the Villa Anna dashboard no longer fails on invalid `recorded_via` field lookups.
