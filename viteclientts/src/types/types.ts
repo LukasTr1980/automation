@@ -78,19 +78,6 @@ export interface MonthsSelectProps {
 }
 
 
-export interface SecretFieldProps {
-    label: string;
-    secretValue: string;
-    placeholder?: boolean;
-    isFocused: boolean;
-    isValid: boolean;
-    onFocus: () => void;
-    onBlur: () => void;
-    onChange: (value: string) => void;
-    onUpdate: () => void;
-    type?: string;
-    autoComplete?: string;
-}
 
 export interface SwitchComponentProps {
     checked: boolean;
