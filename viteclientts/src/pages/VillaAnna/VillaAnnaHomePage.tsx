@@ -145,6 +145,7 @@ const HomePage = () => {
     }
   );
   const lastIrrigation = lastIrrigationQuery.data?.last ?? null;
+  const isLastIrrigationFetching = lastIrrigationQuery.isLoading || lastIrrigationQuery.isFetching;
   const formattedLastIrrigation = lastIrrigation?.timestamp
     ? formatLastIrrigationTimestamp(lastIrrigation.timestamp)
     : null;
@@ -254,6 +255,7 @@ const HomePage = () => {
       scheduleQuery.refetch();
       et0YesterdayQuery.refetch();
       cloudQuery.refetch();
+      lastIrrigationQuery.refetch();
       startSSE();
     };
     const onVisibility = () => {
@@ -265,7 +267,7 @@ const HomePage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [weatherQuery.refetch, scheduleQuery.refetch, et0YesterdayQuery.refetch, cloudQuery.refetch]);
+  }, [weatherQuery.refetch, scheduleQuery.refetch, et0YesterdayQuery.refetch, cloudQuery.refetch, lastIrrigationQuery.refetch]);
 
   // SSE for irrigation decision + switches, with ability to re-subscribe on focus
   const sseRef = useRef<EventSource | null>(null);
@@ -286,8 +288,11 @@ const HomePage = () => {
           const idx = bewaesserungsTopics.indexOf(data.topic);
           if (idx !== -1) {
             setSwitches((prev) => prev.map((v, i) => (i === idx ? data.state === 'true' : v)));
+            if (data.state === 'true') {
+              void lastIrrigationQuery.refetch();
+            }
           }
-          // Do not auto-refresh S on manual switch; wait for explicit 'irrigationStart' event
+          // For manual starts we refresh the last irrigation snapshot on the zone turning on
         } else if (data?.type === 'irrigationNeeded' && data.response) {
           const r = data.response;
           setDecision({
@@ -306,7 +311,8 @@ const HomePage = () => {
           });
           setDecisionLoading(false);
         } else if (data?.type === 'irrigationStart' && data?.source === 'scheduled') {
-          // Scheduled irrigation just started → refresh soil bucket immediately
+          // Scheduled irrigation just started → refresh soil bucket and last irrigation snapshot
+          void lastIrrigationQuery.refetch();
           setTimeout(() => startSSE(), 150);
         }
       } catch {
@@ -767,8 +773,13 @@ const HomePage = () => {
               }}>
                 <WaterDrop sx={{ color: 'info.main', fontSize: 18, flex: '0 0 auto', mr: 0.75 }} aria-hidden />
                 <Box sx={{ minWidth: 0 }}>
-                  {lastIrrigationQuery.isLoading ? (
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>Lade letzte Bewässerung…</Typography>
+                  {(!lastIrrigation && isLastIrrigationFetching) ? (
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                        Letzte Bewässerung
+                      </Typography>
+                      <LinearProgress sx={{ height: 3, borderRadius: 999, maxWidth: 160 }} />
+                    </Box>
                   ) : lastIrrigation && formattedLastIrrigation ? (
                     <>
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.2 }}>
@@ -785,6 +796,9 @@ const HomePage = () => {
                           return zl ? `${base} – ${zl}` : base;
                         })()}
                       </Typography>
+                      {isLastIrrigationFetching && (
+                        <LinearProgress sx={{ height: 2, borderRadius: 999, mt: 0.5, maxWidth: 160 }} />
+                      )}
                     </>
                   ) : (
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>Letzte Bewässerung: Keine Aufzeichnungen</Typography>

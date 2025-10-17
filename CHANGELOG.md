@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Removed
-- Frontend: Removed unused `SecretField` component and its associated `SecretFieldProps` type.
-- Frontend: Removed unused `timeCalculator` helper (`getLast24Hours`).
+
+## [v19.26.1] - 2025-10-17
+### Changed
+- Tooling: Bumped frontend dependencies (`@mui/lab` 7.0.1-beta.18, `eslint-plugin-react-hooks` 7.0.0) and aligned `@types/node` 24.8.1 across backend and client dev toolchains. Removed unused `SecretField` component, associated types, and the `timeCalculator` helper (`getLast24Hours`) from the frontend.
+
+### Fixed
+- Frontend (Villa Anna Home): Refetch the last irrigation snapshot on focus, visibility changes, manual zone toggles, and scheduled starts while showing a progress indicator so the card stays accurate during refreshes.
 
 ## [v19.26.0] - 2025-09-23
 ### Changed
