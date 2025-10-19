@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Removed
+
+## [v19.26.2] - 2025-10-19
+### Changed
+- Backend (Irrigation Logging): Scheduler flows now log both start and stop events with `recorded_via = 'scheduler'`, replacing the previous `auto` flag.
+- Backend (Irrigation Logging): MQTT recorder entries are tagged with `recorded_via = 'mqtt_echo'` to distinguish broker echoes from scheduler activity.
+- Backend (Irrigation Route): `/api/irrigation/last` matches the new `recorded_via = 'scheduler'` flag so the Villa Anna dashboard shows scheduled starts only.
 
 ## [v19.26.1] - 2025-10-17
 ### Changed

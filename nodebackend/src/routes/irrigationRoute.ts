@@ -20,7 +20,7 @@ router.get('/last', async (_req: Request, res: Response) => {
     const result = await execute(
       `SELECT event_ts, zone, recorded_via
          FROM "${QUESTDB_TABLE_IRRIGATION_EVENTS}"
-         WHERE state_boolean = true AND recorded_via = 'auto'
+         WHERE state_boolean = true AND recorded_via = 'scheduler'
          ORDER BY event_ts DESC
          LIMIT 1`
     );

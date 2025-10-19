@@ -228,11 +228,12 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
       }
 
       if (state === false) {
-        publisher.publish(topic, state.toString(), (err: Error | null) => {
+        publisher.publish(topic, state.toString(), async (err: Error | null) => {
           if (err) {
             logger.error('Error while publishing message:', err);
           } else {
             logger.info('Message published successfully.');
+            await recordIrrigationEvent(zoneName, false, 'scheduler', 'false');
           }
         });
       } else {
@@ -245,7 +246,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
               logger.error('Error while publishing message:', err);
             } else {
               logger.info(`Irrigation started for zone ${zoneName} (decision check skipped)`);
-              await recordIrrigationEvent(zoneName, true, 'auto', 'true');
+              await recordIrrigationEvent(zoneName, true, 'scheduler', 'true');
               try {
                 await addIrrigationToGlobalBucketOnce(RUN_DEPTH_MM);
                 // Notify SSE clients that a scheduled irrigation has started
@@ -265,7 +266,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
                 logger.error('Error while publishing message:', err);
               } else {
                 logger.info(`Irrigation started for zone ${zoneName}`);
-                await recordIrrigationEvent(zoneName, true, 'auto', 'true');
+                await recordIrrigationEvent(zoneName, true, 'scheduler', 'true');
                 try {
                   await addIrrigationToGlobalBucketOnce(RUN_DEPTH_MM);
                   // Notify SSE clients that a scheduled irrigation has started

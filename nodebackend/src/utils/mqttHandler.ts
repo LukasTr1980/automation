@@ -41,7 +41,7 @@ async function main() {
             const lower = msg.trim().toLowerCase();
             const boolValue = lower === 'true' ? true : lower === 'false' ? false : null;
             if (boolValue !== null) {
-              await recordIrrigationEvent(zone, boolValue, 'manual', msg);
+              await recordIrrigationEvent(zone, boolValue, 'mqtt_echo', msg);
             } else {
               logger.warn(`Ignoring non-boolean irrigation switch payload for ${topic}: ${msg}`);
             }

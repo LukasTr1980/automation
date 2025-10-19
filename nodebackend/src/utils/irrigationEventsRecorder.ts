@@ -3,13 +3,13 @@ import logger from "../logger.js";
 
 export const QUESTDB_TABLE_IRRIGATION_EVENTS = "irrigation_events";
 
-// Single unified table for irrigation events (manual + scheduler driven)
+// Single unified table for irrigation events (MQTT echo + scheduler driven)
 // Columns:
 // - event_ts: timestamp of the event
 // - zone: zone key (e.g., stefanNord, alle)
 // - state_raw: raw payload if available (e.g., MQTT message)
 // - state_boolean: normalized boolean state (on/off)
-// - recorded_via: 'manual' | 'auto'
+// - recorded_via: 'mqtt_echo' | 'scheduler'
 registerQuestDbTableSchema(QUESTDB_TABLE_IRRIGATION_EVENTS, () => `
     CREATE TABLE IF NOT EXISTS "${QUESTDB_TABLE_IRRIGATION_EVENTS}" (
         event_ts TIMESTAMP,
@@ -20,7 +20,7 @@ registerQuestDbTableSchema(QUESTDB_TABLE_IRRIGATION_EVENTS, () => `
     ) timestamp(event_ts) PARTITION BY DAY
 `);
 
-export type IrrigationRecordedVia = "manual" | "auto";
+export type IrrigationRecordedVia = "mqtt_echo" | "scheduler";
 
 export async function recordIrrigationEvent(
   zone: string,
@@ -41,4 +41,3 @@ export async function recordIrrigationEvent(
     throw error;
   }
 }
-
