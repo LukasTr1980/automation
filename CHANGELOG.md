@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v19.27.0] - 2025-11-16
+
+### Added
+- Backend `/api/schedule/next`: Expose `nextTimestamp` and `inSeason` so clients can distinguish seasonal pauses from normal operation and render the exact upcoming irrigation time.
+
+### Changed
+- Frontend (Villa Anna Home/Bewässerung): The next-schedule UI now uses the concrete next timestamp (including the year for distant dates), shows a compact “Saisonpause” label with the next planned run, and de-emphasises schedule indicators outside all configured irrigation months to avoid confusing messages like “nächste Bewässerung Mittwoch” when the next run is only next year.
 
 ## [v19.26.2] - 2025-10-19
 ### Changed

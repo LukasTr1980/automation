@@ -150,7 +150,7 @@ const HomePage = () => {
     ? formatLastIrrigationTimestamp(lastIrrigation.timestamp)
     : null;
   // React Query: Next schedule
-  const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null }>({
+  const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null; nextTimestamp?: string | null; inSeason?: boolean }>({
     queryKey: ['schedule', 'next'],
     queryFn: async () => {
       const r = await fetch('/api/schedule/next');
@@ -586,23 +586,102 @@ const HomePage = () => {
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Nächster Zeitplan
                 </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center' }} aria-live="polite">
-                  {(() => {
-                    const text = scheduleQuery.data?.nextScheduled || 'Kein Zeitplan';
-                    return (
-                      <Box component="span" sx={{ display: 'inline-block', minWidth: '14ch' }}>
-                        {scheduleQuery.isLoading && !scheduleQuery.data ? '–' : text}
+                {(() => {
+                  const data = scheduleQuery.data;
+                  const isLoading = scheduleQuery.isLoading && !data;
+                  const rawLabel = data?.nextScheduled;
+                  const noSchedules = rawLabel === 'No schedules';
+                  const noActiveSchedules = rawLabel === 'No active schedules';
+                  const inSeason = data?.inSeason !== undefined ? data.inSeason : true;
+                  const nextTs = data?.nextTimestamp ?? null;
+
+                  // Derive a human-friendly label for the next schedule
+                  let primaryLabel: string = 'Kein Zeitplan';
+                  let secondaryLabel: string | null = null;
+
+                  if (isLoading) {
+                    primaryLabel = '–';
+                  } else if (!data || noSchedules) {
+                    primaryLabel = 'Kein Zeitplan';
+                    secondaryLabel = 'Es ist kein Zeitplan hinterlegt.';
+                  } else if (noActiveSchedules) {
+                    primaryLabel = 'Kein aktiver Zeitplan';
+                    secondaryLabel = 'Es ist kein aktiver Zeitplan konfiguriert.';
+                  } else if (!inSeason && nextTs) {
+                    // We are outside all configured irrigation months ("Saisonpause")
+                    primaryLabel = 'Saisonpause';
+                    try {
+                      const d = new Date(nextTs);
+                      if (!Number.isNaN(d.getTime())) {
+                        const dateFormatter = new Intl.DateTimeFormat('de-DE', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        });
+                        const timeFormatter = new Intl.DateTimeFormat('de-DE', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        });
+                        const dateText = `${dateFormatter.format(d)}, ${timeFormatter.format(d)}`;
+                        secondaryLabel = `Nächste geplante Bewässerung: ${dateText}`;
+                      } else {
+                        secondaryLabel = 'Nächste geplante Bewässerung: –';
+                      }
+                    } catch {
+                      secondaryLabel = 'Nächste geplante Bewässerung: –';
+                    }
+                  } else if (nextTs) {
+                    // Use the concrete next timestamp and show year if not clearly soon
+                    try {
+                      const d = new Date(nextTs);
+                      if (!Number.isNaN(d.getTime())) {
+                        const now = new Date();
+                        const sameYear = d.getFullYear() === now.getFullYear();
+                        const diffMs = d.getTime() - now.getTime();
+                        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                        // For very distant schedules or year changes, show full date with year
+                        const dateFormatter = new Intl.DateTimeFormat('de-DE', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: !sameYear || diffDays > 60 ? 'numeric' : undefined,
+                        });
+                        const timeFormatter = new Intl.DateTimeFormat('de-DE', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        });
+                        primaryLabel = `${dateFormatter.format(d)}, ${timeFormatter.format(d)}`;
+                      } else {
+                        primaryLabel = rawLabel || 'Kein Zeitplan';
+                      }
+                    } catch {
+                      primaryLabel = rawLabel || 'Kein Zeitplan';
+                    }
+                  } else {
+                    primaryLabel = rawLabel || 'Kein Zeitplan';
+                  }
+
+                  return (
+                    <>
+                      <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center' }} aria-live="polite">
+                        <Box component="span" sx={{ display: 'inline-block', minWidth: '14ch' }}>
+                          {primaryLabel}
+                        </Box>
+                      </Typography>
+                      <Box sx={{ minHeight: 24 }}>
+                        {secondaryLabel && (
+                          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
+                            {secondaryLabel}
+                          </Typography>
+                        )}
+                        {!secondaryLabel && data?.zone && rawLabel !== 'No schedule' && rawLabel !== 'Scheduled' && (
+                          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
+                            {data.zone}
+                          </Typography>
+                        )}
                       </Box>
-                    );
-                  })()}
-                </Typography>
-                <Box sx={{ minHeight: 24 }}>
-                  {scheduleQuery.data?.zone && scheduleQuery.data.nextScheduled !== 'No schedule' && scheduleQuery.data.nextScheduled !== 'Scheduled' && (
-                    <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
-                      {scheduleQuery.data.zone}
-                    </Typography>
-                  )}
-                </Box>
+                    </>
+                  );
+                })()}
               </CardContent>
             </Card>
           </Grid>

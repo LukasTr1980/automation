@@ -56,6 +56,7 @@ const BewaesserungPage = () => {
   const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
   const [orderedTasks, setOrderedTasks] = useState<GroupedTasks>({});
   const apiUrl = import.meta.env.VITE_API_URL;
+  const currentMonth = new Date().getMonth();
   interface DecisionMetrics {
     outTemp: number;
     humidity: number;
@@ -301,6 +302,17 @@ const BewaesserungPage = () => {
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [decisionCheckQuery.refetch, scheduledTasksQuery.refetch, weatherQuery.refetch, skipDecision, apiUrl]);
+
+  // Determine whether we are currently outside any configured irrigation months
+  // A task with an empty month array is treated as "all months".
+  const isOutsideScheduleSeason = (() => {
+    if (scheduledTasks.length === 0) return false;
+    return !scheduledTasks.some((task) => {
+      const months = task.recurrenceRule?.month;
+      if (!Array.isArray(months) || months.length === 0) return true;
+      return months.includes(currentMonth);
+    });
+  })();
 
   // Dialog handlers removed
 
@@ -667,6 +679,16 @@ const BewaesserungPage = () => {
             )}
             <CardContent>
               <>
+                {isOutsideScheduleSeason && !tasksLoading && scheduledTasks.length > 0 && (
+                  <Box sx={{ mb: 1.5 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      Saisonpause
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      Außerhalb der eingestellten Zeiträume.
+                    </Typography>
+                  </Box>
+                )}
                 {scheduledTasks.length === 0 && !tasksLoading && (
                   <Typography variant="body1">Keine eingestellten Zeitpläne</Typography>
                 )}

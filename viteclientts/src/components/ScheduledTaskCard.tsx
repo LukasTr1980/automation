@@ -13,7 +13,7 @@ import { messages } from '../utils/messages';
 
 export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDelete, redisKey, onCopyTask }: ScheduledTaskCardProps) {
   const daysOfWeek = useDaysOfWeek();
-  const months = useMonths();
+  const monthLabels = useMonths();
   const { showSnackbar } = useSnackbar();
   const currentMonth = new Date().getMonth();
   const cleanZoneName = zoneName
@@ -114,7 +114,9 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
       {sortedGroupKeys.map((key) => (
         <Box key={key} sx={{ border: 1, borderColor: 'divider', borderRadius: 2, p: 1, mb: 1.5 }}>
           {groupedTasksForDisplay[key].map((task, i) => {
-            const isActive = task.recurrenceRule.month.includes(currentMonth) && switchStates[cleanZoneName];
+            const months = task.recurrenceRule?.month ?? [];
+            const isInSeasonMonth = months.length === 0 || months.includes(currentMonth);
+            const isActive = isInSeasonMonth && switchStates[cleanZoneName];
             const status = customLabels && customLabels[task.state.toString()] ? customLabels[task.state.toString()] : (task.state ? 'Ein' : 'Aus');
             const allDays = task.recurrenceRule.dayOfWeek.length === 7;
             const days = allDays ? 'Täglich' : task.recurrenceRule.dayOfWeek.map((day) => daysOfWeek[day].substring(0, 3)).join(', ');
@@ -139,10 +141,9 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                     sx={{
                       width: 8,
                       height: 8,
-                      borderRadius: '50%'
-,
+                      borderRadius: '50%',
                       mr: 1,
-                      bgcolor: task.state ? 'success.main' : 'text.disabled',
+                      bgcolor: task.state && isInSeasonMonth ? 'success.main' : 'text.disabled',
                     }}
                   />
                   <Typography variant="body2" sx={{ mr: 1 }}>{status}</Typography>
@@ -164,7 +165,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                 >
                   <Chip size="small" variant="outlined" label={days} />
                   {task.recurrenceRule.month.map((m) => (
-                    <Chip key={m} size="small" variant="outlined" label={months[m].substring(0, 3)} />
+                    <Chip key={m} size="small" variant="outlined" label={monthLabels[m].substring(0, 3)} />
                   ))}
                 </Stack>
 

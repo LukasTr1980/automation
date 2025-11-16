@@ -95,12 +95,12 @@ router.get('/next', async (req, res) => {
     for (const t of enabledIrrigationTasks) {
       const r = parseRecurrence(t.recurrenceRule);
       if (!r) continue;
-      const when = nextOccurrence(r, now);
-      if (!when) continue;
-      if (!bestWhen || when < bestWhen) {
-        bestWhen = when;
-        bestTask = t;
-      }
+    const when = nextOccurrence(r, now);
+    if (!when) continue;
+    if (!bestWhen || when < bestWhen) {
+      bestWhen = when;
+      bestTask = t;
+    }
     }
     if (!bestTask || !bestWhen) {
       logger.info('No valid upcoming irrigation occurrence found', { label: 'NextScheduleRoute' });
@@ -127,6 +127,7 @@ router.get('/next', async (req, res) => {
     // Extract time information from recurrenceRule
     let timeDisplay = 'Scheduled';
     let scheduleDetails = null;
+    let nextTimestamp: string | null = null;
     
     try {
       let ruleObj = bestTask.recurrenceRule;
@@ -147,6 +148,7 @@ router.get('/next', async (req, res) => {
         // Prefer concrete next occurrence including local date if not today
         const today = new Date(); today.setHours(0,0,0,0);
         const when = bestWhen!;
+        nextTimestamp = when.toISOString();
         const whenDay = new Date(when.getFullYear(), when.getMonth(), when.getDate());
         if (whenDay.getTime() !== today.getTime()) {
           // e.g., Mo 07:30
@@ -168,6 +170,16 @@ router.get('/next', async (req, res) => {
       logger.error(`Error processing recurrenceRule for task ${bestTask.taskId}:`, error as Error, { label: 'NextScheduleRoute' });
     }
 
+    // Determine whether we are currently inside any configured irrigation season
+    // A task with no month filter (empty month array) is treated as "all months".
+    const currentMonth = now.getMonth();
+    const inSeason = enabledIrrigationTasks.some((t) => {
+      const r = parseRecurrence(t.recurrenceRule);
+      if (!r) return false;
+      if (!r.month || r.month.length === 0) return true;
+      return r.month.includes(currentMonth);
+    });
+
     logger.info(`Next irrigation scheduled: ${timeDisplay} for ${zoneName}`, { label: 'NextScheduleRoute' });
     
     res.json({
@@ -176,7 +188,9 @@ router.get('/next', async (req, res) => {
       zone: zoneName,
       topic: bestTask.topic,
       scheduleDetails: scheduleDetails,
-      taskId: bestTask.taskId
+      taskId: bestTask.taskId,
+      nextTimestamp,
+      inSeason,
     });
   } catch (error) {
     logger.error('Error fetching next schedule', error as Error, { label: 'NextScheduleRoute' });
