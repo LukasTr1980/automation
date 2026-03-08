@@ -4,5 +4,6 @@
 node_modules/
 build/
 nodebackend/data/
+nodebackend/.env.dev
 *.log
 diff-output.txt

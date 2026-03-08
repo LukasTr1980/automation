@@ -5,6 +5,12 @@ This handbook encodes exactly how to build, design, and reason about the irrigat
 
 Follow these rules. Prefer the patterns and decisions stated here over guesses. Do not introduce new paradigms unless explicitly requested.
 
+## PUBLIC REPOSITORY WARNING
+
+> THIS REPOSITORY IS PUBLIC ON GITHUB.
+> NEVER put secrets, credentials, API keys, tokens, passwords, local keys, private URLs, customer data, or any other sensitive information into source code, config files, documentation, tests, screenshots, commits, or any other file that may be pushed to GitHub.
+> If a feature needs sensitive data, load it from Vault, Docker secrets, or local untracked environment files that are explicitly ignored by Git.
+
 ---
 
 ## Quick Start (agents)

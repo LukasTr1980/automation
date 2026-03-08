@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.2] - 2026-03-08
+
+### Added
+- Backend (Tuya Bridge): Added a Tuya Cloud bridge that can subscribe to the existing irrigation MQTT `.../set` topics, translate them to per-zone Tuya device commands, and sync confirmed device states back onto the existing MQTT status topics without reintroducing ioBroker.
+- Backend/Tests: Added `npm run test:tuya-bridge` to validate Tuya zone mapping parsing, boolean payload normalization, and `alle` fan-out behavior.
+
+### Changed
+- Backend (MQTT): `mqttHandler` now subscribes to both irrigation status and set topics and triggers an initial Tuya-to-MQTT state sync on broker reconnect when Tuya credentials and mappings are configured.
+- Backend (Config): Tuya bridge configuration can now be supplied via Vault secret `kv/data/automation/tuya` or backend env vars (`TUYA_ACCESS_ID`, `TUYA_ACCESS_SECRET`, `TUYA_REGION`/`TUYA_BASE_URL`, `TUYA_DEVICE_MAPPINGS_JSON`).
+- Backend (Tuya Bridge): Switched device status/control calls from unauthorized `iot-03` endpoints to the project-compatible `/v1.0/devices/{deviceId}/status` and `/v1.0/devices/{deviceId}/commands` APIs, including Tuya-compliant nonce signing and sorted query canonicalization.
+- Backend (Tuya Bridge): Added a fallback that derives per-zone mappings from the legacy ioBroker Tuya datapoint constants, so existing irrigation zones can keep working even before explicit `TUYA_DEVICE_MAPPINGS_JSON` is added.
+
 ## [v19.27.1] - 2026-01-30
 
 ### Changed
