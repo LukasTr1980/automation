@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.4] - 2026-03-08
+
+### Fixed
+- Backend (Tuya Bridge): When a switch command affects a multi-channel Tuya device with an interlock, sync all channels on that device back to MQTT so the UI reflects the forced-off zone instead of leaving multiple switches visible as on.
+
 ## [v19.27.3] - 2026-03-08
 
 ### Fixed

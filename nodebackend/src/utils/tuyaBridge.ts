@@ -377,6 +377,14 @@ async function readNormalizedStatesForMappings(mappings: TuyaZoneMapping[]): Pro
   return statesByZone;
 }
 
+function collectMappingsForAffectedDevices(
+  requestedMappings: TuyaZoneMapping[],
+  allZoneMappings: Record<string, TuyaZoneMapping>,
+): TuyaZoneMapping[] {
+  const affectedDeviceIds = new Set(requestedMappings.map((mapping) => mapping.deviceId));
+  return Object.values(allZoneMappings).filter((mapping) => affectedDeviceIds.has(mapping.deviceId));
+}
+
 async function publishMqttState(mqttClient: MqttClient, topic: string, state: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     mqttClient.publish(topic, state, {}, (error) => {
@@ -447,13 +455,15 @@ export async function handleTuyaMqttSetCommand(
     return true;
   }
 
-  const mappings = resolveTuyaMappingsForSetTopic(topic, config.zoneMappings);
-  if (!mappings.length) {
+  const requestedMappings = resolveTuyaMappingsForSetTopic(topic, config.zoneMappings);
+  if (!requestedMappings.length) {
     logger.warn(`Tuya Bridge has no mapping for MQTT set topic ${topic}`);
     return false;
   }
 
-  for (const mapping of mappings) {
+  const affectedMappings = collectMappingsForAffectedDevices(requestedMappings, config.zoneMappings);
+
+  for (const mapping of requestedMappings) {
     await sendDeviceCommand(mapping, nextState);
   }
 
@@ -463,8 +473,8 @@ export async function handleTuyaMqttSetCommand(
 
   for (let attempt = 0; attempt < STATUS_CONFIRM_MAX_ATTEMPTS; attempt += 1) {
     await delay(attempt === 0 ? STATUS_CONFIRM_INITIAL_DELAY_MS : STATUS_CONFIRM_INTERVAL_MS);
-    resolvedStatesByZone = await readNormalizedStatesForMappings(mappings);
-    confirmed = mappings.every((mapping) => resolvedStatesByZone[mapping.zoneKey] === expectedState);
+    resolvedStatesByZone = await readNormalizedStatesForMappings(affectedMappings);
+    confirmed = requestedMappings.every((mapping) => resolvedStatesByZone[mapping.zoneKey] === expectedState);
     if (confirmed) {
       break;
     }
@@ -474,7 +484,7 @@ export async function handleTuyaMqttSetCommand(
     logger.warn(`Tuya Bridge did not confirm expected state "${expectedState}" for ${topic} within ${STATUS_CONFIRM_MAX_ATTEMPTS} attempts`);
   }
 
-  await syncMappingsToMqtt(mqttClient, mappings, knownStates, resolvedStatesByZone);
+  await syncMappingsToMqtt(mqttClient, affectedMappings, knownStates, resolvedStatesByZone);
   return true;
 }
 
