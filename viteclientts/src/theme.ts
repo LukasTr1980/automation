@@ -1,7 +1,7 @@
 import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
 // Global MUI theme: align with AGENTS.md guidance and index.css font stack.
-let baseTheme = createTheme({
+const baseTheme = createTheme({
   typography: {
     fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
     // Headings boldness: h1–h4 600; subheads 500

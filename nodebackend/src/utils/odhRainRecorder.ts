@@ -31,6 +31,16 @@ const LANG = process.env.ODH_LANG ?? "de";
 const QUESTDB_TABLE_FORECASTS = "weather_odh_rain_forecasts";
 const QUESTDB_SOURCE_LABEL = "odh_forecast";
 
+interface OdhForecastSlot {
+    Date?: unknown;
+    Precipitation?: unknown;
+    PrecipitationProbability?: unknown;
+}
+
+interface OdhForecastResponse {
+    Forecast3HoursInterval?: OdhForecastSlot[];
+}
+
 registerQuestDbTableSchema(QUESTDB_TABLE_FORECASTS, () => `
     CREATE TABLE IF NOT EXISTS "${QUESTDB_TABLE_FORECASTS}" (
         observation_ts TIMESTAMP,
@@ -48,7 +58,7 @@ async function fetchJsonRetry(
     url: string,
     opts: RequestInit = {},
     retries = 3
-): Promise<any> {
+): Promise<unknown> {
     for (let i = 0; i < retries; i++) {
         try {
             const r = await fetch(url, { ...opts });
@@ -67,9 +77,9 @@ async function fetchJsonRetry(
 export async function odhRecordNextDayRain() {
     const observationTimestamp = new Date();
     const url = `https://tourism.api.opendatahub.com/v1/Weather/Forecast/${FC_ID}?language=${LANG}`;
-    const data = await fetchJsonRetry(url);
+    const data = await fetchJsonRetry(url) as OdhForecastResponse;
 
-    const slots: any[] = data.Forecast3HoursInterval;
+    const slots = Array.isArray(data.Forecast3HoursInterval) ? data.Forecast3HoursInterval : [];
     if (!Array.isArray(slots) || !slots.length) {
         throw new Error("3-h array missing in ODH payload");
     }
@@ -84,6 +94,7 @@ export async function odhRecordNextDayRain() {
 
     // ---------- Slots filtern & Kennwerte berechnen --------------------------
     const slotsTomorrow = slots.filter(s => {
+        if (typeof s.Date !== "string") return false;
         const t = parseISO(s.Date);               // API-Zeitstempel = UTC
         return !isBefore(t, startRome) && isBefore(t, endRome);
     });

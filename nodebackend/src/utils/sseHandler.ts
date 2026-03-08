@@ -10,7 +10,7 @@ const broadcastToSseClients = (topic: string, msg: string): void => {
 };
 
 // Broadcast an arbitrary SSE payload to all clients
-const broadcastPayloadToSseClients = (payload: any): void => {
+const broadcastPayloadToSseClients = (payload: unknown): void => {
     const dataString = `data: ${JSON.stringify(payload)}\n\n`;
     sseClients.forEach(client => {
         client.write(dataString);

@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/debug', async (req, res) => {
   try {
     // Try to get common current weather fields - these might be named differently than archive fields
-    const { ok, metrics } = await getWeatherlinkMetrics<Record<string, any>>([
+    const { ok, metrics } = await getWeatherlinkMetrics<Record<string, unknown>>([
       { name: 'temp', sensorType: 37, field: 'temp' },
       { name: 'temp_f', sensorType: 37, field: 'temp_f' },
       { name: 'temp_c', sensorType: 37, field: 'temp_c' },

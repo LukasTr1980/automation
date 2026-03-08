@@ -63,7 +63,7 @@ function printUsageAndExit(msg?: string, code = 1) {
   process.exit(code);
 }
 
-function asNumber(val: any, name: string): number {
+function asNumber(val: unknown, name: string): number {
   const n = Number(val);
   if (!Number.isFinite(n)) throw new Error(`Invalid number for ${name}: ${val}`);
   return n;

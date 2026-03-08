@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useEffectEvent, useMemo, useRef, type ReactNode } from 'react';
 import axios from 'axios';
 import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
@@ -98,6 +98,7 @@ const BewaesserungPage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+  const { refetch: refetchWeather } = weatherQuery;
   const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
   const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
@@ -185,8 +186,11 @@ const BewaesserungPage = () => {
       setDecisionLoading(false);
     };
   };
-  useEffect(() => {
+  const reconnectSSE = useEffectEvent(() => {
     startSSE();
+  });
+  useEffect(() => {
+    reconnectSSE();
     return () => { if (sseRef.current) try { sseRef.current.close(); } catch {}; };
   }, [apiUrl, skipDecision]);
 
@@ -203,6 +207,7 @@ const BewaesserungPage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+  const { refetch: refetchDecisionCheck } = decisionCheckQuery;
   useEffect(() => {
     if (typeof decisionCheckQuery.data?.skip !== 'undefined') {
       setSkipDecision(!!decisionCheckQuery.data.skip);
@@ -221,6 +226,7 @@ const BewaesserungPage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+  const { refetch: refetchScheduledTasks } = scheduledTasksQuery;
   useEffect(() => {
     if (!scheduledTasksQuery.data) return;
     const tasksArray = Object.entries(scheduledTasksQuery.data).flatMap(([key, tasks]) => tasks.map(task => ({ topic: key, ...task })));
@@ -270,11 +276,13 @@ const BewaesserungPage = () => {
   };
 
   // Selected zone for "Eingestellte Zeitpläne": keep as MQTT topic for consistency
-  const tasksZones = Object.keys(orderedTasks);
-  const tasksZoneTopics = tasksZones.map((zoneName) => {
-    const idx = switchDescriptions.findIndex((desc) => desc === zoneName);
-    return idx >= 0 ? bewaesserungsTopicsSet[idx] : zoneName;
-  });
+  const tasksZones = useMemo(() => Object.keys(orderedTasks), [orderedTasks]);
+  const tasksZoneTopics = useMemo(() => (
+    tasksZones.map((zoneName) => {
+      const idx = switchDescriptions.findIndex((desc) => desc === zoneName);
+      return idx >= 0 ? bewaesserungsTopicsSet[idx] : zoneName;
+    })
+  ), [tasksZones]);
 
   useEffect(() => {
     if (!selectedTasksTopic && tasksZoneTopics.length > 0) {
@@ -283,16 +291,16 @@ const BewaesserungPage = () => {
       // Previously selected topic no longer present -> reset to first available
       setSelectedTasksTopic(tasksZoneTopics[0]);
     }
-  }, [selectedTasksTopic, tasksZoneTopics.join('|')]);
+  }, [selectedTasksTopic, tasksZoneTopics]);
 
   // Instant refresh on focus/visibility
   useEffect(() => {
     const onFocus = () => {
-      decisionCheckQuery.refetch();
-      scheduledTasksQuery.refetch();
-      weatherQuery.refetch();
+      refetchDecisionCheck();
+      refetchScheduledTasks();
+      refetchWeather();
       // Re-subscribe to SSE to force fresh Prüfpunkte snapshot
-      startSSE();
+      reconnectSSE();
     };
     const onVisibility = () => { if (document.visibilityState === 'visible') onFocus(); };
     window.addEventListener('focus', onFocus);
@@ -301,7 +309,7 @@ const BewaesserungPage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [decisionCheckQuery.refetch, scheduledTasksQuery.refetch, weatherQuery.refetch, skipDecision, apiUrl]);
+  }, [refetchDecisionCheck, refetchScheduledTasks, refetchWeather]);
 
   // Determine whether we are currently outside any configured irrigation months
   // A task with an empty month array is treated as "all months".

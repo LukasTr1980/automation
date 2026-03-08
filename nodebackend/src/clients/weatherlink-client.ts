@@ -65,6 +65,25 @@ export interface MetricsResult<T extends Record<string, unknown>> {
   metrics: T;
 }
 
+type UnknownRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === 'object' && value !== null;
+}
+
+function getSensorDataRecords(sensor: unknown): UnknownRecord[] {
+  if (!isRecord(sensor) || !Array.isArray(sensor.data)) return [];
+  return sensor.data.filter(isRecord);
+}
+
+function findSensorByType(sensors: unknown, sensorType: SensorTypeCode): UnknownRecord | undefined {
+  if (!Array.isArray(sensors)) return undefined;
+  for (const sensor of sensors) {
+    if (isRecord(sensor) && sensor.sensor_type === sensorType) return sensor;
+  }
+  return undefined;
+}
+
 // Simple sliding-window rate limiter: max 10 req/sec and 1000 req/hour
 class SlidingWindowRateLimiter {
   private perSecond: number;
@@ -88,7 +107,7 @@ class SlidingWindowRateLimiter {
     return new Promise<T>((resolve, reject) => {
       // Wrap resolve/reject to match our stored callback types (unknown)
       const wrappedResolve = (v: unknown) => resolve(v as T);
-      const wrappedReject = (e: unknown) => reject(e as any);
+      const wrappedReject = (e: unknown) => reject(e);
       this.queue.push({ fn: fn as () => Promise<unknown>, resolve: wrappedResolve, reject: wrappedReject });
       if (this.queue.length > 5) {
         logger.info(`[WEATHERLINK] Queue building up: ${this.queue.length} requests pending`);
@@ -235,12 +254,14 @@ async function getFirstStationUUID(client: WeatherlinkClient): Promise<string | 
 async function getCurrentSensorBlocks(client: WeatherlinkClient, stationUUID: string): Promise<SensorBlock[]> {
   const current = await runLimited(() => client.getCurrent(stationUUID));
   if (!current) return [];
-  return current.sensors
-    .map((s: any) => {
-      const first = Array.isArray(s?.data) ? s.data[0] : undefined;
-      return { sensor_type: s?.sensor_type as number, data: first } as SensorBlock;
+  const sensors = Array.isArray(current.sensors) ? current.sensors : [];
+  return sensors
+    .map((sensor): SensorBlock | null => {
+      if (!isRecord(sensor) || typeof sensor.sensor_type !== 'number') return null;
+      const first = getSensorDataRecords(sensor)[0];
+      return { sensor_type: sensor.sensor_type, data: first };
     })
-    .filter(Boolean);
+    .filter((sensor): sensor is SensorBlock => sensor !== null);
 }
 
 export async function getWeatherlinkMetrics<T extends Record<string, unknown>>(
@@ -261,13 +282,13 @@ export async function getWeatherlinkMetrics<T extends Record<string, unknown>>(
     const block = sensors.find((b) => b.sensor_type === spec.sensorType);
     const data = block?.data ?? {};
 
-    const raw: unknown = (data as any)?.[spec.field];
+    const raw = data[spec.field];
     let value: unknown = undefined;
     if (raw !== undefined) {
       value = spec.transform ? spec.transform(raw, data) : raw;
     } else if (spec.fallbacks && spec.fallbacks.length) {
       for (const fb of spec.fallbacks) {
-        const fbRaw: unknown = (data as any)?.[fb.field];
+        const fbRaw = data[fb.field];
         if (fbRaw !== undefined) {
           value = fb.transform ? fb.transform(fbRaw, data) : fbRaw;
           break;
@@ -398,8 +419,8 @@ async function computeChunkRainTotal(
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
 
-  const iss = (historic as any).sensors?.find((s: any) => s?.sensor_type === 37);
-  const dataArray: any[] = Array.isArray(iss?.data) ? (iss!.data as any[]) : [];
+  const iss = findSensorByType(historic.sensors, 37);
+  const dataArray = getSensorDataRecords(iss);
 
   let sumMm = 0;
   let count = 0;
@@ -415,7 +436,8 @@ async function computeChunkRainTotal(
     } else if (typeof rIn === 'number' && isFinite(rIn)) {
       mm = inchesToMm(rIn);
     } else if (typeof clicks === 'number' && isFinite(clicks)) {
-      const est = rainClicksToMm(clicks, size);
+      const rainSizeCode = typeof size === 'number' && isFinite(size) ? size : undefined;
+      const est = rainClicksToMm(clicks, rainSizeCode);
       if (typeof est === 'number' && isFinite(est)) mm = est;
     }
 
@@ -439,7 +461,7 @@ export async function getRainTotalRange(options: RainTotalRangeOptions = {}): Pr
 
   const res = await withWeatherlinkClient(async (client) => {
     const stationUUID = await getFirstStationUUID(client);
-    if (!stationUUID) return null as any;
+    if (!stationUUID) return null;
 
     const start = end - windowSeconds * 1000;
     const chunks: RainTotalChunk[] = [];
@@ -515,12 +537,12 @@ async function computeChunkOutdoorTempAvg(
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
 
-  const iss = historic.sensors.find((s: any) => s?.sensor_type === 37);
-  const dataArray: unknown[] = Array.isArray(iss?.data) ? (iss!.data as unknown[]) : [];
+  const iss = findSensorByType(historic.sensors, 37);
+  const dataArray = getSensorDataRecords(iss);
 
   let sum = 0;
   let count = 0;
-  for (const entry of dataArray as any[]) {
+  for (const entry of dataArray) {
     const tAvg = entry?.temp_avg;
     const tLast = entry?.temp_last;
     const tHi = entry?.temp_hi;
@@ -556,7 +578,7 @@ export async function getOutdoorTempAverageRange(options: OutdoorTempAverageOpti
 
   const res = await withWeatherlinkClient(async (client) => {
     const stationUUID = await getFirstStationUUID(client);
-    if (!stationUUID) return null as any;
+    if (!stationUUID) return null;
 
     const start = end - windowSeconds * 1000;
 
@@ -649,13 +671,13 @@ async function computeChunkOutdoorTempExtrema(
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { hiMax: Number.NEGATIVE_INFINITY, loMin: Number.POSITIVE_INFINITY, count: 0, start: startTs, end: endTs };
 
-  const iss = historic.sensors.find((s: any) => s?.sensor_type === 37);
-  const dataArray: unknown[] = Array.isArray(iss?.data) ? (iss!.data as unknown[]) : [];
+  const iss = findSensorByType(historic.sensors, 37);
+  const dataArray = getSensorDataRecords(iss);
 
   let hi = Number.NEGATIVE_INFINITY;
   let lo = Number.POSITIVE_INFINITY;
   let count = 0;
-  for (const entry of dataArray as any[]) {
+  for (const entry of dataArray) {
     const tHi = entry?.temp_hi;
     const tLo = entry?.temp_lo;
 
@@ -683,7 +705,7 @@ export async function getOutdoorTempExtremaRange(options: OutdoorTempExtremaOpti
 
   const res = await withWeatherlinkClient(async (client) => {
     const stationUUID = await getFirstStationUUID(client);
-    if (!stationUUID) return null as any;
+    if (!stationUUID) return null;
 
     const start = end - windowSeconds * 1000;
     const chunks: OutdoorTempExtremaChunk[] = [];
@@ -764,12 +786,12 @@ async function computeChunkOutdoorHumidityAvg(
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
 
-  const iss = historic.sensors.find((s: any) => s?.sensor_type === 37);
-  const dataArray: unknown[] = Array.isArray(iss?.data) ? (iss!.data as unknown[]) : [];
+  const iss = findSensorByType(historic.sensors, 37);
+  const dataArray = getSensorDataRecords(iss);
 
   let sum = 0;
   let count = 0;
-  for (const entry of dataArray as any[]) {
+  for (const entry of dataArray) {
     const hAvg = entry?.hum_avg;
     const hLast = entry?.hum_last;
     const hHi = entry?.hum_hi;
@@ -801,7 +823,7 @@ export async function getOutdoorHumidityAverageRange(options: OutdoorHumidityAve
 
   const res = await withWeatherlinkClient(async (client) => {
     const stationUUID = await getFirstStationUUID(client);
-    if (!stationUUID) return null as any;
+    if (!stationUUID) return null;
 
     const start = end - windowSeconds * 1000;
 
@@ -895,12 +917,12 @@ async function computeChunkOutdoorWindAvg(
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
 
-  const iss = historic.sensors.find((s: any) => s?.sensor_type === 37);
-  const dataArray: unknown[] = Array.isArray(iss?.data) ? (iss!.data as unknown[]) : [];
+  const iss = findSensorByType(historic.sensors, 37);
+  const dataArray = getSensorDataRecords(iss);
 
   let sum = 0;
   let count = 0;
-  for (const entry of dataArray as any[]) {
+  for (const entry of dataArray) {
     const wAvg = entry?.wind_speed_avg; // mph
     const windRun = entry?.wind_run;    // miles in period
     const archInt = entry?.arch_int;    // seconds per record
@@ -932,7 +954,7 @@ export async function getOutdoorWindSpeedAverageRange(options: OutdoorWindAverag
 
   const res = await withWeatherlinkClient(async (client) => {
     const stationUUID = await getFirstStationUUID(client);
-    if (!stationUUID) return null as any;
+    if (!stationUUID) return null;
 
     const start = end - windowSeconds * 1000;
     const chunks: OutdoorWindAverageChunk[] = [];
@@ -1028,8 +1050,8 @@ async function computeChunkOutdoorPressureAvg(
   const endTs = typeof end === 'number' ? end : end.getTime();
   if (!historic) return { sum: 0, count: 0, start: startTs, end: endTs };
 
-  const bar = (historic as any).sensors?.find((s: any) => s?.sensor_type === 242);
-  const dataArray: any[] = Array.isArray(bar?.data) ? (bar!.data as any[]) : [];
+  const bar = findSensorByType(historic.sensors, 242);
+  const dataArray = getSensorDataRecords(bar);
 
   // ► CHOICE: wenn irgendwo bar_absolute vorhanden ist, nutze im ganzen Chunk NUR bar_absolute,
   //   sonst NUR bar_sea_level (keine Mischung).
@@ -1061,7 +1083,7 @@ export async function getOutdoorPressureAverageRange(options: OutdoorPressureAve
 
   const res = await withWeatherlinkClient(async (client) => {
     const stationUUID = await getFirstStationUUID(client);
-    if (!stationUUID) return null as any;
+    if (!stationUUID) return null;
 
     const start = end - windowSeconds * 1000;
     const chunks: OutdoorPressureAverageChunk[] = [];

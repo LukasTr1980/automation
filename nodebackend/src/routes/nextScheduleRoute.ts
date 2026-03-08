@@ -22,19 +22,27 @@ interface TaskWithTopic extends TaskDetail {
   topic: string;
 }
 
+function toIntegerArray(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => Number(entry))
+    .filter((entry) => Number.isInteger(entry));
+}
+
 function parseRecurrence(rule: unknown): RecurrenceRule | null {
   try {
-    let r = rule as any;
-    if (typeof r === 'string') {
-      try { r = JSON.parse(r); } catch { /* ignore */ }
+    let parsedRule: unknown = rule;
+    if (typeof parsedRule === 'string') {
+      try { parsedRule = JSON.parse(parsedRule); } catch { /* ignore */ }
     }
-    if (!r || typeof r !== 'object') return null;
-    const hour = Number(r.hour);
-    const minute = Number(r.minute);
-    const dayOfWeek = Array.isArray(r.dayOfWeek) ? r.dayOfWeek.map((n: any) => Number(n)).filter((n: number) => Number.isInteger(n)) : [];
-    const month = Array.isArray(r.month) ? r.month.map((n: any) => Number(n)).filter((n: number) => Number.isInteger(n)) : [];
+    if (!parsedRule || typeof parsedRule !== 'object') return null;
+    const record = parsedRule as Record<string, unknown>;
+    const hour = Number(record.hour);
+    const minute = Number(record.minute);
+    const dayOfWeek = toIntegerArray(record.dayOfWeek);
+    const month = toIntegerArray(record.month);
     if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
-    return { hour, minute, dayOfWeek, month } as RecurrenceRule;
+    return { hour, minute, dayOfWeek, month };
   } catch {
     return null;
   }

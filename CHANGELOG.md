@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.6] - 2026-03-08
+
+### Changed
+- Tooling: Migrated the frontend to ESLint 9 flat config and aligned the Villa Anna pages with the updated React Hooks lint rules without changing runtime behavior.
+
+### Fixed
+- Backend (WeatherLink/Utils): Replaced unsafe `any` usage in the updated backend lint path with typed guards so the backend builds and lints cleanly again after the dependency refresh.
+
 ## [v19.27.5] - 2026-03-08
 
 ### Changed

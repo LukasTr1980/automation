@@ -77,7 +77,7 @@ const VillaAnnacountdownPage = () => {
     // Derive running countdowns (only show active ones)
     const countdowns = countdownsQuery.data || {};
     // Only show stopped or running; hide reset
-    const entries = Object.entries(countdowns).filter(([_, c]) => !!c && c.control?.toLowerCase() !== 'reset');
+    const entries = Object.entries(countdowns).filter(([, c]) => !!c && c.control?.toLowerCase() !== 'reset');
     const hasAny = entries.length > 0;
 
     return (

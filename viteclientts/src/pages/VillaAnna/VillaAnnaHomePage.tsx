@@ -24,7 +24,7 @@ import {
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
 import FreshnessStatus from '../../components/FreshnessStatus';
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useEffectEvent, useRef, type ReactNode } from 'react';
 import useSnackbar from '../../utils/useSnackbar';
 import { switchDescriptions, bewaesserungsTopics, bewaesserungsTopicsSet, zoneOrder } from '../../components/constants';
 import { type CountdownsState } from '../../types/types';
@@ -111,6 +111,7 @@ const HomePage = () => {
       placeholderData: (prev) => prev,
     }
   );
+  const { refetch: refetchEt0Yesterday } = et0YesterdayQuery;
   // React Query: Weather latest + aggregates
   type WeatherLatestResponse = {
     latest?: { temperatureC?: number; humidity?: number; rainRateMmPerHour?: number; timestamp?: string };
@@ -130,6 +131,7 @@ const HomePage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+  const { refetch: refetchWeather } = weatherQuery;
   // React Query: Last irrigation (from Influx)
   const lastIrrigationQuery = useQuery<{ last: { timestamp: string; zone?: string | null; zoneLabel?: string | null } | null }>(
     {
@@ -144,6 +146,7 @@ const HomePage = () => {
       placeholderData: (prev) => prev,
     }
   );
+  const { refetch: refetchLastIrrigation } = lastIrrigationQuery;
   const lastIrrigation = lastIrrigationQuery.data?.last ?? null;
   const isLastIrrigationFetching = lastIrrigationQuery.isLoading || lastIrrigationQuery.isFetching;
   const formattedLastIrrigation = lastIrrigation?.timestamp
@@ -161,6 +164,7 @@ const HomePage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+  const { refetch: refetchSchedule } = scheduleQuery;
 
   // React Query: Current cloud cover percentage
   const cloudQuery = useQuery<{ cloud: number | null }>({
@@ -175,6 +179,7 @@ const HomePage = () => {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+  const { refetch: refetchCloud } = cloudQuery;
   const cloudValue = cloudQuery.data?.cloud;
   const hasCloudValue = typeof cloudValue === 'number';
   const isSunny = hasCloudValue && (cloudValue as number) <= 10;
@@ -251,12 +256,12 @@ const HomePage = () => {
   // (SSE re-subscribe is wired below via startSSE)
   useEffect(() => {
     const onFocus = () => {
-      weatherQuery.refetch();
-      scheduleQuery.refetch();
-      et0YesterdayQuery.refetch();
-      cloudQuery.refetch();
-      lastIrrigationQuery.refetch();
-      startSSE();
+      refetchWeather();
+      refetchSchedule();
+      refetchEt0Yesterday();
+      refetchCloud();
+      refetchLastIrrigation();
+      reconnectSSE();
     };
     const onVisibility = () => {
       if (document.visibilityState === 'visible') onFocus();
@@ -267,7 +272,7 @@ const HomePage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [weatherQuery.refetch, scheduleQuery.refetch, et0YesterdayQuery.refetch, cloudQuery.refetch, lastIrrigationQuery.refetch]);
+  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchCloud, refetchLastIrrigation]);
 
   // SSE for irrigation decision + switches, with ability to re-subscribe on focus
   const sseRef = useRef<EventSource | null>(null);
@@ -289,7 +294,7 @@ const HomePage = () => {
           if (idx !== -1) {
             setSwitches((prev) => prev.map((v, i) => (i === idx ? data.state === 'true' : v)));
             if (data.state === 'true') {
-              void lastIrrigationQuery.refetch();
+              void refetchLastIrrigation();
             }
           }
           // For manual starts we refresh the last irrigation snapshot on the zone turning on
@@ -312,7 +317,7 @@ const HomePage = () => {
           setDecisionLoading(false);
         } else if (data?.type === 'irrigationStart' && data?.source === 'scheduled') {
           // Scheduled irrigation just started → refresh soil bucket and last irrigation snapshot
-          void lastIrrigationQuery.refetch();
+          void refetchLastIrrigation();
           setTimeout(() => startSSE(), 150);
         }
       } catch {
@@ -323,15 +328,18 @@ const HomePage = () => {
       setDecisionLoading(false);
     };
   };
-  useEffect(() => {
+  const reconnectSSE = useEffectEvent(() => {
     startSSE();
+  });
+  useEffect(() => {
+    reconnectSSE();
     return () => { if (sseRef.current) try { sseRef.current.close(); } catch {}; };
   }, [apiUrl]);
 
   // Periodic refresh: re-subscribe every 2 minutes to keep soil bucket fresh without manual reload
   useEffect(() => {
     const id = setInterval(() => {
-      startSSE();
+      reconnectSSE();
     }, 2 * 60 * 1000);
     return () => clearInterval(id);
   }, []);
@@ -797,7 +805,7 @@ const HomePage = () => {
                     .filter(Boolean) as string[];
                   const countdowns = countdownsQuery.data || {};
                   const activeCountdownEntries = Object.entries(countdowns)
-                    .filter(([_, c]) => !!c && c!.control?.toLowerCase() === 'start' && (c!.value ?? 0) > 0);
+                    .filter(([, c]) => !!c && c!.control?.toLowerCase() === 'start' && (c!.value ?? 0) > 0);
                   const activeCountdownIndices = activeCountdownEntries
                     .map(([topic]) => bewaesserungsTopicsSet.indexOf(topic))
                     .filter((i) => i >= 0);

@@ -44,6 +44,7 @@ export function Ra(latDeg: number, doy: number) {
 const LON = Number(process.env.LON ?? 11.5599);
 
 type CloudSample = { time: number; value: number };
+type QueryRow = Record<string, unknown>;
 
 async function questDbCloudSeriesLast7(): Promise<CloudSample[]> {
     const { execute } = await import("../clients/questdbClient.js");
@@ -54,7 +55,13 @@ async function questDbCloudSeriesLast7(): Promise<CloudSample[]> {
          ORDER BY observation_ts`
     );
     return rows
-        .map((r: any) => ({ time: Date.parse(String(r.observation_ts)), value: Number(r.cloud_cover_pct) }))
+        .map((row) => {
+            const record = row as QueryRow;
+            return {
+                time: Date.parse(String(record.observation_ts)),
+                value: Number(record.cloud_cover_pct),
+            };
+        })
         .filter((r) => Number.isFinite(r.time) && Number.isFinite(r.value));
 }
 
