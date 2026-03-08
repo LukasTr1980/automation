@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.7] - 2026-03-08
+
+### Fixed
+- Frontend (Tooling): Corrected the frontend lockfile after the dependency refresh so `npm ci` works again in the Docker/CI build with Vite 7.
+
 ## [v19.27.6] - 2026-03-08
 
 ### Changed
