@@ -6,6 +6,7 @@ import { irrigationSwitchSetTopics, irrigationSwitchTopics } from './constants.j
 import { recordIrrigationEvent } from './irrigationEventsRecorder.js';
 import { handleTuyaMqttSetCommand, syncConfiguredTuyaStates } from './tuyaBridge.js';
 import { isIrrigationSetTopic } from './tuyaBridgeConfig.js';
+import type { IPublishPacket } from 'mqtt';
 
 class StateChangeEmitter extends EventEmitter { }
 const stateChangeEmitter = new StateChangeEmitter();
@@ -29,11 +30,15 @@ async function main() {
         void syncConfiguredTuyaStates(mqttClient, latestStates);
     });
 
-    mqttClient.on('message', async (topic, message) => {
+    mqttClient.on('message', async (topic, message, packet: IPublishPacket) => {
         const msg = message.toString();
         logger.info(`Message received from topic: ${topic}, Message: ${msg}`);
 
         if (isIrrigationSetTopic(topic)) {
+            if (packet.retain) {
+                logger.info(`Ignoring retained MQTT set command for ${topic}`);
+                return;
+            }
             try {
                 const handled = await handleTuyaMqttSetCommand(mqttClient, topic, msg, latestStates);
                 if (handled) {

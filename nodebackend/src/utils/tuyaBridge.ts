@@ -52,7 +52,9 @@ const TUYA_SECRET_PATH = 'kv/data/automation/tuya';
 const EMPTY_BODY_SHA256 = createHash('sha256').update('').digest('hex');
 const TOKEN_EXPIRY_SAFETY_WINDOW_MS = 60_000;
 const COMMAND_RETRY_DELAYS_MS = [0, 500, 1_500];
-const STATUS_REFRESH_DELAY_MS = 350;
+const STATUS_CONFIRM_INITIAL_DELAY_MS = 700;
+const STATUS_CONFIRM_INTERVAL_MS = 900;
+const STATUS_CONFIRM_MAX_ATTEMPTS = 6;
 
 const TUYA_REGION_BASE_URLS: Record<string, string> = {
   cn: 'https://openapi.tuyacn.com',
@@ -340,41 +342,10 @@ async function fetchDeviceStatus(deviceId: string): Promise<TuyaStatusEntry[]> {
   return response.result;
 }
 
-async function publishMqttState(mqttClient: MqttClient, topic: string, state: string): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    mqttClient.publish(topic, state, {}, (error) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-function hasCompleteAggregateState(zoneStates: Record<string, string>): boolean {
-  return getIrrigationZoneDefinitions()
-    .filter((entry) => entry.zoneKey !== 'alle')
-    .every((entry) => typeof zoneStates[entry.zoneKey] === 'string');
-}
-
-async function syncMappingsToMqtt(
-  mqttClient: MqttClient,
-  mappings: TuyaZoneMapping[],
-  knownStates: Record<string, string> = {},
-): Promise<void> {
-  if (!mappings.length) return;
-
-  const aggregateStatesByZone: Record<string, string> = {};
-  for (const zone of getIrrigationZoneDefinitions()) {
-    if (zone.zoneKey === 'alle') continue;
-    const currentState = knownStates[zone.statusTopic];
-    if (typeof currentState === 'string') {
-      aggregateStatesByZone[zone.zoneKey] = currentState;
-    }
-  }
-
+async function readNormalizedStatesForMappings(mappings: TuyaZoneMapping[]): Promise<Record<string, string>> {
+  const statesByZone: Record<string, string> = {};
   const mappingsByDevice = new Map<string, TuyaZoneMapping[]>();
+
   for (const mapping of mappings) {
     const existing = mappingsByDevice.get(mapping.deviceId);
     if (existing) {
@@ -399,9 +370,58 @@ async function syncMappingsToMqtt(
         continue;
       }
 
-      aggregateStatesByZone[mapping.zoneKey] = normalizedState;
-      await publishMqttState(mqttClient, mapping.statusTopic, normalizedState);
+      statesByZone[mapping.zoneKey] = normalizedState;
     }
+  }
+
+  return statesByZone;
+}
+
+async function publishMqttState(mqttClient: MqttClient, topic: string, state: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    mqttClient.publish(topic, state, {}, (error) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+function hasCompleteAggregateState(zoneStates: Record<string, string>): boolean {
+  return getIrrigationZoneDefinitions()
+    .filter((entry) => entry.zoneKey !== 'alle')
+    .every((entry) => typeof zoneStates[entry.zoneKey] === 'string');
+}
+
+async function syncMappingsToMqtt(
+  mqttClient: MqttClient,
+  mappings: TuyaZoneMapping[],
+  knownStates: Record<string, string> = {},
+  resolvedStatesByZone?: Record<string, string>,
+): Promise<void> {
+  if (!mappings.length) return;
+
+  const aggregateStatesByZone: Record<string, string> = {};
+  for (const zone of getIrrigationZoneDefinitions()) {
+    if (zone.zoneKey === 'alle') continue;
+    const currentState = knownStates[zone.statusTopic];
+    if (typeof currentState === 'string') {
+      aggregateStatesByZone[zone.zoneKey] = currentState;
+    }
+  }
+
+  const statesByZone = resolvedStatesByZone ?? await readNormalizedStatesForMappings(mappings);
+
+  for (const mapping of mappings) {
+    const normalizedState = statesByZone[mapping.zoneKey];
+    if (!normalizedState) {
+      continue;
+    }
+
+    aggregateStatesByZone[mapping.zoneKey] = normalizedState;
+    await publishMqttState(mqttClient, mapping.statusTopic, normalizedState);
   }
 
   if (hasCompleteAggregateState(aggregateStatesByZone)) {
@@ -437,8 +457,24 @@ export async function handleTuyaMqttSetCommand(
     await sendDeviceCommand(mapping, nextState);
   }
 
-  await delay(STATUS_REFRESH_DELAY_MS);
-  await syncMappingsToMqtt(mqttClient, mappings, knownStates);
+  const expectedState = nextState ? 'true' : 'false';
+  let resolvedStatesByZone: Record<string, string> = {};
+  let confirmed = false;
+
+  for (let attempt = 0; attempt < STATUS_CONFIRM_MAX_ATTEMPTS; attempt += 1) {
+    await delay(attempt === 0 ? STATUS_CONFIRM_INITIAL_DELAY_MS : STATUS_CONFIRM_INTERVAL_MS);
+    resolvedStatesByZone = await readNormalizedStatesForMappings(mappings);
+    confirmed = mappings.every((mapping) => resolvedStatesByZone[mapping.zoneKey] === expectedState);
+    if (confirmed) {
+      break;
+    }
+  }
+
+  if (!confirmed) {
+    logger.warn(`Tuya Bridge did not confirm expected state "${expectedState}" for ${topic} within ${STATUS_CONFIRM_MAX_ATTEMPTS} attempts`);
+  }
+
+  await syncMappingsToMqtt(mqttClient, mappings, knownStates, resolvedStatesByZone);
   return true;
 }
 
