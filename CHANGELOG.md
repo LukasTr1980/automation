@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.9] - 2026-04-04
+
+### Fixed
+- Docker/CI: Pin the Docker build stages to npm 11.12.1 so `npm ci` in the frontend stage uses the same lockfile resolver as local development and no longer fails on the Vite 7 optional `yaml` dependency check.
+
 ## [v19.27.8] - 2026-04-04
 
 ### Changed
