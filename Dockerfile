@@ -1,24 +1,22 @@
-# Build stages pin npm so local lockfile generation and Docker/CI use the same resolver.
+# Use npm 11 for install/prune commands without replacing the bundled npm binary in the image.
 ARG NPM_VERSION=11.12.1
 
 # Build the nodebackend library
 FROM node:22-slim AS nodebackend-build
 ARG NPM_VERSION
-RUN npm install -g npm@${NPM_VERSION}
 WORKDIR /usr/src/nodebackend
 COPY ./nodebackend/package*.json ./nodebackend/tsconfig.json ./
-RUN npm ci
+RUN npx -y npm@${NPM_VERSION} ci
 COPY ./nodebackend .
 RUN npm run build
-RUN npm prune --omit=dev
+RUN npx -y npm@${NPM_VERSION} prune --omit=dev
 
 # Build the React app
 FROM node:22-slim AS client-build
 ARG NPM_VERSION
-RUN npm install -g npm@${NPM_VERSION}
 WORKDIR /usr/src/viteclientts
 COPY ./viteclientts/package*.json ./
-RUN npm ci
+RUN npx -y npm@${NPM_VERSION} ci
 COPY ./viteclientts .
 ARG VERSION
 RUN echo "VITE_APP_VERSION=${VERSION}" > .env

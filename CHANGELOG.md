@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.10] - 2026-04-04
+
+### Fixed
+- Docker/CI: Switched the Docker build stages from a global npm self-update to `npx npm@11.12.1` for install/prune commands so CI matches the local npm 11 lockfile behavior without failing inside `node:22-slim` during `npm install -g`.
+
 ## [v19.27.9] - 2026-04-04
 
 ### Fixed
