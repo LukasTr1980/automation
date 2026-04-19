@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.11] - 2026-04-19
+
+### Changed
+- Backend (Dependencies): Upgraded `node-vault` from the legacy 0.10 line to `0.12.0` and refreshed the backend lockfile accordingly.
+
+### Notes
+- Breaking-change review: validated the upgrade against the current backend runtime and existing Vault adapter usage (`approleLogin`, `read`, `write`, token assignment). The current Docker and local Node versions satisfy the newer package runtime requirements, so no backend source changes were required.
+
 ## [v19.27.10] - 2026-04-04
 
 ### Fixed
