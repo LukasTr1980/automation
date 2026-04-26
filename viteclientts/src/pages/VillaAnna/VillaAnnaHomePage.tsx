@@ -11,7 +11,7 @@ import {
   Chip,
   LinearProgress
 } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
 import { 
@@ -37,6 +37,16 @@ import sunUrl from '../../assets/icons/sun.svg';
 
 // Timing thresholds / intervals
 const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
+const CLOUD_REFETCH_MS = 2 * 60 * 1000;
+const SCHEDULE_REFETCH_MS = 60 * 1000;
+const LAST_IRRIGATION_REFETCH_MS = 60 * 1000;
+const COUNTDOWNS_REFETCH_MS = 2 * 1000;
+
+function joinApiUrl(baseUrl: string, path: string): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (baseUrl === '/') return normalizedPath;
+  return `${baseUrl.replace(/\/+$/, '')}${normalizedPath}`;
+}
 
 // Freshness formatting is handled inside FreshnessStatus component
 
@@ -96,13 +106,15 @@ const HomePage = () => {
   );
 
   const { showSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
   const apiUrl = import.meta.env.VITE_API_URL || '/api';
+  const apiPath = (path: string) => joinApiUrl(apiUrl, path);
   // React Query: ET0 daily (yesterday)
   const et0YesterdayQuery = useQuery<{ date: string; et0mm: number | null; unit?: string }>(
     {
       queryKey: ['et0', 'yesterday'],
       queryFn: async () => {
-        const r = await fetch('/api/et0/yesterday');
+        const r = await fetch(apiPath('/et0/yesterday'));
         if (!r.ok) throw new Error('ET0');
         return r.json();
       },
@@ -120,7 +132,7 @@ const HomePage = () => {
   const weatherQuery = useQuery<WeatherLatestResponse>({
     queryKey: ['weather', 'latest'],
     queryFn: async () => {
-      const r = await fetch('/api/weather/latest');
+      const r = await fetch(apiPath('/weather/latest'));
       if (!r.ok) throw new Error('weather');
       return r.json();
     },
@@ -137,11 +149,13 @@ const HomePage = () => {
     {
       queryKey: ['irrigation', 'last'],
       queryFn: async () => {
-        const r = await fetch('/api/irrigation/last');
+        const r = await fetch(apiPath('/irrigation/last'));
         if (!r.ok) throw new Error('irrigation_last');
         return r.json();
       },
-      staleTime: 5 * 60 * 1000,
+      staleTime: LAST_IRRIGATION_REFETCH_MS,
+      refetchInterval: LAST_IRRIGATION_REFETCH_MS,
+      refetchIntervalInBackground: false,
       refetchOnWindowFocus: false,
       placeholderData: (prev) => prev,
     }
@@ -156,11 +170,13 @@ const HomePage = () => {
   const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null; nextTimestamp?: string | null; inSeason?: boolean }>({
     queryKey: ['schedule', 'next'],
     queryFn: async () => {
-      const r = await fetch('/api/schedule/next');
+      const r = await fetch(apiPath('/schedule/next'));
       if (!r.ok) throw new Error('schedule');
       return r.json();
     },
-    staleTime: 60 * 1000, // 1m
+    staleTime: SCHEDULE_REFETCH_MS,
+    refetchInterval: SCHEDULE_REFETCH_MS,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
@@ -170,12 +186,12 @@ const HomePage = () => {
   const cloudQuery = useQuery<{ cloud: number | null }>({
     queryKey: ['clouds', 'current'],
     queryFn: async () => {
-      const r = await fetch('/api/clouds/current');
+      const r = await fetch(apiPath('/clouds/current'));
       if (!r.ok) throw new Error('clouds');
       return r.json();
     },
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: CLOUD_REFETCH_MS,
+    refetchInterval: CLOUD_REFETCH_MS,
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
@@ -227,11 +243,11 @@ const HomePage = () => {
   const countdownsQuery = useQuery<CountdownsState>({
     queryKey: ['countdowns', 'current'],
     queryFn: async () => {
-      const res = await fetch(`${apiUrl}/countdown/currentCountdowns`);
+      const res = await fetch(apiPath('/countdown/currentCountdowns'));
       if (!res.ok) throw new Error('countdowns');
       return res.json();
     },
-    refetchInterval: 2000,
+    refetchInterval: COUNTDOWNS_REFETCH_MS,
     refetchOnWindowFocus: false,
   });
 
@@ -281,7 +297,7 @@ const HomePage = () => {
       try { sseRef.current.close(); } catch {}
       sseRef.current = null;
     }
-    const es = new EventSource(`${apiUrl}/mqtt`);
+    const es = new EventSource(apiPath('/mqtt'));
     sseRef.current = es;
     es.onmessage = (event) => {
       try {
@@ -294,7 +310,9 @@ const HomePage = () => {
           if (idx !== -1) {
             setSwitches((prev) => prev.map((v, i) => (i === idx ? data.state === 'true' : v)));
             if (data.state === 'true') {
-              void refetchLastIrrigation();
+              setTimeout(() => {
+                void queryClient.invalidateQueries({ queryKey: ['irrigation', 'last'] });
+              }, 500);
             }
           }
           // For manual starts we refresh the last irrigation snapshot on the zone turning on
@@ -317,7 +335,10 @@ const HomePage = () => {
           setDecisionLoading(false);
         } else if (data?.type === 'irrigationStart' && data?.source === 'scheduled') {
           // Scheduled irrigation just started → refresh soil bucket and last irrigation snapshot
-          void refetchLastIrrigation();
+          void queryClient.invalidateQueries({ queryKey: ['schedule', 'next'] });
+          setTimeout(() => {
+            void queryClient.invalidateQueries({ queryKey: ['irrigation', 'last'] });
+          }, 500);
           setTimeout(() => startSSE(), 150);
         }
       } catch {
