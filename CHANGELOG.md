@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.12] - 2026-04-26
+
+### Added
+- Frontend (Tests): Added a Playwright regression test for the Villa Anna home dashboard to verify that the next schedule and last-irrigation cards refresh without a page reload.
+
+### Changed
+- Frontend (Villa Anna Home): Unified dashboard API URL handling through the configured API base path and added periodic refreshes for the next schedule and last-irrigation cards so long-lived sessions stay current.
+- Frontend (Villa Anna Home): Reworked the status-card grid into a balanced desktop layout and aligned the large irrigation/timer action cards so their controls line up consistently.
+- Frontend (Freshness): Stabilized freshness status rows so status dots, labels, and info icons stay aligned on mobile while preserving compact desktop rows.
+
+### Fixed
+- Frontend (Villa Anna Home): Delay last-irrigation invalidation after irrigation start events so the dashboard refresh is less likely to race the backend event recorder.
+
 ## [v19.27.11] - 2026-04-19
 
 ### Changed
