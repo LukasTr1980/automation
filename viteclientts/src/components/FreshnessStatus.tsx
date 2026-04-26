@@ -72,6 +72,14 @@ export default function FreshnessStatus({
       : 'success.main';
 
   const cacheTimestamp = latestTimestamp ?? null;
+  const statusRowSx = {
+    display: { xs: 'grid', sm: 'inline-flex' },
+    gridTemplateColumns: { xs: '8px minmax(0, 1fr) 16px', sm: 'none' },
+    alignItems: 'center',
+    gap: 1,
+    width: { xs: '100%', sm: 'auto' },
+    whiteSpace: { xs: 'normal', sm: 'nowrap' },
+  };
 
   // Soil-bucket: success if updated today (local date matches today)
   const soilStatus = (() => {
@@ -91,9 +99,9 @@ export default function FreshnessStatus({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, alignItems: 'flex-start' }}>
       {/* Wetterstation freshness */}
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' }, whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
+      <Box sx={statusRowSx}>
         <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: serverStatusColor, flex: '0 0 auto' }} />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, textAlign: 'left' }}>
           Datenaktualität Wetterstation: {cacheTimestamp ? formatRelativeMinutes(cacheTimestamp) : 'unbekannt'}
         </Typography>
         <InfoPopover
@@ -112,9 +120,9 @@ export default function FreshnessStatus({
 
       {/* Soil storage freshness (optional) */}
       {!hideSoilFreshness && (
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' }, whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
+        <Box sx={statusRowSx}>
           <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: soilStatus.color, flex: '0 0 auto' }} />
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, textAlign: 'left' }}>
             {soilStatus.label}
           </Typography>
           <InfoPopover
@@ -129,9 +137,9 @@ export default function FreshnessStatus({
       )}
 
       {/* Client freshness */}
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexWrap: { xs: 'wrap', sm: 'nowrap' }, whiteSpace: { xs: 'normal', sm: 'nowrap' } }}>
+      <Box sx={statusRowSx}>
         <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: clientStatusColor, flex: '0 0 auto' }} />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, textAlign: 'left' }}>
           {(() => {
             if (clientIsFetching) return 'Anzeigeaktualität: lädt…';
             if (clientIsError) return 'Anzeigeaktualität: Fehler';

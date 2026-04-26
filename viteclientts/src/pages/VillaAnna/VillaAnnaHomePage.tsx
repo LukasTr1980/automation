@@ -99,9 +99,21 @@ const HomePage = () => {
 
   // Lightweight status chip with small colored dot + short label
   const DotLabel = ({ color, label }: { color: string; label: string }) => (
-    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, lineHeight: 1 }}>
-      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color, flex: '0 0 auto' }} />
-      <Typography variant="caption" sx={{ fontWeight: 600 }}>{label}</Typography>
+    <Box
+      sx={{
+        display: 'inline-grid',
+        gridTemplateColumns: '8px minmax(0, auto)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        columnGap: 0.75,
+        maxWidth: '100%',
+        lineHeight: 1.2,
+      }}
+    >
+      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color }} />
+      <Typography variant="caption" sx={{ fontWeight: 600, textAlign: 'left', lineHeight: 1.2 }}>
+        {label}
+      </Typography>
     </Box>
   );
 
@@ -392,7 +404,7 @@ const HomePage = () => {
           columnSpacing={{ xs: 1, md: 3 }}
           sx={{ mb: { xs: 2, md: 3 } }}
         >
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
@@ -470,7 +482,7 @@ const HomePage = () => {
           {/* Removed Verdunstung card from top per AGENTS.md dashboard integration */}
 
           {/* Soil storage snapshot */}
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
@@ -549,7 +561,7 @@ const HomePage = () => {
             </Card>
           </Grid>
 
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
@@ -598,7 +610,7 @@ const HomePage = () => {
             </Card>
           </Grid>
 
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
@@ -716,7 +728,7 @@ const HomePage = () => {
           </Grid>
 
           {/* Wetterprognose (morgen) */}
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
             <ForecastCard
               loading={decisionLoading}
               rainNextDay={decision?.rainNextDay ?? null}
@@ -726,7 +738,7 @@ const HomePage = () => {
           </Grid>
 
           {/* Bewölkung (aktuell) */}
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
             <Card variant="outlined" sx={{ borderRadius: 2, height: '100%', minHeight: { xs: 120, md: 140 }, position: 'relative' }}>
               {cloudQuery.isFetching && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
@@ -940,23 +952,28 @@ const HomePage = () => {
                     textAlign: 'center', 
                     p: { xs: 2, md: 3 },
                     height: '100%',
-                    display: 'flex',
+                    display: { xs: 'flex', md: 'grid' },
                     flexDirection: 'column',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    alignContent: 'center',
+                    justifyItems: 'center',
+                    gridTemplateRows: { md: '80px 34px 48px 24px' },
+                    rowGap: { md: 1.5 },
                   }}>
-                    <Avatar sx={{ width: { xs: 60, md: 80 }, height: { xs: 60, md: 80 }, mx: 'auto', mb: 2, bgcolor: 'primary.main', color: 'common.white' }}>
+                    <Avatar sx={{ width: { xs: 60, md: 80 }, height: { xs: 60, md: 80 }, mx: 'auto', mb: { xs: 2, md: 0 }, bgcolor: 'primary.main', color: 'common.white' }}>
                       <WaterDrop sx={{ fontSize: { xs: 30, md: 40 } }} />
                     </Avatar>
                     <Typography variant="h5" sx={{ 
                       fontWeight: 600, 
-                      mb: 1
+                      mb: { xs: 1, md: 0 },
+                      alignSelf: 'center',
                     }}>
                       Bewässerung
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', minHeight: { md: 44 }, display: { md: 'flex' }, alignItems: { md: 'center' }, justifyContent: { md: 'center' } }}>
                       Manuelle Bewässerungssteuerung und Zonenverwaltung
                     </Typography>
-                    <Chip label="Manuelle Steuerung" size="small" sx={{ mt: 2, bgcolor: 'primary.main', color: 'common.white' }} />
+                    <Chip label="Manuelle Steuerung" size="small" sx={{ mt: { xs: 2, md: 0 }, width: '100%', bgcolor: 'primary.main', color: 'common.white' }} />
                   </CardContent>
                 </CardActionArea>
               </Card>
@@ -976,23 +993,28 @@ const HomePage = () => {
                     textAlign: 'center', 
                     p: { xs: 2, md: 3 },
                     height: '100%',
-                    display: 'flex',
+                    display: { xs: 'flex', md: 'grid' },
                     flexDirection: 'column',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    alignContent: 'center',
+                    justifyItems: 'center',
+                    gridTemplateRows: { md: '80px 34px 48px 24px' },
+                    rowGap: { md: 1.5 },
                   }}>
-                    <Avatar sx={{ width: { xs: 60, md: 80 }, height: { xs: 60, md: 80 }, mx: 'auto', mb: 2, bgcolor: 'secondary.main', color: 'common.white' }}>
+                    <Avatar sx={{ width: { xs: 60, md: 80 }, height: { xs: 60, md: 80 }, mx: 'auto', mb: { xs: 2, md: 0 }, bgcolor: 'secondary.main', color: 'common.white' }}>
                       <Schedule sx={{ fontSize: { xs: 30, md: 40 } }} />
                     </Avatar>
                     <Typography variant="h5" sx={{ 
                       fontWeight: 600, 
-                      mb: 1
+                      mb: { xs: 1, md: 0 },
+                      alignSelf: 'center',
                     }}>
                       {isSmallScreen ? 'Countdown' : 'Bewässerungs Timer'}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', minHeight: { md: 44 }, display: { md: 'flex' }, alignItems: { md: 'center' }, justifyContent: { md: 'center' } }}>
                       Geplante Bewässerung mit Countdown-Timer
                     </Typography>
-                    <Chip label="Automatisiert" size="small" sx={{ mt: 2, bgcolor: 'secondary.main', color: 'common.white' }} />
+                    <Chip label="Automatisiert" size="small" sx={{ mt: { xs: 2, md: 0 }, width: '100%', bgcolor: 'secondary.main', color: 'common.white' }} />
                   </CardContent>
                 </CardActionArea>
               </Card>
