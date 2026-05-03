@@ -24,12 +24,13 @@ import {
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
 import FreshnessStatus from '../../components/FreshnessStatus';
-import { useState, useEffect, useEffectEvent, useRef, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import useSnackbar from '../../utils/useSnackbar';
 import { switchDescriptions, bewaesserungsTopics, bewaesserungsTopicsSet, zoneOrder } from '../../components/constants';
 import { type CountdownsState } from '../../types/types';
 import IrrigationIndicator from '../../components/IrrigationIndicator';
 import ForecastCard from '../../components/ForecastCard';
+import { useEventSource } from '../../hooks/useEventSource';
 import cloud25Url from '../../assets/icons/cloud-25.svg';
 import cloud50Url from '../../assets/icons/cloud-50.svg';
 import cloud100Url from '../../assets/icons/cloud-100.svg';
@@ -280,38 +281,9 @@ const HomePage = () => {
     if (cloudQuery.isError) showSnackbar('Fehler beim Laden der Bewölkung', 'error');
   }, [cloudQuery.isError, showSnackbar]);
 
-  // Instant refresh on tab/window focus and when page becomes visible
-  // (SSE re-subscribe is wired below via startSSE)
-  useEffect(() => {
-    const onFocus = () => {
-      refetchWeather();
-      refetchSchedule();
-      refetchEt0Yesterday();
-      refetchCloud();
-      refetchLastIrrigation();
-      reconnectSSE();
-    };
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') onFocus();
-    };
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchCloud, refetchLastIrrigation]);
-
-  // SSE for irrigation decision + switches, with ability to re-subscribe on focus
-  const sseRef = useRef<EventSource | null>(null);
-  const startSSE = () => {
-    if (sseRef.current) {
-      try { sseRef.current.close(); } catch {}
-      sseRef.current = null;
-    }
-    const es = new EventSource(apiPath('/mqtt'));
-    sseRef.current = es;
-    es.onmessage = (event) => {
+  const { reconnect: reconnectSSE } = useEventSource({
+    url: apiPath('/mqtt'),
+    onMessage: (event, controls) => {
       try {
         const data = JSON.parse(event.data);
         if (data?.latestStates) {
@@ -351,31 +323,37 @@ const HomePage = () => {
           setTimeout(() => {
             void queryClient.invalidateQueries({ queryKey: ['irrigation', 'last'] });
           }, 500);
-          setTimeout(() => startSSE(), 150);
+          setTimeout(() => controls.reconnect(), 150);
         }
       } catch {
         // ignore malformed events
       }
-    };
-    es.onerror = () => {
+    },
+    onError: () => {
       setDecisionLoading(false);
-    };
-  };
-  const reconnectSSE = useEffectEvent(() => {
-    startSSE();
+    },
   });
-  useEffect(() => {
-    reconnectSSE();
-    return () => { if (sseRef.current) try { sseRef.current.close(); } catch {}; };
-  }, [apiUrl]);
 
-  // Periodic refresh: re-subscribe every 2 minutes to keep soil bucket fresh without manual reload
+  // Instant refresh on tab/window focus and when page becomes visible
   useEffect(() => {
-    const id = setInterval(() => {
+    const onFocus = () => {
+      refetchWeather();
+      refetchSchedule();
+      refetchEt0Yesterday();
+      refetchCloud();
+      refetchLastIrrigation();
       reconnectSSE();
-    }, 2 * 60 * 1000);
-    return () => clearInterval(id);
-  }, []);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') onFocus();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchCloud, refetchLastIrrigation, reconnectSSE]);
 
   return (
     <Layout>

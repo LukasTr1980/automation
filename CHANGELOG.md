@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.13] - 2026-05-03
+
+### Added
+- Frontend (Tests): Added Vitest and React Testing Library coverage for the shared EventSource hook, including reconnect backoff and hidden-tab behavior.
+
+### Fixed
+- Backend/Frontend (Villa Anna): Hardened the `/api/mqtt` SSE stream with keepalive heartbeats and controlled client reconnects so long-lived browser tabs recover cleanly after idle disconnects.
+
 ## [v19.27.12] - 2026-04-26
 
 ### Added

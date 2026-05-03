@@ -1,4 +1,4 @@
-import { useState, useEffect, useEffectEvent, useMemo, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import axios from 'axios';
 import { switchDescriptions, bewaesserungsTopics, zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import ScheduledTaskCard from '../../components/ScheduledTaskCard';
@@ -38,6 +38,7 @@ import { ZoneSelector } from '../../components/index';
 import { messages } from '../../utils/messages';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import FreshnessStatus from '../../components/FreshnessStatus';
+import { useEventSource } from '../../hooks/useEventSource';
 // Dialog removed: details shown inline
 
 // Timing intervals
@@ -147,20 +148,16 @@ const BewaesserungPage = () => {
     }
   })();
 
-  // SSE wiring with ability to resubscribe on demand (e.g., on focus)
-  const sseRef = useRef<EventSource | null>(null);
-  const startSSE = () => {
-    // Close any existing connection first
-    if (sseRef.current) {
-      try { sseRef.current.close(); } catch {}
-      sseRef.current = null;
-    }
+  const mqttSseUrl = (() => {
     const params = new URLSearchParams();
     if (skipDecision) params.set('checkIrrigation', 'false');
-    const url = `${apiUrl}/mqtt?${params.toString()}`;
-    const es = new EventSource(url);
-    sseRef.current = es;
-    es.onmessage = (event) => {
+    const query = params.toString();
+    return `${apiUrl}/mqtt${query ? `?${query}` : ''}`;
+  })();
+
+  const { reconnect: reconnectSSE } = useEventSource({
+    url: mqttSseUrl,
+    onMessage: (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.latestStates) {
@@ -180,19 +177,12 @@ const BewaesserungPage = () => {
       } catch {
         // ignore malformed events
       }
-    };
-    es.onerror = () => {
+    },
+    onError: () => {
       // if error, mark loading false to avoid spinners; will refresh on focus
       setDecisionLoading(false);
-    };
-  };
-  const reconnectSSE = useEffectEvent(() => {
-    startSSE();
+    },
   });
-  useEffect(() => {
-    reconnectSSE();
-    return () => { if (sseRef.current) try { sseRef.current.close(); } catch {}; };
-  }, [apiUrl, skipDecision]);
 
   // Load initial decision-skip state from backend
   // React Query: decisionCheck (initial state)
@@ -309,7 +299,7 @@ const BewaesserungPage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [refetchDecisionCheck, refetchScheduledTasks, refetchWeather]);
+  }, [refetchDecisionCheck, refetchScheduledTasks, refetchWeather, reconnectSSE]);
 
   // Determine whether we are currently outside any configured irrigation months
   // A task with an empty month array is treated as "all months".
