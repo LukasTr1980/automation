@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.14] - 2026-05-05
+
+### Fixed
+- Frontend (Villa Anna): Close the `/api/mqtt` EventSource before browser sleep, page suspension, or offline transitions, then reconnect on resume to reduce wake-from-sleep network errors.
+
 ## [v19.27.13] - 2026-05-03
 
 ### Added

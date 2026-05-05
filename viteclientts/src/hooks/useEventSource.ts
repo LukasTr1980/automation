@@ -54,14 +54,14 @@ export function useEventSource({
   const reconnect = useCallback(() => {
     attemptRef.current = 0;
     close();
-    if (document.visibilityState !== 'hidden') {
+    if (document.visibilityState !== 'hidden' && navigator.onLine !== false) {
       connectRef.current();
     }
   }, [close]);
 
   const connect = useCallback(() => {
     const currentUrl = urlRef.current;
-    if (!enabledRef.current || !currentUrl || document.visibilityState === 'hidden') {
+    if (!enabledRef.current || !currentUrl || document.visibilityState === 'hidden' || navigator.onLine === false) {
       return;
     }
 
@@ -88,7 +88,7 @@ export function useEventSource({
   }, [close, reconnect]);
 
   const scheduleReconnect = useCallback(() => {
-    if (!enabledRef.current || !urlRef.current || document.visibilityState === 'hidden') {
+    if (!enabledRef.current || !urlRef.current || document.visibilityState === 'hidden' || navigator.onLine === false) {
       return;
     }
 
@@ -113,17 +113,41 @@ export function useEventSource({
   }, [close, enabled, reconnect, url]);
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && enabledRef.current && urlRef.current && !sourceRef.current) {
+    const reconnectIfActive = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine !== false && enabledRef.current && urlRef.current && !sourceRef.current) {
         reconnect();
       }
     };
 
+    const closeForSuspension = () => {
+      close();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        closeForSuspension();
+        return;
+      }
+      reconnectIfActive();
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', closeForSuspension);
+    window.addEventListener('freeze', closeForSuspension);
+    window.addEventListener('offline', closeForSuspension);
+    window.addEventListener('pageshow', reconnectIfActive);
+    window.addEventListener('resume', reconnectIfActive);
+    window.addEventListener('online', reconnectIfActive);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', closeForSuspension);
+      window.removeEventListener('freeze', closeForSuspension);
+      window.removeEventListener('offline', closeForSuspension);
+      window.removeEventListener('pageshow', reconnectIfActive);
+      window.removeEventListener('resume', reconnectIfActive);
+      window.removeEventListener('online', reconnectIfActive);
     };
-  }, [reconnect]);
+  }, [close, reconnect]);
 
   return { reconnect };
 }
