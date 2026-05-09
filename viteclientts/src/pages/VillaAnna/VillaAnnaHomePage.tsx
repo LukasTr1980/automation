@@ -27,10 +27,10 @@ import FreshnessStatus from '../../components/FreshnessStatus';
 import { useState, useEffect, type ReactNode } from 'react';
 import useSnackbar from '../../utils/useSnackbar';
 import { switchDescriptions, bewaesserungsTopics, bewaesserungsTopicsSet, zoneOrder } from '../../components/constants';
-import { type CountdownsState } from '../../types/types';
 import IrrigationIndicator from '../../components/IrrigationIndicator';
 import ForecastCard from '../../components/ForecastCard';
 import { useEventSource } from '../../hooks/useEventSource';
+import { useCountdowns } from '../../hooks/useCountdowns';
 import cloud25Url from '../../assets/icons/cloud-25.svg';
 import cloud50Url from '../../assets/icons/cloud-50.svg';
 import cloud100Url from '../../assets/icons/cloud-100.svg';
@@ -41,7 +41,6 @@ const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
 const CLOUD_REFETCH_MS = 2 * 60 * 1000;
 const SCHEDULE_REFETCH_MS = 60 * 1000;
 const LAST_IRRIGATION_REFETCH_MS = 60 * 1000;
-const COUNTDOWNS_REFETCH_MS = 2 * 1000;
 
 function joinApiUrl(baseUrl: string, path: string): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -252,17 +251,7 @@ const HomePage = () => {
   // Track live switch states (manual/automatic on) via SSE
   const [switches, setSwitches] = useState<boolean[]>([false, false, false, false, false]);
 
-  // React Query: poll current countdowns (lightweight)
-  const countdownsQuery = useQuery<CountdownsState>({
-    queryKey: ['countdowns', 'current'],
-    queryFn: async () => {
-      const res = await fetch(apiPath('/countdown/currentCountdowns'));
-      if (!res.ok) throw new Error('countdowns');
-      return res.json();
-    },
-    refetchInterval: COUNTDOWNS_REFETCH_MS,
-    refetchOnWindowFocus: false,
-  });
+  const countdownsQuery = useCountdowns(apiUrl);
 
   // Snackbar on query errors (German messages)
   useEffect(() => {

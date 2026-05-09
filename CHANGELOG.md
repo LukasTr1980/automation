@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.16] - 2026-05-09
+
+### Added
+- Frontend (Tests): Added coverage for the shared countdown hook to verify one initial fetch, local countdown ticking, and Socket.IO-driven cache updates.
+
+### Changed
+- Frontend (Villa Anna): Replaced the continuous countdown HTTP polling on the home and timer pages with a shared countdown hook that performs an initial fetch, keeps visible timers ticking locally, and applies backend `redis-countdown-update` events through Socket.IO.
+- Frontend (Dev Proxy): Proxy `/socket.io` to the backend during Vite development so local Socket.IO connections follow the same backend origin as API calls.
+
 ## [v19.27.15] - 2026-05-05
 
 ### Changed

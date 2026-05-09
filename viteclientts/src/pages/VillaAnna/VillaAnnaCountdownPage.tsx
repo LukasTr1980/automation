@@ -11,9 +11,8 @@ import { zoneOrder, bewaesserungsTopicsSet } from '../../components/constants';
 import { HourField, MinuteField, ZoneSelector } from '../../components/index';
 import CountdownCard from '../../components/CountdownCard';
 import useSnackbar from '../../utils/useSnackbar';
-import { CountdownsState } from '../../types/types';
 import { messages } from '../../utils/messages';
-import { useQuery } from '@tanstack/react-query';
+import { useCountdowns } from '../../hooks/useCountdowns';
 
 const VillaAnnacountdownPage = () => {
     const { showSnackbar } = useSnackbar();
@@ -27,7 +26,7 @@ const VillaAnnacountdownPage = () => {
         minute: true
     });
 
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
 
     // Zone selection handled by standalone ToggleButtons
 
@@ -62,17 +61,7 @@ const VillaAnnacountdownPage = () => {
         }
     };
 
-    // React Query: poll current countdowns
-    const countdownsQuery = useQuery<CountdownsState>({
-        queryKey: ['countdowns', 'current'],
-        queryFn: async () => {
-            const res = await fetch(`${apiUrl}/countdown/currentCountdowns`);
-            if (!res.ok) throw new Error('countdowns');
-            return res.json();
-        },
-        refetchInterval: 1000,
-        refetchOnWindowFocus: false,
-    });
+    const countdownsQuery = useCountdowns(apiUrl);
 
     // Derive running countdowns (only show active ones)
     const countdowns = countdownsQuery.data || {};
