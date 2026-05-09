@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v19.27.17] - 2026-05-09
+
+### Fixed
+- Frontend (Villa Anna Home): Aligned the irrigation and countdown action cards with the dashboard card grid and made their bottom action labels span the full card width.
+
 ## [v19.27.16] - 2026-05-09
 
 ### Added

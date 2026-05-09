@@ -902,9 +902,9 @@ const HomePage = () => {
         <Grid
           container
           rowSpacing={{ xs: 1.5, md: 3 }}
-          columnSpacing={{ xs: 1, md: 3 }}
+          columnSpacing={{ xs: 1, md: 9.5 }}
           justifyContent="center"
-          sx={{ maxWidth: 800, mx: 'auto' }}
+          sx={{ maxWidth: { md: 852 }, mx: 'auto' }}
         >
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
             <RouterLink to="/bewaesserung" style={{ textDecoration: 'none' }}>
@@ -915,15 +915,17 @@ const HomePage = () => {
                 '&:hover': { backgroundColor: 'action.hover' }
               }}>
                 <CardActionArea sx={{ height: '100%' }}>
-                  <CardContent sx={{ 
-                    textAlign: 'center', 
+                  <CardContent sx={{
+                    textAlign: 'center',
                     p: { xs: 2, md: 3 },
                     height: '100%',
+                    width: '100%',
                     display: { xs: 'flex', md: 'grid' },
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignContent: 'center',
                     justifyItems: 'center',
+                    gridTemplateColumns: { md: '1fr' },
                     gridTemplateRows: { md: '80px 34px 48px 24px' },
                     rowGap: { md: 1.5 },
                   }}>
@@ -940,7 +942,19 @@ const HomePage = () => {
                     <Typography variant="body2" sx={{ color: 'text.secondary', minHeight: { md: 44 }, display: { md: 'flex' }, alignItems: { md: 'center' }, justifyContent: { md: 'center' } }}>
                       Manuelle Bewässerungssteuerung und Zonenverwaltung
                     </Typography>
-                    <Chip label="Manuelle Steuerung" size="small" sx={{ mt: { xs: 2, md: 0 }, width: '100%', bgcolor: 'primary.main', color: 'common.white' }} />
+                    <Chip
+                      label="Manuelle Steuerung"
+                      size="small"
+                      sx={{
+                        mt: { xs: 2, md: 0 },
+                        mx: { xs: -2, md: -3 },
+                        width: { xs: 'calc(100% + 32px)', md: 'calc(100% + 48px)' },
+                        maxWidth: 'none',
+                        justifySelf: 'stretch',
+                        bgcolor: 'primary.main',
+                        color: 'common.white',
+                      }}
+                    />
                   </CardContent>
                 </CardActionArea>
               </Card>
@@ -956,15 +970,17 @@ const HomePage = () => {
                 '&:hover': { backgroundColor: 'action.hover' }
               }}>
                 <CardActionArea sx={{ height: '100%' }}>
-                  <CardContent sx={{ 
-                    textAlign: 'center', 
+                  <CardContent sx={{
+                    textAlign: 'center',
                     p: { xs: 2, md: 3 },
                     height: '100%',
+                    width: '100%',
                     display: { xs: 'flex', md: 'grid' },
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignContent: 'center',
                     justifyItems: 'center',
+                    gridTemplateColumns: { md: '1fr' },
                     gridTemplateRows: { md: '80px 34px 48px 24px' },
                     rowGap: { md: 1.5 },
                   }}>
@@ -981,7 +997,19 @@ const HomePage = () => {
                     <Typography variant="body2" sx={{ color: 'text.secondary', minHeight: { md: 44 }, display: { md: 'flex' }, alignItems: { md: 'center' }, justifyContent: { md: 'center' } }}>
                       Geplante Bewässerung mit Countdown-Timer
                     </Typography>
-                    <Chip label="Automatisiert" size="small" sx={{ mt: { xs: 2, md: 0 }, width: '100%', bgcolor: 'secondary.main', color: 'common.white' }} />
+                    <Chip
+                      label="Automatisiert"
+                      size="small"
+                      sx={{
+                        mt: { xs: 2, md: 0 },
+                        mx: { xs: -2, md: -3 },
+                        width: { xs: 'calc(100% + 32px)', md: 'calc(100% + 48px)' },
+                        maxWidth: 'none',
+                        justifySelf: 'stretch',
+                        bgcolor: 'secondary.main',
+                        color: 'common.white',
+                      }}
+                    />
                   </CardContent>
                 </CardActionArea>
               </Card>
