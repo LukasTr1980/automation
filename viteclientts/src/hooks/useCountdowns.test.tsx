@@ -12,6 +12,9 @@ const socketMockState = vi.hoisted(() => {
     handlers: Map<string, Handler>;
     on: ReturnType<typeof vi.fn>;
     close: ReturnType<typeof vi.fn>;
+    connect: ReturnType<typeof vi.fn>;
+    removeAllListeners: ReturnType<typeof vi.fn>;
+    connected: boolean;
     emitServer: (event: string, payload?: unknown) => void;
   };
 
@@ -24,7 +27,19 @@ const socketMockState = vi.hoisted(() => {
         handlers.set(event, handler);
         return socket;
       }),
-      close: vi.fn(),
+      close: vi.fn(() => {
+        socket.connected = false;
+      }),
+      connect: vi.fn(() => {
+        socket.connected = true;
+        handlers.get('connect')?.();
+        return socket;
+      }),
+      removeAllListeners: vi.fn(() => {
+        handlers.clear();
+        return socket;
+      }),
+      connected: false,
       emitServer: (event: string, payload?: unknown) => {
         handlers.get(event)?.(payload);
       },
@@ -64,15 +79,23 @@ async function flushPromises() {
 }
 
 describe('useCountdowns', () => {
+  let visibilitySpy: ReturnType<typeof vi.spyOn>;
+  let onlineSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.useFakeTimers();
     socketMockState.io.mockClear();
     socketMockState.sockets.length = 0;
+    visibilitySpy = vi.spyOn(document, 'visibilityState', 'get');
+    visibilitySpy.mockReturnValue('visible');
+    onlineSpy = vi.spyOn(navigator, 'onLine', 'get');
+    onlineSpy.mockReturnValue(true);
   });
 
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -97,6 +120,13 @@ describe('useCountdowns', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith('/api/countdown/currentCountdowns');
+    expect(socketMockState.io).toHaveBeenCalledWith({
+      autoConnect: false,
+      reconnection: false,
+      transports: ['websocket'],
+      withCredentials: true,
+    });
+    expect(socketMockState.sockets[0].connect).toHaveBeenCalledTimes(1);
 
     act(() => {
       vi.advanceTimersByTime(2000);
@@ -152,5 +182,99 @@ describe('useCountdowns', () => {
         control: 'start',
       },
     });
+  });
+
+  it('closes the socket while hidden and reconnects after becoming visible', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { wrapper } = createWrapper();
+
+    renderHook(() => useCountdowns('/api'), { wrapper });
+    await flushPromises();
+
+    expect(socketMockState.sockets).toHaveLength(1);
+
+    visibilitySpy.mockReturnValue('hidden');
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    expect(socketMockState.sockets[0].close).toHaveBeenCalledTimes(1);
+
+    visibilitySpy.mockReturnValue('visible');
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+      vi.advanceTimersByTime(999);
+    });
+
+    expect(socketMockState.sockets).toHaveLength(1);
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(socketMockState.sockets).toHaveLength(2);
+    expect(socketMockState.sockets[1].connect).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes while offline and reconnects when online again', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { wrapper } = createWrapper();
+
+    renderHook(() => useCountdowns('/api'), { wrapper });
+    await flushPromises();
+
+    expect(socketMockState.sockets).toHaveLength(1);
+
+    onlineSpy.mockReturnValue(false);
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
+
+    expect(socketMockState.sockets[0].close).toHaveBeenCalledTimes(1);
+
+    onlineSpy.mockReturnValue(true);
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(socketMockState.sockets).toHaveLength(2);
+    expect(socketMockState.sockets[1].connect).toHaveBeenCalledTimes(1);
+  });
+
+  it('cleans up a failed socket before reconnecting with backoff', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { wrapper } = createWrapper();
+
+    renderHook(() => useCountdowns('/api'), { wrapper });
+    await flushPromises();
+
+    act(() => {
+      socketMockState.sockets[0].emitServer('disconnect', 'transport close');
+      vi.advanceTimersByTime(999);
+    });
+
+    expect(socketMockState.sockets[0].removeAllListeners).toHaveBeenCalledTimes(1);
+    expect(socketMockState.sockets[0].close).toHaveBeenCalledTimes(1);
+    expect(socketMockState.sockets).toHaveLength(1);
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(socketMockState.sockets).toHaveLength(2);
+    expect(socketMockState.sockets[1].connect).toHaveBeenCalledTimes(1);
   });
 });

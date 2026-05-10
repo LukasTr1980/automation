@@ -4,6 +4,8 @@ import { io } from 'socket.io-client';
 import { type CountdownsState, type DetailedCountdown } from '../types/types';
 
 const COUNTDOWN_TICK_MS = 1000;
+const SOCKET_RECONNECT_DELAYS_MS = [1000, 2000, 5000, 10000, 30000];
+const SOCKET_RESUME_RECONNECT_DELAY_MS = 1000;
 
 export const countdownsQueryKey = ['countdowns', 'current'] as const;
 
@@ -29,6 +31,10 @@ function getSocketOrigin(apiBaseUrl: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+function canOpenRealtimeConnection(): boolean {
+  return document.visibilityState !== 'hidden' && navigator.onLine !== false;
 }
 
 function normalizeCountdown(countdown: Partial<DetailedCountdown> | undefined): DetailedCountdown {
@@ -113,22 +119,133 @@ export function useCountdowns(apiBaseUrl = '/api') {
   }, [queryClient]);
 
   useEffect(() => {
-    const socket = socketOrigin
-      ? io(socketOrigin, { withCredentials: true })
-      : io({ withCredentials: true });
+    let socket: ReturnType<typeof io> | null = null;
+    let reconnectTimerId: number | null = null;
+    let reconnectAttempt = 0;
+    let disposed = false;
 
-    socket.on('connect', () => {
-      void queryClient.invalidateQueries({ queryKey: countdownsQueryKey });
-    });
+    const clearReconnectTimer = () => {
+      if (reconnectTimerId !== null) {
+        window.clearTimeout(reconnectTimerId);
+        reconnectTimerId = null;
+      }
+    };
 
-    socket.on('redis-countdown-update', (event: RedisCountdownUpdate) => {
-      queryClient.setQueryData<CountdownsState>(countdownsQueryKey, (current) =>
-        updateCountdownFromSocket(current, event)
-      );
-    });
+    const closeSocket = () => {
+      clearReconnectTimer();
+      if (socket) {
+        socket.removeAllListeners();
+        socket.close();
+        socket = null;
+      }
+    };
+
+    const connect = () => {
+      if (disposed || !canOpenRealtimeConnection() || socket?.connected) {
+        return;
+      }
+
+      clearReconnectTimer();
+
+      socket = socketOrigin
+        ? io(socketOrigin, {
+            autoConnect: false,
+            reconnection: false,
+            transports: ['websocket'],
+            withCredentials: true,
+          })
+        : io({
+            autoConnect: false,
+            reconnection: false,
+            transports: ['websocket'],
+            withCredentials: true,
+          });
+
+      socket.on('connect', () => {
+        reconnectAttempt = 0;
+        void queryClient.invalidateQueries({ queryKey: countdownsQueryKey });
+      });
+
+      socket.on('redis-countdown-update', (event: RedisCountdownUpdate) => {
+        queryClient.setQueryData<CountdownsState>(countdownsQueryKey, (current) =>
+          updateCountdownFromSocket(current, event)
+        );
+      });
+
+      socket.on('disconnect', (reason) => {
+        if (reason !== 'io client disconnect') {
+          closeSocket();
+          scheduleReconnect();
+        }
+      });
+
+      socket.on('connect_error', () => {
+        closeSocket();
+        scheduleReconnect();
+      });
+
+      socket.connect();
+    };
+
+    const scheduleReconnect = (delayOverrideMs?: number) => {
+      if (disposed || !canOpenRealtimeConnection()) {
+        return;
+      }
+
+      clearReconnectTimer();
+      const delay =
+        delayOverrideMs ??
+        SOCKET_RECONNECT_DELAYS_MS[Math.min(reconnectAttempt, SOCKET_RECONNECT_DELAYS_MS.length - 1)];
+      reconnectAttempt = Math.min(reconnectAttempt + 1, SOCKET_RECONNECT_DELAYS_MS.length - 1);
+      reconnectTimerId = window.setTimeout(() => {
+        reconnectTimerId = null;
+        connect();
+      }, delay);
+    };
+
+    const reconnectAfterResume = () => {
+      if (!canOpenRealtimeConnection()) {
+        return;
+      }
+
+      reconnectAttempt = 0;
+      closeSocket();
+      scheduleReconnect(SOCKET_RESUME_RECONNECT_DELAY_MS);
+    };
+
+    const closeForSuspension = () => {
+      reconnectAttempt = 0;
+      closeSocket();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        closeForSuspension();
+        return;
+      }
+      reconnectAfterResume();
+    };
+
+    connect();
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', closeForSuspension);
+    window.addEventListener('freeze', closeForSuspension);
+    window.addEventListener('offline', closeForSuspension);
+    window.addEventListener('pageshow', reconnectAfterResume);
+    window.addEventListener('resume', reconnectAfterResume);
+    window.addEventListener('online', reconnectAfterResume);
 
     return () => {
-      socket.close();
+      disposed = true;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', closeForSuspension);
+      window.removeEventListener('freeze', closeForSuspension);
+      window.removeEventListener('offline', closeForSuspension);
+      window.removeEventListener('pageshow', reconnectAfterResume);
+      window.removeEventListener('resume', reconnectAfterResume);
+      window.removeEventListener('online', reconnectAfterResume);
+      closeSocket();
     };
   }, [queryClient, socketOrigin]);
 
