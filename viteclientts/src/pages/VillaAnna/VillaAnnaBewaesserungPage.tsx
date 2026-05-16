@@ -44,6 +44,18 @@ import { useEventSource } from '../../hooks/useEventSource';
 // Timing intervals
 const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
 
+function formatEvaporationInfoDE(dateLabel: string): string {
+  return `Verdunstung ist der geschätzte Wasserverlust des Rasens durch Sonne, Wind und Luft. Der Wert von gestern (${dateLabel}) fließt in die Wasserreserve ein.`;
+}
+
+function formatTemperatureAverageInfoDE(rangeLabel: string): string {
+  return `Zeigt die durchschnittliche Temperatur der letzten 7 abgeschlossenen Tage (${rangeLabel}). Wenn es im Schnitt zu kalt war, startet die Bewässerung nicht automatisch.`;
+}
+
+function formatHumidityAverageInfoDE(rangeLabel: string): string {
+  return `Zeigt die durchschnittliche Luftfeuchte der letzten 7 abgeschlossenen Tage (${rangeLabel}). Wenn die Luft im Schnitt sehr feucht war, startet die Bewässerung nicht automatisch.`;
+}
+
 const BewaesserungPage = () => {
   const queryClient = useQueryClient();
   const [decisionLoading, setDecisionLoading] = useState(true);
@@ -488,8 +500,8 @@ const BewaesserungPage = () => {
                                 />
                                 {sevenDayFullRangeLabel && (
                                   <InfoPopover
-                                    ariaLabel="Zeitraum anzeigen"
-                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
+                                    ariaLabel="Hinweis zur Durchschnittstemperatur"
+                                    content={formatTemperatureAverageInfoDE(`${sevenDayFullRangeLabel} lokal`)}
                                     iconSize={16}
                                   />
                                 )}
@@ -506,8 +518,8 @@ const BewaesserungPage = () => {
                                 />
                                 {sevenDayFullRangeLabel && (
                                   <InfoPopover
-                                    ariaLabel="Zeitraum anzeigen"
-                                    content={`Zeitraum: ${sevenDayFullRangeLabel} (lokal)`}
+                                    ariaLabel="Hinweis zur durchschnittlichen Luftfeuchte"
+                                    content={formatHumidityAverageInfoDE(`${sevenDayFullRangeLabel} lokal`)}
                                     iconSize={16}
                                   />
                                 )}
@@ -545,8 +557,8 @@ const BewaesserungPage = () => {
                                 />
                                 {yesterdayLabel && (
                                   <InfoPopover
-                                    ariaLabel="Datum anzeigen"
-                                    content={`Datum: ${yesterdayLabel} (lokal)`}
+                                    ariaLabel="Hinweis zur Verdunstung"
+                                    content={formatEvaporationInfoDE(`${yesterdayLabel} lokal`)}
                                     iconSize={16}
                                   />
                                 )}

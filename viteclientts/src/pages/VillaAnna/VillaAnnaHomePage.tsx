@@ -60,6 +60,10 @@ function formatYesterdayDE(): string {
   return `Datum: ${fmt.format(y)} (lokal)`;
 }
 
+function formatEvaporationInfoDE(dateLabel: string): string {
+  return `Verdunstung ist der geschätzte Wasserverlust des Rasens durch Sonne, Wind und Luft. Der Wert von gestern (${dateLabel}) fließt in die Wasserreserve ein.`;
+}
+
 function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
@@ -597,7 +601,7 @@ const HomePage = () => {
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
                     Verdunstung (gestern)
                   </Typography>
-                  <InfoPopover ariaLabel="Zeitraum anzeigen" content={formatYesterdayDE()} iconSize={16} />
+                  <InfoPopover ariaLabel="Hinweis zur Verdunstung" content={formatEvaporationInfoDE(formatYesterdayDE())} iconSize={16} />
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
                   {(() => {
