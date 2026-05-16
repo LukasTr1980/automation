@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.19] - 2026-05-16
+
 ### Changed
 - Frontend (Villa Anna): Reworded the evaporation tooltip to explain it as yesterday's estimated water loss and how it affects the water reserve.
 - Frontend (Villa Anna): Reworded the irrigation page temperature and humidity average tooltips to explain how the 7-day averages affect automatic irrigation.
