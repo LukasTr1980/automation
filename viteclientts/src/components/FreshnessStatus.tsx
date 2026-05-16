@@ -83,16 +83,16 @@ export default function FreshnessStatus({
 
   // Soil-bucket: success if updated today (local date matches today)
   const soilStatus = (() => {
-    if (!soilUpdatedAt) return { color: 'warning.main', label: 'Boden‑Speicher: nicht aktualisiert' } as const;
+    if (!soilUpdatedAt) return { color: 'warning.main', label: 'Wasserreserve: nicht aktualisiert' } as const;
     try {
       const d = new Date(soilUpdatedAt);
       const now = new Date();
       const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
       return sameDay
-        ? { color: 'success.main', label: 'Boden‑Speicher: heute aktualisiert' }
-        : { color: 'warning.main', label: 'Boden‑Speicher: nicht aktualisiert' };
+        ? { color: 'success.main', label: 'Wasserreserve: heute aktualisiert' }
+        : { color: 'warning.main', label: 'Wasserreserve: nicht aktualisiert' };
     } catch {
-      return { color: 'warning.main', label: 'Boden‑Speicher: nicht aktualisiert' } as const;
+      return { color: 'warning.main', label: 'Wasserreserve: nicht aktualisiert' } as const;
     }
   })();
 
@@ -126,10 +126,10 @@ export default function FreshnessStatus({
             {soilStatus.label}
           </Typography>
           <InfoPopover
-            ariaLabel="Boden‑Speicher Aktualisierung"
+            ariaLabel="Wasserreserve Aktualisierung"
             content={(() => {
               const when = soilUpdatedAt ? formatDateTimeDE(soilUpdatedAt) : 'unbekannt';
-              return `Letzte Aktualisierung: ${when}. Der Boden‑Speicher wird täglich nach Mitternacht (ca. 00:45) anhand von ET₀ (gestern) und Tagesniederschlag neu berechnet.`;
+              return `Letzte Aktualisierung: ${when}. Die Wasserreserve wird täglich nach Mitternacht (ca. 00:45) anhand von Verdunstung und Tagesniederschlag neu berechnet.`;
             })()}
             iconSize={16}
           />

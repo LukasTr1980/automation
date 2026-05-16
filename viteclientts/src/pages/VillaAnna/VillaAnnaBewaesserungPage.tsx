@@ -63,6 +63,8 @@ const BewaesserungPage = () => {
     humidity: number;
     rainToday: number;
     rainRate: number;
+    rainTodayForecast: number | null;
+    rainProbTodayForecast: number | null;
     rainNextDay: number | null;
     rainProbNextDay: number | null;
     tawMm: number;
@@ -72,6 +74,7 @@ const BewaesserungPage = () => {
     // Timestamp when soil-bucket was last updated (for FreshnessStatus)
     soilUpdatedAt?: string;
     // weekly ET₀ removed from payload/UI
+    effectiveForecastToday: number | null;
     effectiveForecast: number | null;
     blockers: string[];
   }
@@ -558,13 +561,13 @@ const BewaesserungPage = () => {
                                   <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><Inventory2OutlinedIcon color="action" /></ListItemIcon>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                     <ListItemText
-                                      primary={`Boden-Speicher (S / Kapazität)`}
+                                      primary={`Wasserreserve`}
                                       secondary={`${response.soilStorageMm.toFixed(1)} mm / ${response.tawMm.toFixed(0)} mm`}
                                       slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                     />
                                     <InfoPopover
-                                      ariaLabel="Hinweis zum Boden-Speicher"
-                                      content={`Speicher 0–Kapazität (Kappung). Kapazität = ${response.tawMm.toFixed(0)} mm. S ist die aktuell verfügbare Bodenfeuchte.`}
+                                      ariaLabel="Hinweis zur Wasserreserve"
+                                      content={`Die Wasserreserve ist die geschätzte Feuchtigkeit, die dem Rasen aktuell im Boden zur Verfügung steht. Aktuell: ${response.soilStorageMm.toFixed(1)} mm von ${response.tawMm.toFixed(0)} mm.`}
                                       iconSize={16}
                                     />
                                   </Box>
@@ -574,13 +577,13 @@ const BewaesserungPage = () => {
                                   <ListItemIcon sx={{ minWidth: 0, mr: 1 }}><Inventory2OutlinedIcon color={'action'} /></ListItemIcon>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%', justifyContent: 'center' }}>
                                     <ListItemText
-                                      primary={`Entzug / Startschwelle`}
+                                      primary={`Trockenheit / Startpunkt`}
                                       secondary={`${response.depletionMm.toFixed(1)} mm / ${(response.triggerMm ?? 0).toFixed(1)} mm`}
                                       slotProps={{ primary: { align: 'center' }, secondary: { align: 'center' } }}
                                     />
                                     <InfoPopover
-                                      ariaLabel="Hinweis zum Entzug"
-                                      content={`Entzug = Kapazität − S. Bewässerung ab Entzug ≥ Startschwelle. Kapazität = ${response.tawMm.toFixed(0)} mm.`}
+                                      ariaLabel="Hinweis zur Trockenheit"
+                                      content="Zeigt, wie viel Wasser dem Rasen bis zum automatischen Start fehlt. Wenn die Trockenheit den Startpunkt erreicht und kein Wetter-Blocker aktiv ist, kann Bewässerung starten."
                                       iconSize={16}
                                     />
                                   </Box>
@@ -594,7 +597,7 @@ const BewaesserungPage = () => {
                               Blocker Aktiv
                               <InfoPopover
                                 ariaLabel="Mögliche Blocker"
-                                content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Entzug < Startschwelle (≈ ${(response?.triggerMm ?? 0).toFixed(0)} mm)`}
+                                content="Bewässerung startet nur, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Blocker sind Kälte, hohe Luftfeuchte, Regen in den letzten 24 Stunden oder aktueller Regen."
                                 iconSize={18}
                               />
                             </Typography>
@@ -619,7 +622,7 @@ const BewaesserungPage = () => {
                                   <Chip key="b-rate" color="error" variant="filled" icon={<SpeedIcon />} label="Regenrate > 0" />
                                 );
                                 if (drynessActive) chips.push(
-                                  <Chip key="b-dry" color="error" variant="filled" icon={<Inventory2OutlinedIcon />} label={`Entzug < Startschwelle`} />
+                                  <Chip key="b-dry" color="error" variant="filled" icon={<Inventory2OutlinedIcon />} label="Noch genug Wasser" />
                                 );
                                 return chips.length ? chips : [
                                   <Chip key="b-none" color="success" variant="outlined" label="Keine Blocker aktiv" />

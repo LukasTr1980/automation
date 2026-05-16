@@ -18,7 +18,7 @@ import {
   WaterDrop, 
   Schedule, 
   Block,
-  Inventory2Outlined,
+  Grass,
   Waves as WavesIcon
 } from '@mui/icons-material';
 // Info icon rendered via InfoPopover component
@@ -58,6 +58,30 @@ function formatYesterdayDE(): string {
   const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
   const fmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' });
   return `Datum: ${fmt.format(y)} (lokal)`;
+}
+
+function clampPercent(value: number): number {
+  return Math.max(0, Math.min(100, value));
+}
+
+function formatSoilUpdatedAt(timestamp?: string | null): string {
+  if (!timestamp) return 'Aktualisiert: unbekannt';
+
+  try {
+    const updatedAt = new Date(timestamp);
+    const now = new Date();
+    const sameDay = updatedAt.getFullYear() === now.getFullYear()
+      && updatedAt.getMonth() === now.getMonth()
+      && updatedAt.getDate() === now.getDate();
+    const time = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(updatedAt);
+
+    if (sameDay) return `Aktualisiert: ${time}`;
+
+    const date = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(updatedAt);
+    return `Aktualisiert: ${date}, ${time}`;
+  } catch {
+    return 'Aktualisiert: unbekannt';
+  }
 }
 
 const VILLA_ANNA_TIME_ZONE = 'Europe/Berlin';
@@ -235,8 +259,11 @@ const HomePage = () => {
     humidity: number;
     rainToday: number;
     rainRate: number;
+    rainTodayForecast?: number | null;
+    rainProbTodayForecast?: number | null;
     rainNextDay?: number | null;
     rainProbNextDay?: number | null;
+    effectiveForecastToday?: number | null;
     effectiveForecast?: number | null;
     // Soil-bucket primary trigger
     soilStorageMm?: number;
@@ -244,6 +271,7 @@ const HomePage = () => {
     depletionMm?: number;
     triggerMm?: number;
     soilUpdatedAt?: string;
+    canIrrigate?: boolean;
   }
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [decision, setDecision] = useState<DecisionMetrics | null>(null);
@@ -296,14 +324,18 @@ const HomePage = () => {
             humidity: r.humidity,
             rainToday: r.rainToday,
             rainRate: r.rainRate,
+            rainTodayForecast: r.rainTodayForecast,
+            rainProbTodayForecast: r.rainProbTodayForecast,
             rainNextDay: r.rainNextDay,
             rainProbNextDay: r.rainProbNextDay,
+            effectiveForecastToday: r.effectiveForecastToday,
             effectiveForecast: r.effectiveForecast,
             soilStorageMm: r.soilStorageMm,
             tawMm: r.tawMm,
             depletionMm: r.depletionMm,
             triggerMm: r.triggerMm,
             soilUpdatedAt: r.soilUpdatedAt,
+            canIrrigate: Boolean(data.state),
           });
           setDecisionLoading(false);
         } else if (data?.type === 'irrigationStart' && data?.source === 'scheduled') {
@@ -400,7 +432,7 @@ const HomePage = () => {
                   Blocker
                   <InfoPopover
                     ariaLabel="Mögliche Blocker"
-                    content={`Mögliche Blocker: Ø-Temperatur ≤ 10 °C; Ø-Luftfeuchte ≥ 80 %; Regen (24h) ≥ 3 mm; Regenrate > 0 mm/h; Entzug < Startschwelle (≈ ${(decision?.triggerMm ?? 0).toFixed?.(0) ?? decision?.triggerMm ?? 0} mm)`}
+                    content="Bewässerung startet nur, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Blocker sind Kälte, hohe Luftfeuchte, Regen in den letzten 24 Stunden oder aktueller Regen."
                     iconSize={16}
                   />
                 </Typography>
@@ -430,7 +462,7 @@ const HomePage = () => {
                         <DotLabel key="b-rate" color={theme.palette.error.main} label="Regenrate > 0" />
                       );
                       if (drynessActive) items.push(
-                        <DotLabel key="b-dry" color={theme.palette.error.main} label={`Entzug < Startschwelle`} />
+                        <DotLabel key="b-dry" color={theme.palette.error.main} label="Noch genug Wasser" />
                       );
                       return items.length ? items : [
                         <DotLabel key="b-none" color={theme.palette.success.main} label="Keine Blocker" />
@@ -453,77 +485,96 @@ const HomePage = () => {
             <Card variant="outlined" sx={{ 
               borderRadius: 2,
               height: '100%',
-              minHeight: { xs: 120, md: 140 },
+              minHeight: { xs: 150, md: 160 },
               position: 'relative'
             }}>
               {decisionLoading && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
-              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' }, justifyItems: 'center', rowGap: { xs: 0.5, md: 0.5 }, px: { xs: 1, md: 1.5 }, py: { xs: 1, md: 1.25 } }}>
-                <Avatar sx={{ bgcolor: 'success.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
-                  <Inventory2Outlined sx={{ fontSize: { xs: 24, md: 28 } }} />
-                </Avatar>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
-                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Boden‑Speicher
-                  </Typography>
-                  <InfoPopover
-                    ariaLabel="Hinweis zum Boden‑Speicher"
-                    content={`Speicher 0–Kapazität (Kappung). Kapazität = ${decision?.tawMm?.toFixed?.(0) ?? 'k. A.'} mm. Startschwelle ≈ ${typeof decision?.triggerMm === 'number' ? decision!.triggerMm!.toFixed(1) : 'k. A.'} mm. S ist die aktuell verfügbare Bodenfeuchte.`}
-                    iconSize={16}
-                  />
-                </Box>
-                <Box sx={{ maxWidth: 240, mx: 'auto', px: 0, display: 'grid', justifyItems: 'center' }}>
-                  {(() => {
-                    const s = decision?.soilStorageMm;
-                    const cap = decision?.tawMm;
-                    const pct = (typeof s === 'number' && typeof cap === 'number' && cap > 0)
-                      ? Math.max(0, Math.min(100, (s / cap) * 100))
-                      : null;
-                    return (
-                      <>
-                        {/* Progress bar */}
-                        <Box sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
-                          <LinearProgress
-                            variant={pct === null ? 'indeterminate' : 'determinate'}
-                            value={pct ?? undefined}
-                            aria-label="Füllstand Boden‑Speicher"
-                            sx={{ width: { xs: 120, md: 140 }, height: 8, borderRadius: 5, backgroundColor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 5 } }}
+              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '58px auto auto auto', md: '66px auto auto auto' }, justifyItems: 'center', rowGap: 0.5, px: { xs: 1, md: 1.5 }, py: { xs: 1, md: 1.25 } }}>
+                {(() => {
+                  const storageMm = decision?.soilStorageMm;
+                  const capacityMm = decision?.tawMm;
+                  const depletionMm = decision?.depletionMm;
+                  const triggerMm = decision?.triggerMm;
+                  const hasStorage = typeof storageMm === 'number' && typeof capacityMm === 'number' && capacityMm > 0;
+                  const storagePct = hasStorage ? clampPercent((storageMm / capacityMm) * 100) : null;
+                  const soilDryEnough = typeof depletionMm === 'number' && typeof triggerMm === 'number' && depletionMm >= triggerMm;
+                  const canIrrigate = decision?.canIrrigate === true;
+                  const statusColor = storagePct === null
+                    ? 'text.disabled'
+                    : canIrrigate
+                      ? 'success.main'
+                      : soilDryEnough
+                        ? 'warning.main'
+                        : 'success.main';
+                  const statusLabel = storagePct === null
+                    ? 'Keine Messdaten'
+                    : canIrrigate
+                      ? 'Bewässerung möglich'
+                      : soilDryEnough
+                        ? 'Warten wegen Wetter'
+                        : 'Noch genug Wasser';
+                  const moistureWidth = `${storagePct ?? 0}%`;
+
+                  return (
+                    <>
+                      <Box sx={{ display: 'grid', justifyItems: 'center', gap: 0.5, width: '100%' }}>
+                        <Avatar sx={{ bgcolor: 'success.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 } }}>
+                          <Grass sx={{ fontSize: { xs: 25, md: 29 } }} />
+                        </Avatar>
+                        <Box
+                          role="progressbar"
+                          aria-label="Füllstand Wasserreserve"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={storagePct === null ? undefined : Math.round(storagePct)}
+                          sx={{
+                            width: { xs: 118, md: 140 },
+                            height: 10,
+                            position: 'relative',
+                            overflow: 'hidden',
+                            borderRadius: 5,
+                            bgcolor: 'action.hover',
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: moistureWidth,
+                              borderRadius: 5,
+                              bgcolor: storagePct === null ? 'action.disabled' : statusColor,
+                            }}
                           />
                         </Box>
-                        {/* Value under bar */}
-                        <Typography variant="h6" sx={{ fontWeight: 600, mt: 0.5, fontSize: { xs: '1.05rem', md: '1.25rem' } }}>
-                          {typeof s === 'number' && typeof cap === 'number' ? (
-                            <Box component="span" sx={{ display: 'inline-block', minWidth: '10ch', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                              {`${s.toFixed(1)}\u202Fmm / ${cap.toFixed(0)}\u202Fmm`}
-                            </Box>
-                          ) : (
-                            <Box component="span" sx={{ color: 'text.secondary' }}>k. A.</Box>
-                          )}
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
+                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                          Wasserreserve
                         </Typography>
-                        {/* Updated line below value */}
-                        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.25 }} aria-live="polite">
-                          {(() => {
-                            const ts = decision?.soilUpdatedAt ?? null;
-                            if (!ts) return 'Aktualisiert: unbekannt';
-                            try {
-                              const d = new Date(ts);
-                              const now = new Date();
-                              const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-                              const time = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(d);
-                              if (sameDay) return `Aktualisiert: ${time}`;
-                              const date = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(d);
-                              return `Aktualisiert: ${date}, ${time}`;
-                            } catch {
-                              return 'Aktualisiert: unbekannt';
-                            }
-                          })()}
+                        <InfoPopover
+                          ariaLabel="Hinweis zur Wasserreserve"
+                          content="Bewässerung ist möglich, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Die Statuszeile zeigt, ob genug Wasser da ist oder ob noch gewartet wird."
+                          iconSize={16}
+                        />
+                      </Box>
+                      <Box sx={{ display: 'grid', justifyItems: 'center', gap: 0.25, minWidth: 0 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1.05rem', md: '1.2rem' }, lineHeight: 1.15, color: statusColor }} aria-live="polite">
+                          {storagePct === null ? 'k. A.' : `${storagePct.toFixed(0)} % gefüllt`}
                         </Typography>
-                        {/* Status chips (z. B. "Nicht trocken genug") entfernt – Redundanz mit Blocker-Anzeige */}
-                      </>
-                    );
-                  })()}
-                </Box>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
+                          {hasStorage ? `${storageMm.toFixed(1)}\u202Fmm / ${capacityMm.toFixed(0)}\u202Fmm` : statusLabel}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.2 }} aria-live="polite">
+                        {formatSoilUpdatedAt(decision?.soilUpdatedAt ?? null)}
+                      </Typography>
+                    </>
+                  );
+                })()}
               </CardContent>
             </Card>
           </Grid>
@@ -698,9 +749,10 @@ const HomePage = () => {
           <Grid size={{ xs: 6, md: 4 }}>
             <ForecastCard
               loading={decisionLoading}
+              rainTodayForecast={decision?.rainTodayForecast ?? null}
+              rainProbTodayForecast={decision?.rainProbTodayForecast ?? null}
               rainNextDay={decision?.rainNextDay ?? null}
               rainProbNextDay={decision?.rainProbNextDay ?? null}
-              effectiveForecast={decision?.effectiveForecast ?? null}
             />
           </Grid>
 
@@ -894,7 +946,7 @@ const HomePage = () => {
               </Box>
             </Box>
 
-            {/* Bottom section entfernt: Entzug/Startschwelle zieht in Boden‑Speicher Info */}
+            {/* Bottom section removed; water reserve details are shown in the status card. */}
           </CardContent>
         </Card>
 

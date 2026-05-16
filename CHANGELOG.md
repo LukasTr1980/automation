@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v19.27.18] - 2026-05-16
+
+### Added
+- Backend/Frontend (Villa Anna): Store OpenDataHub rain forecasts for both the rest of today and tomorrow, and show both periods in the home dashboard forecast card without changing irrigation decision rules.
+
+### Changed
+- Frontend (Villa Anna Home): Redesigned the water reserve card with a lawn-oriented icon, a clearer fill indicator, and plain-language status labels for whether irrigation can start.
+- Frontend (Villa Anna): Replaced technical soil-bucket wording with homeowner-friendly water reserve, dryness, and blocker language across the home and irrigation pages.
+- Frontend (Villa Anna Home): Simplified dashboard tooltips for water reserve, blockers, and rain forecast cards so they explain the user-facing meaning instead of internal calculation terms.
 
 ### Fixed
 - Frontend (Villa Anna): Managed countdown Socket.IO reconnects across browser sleep, page suspension, and offline transitions so long-lived tabs recover cleanly without repeated polling requests after standby.

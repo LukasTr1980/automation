@@ -42,7 +42,7 @@ schedule.scheduleJob('*/15 * * * *', async () => {
   try {
     const val = await odhRecordNextDayRain();
     logger.info(
-      `OdhNextDayRain: ${val.rainSum.toFixed(2)} mm – Wahrscheinlichkeit max ${val.probMax}% – gültig für ${val.date.slice(0,10)}`
+      `OdhRainForecast: today ${val.today.rainSum.toFixed(2)} mm / ${val.today.probMax}% – tomorrow ${val.tomorrow.rainSum.toFixed(2)} mm / ${val.tomorrow.probMax}%`
     );
   } catch (err) {
     logger.error("OdhNextDayRain scheduler run failed:", err);

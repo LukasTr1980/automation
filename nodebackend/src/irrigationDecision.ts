@@ -2,7 +2,7 @@ import logger from "./logger.js";
 import { readLatestWeatherFromRedis } from "./utils/weatherLatestStorage.js";
 import { readWeatherAggregatesFromRedis } from "./utils/weatherAggregatesStorage.js";
 import { ensureSoilBucket, getTawMm } from "./utils/soilBucket.js";
-import { readLatestOdhRainForecast } from "./utils/odhRainRecorder.js";
+import { readLatestOdhRainForecasts } from "./utils/odhRainRecorder.js";
 
 // ---------- Frontend Contract (structured metrics) ---------------------------
 export interface DecisionMetrics {
@@ -10,6 +10,8 @@ export interface DecisionMetrics {
   humidity: number;
   rainToday: number;
   rainRate: number;
+  rainTodayForecast: number | null;
+  rainProbTodayForecast: number | null;
   rainNextDay: number | null;
   rainProbNextDay: number | null;
   tawMm: number;                    // total available water (TAW)
@@ -17,6 +19,7 @@ export interface DecisionMetrics {
   depletionMm?: number;             // TAW - S
   triggerMm?: number;               // trigger threshold for depletion
   soilUpdatedAt?: string;           // last update timestamp for soil bucket
+  effectiveForecastToday: number | null;
   effectiveForecast: number | null;
   blockers: string[];
 }
@@ -30,6 +33,8 @@ export interface CompletionResponse {
 const fmt = (n: number, d = 1) => n.toFixed(d);
 
 type DecisionContext = {
+  rainTodayForecast: number | null;
+  rainProbTodayForecast: number | null;
   rainNextDay: number | null;
   rainProbNextDay: number | null;
   rainRate: number;
@@ -42,12 +47,14 @@ type DecisionContext = {
 export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // 1) Gather current metrics plus weekly irrigation depth
   const zoneName = "lukasSued";
-  const odhForecast = await readLatestOdhRainForecast();
-  if (!odhForecast) {
-    logger.warn("[ODH] No next-day rain forecast found in QuestDB; returning null payload");
+  const odhForecasts = await readLatestOdhRainForecasts();
+  if (!odhForecasts.today && !odhForecasts.tomorrow) {
+    logger.warn("[ODH] No rain forecast found in QuestDB; returning null payload");
   }
-  const rainNextDay = odhForecast?.rainTotalMm ?? null;
-  const rainProbNextDay = odhForecast?.rainProbabilityMaxPct ?? null;
+  const rainTodayForecast = odhForecasts.today?.rainTotalMm ?? null;
+  const rainProbTodayForecast = odhForecasts.today?.rainProbabilityMaxPct ?? null;
+  const rainNextDay = odhForecasts.tomorrow?.rainTotalMm ?? null;
+  const rainProbNextDay = odhForecasts.tomorrow?.rainProbabilityMaxPct ?? null;
   // Read rain rate from Redis latest cache
   let rainRateWL = 0;
   let wlOk = false;
@@ -83,6 +90,8 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
 
   // 2) Build typed, immutable data object
   const d: DecisionContext = {
+    rainTodayForecast,
+    rainProbTodayForecast,
     rainNextDay,
     rainProbNextDay,
     rainToday,
@@ -98,6 +107,10 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   }
 
   // 3) Unified deficit calculation (German-only values are in FE)
+  const effectiveForecastToday =
+    d.rainTodayForecast !== null && d.rainProbTodayForecast !== null
+      ? d.rainTodayForecast * (d.rainProbTodayForecast / 100)
+      : null;
   const effectiveForecast =
     d.rainNextDay !== null && d.rainProbNextDay !== null
       ? d.rainNextDay * (d.rainProbNextDay / 100)
@@ -136,12 +149,15 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
         humidity: d.humidity,
         rainToday: d.rainToday,
         rainRate: d.rainRate,
+        rainTodayForecast: d.rainTodayForecast,
+        rainProbTodayForecast: d.rainProbTodayForecast,
         rainNextDay: d.rainNextDay,
         rainProbNextDay: d.rainProbNextDay,
         tawMm,
         soilStorageMm: bucket.sMm,
         depletionMm: depletion,
         triggerMm: triggerMm,
+        effectiveForecastToday,
         effectiveForecast,
         soilUpdatedAt: bucket.updatedAt,
         blockers,
@@ -157,12 +173,15 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
       humidity: d.humidity,
       rainToday: d.rainToday,
       rainRate: d.rainRate,
+      rainTodayForecast: d.rainTodayForecast,
+      rainProbTodayForecast: d.rainProbTodayForecast,
       rainNextDay: d.rainNextDay,
       rainProbNextDay: d.rainProbNextDay,
       tawMm,
       soilStorageMm: bucket.sMm,
       depletionMm: depletion,
       triggerMm: triggerMm,
+      effectiveForecastToday,
       effectiveForecast,
       soilUpdatedAt: bucket.updatedAt,
       blockers,
