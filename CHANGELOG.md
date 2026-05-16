@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Frontend (Villa Anna): Reworded the evaporation tooltip to explain it as yesterday's estimated water loss and how it affects the water reserve.
+- Frontend (Villa Anna): Reworded the irrigation page temperature and humidity average tooltips to explain how the 7-day averages affect automatic irrigation.
+- Frontend (Villa Anna): Clarified in water reserve tooltips that 30 mm is the lawn soil's maximum reserve.
+
 ## [v19.27.18] - 2026-05-16
 
 ### Added
