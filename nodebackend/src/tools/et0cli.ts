@@ -58,7 +58,7 @@ function printUsageAndExit(msg?: string, code = 1) {
     "Usage: et0 --doy <1..366> --tmin <°C> --tmax <°C> --rh <percent> --wind <m/s@Z> --pressure <hPa> --cloud <0..100> [--lat <deg>] [--elev <m>] [--albedo <0..1>] [--aS <num>] [--bS <num>] [--windZ <m>] [--verbose]"
   );
   logger.error(
-    "Example: --doy 180 --tmin 15 --tmax 25 --rh 60 --wind 3.2 --pressure 900 --cloud 45 --lat 46.5668 --elev 1060 --windZ 10"
+    "Example: --doy 180 --tmin 15 --tmax 25 --rh 60 --wind 3.2 --pressure 900 --cloud 45 --lat 46.5484778 --elev 1060 --windZ 10"
   );
   process.exit(code);
 }

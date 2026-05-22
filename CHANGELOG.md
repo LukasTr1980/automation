@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Backend (Radiation): Added a QuestDB-backed South Tyrol global radiation recorder for the Völs am Schlern station (`75600MS`) and a new `/api/radiation/current` endpoint.
+
+### Changed
+- Backend (ET₀): Prefer measured global radiation from QuestDB when computing daily FAO-56 ET₀, with the existing cloud-cover Angström estimate retained only as a per-day fallback while radiation history fills in.
+- Backend (ET₀): Aligned default latitude/longitude values with Villa Anna's Seis am Schlern location for sun-time and fallback-radiation calculations.
+- Frontend (Villa Anna Home): Replaced the current cloud-cover card with a measured current solar-radiation card sourced from the new radiation API.
+
 ## [v19.27.19] - 2026-05-16
 
 ### Changed

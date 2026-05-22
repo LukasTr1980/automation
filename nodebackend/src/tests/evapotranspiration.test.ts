@@ -19,8 +19,8 @@ function fmtLen(hours: number) {
 }
 
 function run() {
-  const lat = 46.5668;
-  const lon = 11.5599;
+  const lat = 46.5484778;
+  const lon = 11.5742698;
   const tz = 'Europe/Rome';
 
   // Summer solstice (approx) – long day

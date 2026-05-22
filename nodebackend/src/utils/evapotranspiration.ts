@@ -1,26 +1,29 @@
 // src/utils/evapotranspiration.ts
 // -----------------------------------------------------------------------------
-//  WEEKLY ET₀ (FAO‑56)
+//  DAILY ET₀ LAST-7 (FAO‑56)
 //  – Inputs: 7‑day averages from Redis (Tavg, RH, Wind @ sensor height, Pressure, mean daily range)
-//  - Cloud cover daily means sourced from QuestDB (table "weather_dwd_icon_observations").
-//  – Computes daily ET₀ for last 7 full days (approximation using 7‑day means) and
-//    uses cloud cover to estimate Rs via Angström–Prescott (n/N ≈ 1 − cloud/100).
-//  – Sums to a weekly value and stores the sum in Redis.
+//  - Primary radiation input: measured global radiation from QuestDB
+//    (table "weather_radiation_observations").
+//  - Fallback radiation input: cloud cover daily means from QuestDB
+//    (table "weather_dwd_icon_observations") via Angström–Prescott.
+//  – Computes daily ET₀ for the last 7 full days and stores daily values in Redis.
 // -----------------------------------------------------------------------------
 
 // NOTE: Avoid heavy imports (Vault/QuestDB/Redis) at module load to keep
 // manual testing cheap. These are dynamically imported inside functions.
 
 // ───────────── Standort & Konstanten ─────────────────────────────────────────
-const LAT = Number(process.env.LAT ?? 46.5668);
+const LAT = Number(process.env.LAT ?? 46.5484778);
 const ELEV = Number(process.env.ELEV ?? 1060);    // m NN
 const ALBEDO = Number(process.env.ALBEDO ?? 0.23);    // Grass reference albedo
 const WIND_Z = Number(process.env.WIND_SENSOR_HEIGHT_M ?? 10); // wind sensor height (m)
 const AP_A_S = Number(process.env.ANGSTROM_A_S ?? 0.25); // Angström a_s
 const AP_B_S = Number(process.env.ANGSTROM_B_S ?? 0.50); // Angström b_s
 
-// Standard‑Buckets
+// Standard buckets
 const CLOUD_TABLE = "weather_dwd_icon_observations";
+const RADIATION_TABLE = "weather_radiation_observations";
+const RADIATION_STATION_CODE = process.env.RADIATION_PRIMARY_STATION ?? "75600MS";
 
 // ───────────── FAO‑Hilfsfunktionen ──────────────────────────────────────────
 const svp = (T: number) => 0.6108 * Math.exp((17.27 * T) / (T + 237.3));
@@ -36,33 +39,69 @@ export function Ra(latDeg: number, doy: number) {
         (ws * Math.sin(lat) * Math.sin(d) + Math.cos(lat) * Math.cos(d) * Math.sin(ws));
 }
 
-// ───────────── QuestDB Abfragen (Rohdaten) ──────────────────────────────────
-// Für die Tagesmittel der Bewölkung werden Rohwerte (15-min) der letzten 7
-// vollen Tage abgefragt und anschließend tagsüber (Sonnenaufgang-bis-Sonnenuntergang)
-// lokal gemittelt.
+// ───────────── QuestDB raw-data queries ─────────────────────────────────────
+// Measured global radiation is preferred. Cloud cover remains as a fallback
+// until enough measured radiation has been collected for every day.
 
-const LON = Number(process.env.LON ?? 11.5599);
+const LON = Number(process.env.LON ?? 11.5742698);
 
 type CloudSample = { time: number; value: number };
+type RadiationSample = { time: number; value: number };
 type QueryRow = Record<string, unknown>;
+
+async function questDbRadiationSeriesLast7(): Promise<RadiationSample[]> {
+    const { execute } = await import("../clients/questdbClient.js");
+    try {
+        const { rows } = await execute(
+            `SELECT observation_ts, global_radiation_w_m2
+             FROM ${RADIATION_TABLE}
+             WHERE station_code = $1
+               AND observation_ts >= dateadd('d', -8, now())
+             ORDER BY observation_ts`,
+            [RADIATION_STATION_CODE]
+        );
+        const readings = rows
+            .map((row) => {
+                const record = row as QueryRow;
+                return {
+                    time: Date.parse(String(record.observation_ts)),
+                    value: Number(record.global_radiation_w_m2),
+                };
+            })
+            .filter((r) => Number.isFinite(r.time) && Number.isFinite(r.value));
+        const byTimestamp = new Map<number, RadiationSample>();
+        readings.forEach((reading) => byTimestamp.set(reading.time, reading));
+        return [...byTimestamp.values()].sort((a, b) => a.time - b.time);
+    } catch (err) {
+        const { default: logger } = await import("../logger.js");
+        logger.warn(`[ET0] Radiation samples unavailable, falling back to cloud-derived Rs (${err})`, { label: "Evapotranspiration" });
+        return [];
+    }
+}
 
 async function questDbCloudSeriesLast7(): Promise<CloudSample[]> {
     const { execute } = await import("../clients/questdbClient.js");
-    const { rows } = await execute(
-        `SELECT observation_ts, cloud_cover_pct
-         FROM ${CLOUD_TABLE}
-         WHERE observation_ts >= dateadd('d', -8, now())
-         ORDER BY observation_ts`
-    );
-    return rows
-        .map((row) => {
-            const record = row as QueryRow;
-            return {
-                time: Date.parse(String(record.observation_ts)),
-                value: Number(record.cloud_cover_pct),
-            };
-        })
-        .filter((r) => Number.isFinite(r.time) && Number.isFinite(r.value));
+    try {
+        const { rows } = await execute(
+            `SELECT observation_ts, cloud_cover_pct
+             FROM ${CLOUD_TABLE}
+             WHERE observation_ts >= dateadd('d', -8, now())
+             ORDER BY observation_ts`
+        );
+        return rows
+            .map((row) => {
+                const record = row as QueryRow;
+                return {
+                    time: Date.parse(String(record.observation_ts)),
+                    value: Number(record.cloud_cover_pct),
+                };
+            })
+            .filter((r) => Number.isFinite(r.time) && Number.isFinite(r.value));
+    } catch (err) {
+        const { default: logger } = await import("../logger.js");
+        logger.warn(`[ET0] Cloud fallback samples unavailable; using default fallback cloud cover (${err})`, { label: "Evapotranspiration" });
+        return [];
+    }
 }
 
 // ───────────── Sonnenauf-/untergang (NOAA‑Approx.) ─────────────────────────
@@ -126,6 +165,49 @@ export function computeSunTimesLocal(day: Date, lat: number, lon: number, timeZo
 }
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+function median(values: number[]): number | null {
+    if (!values.length) return null;
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+function integrateDailyRadiationMJ(
+    samples: RadiationSample[],
+    dayStart: Date,
+    dayEnd: Date,
+): { rsMjM2: number | null; coveragePct: number; sampleCount: number } {
+    const dayStartMs = dayStart.getTime();
+    const dayEndMs = dayEnd.getTime();
+    const daySamples = samples
+        .filter((s) => s.time >= dayStartMs && s.time < dayEndMs)
+        .sort((a, b) => a.time - b.time);
+
+    if (!daySamples.length) {
+        return { rsMjM2: null, coveragePct: 0, sampleCount: 0 };
+    }
+
+    const maxExpectedGapMs = 30 * 60 * 1000;
+    const intervals = daySamples
+        .slice(1)
+        .map((sample, index) => sample.time - daySamples[index].time)
+        .filter((gap) => gap > 0 && gap <= maxExpectedGapMs);
+    const inferredIntervalMs = clamp(median(intervals) ?? 10 * 60 * 1000, 5 * 60 * 1000, 20 * 60 * 1000);
+
+    const joulesPerM2 = daySamples.reduce((sum, sample) => {
+        const wM2 = clamp(sample.value, 0, 1400);
+        return sum + wM2 * (inferredIntervalMs / 1000);
+    }, 0);
+    const coveragePct = clamp((daySamples.length * inferredIntervalMs) / (dayEndMs - dayStartMs) * 100, 0, 100);
+    const rsMjM2 = joulesPerM2 / 1_000_000;
+
+    return {
+        rsMjM2: coveragePct >= 70 ? rsMjM2 : null,
+        coveragePct,
+        sampleCount: daySamples.length,
+    };
+}
 
 // Convert wind speed measured at height z to 2 m using FAO‑56 log law.
 // u2 = uz * (4.87 / ln(67.8 z − 5.42))
@@ -209,7 +291,10 @@ export async function computeWeeklyET0(): Promise<number> {
         // Align to local midnight (today 00:00) to cover the previous 7 full days
         const localMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
         const SEVEN_DAYS = 7 * 24 * 3600;
-        const cloudSamples = await questDbCloudSeriesLast7();
+        const [radiationSamples, cloudSamples] = await Promise.all([
+            questDbRadiationSeriesLast7(),
+            questDbCloudSeriesLast7(),
+        ] as const);
         
         // Read daily aggregates (preferred) and 7-day means (fallbacks)
         const [daily, agg] = await Promise.all([
@@ -238,7 +323,19 @@ export async function computeWeeklyET0(): Promise<number> {
         }
         const dayEnd = dayStart.map(d => { const e = new Date(d); e.setDate(e.getDate() + 1); return e; });
         const sunTimes = dayStart.map(d => computeSunTimesLocal(d, LAT, LON));
-        // Mittelwerte pro Tag (tagsüber)
+        // Daily measured global radiation (full local days). This is the
+        // preferred Rs input for FAO-56.
+        const radiationDaily = dayStart.map((start, i) => integrateDailyRadiationMJ(radiationSamples, start, dayEnd[i]));
+        const measuredRadiationDays = radiationDaily.filter(day => typeof day.rsMjM2 === "number").length;
+        if (measuredRadiationDays > 0) {
+            logger.info(
+                `[ET0] Measured global radiation used for ${measuredRadiationDays}/7 days from ${RADIATION_STATION_CODE}: ` +
+                radiationDaily.map(day => typeof day.rsMjM2 === "number" ? `${day.rsMjM2.toFixed(2)} MJ/m² (${day.coveragePct.toFixed(0)}%)` : `fallback (${day.coveragePct.toFixed(0)}%)`).join(', '),
+                { label: 'Evapotranspiration' }
+            );
+        }
+
+        // Cloud-cover daylight means are kept only as per-day fallback.
         const cloudsDailyRaw: Array<number | null> = [];
         for (let i = 0; i < n; i++) {
             const { sunrise, sunset } = sunTimes[i];
@@ -273,6 +370,7 @@ export async function computeWeeklyET0(): Promise<number> {
         const et0s: number[] = [];
         for (const i of idx) {
             const cloud = clamp(cloudsW[i], 0, 100);
+            const measuredRs = radiationDaily[i]?.rsMjM2;
 
             // Compute local day start for doy; prefer aligned sequence
             const startTs = localMidnight.getTime() - (SEVEN_DAYS * 1000) + i * 24 * 3600 * 1000;
@@ -294,9 +392,11 @@ export async function computeWeeklyET0(): Promise<number> {
             const P_hPa = Number.isFinite(day?.pressureMeanHPa as number) ? (day!.pressureMeanHPa as number) : P_hPa7;
 
             const RaMJ = Ra(LAT, doy);
-            const nOverN = clamp(1 - cloud / 100, 0, 1);
-            const Rs = (AP_A_S + AP_B_S * nOverN) * RaMJ;
             const Rso = (0.75 + 2e-5 * ELEV) * RaMJ;
+            const nOverN = clamp(1 - cloud / 100, 0, 1);
+            const fallbackRs = (AP_A_S + AP_B_S * nOverN) * RaMJ;
+            const rsSource = Number.isFinite(measuredRs as number) ? "measured" : "cloud-fallback";
+            const Rs = clamp(Number.isFinite(measuredRs as number) ? (measuredRs as number) : fallbackRs, 0, Rso * 1.05);
             let Rs_Rso = Rs / Rso;
             Rs_Rso = clamp(Rs_Rso, 0, 1.0);
             const Rns = (1 - ALBEDO) * Rs;
@@ -315,7 +415,7 @@ export async function computeWeeklyET0(): Promise<number> {
 
             logger.debug(
                 `[ET0] d${i + 1} ` +
-                `doy=${doy} cloud=${cloud.toFixed(0)}% n/N=${nOverN.toFixed(2)} ` +
+                `doy=${doy} RsSource=${rsSource} cloudFallback=${cloud.toFixed(0)}% n/N=${nOverN.toFixed(2)} ` +
                 `Tavg=${Tavg.toFixed(2)}°C Tmin=${Tmin.toFixed(2)}°C Tmax=${Tmax.toFixed(2)}°C RH=${RH.toFixed(1)}% ` +
                 `wind@${WIND_Z}m=${windZ.toFixed(2)} m/s u2=${u2.toFixed(2)} m/s ` +
                 `Ra=${RaMJ.toFixed(2)} Rso=${Rso.toFixed(2)} Rs=${Rs.toFixed(2)} ` +
@@ -358,7 +458,7 @@ export async function computeWeeklyET0(): Promise<number> {
             `Inputs: ` + (daily?.days?.length ? `daily aggregates from Redis (preferred), ` : ``) +
             `Tavg7=${(Tavg7 as number).toFixed(2)}°C dT7=${(dTavg as number).toFixed(2)}°C RH7=${(RH7 as number).toFixed(1)}% ` +
             `wind@${WIND_Z}m=${(windAtSensor7 as number).toFixed(2)} m/s P=${(P_hPa7 / 10).toFixed(2)} kPa ` +
-            `Angström a_s=${AP_A_S}, b_s=${AP_B_S}`,
+            `radiationDays=${measuredRadiationDays}/7 station=${RADIATION_STATION_CODE} fallback Angström a_s=${AP_A_S}, b_s=${AP_B_S}`,
             { label: 'Evapotranspiration' }
         );
         return et0Sum;

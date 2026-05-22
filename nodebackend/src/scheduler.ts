@@ -6,7 +6,7 @@ import generateUniqueId from './utils/generateUniqueId.js';
 import { topicToTaskEnablerKey, skipDecisionCheckRedisKey } from './utils/constants.js';
 import MqttPublisher from './utils/mqttPublisher.js';
 import { computeWeeklyET0 } from './utils/evapotranspiration.js';
-import { recordCurrentCloudCover } from './utils/cloudCoverRecorder.js';
+import { recordCurrentGlobalRadiation } from './utils/radiationRecorder.js';
 import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
 import { recordIrrigationEvent } from './utils/irrigationEventsRecorder.js';
@@ -28,13 +28,14 @@ const jobs: Job = {};
 
 // Daily ET₀ job removed; ET₀ is refreshed every 5 minutes alongside weather cache
 
-// Schedule the task to run every 15 minutes
-schedule.scheduleJob('*/15 * * * *', async () => {
+// Poll official South Tyrol global-radiation measurements shortly after the
+// station network's 10-minute timestamps are expected to become available.
+schedule.scheduleJob(process.env.RADIATION_POLL_CRON ?? '2,12,22,32,42,52 * * * *', async () => {
   try {
-    const { cloud } = await recordCurrentCloudCover();
-    logger.info(`CloudCover Scheduler-Run: ${cloud.toFixed(0)} %`);
+    const { globalRadiationWM2, stationCode, qualityFlag } = await recordCurrentGlobalRadiation();
+    logger.info(`GlobalRadiation Scheduler-Run: ${globalRadiationWM2.toFixed(0)} W/m² (${stationCode}, ${qualityFlag})`);
   } catch (error) {
-    logger.error('CloudCover scheduler run failed:', error);
+    logger.error('Global radiation scheduler run failed:', error);
   }
 });
 

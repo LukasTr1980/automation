@@ -19,7 +19,8 @@ import {
   Schedule, 
   Block,
   Grass,
-  Waves as WavesIcon
+  Waves as WavesIcon,
+  WbSunny
 } from '@mui/icons-material';
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
@@ -31,14 +32,10 @@ import IrrigationIndicator from '../../components/IrrigationIndicator';
 import ForecastCard from '../../components/ForecastCard';
 import { useEventSource } from '../../hooks/useEventSource';
 import { useCountdowns } from '../../hooks/useCountdowns';
-import cloud25Url from '../../assets/icons/cloud-25.svg';
-import cloud50Url from '../../assets/icons/cloud-50.svg';
-import cloud100Url from '../../assets/icons/cloud-100.svg';
-import sunUrl from '../../assets/icons/sun.svg';
 
 // Timing thresholds / intervals
 const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
-const CLOUD_REFETCH_MS = 2 * 60 * 1000;
+const RADIATION_REFETCH_MS = 2 * 60 * 1000;
 const SCHEDULE_REFETCH_MS = 60 * 1000;
 const LAST_IRRIGATION_REFETCH_MS = 60 * 1000;
 
@@ -222,33 +219,40 @@ const HomePage = () => {
   });
   const { refetch: refetchSchedule } = scheduleQuery;
 
-  // React Query: Current cloud cover percentage
-  const cloudQuery = useQuery<{ cloud: number | null }>({
-    queryKey: ['clouds', 'current'],
+  // React Query: Current measured global radiation from Völs am Schlern
+  type RadiationResponse = {
+    globalRadiationWM2: number | null;
+    sunshineDurationS?: number | null;
+    stationCode?: string;
+    stationName?: string;
+    timestamp?: string;
+    stale?: boolean;
+  };
+  const radiationQuery = useQuery<RadiationResponse>({
+    queryKey: ['radiation', 'current'],
     queryFn: async () => {
-      const r = await fetch(apiPath('/clouds/current'));
-      if (!r.ok) throw new Error('clouds');
+      const r = await fetch(apiPath('/radiation/current'));
+      if (!r.ok) throw new Error('radiation');
       return r.json();
     },
-    staleTime: CLOUD_REFETCH_MS,
-    refetchInterval: CLOUD_REFETCH_MS,
+    staleTime: RADIATION_REFETCH_MS,
+    refetchInterval: RADIATION_REFETCH_MS,
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
-  const { refetch: refetchCloud } = cloudQuery;
-  const cloudValue = cloudQuery.data?.cloud;
-  const hasCloudValue = typeof cloudValue === 'number';
-  const isSunny = hasCloudValue && (cloudValue as number) <= 10;
-  const isLightCloud = hasCloudValue && (cloudValue as number) > 10 && (cloudValue as number) < 33;
-  const cloudAvatarBg = !hasCloudValue
+  const { refetch: refetchRadiation } = radiationQuery;
+  const radiationValue = radiationQuery.data?.globalRadiationWM2;
+  const hasRadiationValue = typeof radiationValue === 'number';
+  const radiationAvatarBg = !hasRadiationValue
     ? 'transparent'
-    : isSunny
+    : radiationQuery.data?.stale
+      ? 'warning.main'
+      : radiationValue >= 700
       ? 'warning.light'
-      : isLightCloud
-        ? 'grey.400'
-        : 'grey.700';
-  const cloudAvatarColor = 'common.white';
-  const cloudIconFilter = 'brightness(0) invert(1)';
+      : radiationValue >= 200
+        ? 'info.main'
+        : 'grey.500';
+  const radiationAvatarColor = 'common.white';
   // Derive values from weather query
   const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
@@ -299,8 +303,8 @@ const HomePage = () => {
     if (lastIrrigationQuery.isError) showSnackbar('Fehler beim Laden der Bewässerungshistorie', 'error');
   }, [lastIrrigationQuery.isError, showSnackbar]);
   useEffect(() => {
-    if (cloudQuery.isError) showSnackbar('Fehler beim Laden der Bewölkung', 'error');
-  }, [cloudQuery.isError, showSnackbar]);
+    if (radiationQuery.isError) showSnackbar('Fehler beim Laden der Sonnenstrahlung', 'error');
+  }, [radiationQuery.isError, showSnackbar]);
 
   const { reconnect: reconnectSSE } = useEventSource({
     url: apiPath('/mqtt'),
@@ -365,7 +369,7 @@ const HomePage = () => {
       refetchWeather();
       refetchSchedule();
       refetchEt0Yesterday();
-      refetchCloud();
+      refetchRadiation();
       refetchLastIrrigation();
       reconnectSSE();
     };
@@ -378,7 +382,7 @@ const HomePage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchCloud, refetchLastIrrigation, reconnectSSE]);
+  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchRadiation, refetchLastIrrigation, reconnectSSE]);
 
   return (
     <Layout>
@@ -760,10 +764,10 @@ const HomePage = () => {
             />
           </Grid>
 
-          {/* Bewölkung (aktuell) */}
+          {/* Sonnenstrahlung (aktuell) */}
           <Grid size={{ xs: 6, md: 4 }}>
             <Card variant="outlined" sx={{ borderRadius: 2, height: '100%', minHeight: { xs: 120, md: 140 }, position: 'relative' }}>
-              {cloudQuery.isFetching && (
+              {radiationQuery.isFetching && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
               <CardContent sx={{
@@ -777,29 +781,25 @@ const HomePage = () => {
                 py: { xs: 1, md: 1.25 },
               }}>
                 <Avatar sx={{
-                  bgcolor: cloudAvatarBg,
-                  color: cloudAvatarColor,
+                  bgcolor: radiationAvatarBg,
+                  color: radiationAvatarColor,
                   width: { xs: 44, md: 52 },
                   height: { xs: 44, md: 52 },
                   alignSelf: 'center',
-                  border: hasCloudValue ? 'none' : '1px solid',
-                  borderColor: hasCloudValue ? 'transparent' : 'divider',
+                  border: hasRadiationValue ? 'none' : '1px solid',
+                  borderColor: hasRadiationValue ? 'transparent' : 'divider',
                 }}>
-                  {(() => {
-                    const v = cloudQuery.data?.cloud;
-                    if (typeof v !== 'number') return null;
-                    const url = v <= 10 ? sunUrl : (v < 33 ? cloud25Url : v < 75 ? cloud50Url : cloud100Url);
-                    return (
-                      <Box component="img" src={url} alt="" aria-hidden sx={{ width: { xs: 26, md: 30 }, height: { xs: 26, md: 30 }, display: 'block', filter: cloudIconFilter }} />
-                    );
-                  })()}
+                  {hasRadiationValue ? <WbSunny aria-hidden sx={{ fontSize: { xs: 28, md: 32 } }} /> : null}
                 </Avatar>
                 <Box>
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Bewölkung (aktuell)
+                    Sonnenstrahlung (aktuell)
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
-                    {typeof cloudQuery.data?.cloud === 'number' ? `${cloudQuery.data.cloud.toFixed(0)} %` : 'k. A.'}
+                    {typeof radiationQuery.data?.globalRadiationWM2 === 'number' ? `${radiationQuery.data.globalRadiationWM2.toFixed(0)} W/m²` : 'k. A.'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: radiationQuery.data?.stale ? 'warning.main' : 'text.secondary', display: 'block' }}>
+                    {radiationQuery.data?.stale ? 'Messwert veraltet' : (radiationQuery.data?.stationName ?? 'Völs am Schlern')}
                   </Typography>
                 </Box>
               </CardContent>

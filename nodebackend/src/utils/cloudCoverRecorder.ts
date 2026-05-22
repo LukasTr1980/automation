@@ -11,8 +11,8 @@ import {
 import logger from "../logger.js";
 
 // ───────── Standort ─────────────────────────────────────────────────────────
-const LAT = Number(process.env.LAT ?? 46.5668);
-const LON = Number(process.env.LON ?? 11.5599);
+const LAT = Number(process.env.LAT ?? 46.5484778);
+const LON = Number(process.env.LON ?? 11.5742698);
 
 // ───────── QuestDB‑Konstanten ───────────────────────────────────────────────
 const QUESTDB_TABLE_OBSERVATIONS = "weather_dwd_icon_observations";
