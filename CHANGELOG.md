@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Frontend (Villa Anna Home): Clarified that the temperature blocker uses the 7-day average instead of the current temperature.
+- Backend (Radiation): Increased the current-radiation freshness window to 45 minutes to tolerate publication delays in the South Tyrol station feed.
+
 ## [v19.27.20] - 2026-05-22
 
 ### Added

@@ -15,6 +15,7 @@ const SENSORS_URL = "https://dati.retecivica.bz.it/services/meteo/v1/sensors";
 const QUESTDB_TABLE_RADIATION = "weather_radiation_observations";
 const QUESTDB_SOURCE_LABEL = "province_bz_meteo";
 const PRIMARY_STATION_CODE = process.env.RADIATION_PRIMARY_STATION ?? "75600MS";
+const RADIATION_STALE_MINUTES = Number(process.env.RADIATION_STALE_MINUTES ?? 45);
 
 type StationProperties = {
     SCODE?: string;
@@ -115,7 +116,7 @@ export async function recordCurrentGlobalRadiation(stationCode = PRIMARY_STATION
     const observationTimestamp = parseSouthTyrolTimestamp(globalRadiation.DATE);
     const now = Date.now();
     const ageMinutes = (now - observationTimestamp.getTime()) / 60_000;
-    const qualityFlag = ageMinutes > 30 ? "stale" : "ok";
+    const qualityFlag = ageMinutes > RADIATION_STALE_MINUTES ? "stale" : "ok";
 
     await insertQuestDbRow(QUESTDB_TABLE_RADIATION, {
         observation_ts: observationTimestamp,

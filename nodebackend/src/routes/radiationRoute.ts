@@ -4,6 +4,7 @@ import { execute as questDbQuery } from '../clients/questdbClient.js';
 import { QUESTDB_TABLE_RADIATION, RADIATION_PRIMARY_STATION } from '../utils/radiationRecorder.js';
 
 const router = express.Router();
+const RADIATION_STALE_MINUTES = Number(process.env.RADIATION_STALE_MINUTES ?? 45);
 
 function isMissingQuestDbTable(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
@@ -28,7 +29,7 @@ router.get('/current', async (_req, res) => {
       return res.status(503).json({ error: 'No recent global radiation available', globalRadiationWM2: null });
     }
 
-    const stale = Date.now() - ts > 30 * 60 * 1000 || row.quality_flag === 'stale';
+    const stale = Date.now() - ts > RADIATION_STALE_MINUTES * 60 * 1000 || row.quality_flag === 'stale';
     return res.json({
       globalRadiationWM2: Math.round(Math.max(0, radiation)),
       sunshineDurationS: Number.isFinite(Number(row.sunshine_duration_s)) ? Number(row.sunshine_duration_s) : null,

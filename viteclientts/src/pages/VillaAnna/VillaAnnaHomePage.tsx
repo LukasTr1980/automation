@@ -440,7 +440,7 @@ const HomePage = () => {
                   Blocker
                   <InfoPopover
                     ariaLabel="Mögliche Blocker"
-                    content="Bewässerung startet nur, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Blocker sind Kälte, hohe Luftfeuchte, Regen in den letzten 24 Stunden oder aktueller Regen."
+                    content="Bewässerung startet nur, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Blocker sind Kälte über den 7-Tage-Durchschnitt, hohe Luftfeuchte, Regen in den letzten 24 Stunden oder aktueller Regen."
                     iconSize={16}
                   />
                 </Typography>
@@ -458,7 +458,7 @@ const HomePage = () => {
                       const rateActive = decision.rainRate > 0;
                       const drynessActive = typeof decision.depletionMm === 'number' && typeof decision.triggerMm === 'number' && decision.depletionMm < decision.triggerMm;
                       if (tempActive) items.push(
-                        <DotLabel key="b-temp" color={theme.palette.error.main} label="Temp ≤ 10 °C" />
+                        <DotLabel key="b-temp" color={theme.palette.error.main} label="Ø-Temp. 7 Tage ≤ 10 °C" />
                       );
                       if (humActive) items.push(
                         <DotLabel key="b-hum" color={theme.palette.error.main} label="Feuchte ≥ 80 %" />
