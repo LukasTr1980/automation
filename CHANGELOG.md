@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.20] - 2026-05-22
+
 ### Added
 - Backend (Radiation): Added a QuestDB-backed South Tyrol global radiation recorder for the Völs am Schlern station (`75600MS`) and a new `/api/radiation/current` endpoint.
 
