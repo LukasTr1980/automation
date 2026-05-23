@@ -163,19 +163,31 @@ function formatNextIrrigationTimestamp(timestamp: string | null | undefined, alw
   if (Number.isNaN(date.getTime())) return null;
 
   const now = new Date();
-  const sameYear = date.getFullYear() === now.getFullYear();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffCalendarDays = Math.round((targetDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   const diffDays = (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  const timeFormatter = new Intl.DateTimeFormat('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const timeLabel = `${timeFormatter.format(date)} Uhr`;
+
+  if (!alwaysShowYear && diffCalendarDays === 0) return `Heute, ${timeLabel}`;
+  if (!alwaysShowYear && diffCalendarDays === 1) return `Morgen, ${timeLabel}`;
+  if (!alwaysShowYear && diffCalendarDays > 1 && diffCalendarDays <= 7) {
+    const weekday = new Intl.DateTimeFormat('de-DE', { weekday: 'short' }).format(date);
+    return `${weekday}, ${timeLabel}`;
+  }
+
+  const sameYear = date.getFullYear() === now.getFullYear();
   const dateFormatter = new Intl.DateTimeFormat('de-DE', {
     day: '2-digit',
     month: '2-digit',
     year: alwaysShowYear || !sameYear || diffDays > 60 ? 'numeric' : undefined,
   });
-  const timeFormatter = new Intl.DateTimeFormat('de-DE', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 
-  return `${dateFormatter.format(date)}, ${timeFormatter.format(date)}`;
+  return `${dateFormatter.format(date)}, ${timeLabel}`;
 }
 
 function getNextIrrigationReasonLabel(reasonKey: NextIrrigationReason): string {

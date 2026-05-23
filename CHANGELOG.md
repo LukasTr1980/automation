@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.23] - 2026-05-23
+
+### Changed
+- Frontend (Villa Anna Home): Show today's next irrigation time as a relative German label with "Uhr" for better readability.
+
 ## [v19.27.22] - 2026-05-23
 
 ### Changed
