@@ -2,6 +2,7 @@ import express from 'express';
 import { getScheduledTasks } from '../scheduler.js';
 import logger from '../logger.js';
 import { irrigationSwitchTopics, irrigationSwitchSetTopics, irrigationSwitchDescriptions } from '../utils/constants.js';
+import { createIrrigationDecision } from '../irrigationDecision.js';
 
 const router = express.Router();
 
@@ -20,6 +21,48 @@ interface TaskDetail {
 
 interface TaskWithTopic extends TaskDetail {
   topic: string;
+}
+
+type NextIrrigationStatus = 'planned' | 'blocked' | 'out_of_season' | 'inactive' | 'unknown';
+type NextIrrigationReason =
+  | 'none'
+  | 'no_schedules'
+  | 'no_active_schedules'
+  | 'out_of_season'
+  | 'soil_wet'
+  | 'current_rain'
+  | 'rain_24h'
+  | 'humidity_high'
+  | 'temperature_low'
+  | 'weather_blocker'
+  | 'decision_unavailable'
+  | 'schedule_error';
+
+interface NextIrrigationSummary {
+  status: NextIrrigationStatus;
+  reasonKey: NextIrrigationReason;
+  blockerCount: number;
+  nextTimestamp: string | null;
+  zone: string | null;
+}
+
+function createNextIrrigationSummary(
+  status: NextIrrigationStatus,
+  reasonKey: NextIrrigationReason,
+  nextTimestamp: string | null,
+  zone: string | null,
+  blockerCount = 0
+): NextIrrigationSummary {
+  return { status, reasonKey, blockerCount, nextTimestamp, zone };
+}
+
+function reasonFromBlockers(blockers: string[]): NextIrrigationReason {
+  if (blockers.some((blocker) => blocker.includes('Boden nicht trocken genug'))) return 'soil_wet';
+  if (blockers.some((blocker) => blocker.includes('Rain rate'))) return 'current_rain';
+  if (blockers.some((blocker) => blocker.includes('Rain (24h)'))) return 'rain_24h';
+  if (blockers.some((blocker) => blocker.includes('humidity'))) return 'humidity_high';
+  if (blockers.some((blocker) => blocker.includes('temperature'))) return 'temperature_low';
+  return 'weather_blocker';
 }
 
 function toIntegerArray(value: unknown): number[] {
@@ -73,7 +116,8 @@ router.get('/next', async (req, res) => {
       return res.json({ 
         nextTask: null,
         nextScheduled: 'No schedules',
-        zone: null
+        zone: null,
+        nextIrrigation: createNextIrrigationSummary('inactive', 'no_schedules', null, null),
       });
     }
 
@@ -92,7 +136,8 @@ router.get('/next', async (req, res) => {
       return res.json({ 
         nextTask: null,
         nextScheduled: 'No active schedules',
-        zone: null
+        zone: null,
+        nextIrrigation: createNextIrrigationSummary('inactive', 'no_active_schedules', null, null),
       });
     }
 
@@ -115,7 +160,8 @@ router.get('/next', async (req, res) => {
       return res.json({ 
         nextTask: null,
         nextScheduled: 'No active schedules',
-        zone: null
+        zone: null,
+        nextIrrigation: createNextIrrigationSummary('inactive', 'no_active_schedules', null, null),
       });
     }
 
@@ -188,6 +234,31 @@ router.get('/next', async (req, res) => {
       return r.month.includes(currentMonth);
     });
 
+    let nextIrrigation = createNextIrrigationSummary('planned', 'none', nextTimestamp, zoneName);
+    if (!inSeason) {
+      nextIrrigation = createNextIrrigationSummary('out_of_season', 'out_of_season', nextTimestamp, zoneName);
+    } else {
+      try {
+        const decision = await createIrrigationDecision();
+        const blockers = decision.response.blockers ?? [];
+        if (blockers.length > 0) {
+          nextIrrigation = createNextIrrigationSummary(
+            'blocked',
+            reasonFromBlockers(blockers),
+            nextTimestamp,
+            zoneName,
+            blockers.length
+          );
+        }
+      } catch (error) {
+        logger.warn('Failed to derive next irrigation decision status', {
+          label: 'NextScheduleRoute',
+          error: error instanceof Error ? error.message : String(error),
+        });
+        nextIrrigation = createNextIrrigationSummary('unknown', 'decision_unavailable', nextTimestamp, zoneName);
+      }
+    }
+
     logger.info(`Next irrigation scheduled: ${timeDisplay} for ${zoneName}`, { label: 'NextScheduleRoute' });
     
     res.json({
@@ -199,6 +270,7 @@ router.get('/next', async (req, res) => {
       taskId: bestTask.taskId,
       nextTimestamp,
       inSeason,
+      nextIrrigation,
     });
   } catch (error) {
     logger.error('Error fetching next schedule', error as Error, { label: 'NextScheduleRoute' });
@@ -206,7 +278,8 @@ router.get('/next', async (req, res) => {
       error: 'Failed to fetch next schedule',
       nextTask: null,
       nextScheduled: 'Error',
-      zone: null
+      zone: null,
+      nextIrrigation: createNextIrrigationSummary('unknown', 'schedule_error', null, null),
     });
   }
 });

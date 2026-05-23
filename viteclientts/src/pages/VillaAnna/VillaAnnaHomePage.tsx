@@ -65,6 +65,13 @@ function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
+function getWaterReserveColor(storagePct: number | null): string {
+  if (storagePct === null) return 'text.disabled';
+  if (storagePct <= 25) return 'error.main';
+  if (storagePct <= 50) return 'warning.main';
+  return 'success.main';
+}
+
 function formatSoilUpdatedAt(timestamp?: string | null): string {
   if (!timestamp) return 'Aktualisiert: unbekannt';
 
@@ -116,6 +123,121 @@ function formatLastIrrigationTimestamp(timestamp: string): { date: string; time:
     time: timeFormatter.format(parsedDate),
     tooltip: tooltipFormatter.format(parsedDate),
   };
+}
+
+type NextIrrigationStatus = 'planned' | 'blocked' | 'out_of_season' | 'inactive' | 'unknown';
+type NextIrrigationReason =
+  | 'none'
+  | 'no_schedules'
+  | 'no_active_schedules'
+  | 'out_of_season'
+  | 'soil_wet'
+  | 'current_rain'
+  | 'rain_24h'
+  | 'humidity_high'
+  | 'temperature_low'
+  | 'weather_blocker'
+  | 'decision_unavailable'
+  | 'schedule_error';
+
+type NextIrrigationSummary = {
+  status: NextIrrigationStatus;
+  reasonKey: NextIrrigationReason;
+  blockerCount: number;
+  nextTimestamp: string | null;
+  zone: string | null;
+};
+
+type ScheduleResponse = {
+  nextScheduled: string;
+  zone: string | null;
+  nextTimestamp?: string | null;
+  inSeason?: boolean;
+  nextIrrigation?: NextIrrigationSummary;
+};
+
+function formatNextIrrigationTimestamp(timestamp: string | null | undefined, alwaysShowYear = false): string | null {
+  if (!timestamp) return null;
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const now = new Date();
+  const sameYear = date.getFullYear() === now.getFullYear();
+  const diffDays = (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+  const dateFormatter = new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: alwaysShowYear || !sameYear || diffDays > 60 ? 'numeric' : undefined,
+  });
+  const timeFormatter = new Intl.DateTimeFormat('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  return `${dateFormatter.format(date)}, ${timeFormatter.format(date)}`;
+}
+
+function getNextIrrigationReasonLabel(reasonKey: NextIrrigationReason): string {
+  switch (reasonKey) {
+    case 'no_schedules':
+      return 'Kein Zeitplan hinterlegt';
+    case 'no_active_schedules':
+      return 'Kein aktiver Zeitplan';
+    case 'out_of_season':
+      return 'Automatik pausiert';
+    case 'soil_wet':
+      return 'Boden noch feucht';
+    case 'current_rain':
+      return 'Aktueller Regen';
+    case 'rain_24h':
+      return 'Regen der letzten 24 Stunden';
+    case 'humidity_high':
+      return 'Hohe Luftfeuchte';
+    case 'temperature_low':
+      return 'Zu kalt';
+    case 'weather_blocker':
+      return 'Wetter-Blocker aktiv';
+    case 'decision_unavailable':
+      return 'Entscheidung nicht verfügbar';
+    case 'schedule_error':
+      return 'Zeitplan nicht verfügbar';
+    case 'none':
+    default:
+      return '';
+  }
+}
+
+function getNextIrrigationColor(status: NextIrrigationStatus): string {
+  switch (status) {
+    case 'planned':
+      return 'success.main';
+    case 'blocked':
+      return 'warning.main';
+    case 'out_of_season':
+      return 'info.main';
+    case 'inactive':
+      return 'text.disabled';
+    case 'unknown':
+    default:
+      return 'warning.main';
+  }
+}
+
+function getLegacyNextIrrigation(data: ScheduleResponse | undefined, isLoading: boolean): NextIrrigationSummary {
+  if (isLoading) {
+    return { status: 'unknown', reasonKey: 'decision_unavailable', blockerCount: 0, nextTimestamp: null, zone: null };
+  }
+  if (!data || data.nextScheduled === 'No schedules') {
+    return { status: 'inactive', reasonKey: 'no_schedules', blockerCount: 0, nextTimestamp: null, zone: null };
+  }
+  if (data.nextScheduled === 'No active schedules') {
+    return { status: 'inactive', reasonKey: 'no_active_schedules', blockerCount: 0, nextTimestamp: null, zone: null };
+  }
+  if (data.inSeason === false) {
+    return { status: 'out_of_season', reasonKey: 'out_of_season', blockerCount: 0, nextTimestamp: data.nextTimestamp ?? null, zone: data.zone };
+  }
+  return { status: 'planned', reasonKey: 'none', blockerCount: 0, nextTimestamp: data.nextTimestamp ?? null, zone: data.zone };
 }
 
 const HomePage = () => {
@@ -204,7 +326,7 @@ const HomePage = () => {
     ? formatLastIrrigationTimestamp(lastIrrigation.timestamp)
     : null;
   // React Query: Next schedule
-  const scheduleQuery = useQuery<{ nextScheduled: string; zone: string | null; nextTimestamp?: string | null; inSeason?: boolean }>({
+  const scheduleQuery = useQuery<ScheduleResponse>({
     queryKey: ['schedule', 'next'],
     queryFn: async () => {
       const r = await fetch(apiPath('/schedule/next'));
@@ -279,7 +401,6 @@ const HomePage = () => {
     depletionMm?: number;
     triggerMm?: number;
     soilUpdatedAt?: string;
-    canIrrigate?: boolean;
   }
   const [decisionLoading, setDecisionLoading] = useState(true);
   const [decision, setDecision] = useState<DecisionMetrics | null>(null);
@@ -343,7 +464,6 @@ const HomePage = () => {
             depletionMm: r.depletionMm,
             triggerMm: r.triggerMm,
             soilUpdatedAt: r.soilUpdatedAt,
-            canIrrigate: Boolean(data.state),
           });
           setDecisionLoading(false);
         } else if (data?.type === 'irrigationStart' && data?.source === 'scheduled') {
@@ -503,32 +623,15 @@ const HomePage = () => {
                 {(() => {
                   const storageMm = decision?.soilStorageMm;
                   const capacityMm = decision?.tawMm;
-                  const depletionMm = decision?.depletionMm;
-                  const triggerMm = decision?.triggerMm;
                   const hasStorage = typeof storageMm === 'number' && typeof capacityMm === 'number' && capacityMm > 0;
                   const storagePct = hasStorage ? clampPercent((storageMm / capacityMm) * 100) : null;
-                  const soilDryEnough = typeof depletionMm === 'number' && typeof triggerMm === 'number' && depletionMm >= triggerMm;
-                  const canIrrigate = decision?.canIrrigate === true;
-                  const statusColor = storagePct === null
-                    ? 'text.disabled'
-                    : canIrrigate
-                      ? 'success.main'
-                      : soilDryEnough
-                        ? 'warning.main'
-                        : 'success.main';
-                  const statusLabel = storagePct === null
-                    ? 'Keine Messdaten'
-                    : canIrrigate
-                      ? 'Bewässerung möglich'
-                      : soilDryEnough
-                        ? 'Warten wegen Wetter'
-                        : 'Noch genug Wasser';
+                  const statusColor = getWaterReserveColor(storagePct);
                   const moistureWidth = `${storagePct ?? 0}%`;
 
                   return (
                     <>
                       <Box sx={{ display: 'grid', justifyItems: 'center', gap: 0.5, width: '100%' }}>
-                        <Avatar sx={{ bgcolor: 'success.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 } }}>
+                        <Avatar sx={{ bgcolor: statusColor, color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 } }}>
                           <Grass sx={{ fontSize: { xs: 25, md: 29 } }} />
                         </Avatar>
                         <Box
@@ -565,7 +668,7 @@ const HomePage = () => {
                         </Typography>
                         <InfoPopover
                           ariaLabel="Hinweis zur Wasserreserve"
-                          content={`Die Wasserreserve zeigt, wie viel Wasser dem Rasen noch im Boden zur Verfügung steht. ${capacityMm?.toFixed?.(0) ?? '30'} mm ist die maximale Reserve des Rasenbodens. Bewässerung ist möglich, wenn die Reserve niedrig ist und kein Wetter-Blocker aktiv ist.`}
+                          content={`Die Wasserreserve zeigt, wie viel Wasser dem Rasen noch im Boden zur Verfügung steht. ${capacityMm?.toFixed?.(0) ?? '30'} mm ist die maximale Reserve des Rasenbodens. Niedriger Füllstand wird orange oder rot dargestellt.`}
                           iconSize={16}
                         />
                       </Box>
@@ -574,7 +677,7 @@ const HomePage = () => {
                           {storagePct === null ? 'k. A.' : `${storagePct.toFixed(0)} % gefüllt`}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2 }}>
-                          {hasStorage ? `${storageMm.toFixed(1)}\u202Fmm / ${capacityMm.toFixed(0)}\u202Fmm` : statusLabel}
+                          {hasStorage ? `${storageMm.toFixed(1)}\u202Fmm / ${capacityMm.toFixed(0)}\u202Fmm` : 'Keine Messdaten'}
                         </Typography>
                       </Box>
                       <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.2 }} aria-live="polite">
@@ -651,85 +754,36 @@ const HomePage = () => {
                   <Schedule sx={{ fontSize: { xs: 24, md: 28 } }} />
                 </Avatar>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Nächster Zeitplan
+                  Nächste Bewässerung
                 </Typography>
                 {(() => {
                   const data = scheduleQuery.data;
                   const isLoading = scheduleQuery.isLoading && !data;
-                  const rawLabel = data?.nextScheduled;
-                  const noSchedules = rawLabel === 'No schedules';
-                  const noActiveSchedules = rawLabel === 'No active schedules';
-                  const inSeason = data?.inSeason !== undefined ? data.inSeason : true;
-                  const nextTs = data?.nextTimestamp ?? null;
-
-                  // Derive a human-friendly label for the next schedule
-                  let primaryLabel: string = 'Kein Zeitplan';
-                  let secondaryLabel: string | null = null;
-
+                  const nextIrrigation = data?.nextIrrigation ?? getLegacyNextIrrigation(data, isLoading);
+                  const statusColor = isLoading ? 'text.disabled' : getNextIrrigationColor(nextIrrigation.status);
+                  let primaryLabel = 'Keine geplant';
+                  let secondaryLabel: string | null = getNextIrrigationReasonLabel(nextIrrigation.reasonKey) || null;
                   if (isLoading) {
                     primaryLabel = '–';
-                  } else if (!data || noSchedules) {
-                    primaryLabel = 'Kein Zeitplan';
-                    secondaryLabel = 'Es ist kein Zeitplan hinterlegt.';
-                  } else if (noActiveSchedules) {
-                    primaryLabel = 'Kein aktiver Zeitplan';
-                    secondaryLabel = 'Es ist kein aktiver Zeitplan konfiguriert.';
-                  } else if (!inSeason && nextTs) {
-                    // We are outside all configured irrigation months ("Saisonpause")
+                    secondaryLabel = null;
+                  } else if (nextIrrigation.status === 'planned') {
+                    primaryLabel = formatNextIrrigationTimestamp(nextIrrigation.nextTimestamp) ?? data?.nextScheduled ?? 'Geplant';
+                    secondaryLabel = nextIrrigation.zone ?? data?.zone ?? null;
+                  } else if (nextIrrigation.status === 'blocked') {
+                    primaryLabel = 'Pausiert';
+                    secondaryLabel = getNextIrrigationReasonLabel(nextIrrigation.reasonKey) || 'Blocker aktiv';
+                  } else if (nextIrrigation.status === 'out_of_season') {
                     primaryLabel = 'Saisonpause';
-                    try {
-                      const d = new Date(nextTs);
-                      if (!Number.isNaN(d.getTime())) {
-                        const dateFormatter = new Intl.DateTimeFormat('de-DE', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                        });
-                        const timeFormatter = new Intl.DateTimeFormat('de-DE', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        });
-                        const dateText = `${dateFormatter.format(d)}, ${timeFormatter.format(d)}`;
-                        secondaryLabel = `Nächste geplante Bewässerung: ${dateText}`;
-                      } else {
-                        secondaryLabel = 'Nächste geplante Bewässerung: –';
-                      }
-                    } catch {
-                      secondaryLabel = 'Nächste geplante Bewässerung: –';
-                    }
-                  } else if (nextTs) {
-                    // Use the concrete next timestamp and show year if not clearly soon
-                    try {
-                      const d = new Date(nextTs);
-                      if (!Number.isNaN(d.getTime())) {
-                        const now = new Date();
-                        const sameYear = d.getFullYear() === now.getFullYear();
-                        const diffMs = d.getTime() - now.getTime();
-                        const diffDays = diffMs / (1000 * 60 * 60 * 24);
-                        // For very distant schedules or year changes, show full date with year
-                        const dateFormatter = new Intl.DateTimeFormat('de-DE', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: !sameYear || diffDays > 60 ? 'numeric' : undefined,
-                        });
-                        const timeFormatter = new Intl.DateTimeFormat('de-DE', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        });
-                        primaryLabel = `${dateFormatter.format(d)}, ${timeFormatter.format(d)}`;
-                      } else {
-                        primaryLabel = rawLabel || 'Kein Zeitplan';
-                      }
-                    } catch {
-                      primaryLabel = rawLabel || 'Kein Zeitplan';
-                    }
-                  } else {
-                    primaryLabel = rawLabel || 'Kein Zeitplan';
+                    secondaryLabel = formatNextIrrigationTimestamp(nextIrrigation.nextTimestamp, true);
+                    secondaryLabel = secondaryLabel ? `Nächster Plan: ${secondaryLabel}` : 'Automatik pausiert';
+                  } else if (nextIrrigation.status === 'unknown') {
+                    primaryLabel = 'Prüfung nötig';
+                    secondaryLabel = getNextIrrigationReasonLabel(nextIrrigation.reasonKey) || 'Status unklar';
                   }
 
                   return (
                     <>
-                      <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center' }} aria-live="polite">
+                      <Typography variant="h6" sx={{ fontWeight: 600, textAlign: 'center', color: statusColor }} aria-live="polite">
                         <Box component="span" sx={{ display: 'inline-block', minWidth: '14ch' }}>
                           {primaryLabel}
                         </Box>
@@ -738,11 +792,6 @@ const HomePage = () => {
                         {secondaryLabel && (
                           <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
                             {secondaryLabel}
-                          </Typography>
-                        )}
-                        {!secondaryLabel && data?.zone && rawLabel !== 'No schedule' && rawLabel !== 'Scheduled' && (
-                          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.25 }}>
-                            {data.zone}
                           </Typography>
                         )}
                       </Box>

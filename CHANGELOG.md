@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.22] - 2026-05-23
+
+### Changed
+- Backend/Frontend (Villa Anna Home): Added a next-irrigation dashboard status that distinguishes planned runs, active blockers, season pauses, inactive schedules, and unclear schedule state.
+- Frontend (Villa Anna Home): Color the water reserve indicator by fill level instead of irrigation eligibility.
+
 ## [v19.27.21] - 2026-05-22
 
 ### Changed
