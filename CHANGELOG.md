@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Backend/Frontend (Irrigation): Raised the operational cup-test irrigation calibration to 2.0 mm per 15 minutes.
+
 ## [v19.27.25] - 2026-05-24
 
 ### Added

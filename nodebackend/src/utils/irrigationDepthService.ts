@@ -1,12 +1,13 @@
-const DEFAULT_CALIBRATED_DEPTH_MM = 1.5;
+const DEFAULT_CALIBRATED_DEPTH_MM = 2.0;
 const DEFAULT_CALIBRATED_DURATION_MIN = 15;
 
 // Calibrated irrigation depth from cup tests, not pump specification.
 // Measurements were taken during 15-minute zone runs:
 // - Lukas West: 1.0, 1.4, 0.6 mm
 // - Lukas Süd: 3.9, 0.5, 1.0 mm
-// We use 1.5 mm per 15 minutes as a pragmatic global average that accounts
-// for uneven sprinkler distribution and some lateral water movement in soil.
+// We use 2.0 mm per 15 minutes as the operational calibration. This is a
+// pragmatic value above the raw central tendency because the catch-cup samples
+// were uneven and some zones measured materially higher delivery.
 const DEFAULT_MM_PER_MIN = DEFAULT_CALIBRATED_DEPTH_MM / DEFAULT_CALIBRATED_DURATION_MIN;
 
 function positiveNumberFromEnv(name: string, fallback: number): number {

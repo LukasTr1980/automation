@@ -779,7 +779,7 @@ const HomePage = () => {
                   </Typography>
                   <InfoPopover
                     ariaLabel="Hinweis zur Bewässerungsmenge"
-                    content="Gemessener Näherungswert aus Bechertests: 1,5 mm pro 15 Minuten. Die App rechnet die Menge mit der Laufzeit der aktiven Zeitpläne hoch. Wenn mehrere Zonen laufen, zählt der Tageswert als Durchschnitt je Zone; dieselbe Zone zählt einmal mit dem stärksten Lauf."
+                    content="Kalibrierter Näherungswert aus Bechertests: 2,0 mm pro 15 Minuten. Die App rechnet die Menge mit der Laufzeit der aktiven Zeitpläne hoch. Wenn mehrere Zonen laufen, zählt der Tageswert als Durchschnitt je Zone; dieselbe Zone zählt einmal mit dem stärksten Lauf."
                     iconSize={16}
                   />
                 </Box>
