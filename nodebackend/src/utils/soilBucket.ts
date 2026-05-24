@@ -147,7 +147,12 @@ export async function dailySoilBalance(zone: string): Promise<void> {
     let et0_yesterday = 0;
     if (et0Last7?.days?.length) {
       // Pick the last entry (most recent full local day)
-      et0_yesterday = Number(et0Last7.days[et0Last7.days.length - 1].et0mm) || 0;
+      const latestEt0 = et0Last7.days[et0Last7.days.length - 1].et0mm;
+      if (typeof latestEt0 === 'number' && Number.isFinite(latestEt0)) {
+        et0_yesterday = latestEt0;
+      } else {
+        logger.warn('[Soil] Daily ET0 unavailable; skipping evapotranspiration debit for this balance run');
+      }
     }
 
     const agg = await readWeatherAggregatesFromRedis();

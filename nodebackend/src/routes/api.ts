@@ -14,7 +14,6 @@ import et0Router from './et0Route.js';
 import currentWeatherRouter from './currentWeatherRoute.js';
 import nextScheduleRouter from './nextScheduleRoute.js';
 import irrigationRouter from './irrigationRoute.js';
-import cloudsRouter from './cloudsRoute.js';
 import radiationRouter from './radiationRoute.js';
 
 const router = express.Router();
@@ -32,7 +31,6 @@ router.use('/et0', apiLimiter, et0Router);
 router.use('/weather', apiLimiter, currentWeatherRouter);
 router.use('/schedule', apiLimiter, nextScheduleRouter);
 router.use('/irrigation', apiLimiter, irrigationRouter);
-router.use('/clouds', apiLimiter, cloudsRouter);
 router.use('/radiation', apiLimiter, radiationRouter);
 
 export default router;

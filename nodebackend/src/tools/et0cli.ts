@@ -1,6 +1,6 @@
 // Simple CLI to compute daily ET₀ (FAO-56) with manual inputs
 // Usage example:
-//   npm run et0 -- --doy 180 --tmin 15 --tmax 25 --rh 60 --wind 3.2 --pressure 900 --cloud 45
+//   npm run et0 -- --doy 180 --tmin 15 --tmax 25 --tavg 20 --rh 60 --wind 3.2 --pressure 900 --rs 25.1
 
 import { computeDailyET0FAO56, type DailyEt0Input } from "../utils/evapotranspiration.js";
 import logger from "../logger.js";
@@ -18,13 +18,12 @@ const specs: ArgSpec[] = [
   { name: "rh", required: true },
   { name: "wind", required: true },
   { name: "pressure", required: true },
-  { name: "cloud", required: true },
+  { name: "rs", required: true },
   // optional overrides
+  { name: "tavg" },
   { name: "lat" },
   { name: "elev" },
   { name: "albedo" },
-  { name: "aS" },
-  { name: "bS" },
   { name: "windZ" },
   { name: "verbose" },
 ];
@@ -55,10 +54,10 @@ function parseArgs(argv: string[]) {
 function printUsageAndExit(msg?: string, code = 1) {
   if (msg) logger.error(msg);
   logger.error(
-    "Usage: et0 --doy <1..366> --tmin <°C> --tmax <°C> --rh <percent> --wind <m/s@Z> --pressure <hPa> --cloud <0..100> [--lat <deg>] [--elev <m>] [--albedo <0..1>] [--aS <num>] [--bS <num>] [--windZ <m>] [--verbose]"
+    "Usage: et0 --doy <1..366> --tmin <°C> --tmax <°C> [--tavg <°C>] --rh <percent> --wind <m/s@Z> --pressure <hPa> --rs <MJ/m²/day> [--lat <deg>] [--elev <m>] [--albedo <0..1>] [--windZ <m>] [--verbose]"
   );
   logger.error(
-    "Example: --doy 180 --tmin 15 --tmax 25 --rh 60 --wind 3.2 --pressure 900 --cloud 45 --lat 46.5484778 --elev 1060 --windZ 10"
+    "Example: --doy 180 --tmin 15 --tmax 25 --tavg 20 --rh 60 --wind 3.2 --pressure 900 --rs 25.1 --lat 46.5484778 --elev 1060 --windZ 10"
   );
   process.exit(code);
 }
@@ -84,15 +83,14 @@ async function main() {
       doy: asNumber(args.doy, "doy"),
       tminC: asNumber(args.tmin, "tmin"),
       tmaxC: asNumber(args.tmax, "tmax"),
+      tavgC: args.tavg !== undefined ? asNumber(args.tavg, "tavg") : undefined,
       rhMeanPct: asNumber(args.rh, "rh"),
       windAtSensorMS: asNumber(args.wind, "wind"),
       pressureHPa: asNumber(args.pressure, "pressure"),
-      cloudPct: asNumber(args.cloud, "cloud"),
+      rsMjM2: asNumber(args.rs, "rs"),
       latDeg: args.lat !== undefined ? asNumber(args.lat, "lat") : undefined,
       elevMeters: args.elev !== undefined ? asNumber(args.elev, "elev") : undefined,
       albedo: args.albedo !== undefined ? asNumber(args.albedo, "albedo") : undefined,
-      angstromAS: args.aS !== undefined ? asNumber(args.aS, "aS") : undefined,
-      angstromBS: args.bS !== undefined ? asNumber(args.bS, "bS") : undefined,
       windSensorHeightM: args.windZ !== undefined ? asNumber(args.windZ, "windZ") : undefined,
     };
 

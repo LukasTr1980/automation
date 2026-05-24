@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.24] - 2026-05-24
+
+### Changed
+- Backend (ET₀): Removed the DWD/ICON cloud-cover fallback and now compute daily FAO-56 ET₀ only from measured QuestDB radiation, storing `null` for days with insufficient radiation coverage.
+- Backend (ET₀): Updated the manual ET₀ CLI to accept measured daily radiation (`--rs`) instead of cloud-cover/Angström inputs.
+
+### Removed
+- Backend (Cloud Cover): Removed the DWD/ICON cloud-cover recorder and `/api/clouds/current` route; solar-radiation data is now the sole ET₀ radiation source.
+
 ## [v19.27.23] - 2026-05-23
 
 ### Changed

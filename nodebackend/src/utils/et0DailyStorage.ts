@@ -3,7 +3,7 @@ import logger from "../logger.js";
 
 export interface Et0DailyEntry {
   date: string; // YYYY-MM-DD (local)
-  et0mm: number; // mm for that local day
+  et0mm: number | null; // mm for that local day; null when radiation data is incomplete
 }
 
 export interface Et0DailyLast7Payload {
@@ -36,4 +36,3 @@ export async function readEt0DailyLast7FromRedis(): Promise<Et0DailyLast7Payload
     return null;
   }
 }
-
