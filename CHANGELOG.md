@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.25] - 2026-05-24
+
+### Added
+- Frontend (Villa Anna Home): Added an irrigation-depth card that shows the calibrated scheduled depth and documents the cup-test basis.
+
+### Changed
+- Backend (Scheduler/Soil): Replaced the pump-spec irrigation credit with a measured cup-test calibration of 1.5 mm per 15 minutes, scaled by inferred schedule duration.
+- Backend (Soil): Queue scheduled irrigation by zone and apply the daily average across zones, counting duplicate runs for the same zone only once with the highest depth.
+
 ## [v19.27.24] - 2026-05-24
 
 ### Changed

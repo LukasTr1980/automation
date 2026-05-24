@@ -9,8 +9,44 @@ export interface SoilBucketState {
   updatedAt: string; // ISO timestamp
 }
 
+export interface PendingIrrigationRun {
+  zone: string;
+  durationMin: number;
+  depthMm: number;
+  recordedAt: string;
+}
+
+export interface PendingIrrigationPayload {
+  runs: PendingIrrigationRun[];
+  updatedAt: string;
+}
+
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 const keyForZone = (zone: string) => `soil:bucket:${zone}`;
+
+function localDateKey(value = new Date()): string {
+  const yyyy = value.getFullYear();
+  const mm = String(value.getMonth() + 1).padStart(2, '0');
+  const dd = String(value.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function pendingKeyForDate(dayKey: string): string {
+  return `soil:bucket:pending:${dayKey}`;
+}
+
+function averageDepthFromRuns(runs: PendingIrrigationRun[]): number {
+  if (!runs.length) return 0;
+  const sum = runs.reduce((total, run) => total + Math.max(0, run.depthMm), 0);
+  return Math.round((sum / runs.length) * 100) / 100;
+}
+
+function isLegacyPendingIrrigation(value: unknown): value is { depthMm: number; recordedAt?: string } {
+  return !!value
+    && typeof value === 'object'
+    && 'depthMm' in value
+    && typeof (value as { depthMm?: unknown }).depthMm === 'number';
+}
 
 export function getTawMm(): number {
   const ROOT_DEPTH_M = Number(process.env.IRR_ROOT_DEPTH_M ?? 0.30);
@@ -53,56 +89,81 @@ export async function ensureSoilBucket(zone: string): Promise<SoilBucketState> {
   return state;
 }
 
-// Apply irrigation immediately on start events (depthMm from pump specs)
-export async function addIrrigationToBucket(zone: string, depthMm: number): Promise<void> {
+export async function queueIrrigationRunForDailyAverage(
+  zone: string,
+  durationMin: number,
+  depthMm: number,
+  recordedAt = new Date(),
+): Promise<boolean> {
   try {
-    const taw = getTawMm();
-    const current = await ensureSoilBucket(zone);
-    const newS = clamp(current.sMm + Math.max(0, depthMm), 0, taw || current.tawMm);
-    const state: SoilBucketState = {
-      sMm: newS,
-      tawMm: taw || current.tawMm,
+    const client = await connectToRedis();
+    const dayKey = localDateKey(recordedAt);
+    const pendingKey = pendingKeyForDate(dayKey);
+    const raw = await client.get(pendingKey);
+    const parsedPayload = raw ? JSON.parse(raw) as PendingIrrigationPayload | { depthMm?: number; recordedAt?: string } : null;
+    const payload: PendingIrrigationPayload = isLegacyPendingIrrigation(parsedPayload)
+      ? {
+          runs: [{ zone: 'legacy', durationMin: 0, depthMm: parsedPayload.depthMm, recordedAt: parsedPayload.recordedAt ?? recordedAt.toISOString() }],
+          updatedAt: parsedPayload.recordedAt ?? recordedAt.toISOString(),
+        }
+      : parsedPayload as PendingIrrigationPayload ?? { runs: [], updatedAt: recordedAt.toISOString() };
+    const runs = Array.isArray(payload.runs) ? payload.runs : [];
+    const existingIndex = runs.findIndex((run) => run.zone === zone);
+    const nextRun: PendingIrrigationRun = {
+      zone,
+      durationMin,
+      depthMm,
+      recordedAt: recordedAt.toISOString(),
+    };
+
+    if (existingIndex >= 0 && runs[existingIndex].depthMm >= depthMm) {
+      logger.info(`[Soil] Keeping existing irrigation run for ${zone} on ${dayKey}: ${runs[existingIndex].depthMm.toFixed(2)} mm >= ${depthMm.toFixed(2)} mm`);
+      return false;
+    }
+
+    if (existingIndex >= 0) {
+      runs[existingIndex] = nextRun;
+    } else {
+      runs.push(nextRun);
+    }
+
+    const nextPayload: PendingIrrigationPayload = {
+      runs,
       updatedAt: new Date().toISOString(),
     };
-    await writeSoilBucket(zone, state);
-    logger.info(`[Soil] +Irrigation ${depthMm.toFixed(2)} mm → S=${newS.toFixed(2)} mm (zone=${zone})`);
+    await client.set(pendingKey, JSON.stringify(nextPayload));
+    await client.expire(pendingKey, 72 * 3600);
+
+    logger.info(`[Soil] Queued irrigation run zone=${zone} duration=${durationMin.toFixed(0)} min depth=${depthMm.toFixed(2)} mm for ${dayKey}; daily average=${averageDepthFromRuns(runs).toFixed(2)} mm`);
+    return true;
   } catch (err) {
-    logger.error(`[Soil] Failed to apply irrigation to bucket for ${zone}`, err as Error);
+    logger.error('[Soil] Failed to queue irrigation run for daily average', err as Error);
+    return false;
   }
 }
 
-// Idempotent application: ensure irrigation is only counted once across zones within a time window
-export async function addIrrigationToGlobalBucketOnce(depthMm: number): Promise<boolean> {
+export async function readPendingIrrigationForDate(dayKey = localDateKey()): Promise<(PendingIrrigationPayload & { averageDepthMm: number }) | null> {
   try {
     const client = await connectToRedis();
-    // Daily idempotency key (local date)
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const dayKey = `${yyyy}-${mm}-${dd}`;
-    const dailyKey = `soil:bucket:applied:${dayKey}`;
-    const pendingKey = `soil:bucket:pending:${dayKey}`;
-    // Try to set once per day; expire after 36h to avoid key buildup
-    const appliedToday = await client.setnx(dailyKey, '1');
-    if (appliedToday === 0) {
-      logger.info(`[Soil] Skipping irrigation queue: already captured for ${dayKey}`);
-      return false;
+    const raw = await client.get(pendingKeyForDate(dayKey));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PendingIrrigationPayload | { depthMm?: number; recordedAt?: string };
+    if (isLegacyPendingIrrigation(parsed)) {
+      return {
+        runs: [{ zone: 'legacy', durationMin: 0, depthMm: parsed.depthMm, recordedAt: parsed.recordedAt ?? new Date().toISOString() }],
+        updatedAt: parsed.recordedAt ?? new Date().toISOString(),
+        averageDepthMm: parsed.depthMm,
+      };
     }
-    await client.expire(dailyKey, 36 * 3600);
-
-    const payload = {
-      depthMm,
-      recordedAt: now.toISOString(),
+    const runs = Array.isArray((parsed as PendingIrrigationPayload).runs) ? (parsed as PendingIrrigationPayload).runs : [];
+    return {
+      runs,
+      updatedAt: (parsed as PendingIrrigationPayload).updatedAt,
+      averageDepthMm: averageDepthFromRuns(runs),
     };
-    await client.set(pendingKey, JSON.stringify(payload));
-    await client.expire(pendingKey, 72 * 3600);
-
-    logger.info(`[Soil] Queued irrigation ${depthMm.toFixed(2)} mm for ${dayKey}`);
-    return true;
   } catch (err) {
-    logger.error('[Soil] Failed to apply idempotent irrigation to global bucket', err as Error);
-    return false;
+    logger.error('[Soil] Failed reading pending irrigation runs', err as Error);
+    return null;
   }
 }
 
@@ -114,30 +175,26 @@ export async function dailySoilBalance(zone: string): Promise<void> {
 
     let irrigationQueuedMm = 0;
     try {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = now.getMonth();
-      const d = now.getDate();
-      const yesterday = new Date(y, m, d - 1);
-      const yyyy = yesterday.getFullYear();
-      const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
-      const dd = String(yesterday.getDate()).padStart(2, '0');
-      const pendingKey = `soil:bucket:pending:${yyyy}-${mm}-${dd}`;
-
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const dayKey = localDateKey(yesterday);
+      const pendingKey = pendingKeyForDate(dayKey);
       const client = await connectToRedis();
       const raw = await client.get(pendingKey);
       if (raw) {
         try {
-          const parsed = JSON.parse(raw) as { depthMm?: number };
-          if (parsed && typeof parsed.depthMm === 'number' && !Number.isNaN(parsed.depthMm)) {
+          const parsed = JSON.parse(raw) as PendingIrrigationPayload | { depthMm?: number };
+          if (isLegacyPendingIrrigation(parsed) && !Number.isNaN(parsed.depthMm)) {
             irrigationQueuedMm = parsed.depthMm;
+          } else if (parsed && Array.isArray((parsed as PendingIrrigationPayload).runs)) {
+            irrigationQueuedMm = averageDepthFromRuns((parsed as PendingIrrigationPayload).runs);
           }
         } catch {
           const fallback = Number(raw);
           if (Number.isFinite(fallback)) irrigationQueuedMm = fallback;
         }
         await client.del(pendingKey);
-        logger.info(`[Soil] Consumed queued irrigation ${irrigationQueuedMm.toFixed(2)} mm for ${pendingKey}`);
+        logger.info(`[Soil] Consumed queued irrigation daily average ${irrigationQueuedMm.toFixed(2)} mm for ${pendingKey}`);
       }
     } catch (err) {
       logger.error('[Soil] Failed to consume queued irrigation amount', err as Error);

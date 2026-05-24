@@ -38,6 +38,7 @@ const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
 const RADIATION_REFETCH_MS = 2 * 60 * 1000;
 const SCHEDULE_REFETCH_MS = 60 * 1000;
 const LAST_IRRIGATION_REFETCH_MS = 60 * 1000;
+const IRRIGATION_DEPTH_REFETCH_MS = 60 * 1000;
 
 function joinApiUrl(baseUrl: string, path: string): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -154,6 +155,28 @@ type ScheduleResponse = {
   nextTimestamp?: string | null;
   inSeason?: boolean;
   nextIrrigation?: NextIrrigationSummary;
+};
+
+type IrrigationDepthRun = {
+  zone: string;
+  zoneLabel?: string | null;
+  durationMin: number;
+  depthMm: number;
+};
+
+type IrrigationDepthCalibrationResponse = {
+  source: 'cup-test';
+  mmPerMin: number;
+  defaultDurationMin: number;
+  defaultDepthMm: number;
+  scheduled: {
+    runs: IrrigationDepthRun[];
+    averageDepthMm: number | null;
+  };
+  pendingToday?: {
+    runs: IrrigationDepthRun[];
+    averageDepthMm: number;
+  } | null;
 };
 
 function formatNextIrrigationTimestamp(timestamp: string | null | undefined, alwaysShowYear = false): string | null {
@@ -353,6 +376,21 @@ const HomePage = () => {
   });
   const { refetch: refetchSchedule } = scheduleQuery;
 
+  const irrigationDepthQuery = useQuery<IrrigationDepthCalibrationResponse>({
+    queryKey: ['irrigation', 'depth-calibration'],
+    queryFn: async () => {
+      const r = await fetch(apiPath('/irrigation/depth-calibration'));
+      if (!r.ok) throw new Error('irrigation_depth_calibration');
+      return r.json();
+    },
+    staleTime: IRRIGATION_DEPTH_REFETCH_MS,
+    refetchInterval: IRRIGATION_DEPTH_REFETCH_MS,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
+  });
+  const { refetch: refetchIrrigationDepth } = irrigationDepthQuery;
+
   // React Query: Current measured global radiation from Völs am Schlern
   type RadiationResponse = {
     globalRadiationWM2: number | null;
@@ -438,6 +476,9 @@ const HomePage = () => {
   useEffect(() => {
     if (radiationQuery.isError) showSnackbar('Fehler beim Laden der Sonnenstrahlung', 'error');
   }, [radiationQuery.isError, showSnackbar]);
+  useEffect(() => {
+    if (irrigationDepthQuery.isError) showSnackbar('Fehler beim Laden der Bewässerungsmenge', 'error');
+  }, [irrigationDepthQuery.isError, showSnackbar]);
 
   const { reconnect: reconnectSSE } = useEventSource({
     url: apiPath('/mqtt'),
@@ -481,6 +522,7 @@ const HomePage = () => {
         } else if (data?.type === 'irrigationStart' && data?.source === 'scheduled') {
           // Scheduled irrigation just started → refresh soil bucket and last irrigation snapshot
           void queryClient.invalidateQueries({ queryKey: ['schedule', 'next'] });
+          void queryClient.invalidateQueries({ queryKey: ['irrigation', 'depth-calibration'] });
           setTimeout(() => {
             void queryClient.invalidateQueries({ queryKey: ['irrigation', 'last'] });
           }, 500);
@@ -503,6 +545,7 @@ const HomePage = () => {
       refetchEt0Yesterday();
       refetchRadiation();
       refetchLastIrrigation();
+      refetchIrrigationDepth();
       reconnectSSE();
     };
     const onVisibility = () => {
@@ -514,7 +557,21 @@ const HomePage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchRadiation, refetchLastIrrigation, reconnectSSE]);
+  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchRadiation, refetchLastIrrigation, refetchIrrigationDepth, reconnectSSE]);
+
+  const irrigationDepthData = irrigationDepthQuery.data;
+  const scheduledRuns = irrigationDepthData?.scheduled.runs ?? [];
+  const scheduledDepthMm = irrigationDepthData?.scheduled.averageDepthMm ?? irrigationDepthData?.defaultDepthMm ?? null;
+  const pendingTodayDepthMm = irrigationDepthData?.pendingToday?.averageDepthMm ?? null;
+  const durationSummary = (() => {
+    if (!irrigationDepthData) return '–';
+    if (!scheduledRuns.length) return `${irrigationDepthData.defaultDurationMin.toFixed(0)} min`;
+    const durations = scheduledRuns.map((run) => run.durationMin);
+    const allEqual = durations.every((duration) => duration === durations[0]);
+    if (allEqual) return `${durations[0].toFixed(0)} min`;
+    const avgDuration = durations.reduce((sum, duration) => sum + duration, 0) / durations.length;
+    return `Ø ${avgDuration.toFixed(0)} min`;
+  })();
 
   return (
     <Layout>
@@ -698,6 +755,42 @@ const HomePage = () => {
                     </>
                   );
                 })()}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid size={{ xs: 6, md: 4 }}>
+            <Card variant="outlined" sx={{
+              borderRadius: 2,
+              height: '100%',
+              minHeight: { xs: 120, md: 140 },
+              position: 'relative',
+            }}>
+              {irrigationDepthQuery.isFetching && (
+                <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
+              )}
+              <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '48px auto auto', md: '56px auto auto' }, justifyItems: 'center', rowGap: { xs: 0.5, md: 0.5 }, px: { xs: 1, md: 1.5 }, py: { xs: 1, md: 1.25 } }}>
+                <Avatar sx={{ bgcolor: 'info.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
+                  <WaterDrop sx={{ fontSize: { xs: 24, md: 28 } }} />
+                </Avatar>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, justifyContent: 'center' }}>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    Bewässerungsmenge
+                  </Typography>
+                  <InfoPopover
+                    ariaLabel="Hinweis zur Bewässerungsmenge"
+                    content="Gemessener Näherungswert aus Bechertests: 1,5 mm pro 15 Minuten. Die App rechnet die Menge mit der Laufzeit der aktiven Zeitpläne hoch. Wenn mehrere Zonen laufen, zählt der Tageswert als Durchschnitt je Zone; dieselbe Zone zählt einmal mit dem stärksten Lauf."
+                    iconSize={16}
+                  />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }} aria-live="polite">
+                  {scheduledDepthMm === null ? 'k. A.' : `${scheduledDepthMm.toFixed(1)} mm`}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.2 }} aria-live="polite">
+                  {pendingTodayDepthMm !== null
+                    ? `Heute vorgemerkt: ${pendingTodayDepthMm.toFixed(1)} mm`
+                    : `Zeitplan: ${durationSummary}`}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>

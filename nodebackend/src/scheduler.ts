@@ -3,16 +3,16 @@ import { connectToRedis } from './clients/redisClient.js';
 import { createIrrigationDecision } from './irrigationDecision.js';
 import getTaskEnabler from './utils/getTaskEnabler.js';
 import generateUniqueId from './utils/generateUniqueId.js';
-import { topicToTaskEnablerKey, skipDecisionCheckRedisKey } from './utils/constants.js';
+import { topicToTaskEnablerKey, skipDecisionCheckRedisKey, irrigationSwitchTopics, irrigationSwitchDescriptions } from './utils/constants.js';
 import MqttPublisher from './utils/mqttPublisher.js';
 import { computeWeeklyET0 } from './utils/evapotranspiration.js';
 import { recordCurrentGlobalRadiation } from './utils/radiationRecorder.js';
 import { odhRecordNextDayRain } from './utils/odhRainRecorder.js';
 import logger from './logger.js';
 import { recordIrrigationEvent } from './utils/irrigationEventsRecorder.js';
-import { dailySoilBalance, addIrrigationToGlobalBucketOnce } from './utils/soilBucket.js';
+import { dailySoilBalance, queueIrrigationRunForDailyAverage } from './utils/soilBucket.js';
 import { broadcastPayloadToSseClients } from './utils/sseHandler.js';
-import { RUN_DEPTH_MM } from './utils/irrigationDepthService.js';
+import { DEFAULT_RUN_DURATION_MIN, depthForRunMinutes } from './utils/irrigationDepthService.js';
 import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from './clients/weatherlink-client.js';
 import { writeLatestWeatherToRedis } from './utils/weatherLatestStorage.js';
 import { writeWeatherAggregatesToRedis, readWeatherAggregatesFromRedis } from './utils/weatherAggregatesStorage.js';
@@ -211,7 +211,7 @@ schedule.scheduleJob('35 0 * * *', async () => {
   }
 });
 
-async function createTask(topic: string, state: boolean): Promise<() => Promise<void>> {
+async function createTask(topic: string, state: boolean, recurrenceRule: RecurrenceRule): Promise<() => Promise<void>> {
   return async function () {
     try {
       const zoneName = topic.split('/')[2];
@@ -249,7 +249,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
               logger.info(`Irrigation started for zone ${zoneName} (decision check skipped)`);
               await recordIrrigationEvent(zoneName, true, 'scheduler', 'true');
               try {
-                await addIrrigationToGlobalBucketOnce(RUN_DEPTH_MM);
+                await queueScheduledIrrigationDepth(topic, zoneName, recurrenceRule);
                 // Notify SSE clients that a scheduled irrigation has started
                 try {
                   broadcastPayloadToSseClients({ type: 'irrigationStart', source: 'scheduled', zone: zoneName, at: new Date().toISOString() });
@@ -269,7 +269,7 @@ async function createTask(topic: string, state: boolean): Promise<() => Promise<
                 logger.info(`Irrigation started for zone ${zoneName}`);
                 await recordIrrigationEvent(zoneName, true, 'scheduler', 'true');
                 try {
-                  await addIrrigationToGlobalBucketOnce(RUN_DEPTH_MM);
+                  await queueScheduledIrrigationDepth(topic, zoneName, recurrenceRule);
                   // Notify SSE clients that a scheduled irrigation has started
                   try {
                     broadcastPayloadToSseClients({ type: 'irrigationStart', source: 'scheduled', zone: zoneName, at: new Date().toISOString() });
@@ -297,6 +297,74 @@ interface RecurrenceRule {
   month: number[];
 }
 
+function parseStoredRecurrenceRule(value: unknown): RecurrenceRule | null {
+  let raw: unknown;
+  try {
+    raw = typeof value === 'string' ? JSON.parse(value) : value;
+  } catch {
+    return null;
+  }
+  if (!raw || typeof raw !== 'object') return null;
+  const rule = raw as Partial<RecurrenceRule>;
+  const hour = Number(rule.hour);
+  const minute = Number(rule.minute);
+  const dayOfWeek = Array.isArray(rule.dayOfWeek) ? rule.dayOfWeek.map(Number) : [];
+  const month = Array.isArray(rule.month) ? rule.month.map(Number) : [];
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  return { hour, minute, dayOfWeek, month };
+}
+
+function rulesOverlap(a: RecurrenceRule, b: RecurrenceRule): boolean {
+  const overlap = (left: number[], right: number[]) => {
+    if (!left.length || !right.length) return true;
+    return left.some((value) => right.includes(value));
+  };
+  return overlap(a.dayOfWeek, b.dayOfWeek) && overlap(a.month, b.month);
+}
+
+function minutesOfDay(rule: RecurrenceRule): number {
+  return rule.hour * 60 + rule.minute;
+}
+
+function minutesUntilStop(start: RecurrenceRule, stop: RecurrenceRule): number {
+  const startMinutes = minutesOfDay(start);
+  const stopMinutes = minutesOfDay(stop);
+  const diff = stopMinutes - startMinutes;
+  return diff > 0 ? diff : diff + 24 * 60;
+}
+
+async function inferRunDurationMinutes(topic: string, startRule: RecurrenceRule): Promise<number> {
+  const client = await connectToRedis();
+  const jobKeys = await client.keys(`${topic}_*`);
+  const stopDurations: number[] = [];
+
+  for (const jobKey of jobKeys) {
+    const raw = await client.get(jobKey);
+    if (!raw) continue;
+    try {
+      const parsed = JSON.parse(raw) as { state?: boolean; recurrenceRule?: unknown };
+      if (parsed.state !== false) continue;
+      const stopRule = parseStoredRecurrenceRule(parsed.recurrenceRule);
+      if (!stopRule || !rulesOverlap(startRule, stopRule)) continue;
+      stopDurations.push(minutesUntilStop(startRule, stopRule));
+    } catch (error) {
+      logger.warn(`Could not parse scheduled stop task ${jobKey}: ${error}`);
+    }
+  }
+
+  const bestDuration = stopDurations.sort((a, b) => a - b)[0];
+  if (Number.isFinite(bestDuration) && bestDuration > 0) return bestDuration;
+
+  logger.warn(`[Soil] No matching stop schedule found for ${topic}; using default duration ${DEFAULT_RUN_DURATION_MIN} min`);
+  return DEFAULT_RUN_DURATION_MIN;
+}
+
+async function queueScheduledIrrigationDepth(topic: string, zoneName: string, recurrenceRule: RecurrenceRule): Promise<void> {
+  const durationMin = await inferRunDurationMinutes(topic, recurrenceRule);
+  const depthMm = depthForRunMinutes(durationMin);
+  await queueIrrigationRunForDailyAverage(zoneName, durationMin, depthMm);
+}
+
 async function scheduleTask(topic: string, state: boolean, recurrenceRule: RecurrenceRule): Promise<void> {
   if (!topic || state === undefined || !recurrenceRule) {
     throw new Error('Missing required parameters: topic, state, recurrenceRule');
@@ -309,7 +377,7 @@ async function scheduleTask(topic: string, state: boolean, recurrenceRule: Recur
     jobs[jobKey].cancel();
   }
 
-  const task = await createTask(topic, state);
+  const task = await createTask(topic, state, recurrenceRule);
   jobs[jobKey] = schedule.scheduleJob(recurrenceRule, task);
 
   const client = await connectToRedis();
@@ -331,8 +399,13 @@ async function loadScheduledTasks(): Promise<void> {
           const { state, recurrenceRule } = JSON.parse(data);
           const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
 
-          const task = await createTask(topic, state);
-          jobs[jobKey] = schedule.scheduleJob(recurrenceRule, task);
+          const rule = parseStoredRecurrenceRule(recurrenceRule);
+          if (!rule) {
+            logger.warn(`Skipping scheduled task with invalid recurrence rule for ${jobKey}`);
+            continue;
+          }
+          const task = await createTask(topic, state, rule);
+          jobs[jobKey] = schedule.scheduleJob(rule, task);
         }
       }
     }
@@ -342,7 +415,7 @@ async function loadScheduledTasks(): Promise<void> {
 interface TaskDetail {
   taskId: string;
   state: boolean;
-  recurrenceRule: string;
+  recurrenceRule: RecurrenceRule;
 }
 
 interface TasksByTopic {
@@ -364,6 +437,11 @@ async function getScheduledTasks(): Promise<TasksByTopic> {
 
         if (data) {
           const { id, state, recurrenceRule } = JSON.parse(data);
+          const rule = parseStoredRecurrenceRule(recurrenceRule);
+          if (!rule) {
+            logger.warn(`Skipping scheduled task with invalid recurrence rule for ${jobKey}`);
+            continue;
+          }
 
           const topic = jobKey.substring(0, jobKey.lastIndexOf('_'));
 
@@ -371,7 +449,7 @@ async function getScheduledTasks(): Promise<TasksByTopic> {
             tasksByTopic[topic] = [];
           }
 
-          tasksByTopic[topic].push({ taskId: id, state, recurrenceRule });
+          tasksByTopic[topic].push({ taskId: id, state, recurrenceRule: rule });
         }
       }
     }
@@ -379,9 +457,58 @@ async function getScheduledTasks(): Promise<TasksByTopic> {
   return tasksByTopic;
 }
 
+interface ScheduledIrrigationDepthRun {
+  zone: string;
+  zoneLabel: string | null;
+  durationMin: number;
+  depthMm: number;
+}
+
+interface ScheduledIrrigationDepthPreview {
+  runs: ScheduledIrrigationDepthRun[];
+  averageDepthMm: number | null;
+}
+
+function mapZoneLabel(zoneKey: string): string | null {
+  const topic = irrigationSwitchTopics.find((entry) => entry.endsWith(`/${zoneKey}`));
+  const idx = topic ? irrigationSwitchTopics.indexOf(topic) : -1;
+  return idx >= 0 ? irrigationSwitchDescriptions[idx] : null;
+}
+
+async function getScheduledIrrigationDepthPreview(): Promise<ScheduledIrrigationDepthPreview> {
+  const tasksByTopic = await getScheduledTasks();
+  const byZone = new Map<string, ScheduledIrrigationDepthRun>();
+
+  for (const [topic, tasks] of Object.entries(tasksByTopic)) {
+    for (const task of tasks) {
+      if (task.state !== true) continue;
+      const zoneKey = topic.split('/')[2] ?? topic;
+      const durationMin = await inferRunDurationMinutes(topic, task.recurrenceRule);
+      const depthMm = depthForRunMinutes(durationMin);
+      const existing = byZone.get(zoneKey);
+      if (!existing || depthMm > existing.depthMm) {
+        byZone.set(zoneKey, {
+          zone: zoneKey,
+          zoneLabel: mapZoneLabel(zoneKey),
+          durationMin,
+          depthMm,
+        });
+      }
+    }
+  }
+
+  const runs = [...byZone.values()];
+  const averageDepthMm = runs.length
+    ? Math.round((runs.reduce((sum, run) => sum + run.depthMm, 0) / runs.length) * 100) / 100
+    : null;
+
+  return { runs, averageDepthMm };
+}
+
 export {
   scheduleTask,
   loadScheduledTasks,
   getScheduledTasks,
+  getScheduledIrrigationDepthPreview,
   jobs
 };

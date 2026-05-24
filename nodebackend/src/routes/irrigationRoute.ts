@@ -3,6 +3,14 @@ import logger from '../logger.js';
 import { execute } from '../clients/questdbClient.js';
 import { irrigationSwitchTopics, irrigationSwitchDescriptions } from '../utils/constants.js';
 import { QUESTDB_TABLE_IRRIGATION_EVENTS } from '../utils/irrigationEventsRecorder.js';
+import {
+  CALIBRATED_MM_PER_MIN,
+  CUP_TEST_SAMPLES,
+  DEFAULT_RUN_DEPTH_MM,
+  DEFAULT_RUN_DURATION_MIN,
+} from '../utils/irrigationDepthService.js';
+import { readPendingIrrigationForDate } from '../utils/soilBucket.js';
+import { getScheduledIrrigationDepthPreview } from '../scheduler.js';
 
 const router = express.Router();
 
@@ -67,6 +75,28 @@ router.get('/last', async (_req: Request, res: Response) => {
     }
     logger.error('Failed to fetch last irrigation from QuestDB', error);
     return res.status(500).json({ error: 'failedToFetchLastIrrigation' });
+  }
+});
+
+router.get('/depth-calibration', async (_req: Request, res: Response) => {
+  try {
+    const [scheduled, pendingToday] = await Promise.all([
+      getScheduledIrrigationDepthPreview(),
+      readPendingIrrigationForDate(),
+    ]);
+
+    return res.json({
+      source: 'cup-test',
+      mmPerMin: CALIBRATED_MM_PER_MIN,
+      defaultDurationMin: DEFAULT_RUN_DURATION_MIN,
+      defaultDepthMm: DEFAULT_RUN_DEPTH_MM,
+      samples: CUP_TEST_SAMPLES,
+      scheduled,
+      pendingToday,
+    });
+  } catch (error) {
+    logger.error('Failed to fetch irrigation depth calibration', error);
+    return res.status(500).json({ error: 'failedToFetchIrrigationDepthCalibration' });
   }
 });
 
