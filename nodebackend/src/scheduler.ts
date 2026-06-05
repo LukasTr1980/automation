@@ -13,7 +13,7 @@ import { recordIrrigationEvent } from './utils/irrigationEventsRecorder.js';
 import { dailySoilBalance, queueIrrigationRunForDailyAverage } from './utils/soilBucket.js';
 import { broadcastPayloadToSseClients } from './utils/sseHandler.js';
 import { DEFAULT_RUN_DURATION_MIN, depthForRunMinutes } from './utils/irrigationDepthService.js';
-import { fetchLatestWeatherSnapshot, getRainRateFromWeatherlink, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from './clients/weatherlink-client.js';
+import { fetchLatestWeatherSnapshot, getDailyRainTotal, getSevenDayRainTotal, getOutdoorTempAverageRange, getOutdoorHumidityAverageRange, getOutdoorWindSpeedAverageRange, getOutdoorTempExtremaRange, getOutdoorPressureAverageRange } from './clients/weatherlink-client.js';
 import { writeLatestWeatherToRedis } from './utils/weatherLatestStorage.js';
 import { writeWeatherAggregatesToRedis, readWeatherAggregatesFromRedis } from './utils/weatherAggregatesStorage.js';
 import { writeDailyLast7ToRedis } from './utils/weatherDailyStorage.js';
@@ -54,15 +54,27 @@ schedule.scheduleJob('*/15 * * * *', async () => {
 schedule.scheduleJob('30 */5 * * * *', async () => {
   try {
     const snap = await fetchLatestWeatherSnapshot();
-    const { rate: rainRateMmPerHour } = await getRainRateFromWeatherlink();
+    if (!snap.ok || !snap.observedAt) {
+      logger.warn(`[WEATHERLINK] Skipping latest cache refresh: ${snap.reason ?? 'current snapshot unavailable'}`);
+      return;
+    }
+
     const payload = {
       temperatureC: snap.temperatureC,
       humidity: snap.humidity,
-      rainRateMmPerHour: typeof rainRateMmPerHour === 'number' && isFinite(rainRateMmPerHour) ? Math.round(rainRateMmPerHour * 10) / 10 : null,
-      timestamp: new Date().toISOString(),
+      rainRateMmPerHour: snap.rainRateMmPerHour,
+      timestamp: snap.observedAt,
+      observedAt: snap.observedAt,
+      cachedAt: new Date().toISOString(),
+      stale: snap.stale,
     };
     await writeLatestWeatherToRedis(payload);
-    logger.info(`[WEATHERLINK] Cached latest: T=${payload.temperatureC ?? 'n/a'}°C, H=${payload.humidity ?? 'n/a'}%, R=${payload.rainRateMmPerHour ?? 'n/a'} mm/h`);
+    logger.info(`[WEATHERLINK] Cached latest: T=${payload.temperatureC ?? 'n/a'}°C, H=${payload.humidity ?? 'n/a'}%, R=${payload.rainRateMmPerHour ?? 'n/a'} mm/h, observedAt=${payload.observedAt}, stale=${payload.stale}`);
+
+    if (snap.stale) {
+      logger.warn('[WEATHERLINK] Skipping rolling aggregate refresh because current station data is stale');
+      return;
+    }
 
     // Compute and cache rolling rain totals (24h, 7d) every 5 minutes; keep 7d means unchanged until daily refresh
     const now = new Date();
@@ -71,11 +83,16 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
       getSevenDayRainTotal(now, 'metric'),
     ] as const);
 
+    if (!r24.ok || !r7.ok) {
+      logger.warn('[WEATHERLINK] Skipping rolling aggregate refresh because rain totals are unavailable');
+      return;
+    }
+
     // Read existing 7d averages from Redis to preserve their values during the day
     const existing = await readWeatherAggregatesFromRedis();
     const agg = {
-      rain24hMm: r24.ok ? Math.round(r24.total * 10) / 10 : (existing?.rain24hMm ?? null),
-      rain7dMm: r7.ok ? Math.round(r7.total * 10) / 10 : (existing?.rain7dMm ?? null),
+      rain24hMm: Math.round(r24.total * 10) / 10,
+      rain7dMm: Math.round(r7.total * 10) / 10,
       temp7dAvgC: existing?.temp7dAvgC ?? null,
       humidity7dAvgPct: existing?.humidity7dAvgPct ?? null,
       wind7dAvgMS: existing?.wind7dAvgMS ?? null,
@@ -94,8 +111,8 @@ schedule.scheduleJob('30 */5 * * * *', async () => {
   }
 });
 
-// Compute ET₀ daily last-7 once per day shortly after local midnight
-schedule.scheduleJob('40 0 * * *', async () => {
+// Compute ET₀ daily last-7 once per day after daily WeatherLink aggregates have had time to refresh
+schedule.scheduleJob('55 0 * * *', async () => {
   try {
     const sum = await computeWeeklyET0();
     logger.info(`ET₀ daily last-7 refreshed (sum=${sum} mm)`);
@@ -105,7 +122,7 @@ schedule.scheduleJob('40 0 * * *', async () => {
 });
 
 // Apply daily soil water balance shortly after ET0 is computed
-schedule.scheduleJob('45 0 * * *', async () => {
+schedule.scheduleJob('5 1 * * *', async () => {
   try {
     // Currently we track a single zone bucket aligned with decision logic
     await dailySoilBalance('lukasSued');
@@ -128,18 +145,26 @@ schedule.scheduleJob('35 0 * * *', async () => {
       getOutdoorTempExtremaRange({ end: alignedEnd, windowSeconds: SEVEN_DAYS, chunkSeconds: 24 * 3600, units: 'metric' }),
     ] as const);
 
+    if (!t7.ok || !h7.ok || !w7.ok || !p7.ok || !tExt7.ok) {
+      logger.warn('[WEATHERLINK] Skipping daily 7d means refresh because one or more WeatherLink aggregates are unavailable');
+      return;
+    }
+
     // Average daily temperature range over 7 days
     let deltaT7Avg: number | null = null;
-    if (tExt7.ok) {
-      let sum = 0;
-      let n = 0;
-      for (const c of tExt7.chunks) {
-        if (isFinite(c.hiMax) && isFinite(c.loMin) && c.count > 0) {
-          sum += (c.hiMax - c.loMin);
-          n += 1;
-        }
+    let sum = 0;
+    let n = 0;
+    for (const c of tExt7.chunks) {
+      if (isFinite(c.hiMax) && isFinite(c.loMin) && c.count > 0) {
+        sum += (c.hiMax - c.loMin);
+        n += 1;
       }
-      deltaT7Avg = n > 0 ? Math.round((sum / n) * 100) / 100 : null;
+    }
+    deltaT7Avg = n > 0 ? Math.round((sum / n) * 100) / 100 : null;
+
+    if (deltaT7Avg === null) {
+      logger.warn('[WEATHERLINK] Skipping daily 7d means refresh because temperature extrema are empty');
+      return;
     }
 
     // Merge with current rain totals so the agg payload remains complete
@@ -147,10 +172,10 @@ schedule.scheduleJob('35 0 * * *', async () => {
     const agg = {
       rain24hMm: existing?.rain24hMm ?? null,
       rain7dMm: existing?.rain7dMm ?? null,
-      temp7dAvgC: t7.ok ? Math.round(t7.avg * 100) / 100 : null,
-      humidity7dAvgPct: h7.ok ? Math.round(h7.avg) : null,
-      wind7dAvgMS: w7.ok ? Math.round(w7.avg * 1000) / 1000 : null,
-      pressure7dAvgHPa: p7.ok ? Math.round(p7.avg) : null,
+      temp7dAvgC: Math.round(t7.avg * 100) / 100,
+      humidity7dAvgPct: Math.round(h7.avg),
+      wind7dAvgMS: Math.round(w7.avg * 1000) / 1000,
+      pressure7dAvgHPa: Math.round(p7.avg),
       temp7dRangeAvgC: deltaT7Avg,
       timestamp: new Date().toISOString(),
       // Set/refresh the means timestamp on the daily job

@@ -320,7 +320,7 @@ const HomePage = () => {
   const { refetch: refetchEt0Yesterday } = et0YesterdayQuery;
   // React Query: Weather latest + aggregates
   type WeatherLatestResponse = {
-    latest?: { temperatureC?: number; humidity?: number; rainRateMmPerHour?: number; timestamp?: string };
+    latest?: { temperatureC?: number; humidity?: number; rainRateMmPerHour?: number; timestamp?: string; observedAt?: string; cachedAt?: string; stale?: boolean };
     aggregates?: { timestamp?: string; meansTimestamp?: string };
   };
   const weatherQuery = useQuery<WeatherLatestResponse>({
@@ -426,9 +426,15 @@ const HomePage = () => {
         : 'grey.500';
   const radiationAvatarColor = 'common.white';
   // Derive values from weather query
-  const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
+  const latestTimestamp = weatherQuery.data?.latest?.observedAt ?? weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
   const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
+  const latestWeatherIsStale = (() => {
+    if (!latestTimestamp) return true;
+    const observedMs = new Date(latestTimestamp).getTime();
+    if (Number.isNaN(observedMs)) return true;
+    return weatherQuery.data?.latest?.stale === true || Date.now() - observedMs >= 30 * 60 * 1000;
+  })();
 
   // Server-side freshness dot (Redis snapshot age)
   // Freshness UI handled by FreshnessStatus
@@ -829,9 +835,9 @@ const HomePage = () => {
                 {/* Secondary metric: current temperature */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
                   <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    Temperatur (aktuell)
+                    {latestWeatherIsStale ? 'Temperatur (letzter Wert)' : 'Temperatur (aktuell)'}
                   </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 600 }} aria-live="polite">
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: latestWeatherIsStale ? 'warning.main' : 'text.primary' }} aria-live="polite">
                     {(() => {
                       const hasNumber = typeof weatherQuery.data?.latest?.temperatureC === 'number';
                       return hasNumber

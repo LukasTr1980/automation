@@ -98,7 +98,7 @@ const BewaesserungPage = () => {
 
   // React Query: Weather latest (+aggregates) for freshness display
   type WeatherLatestResponse = {
-    latest?: { timestamp?: string };
+    latest?: { timestamp?: string; observedAt?: string; cachedAt?: string; stale?: boolean };
     aggregates?: { timestamp?: string; meansTimestamp?: string };
   };
   const weatherQuery = useQuery<WeatherLatestResponse>({
@@ -115,7 +115,7 @@ const BewaesserungPage = () => {
     placeholderData: (prev) => prev,
   });
   const { refetch: refetchWeather } = weatherQuery;
-  const latestTimestamp = weatherQuery.data?.latest?.timestamp ?? null;
+  const latestTimestamp = weatherQuery.data?.latest?.observedAt ?? weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
   const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
   // Freshness UI handled by FreshnessStatus

@@ -40,6 +40,9 @@ router.get('/temperature', async (req, res) => {
         temperature: latest.temperatureC,
         unit: 'C',
         timestamp: latest.timestamp,
+        observedAt: latest.observedAt ?? latest.timestamp,
+        cachedAt: latest.cachedAt,
+        stale: latest.stale === true,
         source: 'redis'
       });
     }

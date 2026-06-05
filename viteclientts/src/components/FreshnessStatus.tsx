@@ -24,7 +24,13 @@ function formatRelativeMinutes(ts: string): string {
     const mins = Math.max(0, Math.floor(ms / 60000));
     if (mins <= 0) return 'gerade eben';
     if (mins === 1) return 'vor 1 Minute';
-    return `vor ${mins} Minuten`;
+    if (mins < 60) return `vor ${mins} Minuten`;
+    const hours = Math.floor(mins / 60);
+    if (hours === 1) return 'vor 1 Stunde';
+    if (hours < 48) return `vor ${hours} Stunden`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'vor 1 Tag';
+    return `vor ${days} Tagen`;
   } catch {
     return 'unbekannt';
   }

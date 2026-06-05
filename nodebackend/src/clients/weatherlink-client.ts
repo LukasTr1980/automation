@@ -1,6 +1,12 @@
-import { WeatherlinkClient } from '@lukastr1980/davis';
+import { WeatherlinkClient, type SensorActivity } from '@lukastr1980/davis';
 import logger from '../logger.js';
 import * as vaultClient from './vaultClient.js';
+import {
+  buildLatestWeatherSnapshotFromSensorData,
+  type LatestWeatherSnapshot,
+  type SensorBlock,
+  type SensorTypeCode,
+} from '../utils/weatherSnapshot.js';
 
 interface WeatherlinkSecret {
   data?: {
@@ -35,13 +41,6 @@ export interface RainTotalRangeResult {
   units: 'metric' | 'imperial';
 }
 
-// Generic types for future metrics
-export type SensorTypeCode = number;
-export interface SensorBlock {
-  sensor_type: SensorTypeCode;
-  data?: Record<string, unknown>;
-}
-
 export interface MetricSpec<T = unknown> {
   // Name of the metric in the returned object
   name: string;
@@ -66,6 +65,8 @@ export interface MetricsResult<T extends Record<string, unknown>> {
 }
 
 type UnknownRecord = Record<string, unknown>;
+
+const ISS_SENSOR_TYPE = 37;
 
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null;
@@ -259,7 +260,8 @@ async function getCurrentSensorBlocks(client: WeatherlinkClient, stationUUID: st
     .map((sensor): SensorBlock | null => {
       if (!isRecord(sensor) || typeof sensor.sensor_type !== 'number') return null;
       const first = getSensorDataRecords(sensor)[0];
-      return { sensor_type: sensor.sensor_type, data: first };
+      const lsid = typeof sensor.lsid === 'number' ? sensor.lsid : undefined;
+      return { lsid, sensor_type: sensor.sensor_type, data: first };
     })
     .filter((sensor): sensor is SensorBlock => sensor !== null);
 }
@@ -341,54 +343,69 @@ export async function getRainRateFromWeatherlink(options: RainRateOptions = {}):
 }
 
 // =============== Latest (current) Weather snapshot for Redis cache ===============
-export interface LatestWeatherSnapshot {
-  temperatureC: number | null;
-  humidity: number | null;
-}
-
 export async function fetchLatestWeatherSnapshot(): Promise<LatestWeatherSnapshot> {
   try {
-    const { ok, metrics } = await getWeatherlinkMetrics<{ tempC?: number; hum?: number }>([
-      {
-        name: 'tempC',
-        sensorType: 37, // ISS sensor
-        field: 'temp',
-        fallbacks: [
-          { field: 'temp_f' },
-          { field: 'temp_c' },
-          { field: 'temp_out' },
-          { field: 'outside_temp' },
-          { field: 'temp_last' },
-        ],
-        transform: (v) => {
-          if (typeof v === 'number' && isFinite(v)) {
-            // Assume Fahrenheit by default; convert to Celsius
-            return Math.round(((v - 32) * (5 / 9)) * 10) / 10;
-          }
-          return undefined;
-        },
-        defaultValue: undefined,
-      },
-      {
-        name: 'hum',
-        sensorType: 37,
-        field: 'hum',
-        fallbacks: [ { field: 'hum_out' } ],
-        transform: (v) => (typeof v === 'number' && isFinite(v) ? Math.round(v) : undefined),
-        defaultValue: undefined,
-      }
-    ]);
+    const res = await withWeatherlinkClient(async (client) => {
+      const stationUUID = await getFirstStationUUID(client);
+      if (!stationUUID) return { sensors: [] as SensorBlock[], activities: [] as SensorActivity[] };
 
-    if (!ok) {
+      const sensors = await getCurrentSensorBlocks(client, stationUUID);
+      const iss = sensors.find((sensor) => sensor.sensor_type === ISS_SENSOR_TYPE);
+      const lsid = iss?.lsid;
+      const activities = typeof lsid === 'number'
+        ? await runLimited(() => client.getSensorActivityByIds(lsid))
+        : [];
+
+      return { sensors, activities };
+    });
+
+    if (!res.ok || !res.value) {
       logger.warn('[WEATHERLINK] fetchLatestWeatherSnapshot: metrics fetch not ok');
+      return {
+        ok: false,
+        temperatureC: null,
+        humidity: null,
+        rainRateMmPerHour: null,
+        observedAt: null,
+        stale: true,
+        staleMinutes: null,
+        reason: 'fetch_failed',
+      };
     }
 
-    const temperatureC = typeof metrics.tempC === 'number' ? metrics.tempC : null;
-    const humidity = typeof metrics.hum === 'number' ? metrics.hum : null;
-    return { temperatureC, humidity };
+    const snapshot = buildLatestWeatherSnapshotFromSensorData(res.value.sensors, res.value.activities);
+    if (!snapshot.ok && snapshot.reason === 'sensor_data_missing') {
+      logger.warn('[WEATHERLINK] fetchLatestWeatherSnapshot: ISS sensor data missing');
+      return snapshot;
+    }
+
+    if (!snapshot.ok && snapshot.reason === 'sensor_timestamp_missing') {
+      logger.warn('[WEATHERLINK] fetchLatestWeatherSnapshot: sensor timestamp missing');
+      return snapshot;
+    }
+
+    if (!snapshot.ok && snapshot.reason === 'metric_values_missing') {
+      logger.warn('[WEATHERLINK] fetchLatestWeatherSnapshot: current metric values missing');
+      return snapshot;
+    }
+
+    if (snapshot.stale) {
+      logger.warn(`[WEATHERLINK] Current weather snapshot is stale (${snapshot.staleMinutes} min old, observedAt=${snapshot.observedAt})`);
+    }
+
+    return snapshot;
   } catch (e) {
     logger.error('[WEATHERLINK] Error while fetching latest snapshot', e);
-    return { temperatureC: null, humidity: null };
+    return {
+      ok: false,
+      temperatureC: null,
+      humidity: null,
+      rainRateMmPerHour: null,
+      observedAt: null,
+      stale: true,
+      staleMinutes: null,
+      reason: 'unexpected_error',
+    };
   }
 }
 

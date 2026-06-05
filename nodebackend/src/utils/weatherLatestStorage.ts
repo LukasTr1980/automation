@@ -1,11 +1,12 @@
 import { connectToRedis } from "../clients/redisClient.js";
 import logger from "../logger.js";
+import type { LatestWeatherFreshnessData } from "./weatherFreshness.js";
 
-export interface LatestWeather {
+export interface LatestWeather extends LatestWeatherFreshnessData {
   temperatureC: number | null;
   humidity: number | null;
   rainRateMmPerHour: number | null;
-  timestamp: string; // ISO string
+  cachedAt?: string; // ISO cache write time
 }
 
 const LATEST_KEY = "weather:latest";
@@ -18,7 +19,10 @@ export async function writeLatestWeatherToRedis(data: LatestWeather): Promise<vo
     await client.set(`${LATEST_KEY}:humidity`, data.humidity !== null && data.humidity !== undefined ? String(data.humidity) : "");
     await client.set(`${LATEST_KEY}:rainRateMmPerHour`, data.rainRateMmPerHour !== null && data.rainRateMmPerHour !== undefined ? String(data.rainRateMmPerHour) : "");
     await client.set(`${LATEST_KEY}:timestamp`, data.timestamp);
-    logger.info(`[WEATHERLINK] Stored latest weather in Redis at ${data.timestamp}`);
+    await client.set(`${LATEST_KEY}:observedAt`, data.observedAt ?? data.timestamp);
+    await client.set(`${LATEST_KEY}:cachedAt`, data.cachedAt ?? "");
+    await client.set(`${LATEST_KEY}:stale`, data.stale ? "true" : "false");
+    logger.info(`[WEATHERLINK] Stored latest weather in Redis observed at ${data.observedAt ?? data.timestamp}`);
   } catch (err) {
     logger.error("Failed to store latest weather in Redis", err as Error);
   }
@@ -38,4 +42,3 @@ export async function readLatestWeatherFromRedis(): Promise<LatestWeather | null
     return null;
   }
 }
-

@@ -11,6 +11,7 @@
     "lint": "eslint . --cache",
     "et0": "npm run build && node build/tools/et0cli.js",
     "test:suntimes": "npm run build && node build/tests/evapotranspiration.test.js",
+    "test:weather-staleness": "npm run build && node build/tests/weatherStaleness.test.js",
     "test:tuya-bridge": "npm run build && node build/tests/tuyaBridgeConfig.test.js"
   },
   "keywords": [],

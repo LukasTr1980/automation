@@ -1,5 +1,6 @@
 import logger from "./logger.js";
 import { readLatestWeatherFromRedis } from "./utils/weatherLatestStorage.js";
+import { isLatestWeatherFresh } from "./utils/weatherFreshness.js";
 import { readWeatherAggregatesFromRedis } from "./utils/weatherAggregatesStorage.js";
 import { ensureSoilBucket, getTawMm } from "./utils/soilBucket.js";
 import { readLatestOdhRainForecasts } from "./utils/odhRainRecorder.js";
@@ -31,7 +32,6 @@ export interface CompletionResponse {
 
 // ---------- Helpers ---------------------------------------------------------
 const fmt = (n: number, d = 1) => n.toFixed(d);
-
 type DecisionContext = {
   rainTodayForecast: number | null;
   rainProbTodayForecast: number | null;
@@ -58,9 +58,13 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   // Read rain rate from Redis latest cache
   let rainRateWL = 0;
   let wlOk = false;
+  let weatherFresh = false;
   try {
     const latest = await readLatestWeatherFromRedis();
-    if (latest && typeof latest.rainRateMmPerHour === 'number') {
+    if (latest) {
+      weatherFresh = isLatestWeatherFresh(latest);
+    }
+    if (latest && weatherFresh && typeof latest.rainRateMmPerHour === 'number') {
       rainRateWL = latest.rainRateMmPerHour;
       wlOk = true;
     }
@@ -103,7 +107,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
   if (wlOk) {
     logger.info(`[WEATHERLINK] rainRate OK: ${fmt(rainRateWL)} mm/h`);
   } else {
-    logger.warn(`[WEATHERLINK] rainRate failed - using 0 mm/h as fallback`);
+    logger.warn(`[WEATHERLINK] rainRate unavailable or stale - blocking irrigation`);
   }
 
   // 3) Unified deficit calculation (German-only values are in FE)
@@ -131,6 +135,7 @@ export async function createIrrigationDecision(): Promise<CompletionResponse> {
    * -------------------------------------------------------------------------*/
   const blockers: string[] = [];
 
+  if (!weatherFresh) blockers.push("Wetterstation: aktuelle Daten fehlen oder sind veraltet");
   if (d.outTemp <= 10) blockers.push(`7d avg temperature ≤ 10 °C (${fmt(d.outTemp)} °C)`);
   if (d.humidity >= 80) blockers.push(`7d avg humidity ≥ 80 % (${fmt(d.humidity)} %)`);
   if (d.rainToday >= 3) blockers.push(`Rain (24h) ≥ 3 mm (${fmt(d.rainToday)} mm)`);

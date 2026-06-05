@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.26] - 2026-06-05
+
+### Fixed
+- Backend/Frontend (Weather): Treat WeatherLink sensor observation time as the weather freshness source, keep cache write time separate, and block irrigation when current station data is missing or stale.
+- Backend (Scheduler): Stop refreshing current weather and aggregate timestamps when WeatherLink data is unavailable, preventing stale station values from appearing fresh.
+
 ### Changed
 - Backend/Frontend (Irrigation): Raised the operational cup-test irrigation calibration to 2.0 mm per 15 minutes.
+- Backend (Scheduler): Increased the nightly gap between WeatherLink daily aggregates and ET₀ computation to reduce stale aggregate reads.
 
 ## [v19.27.25] - 2026-05-24
 
