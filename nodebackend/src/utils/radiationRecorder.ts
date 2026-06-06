@@ -10,8 +10,8 @@ import {
 } from "../clients/questdbClient.js";
 import logger from "../logger.js";
 
-const STATIONS_URL = "https://dati.retecivica.bz.it/services/meteo/v1/stations";
-const SENSORS_URL = "https://dati.retecivica.bz.it/services/meteo/v1/sensors";
+const STATIONS_URL = "https://geoservices.buergernetz.bz.it/services/meteo/v1/stations";
+const SENSORS_URL = "https://geoservices.buergernetz.bz.it/services/meteo/v1/sensors";
 const QUESTDB_TABLE_RADIATION = "weather_radiation_observations";
 const QUESTDB_SOURCE_LABEL = "province_bz_meteo";
 const PRIMARY_STATION_CODE = process.env.RADIATION_PRIMARY_STATION ?? "75600MS";

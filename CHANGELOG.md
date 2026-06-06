@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.27] - 2026-06-06
+
+### Changed
+- Backend (Radiation): Updated the South Tyrol weather station and sensor feed URLs to the current `geoservices.buergernetz.bz.it` OpenData endpoints.
+
 ## [v19.27.26] - 2026-06-05
 
 ### Fixed
