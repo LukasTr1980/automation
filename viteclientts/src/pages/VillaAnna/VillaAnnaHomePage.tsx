@@ -32,6 +32,7 @@ import IrrigationIndicator from '../../components/IrrigationIndicator';
 import ForecastCard from '../../components/ForecastCard';
 import { useEventSource } from '../../hooks/useEventSource';
 import { useCountdowns } from '../../hooks/useCountdowns';
+import { getWeatherStationStatus, type WeatherLatestResponse } from '../../hooks/useWeatherStationStatus';
 
 // Timing thresholds / intervals
 const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
@@ -137,6 +138,7 @@ type NextIrrigationReason =
   | 'rain_24h'
   | 'humidity_high'
   | 'temperature_low'
+  | 'weather_station_error'
   | 'weather_blocker'
   | 'decision_unavailable'
   | 'schedule_error';
@@ -231,6 +233,8 @@ function getNextIrrigationReasonLabel(reasonKey: NextIrrigationReason): string {
       return 'Hohe Luftfeuchte';
     case 'temperature_low':
       return 'Zu kalt';
+    case 'weather_station_error':
+      return 'Wetterstation gestört';
     case 'weather_blocker':
       return 'Wetter-Blocker aktiv';
     case 'decision_unavailable':
@@ -243,7 +247,8 @@ function getNextIrrigationReasonLabel(reasonKey: NextIrrigationReason): string {
   }
 }
 
-function getNextIrrigationColor(status: NextIrrigationStatus): string {
+function getNextIrrigationColor(status: NextIrrigationStatus, reasonKey?: NextIrrigationReason): string {
+  if (reasonKey === 'weather_station_error') return 'error.main';
   switch (status) {
     case 'planned':
       return 'success.main';
@@ -319,10 +324,6 @@ const HomePage = () => {
   );
   const { refetch: refetchEt0Yesterday } = et0YesterdayQuery;
   // React Query: Weather latest + aggregates
-  type WeatherLatestResponse = {
-    latest?: { temperatureC?: number; humidity?: number; rainRateMmPerHour?: number; timestamp?: string; observedAt?: string; cachedAt?: string; stale?: boolean };
-    aggregates?: { timestamp?: string; meansTimestamp?: string };
-  };
   const weatherQuery = useQuery<WeatherLatestResponse>({
     queryKey: ['weather', 'latest'],
     queryFn: async () => {
@@ -391,6 +392,27 @@ const HomePage = () => {
   });
   const { refetch: refetchIrrigationDepth } = irrigationDepthQuery;
 
+  type SoilBucketResponse = {
+    soilStorageMm: number;
+    tawMm: number;
+    depletionMm: number;
+    updatedAt: string;
+  };
+  const soilBucketQuery = useQuery<SoilBucketResponse>({
+    queryKey: ['soil-bucket'],
+    queryFn: async () => {
+      const r = await fetch(apiPath('/soil-bucket'));
+      if (!r.ok) throw new Error('soil_bucket');
+      return r.json();
+    },
+    staleTime: IRRIGATION_DEPTH_REFETCH_MS,
+    refetchInterval: IRRIGATION_DEPTH_REFETCH_MS,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
+  });
+  const { refetch: refetchSoilBucket } = soilBucketQuery;
+
   // React Query: Current measured global radiation from Völs am Schlern
   type RadiationResponse = {
     globalRadiationWM2: number | null;
@@ -429,12 +451,8 @@ const HomePage = () => {
   const latestTimestamp = weatherQuery.data?.latest?.observedAt ?? weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
   const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
-  const latestWeatherIsStale = (() => {
-    if (!latestTimestamp) return true;
-    const observedMs = new Date(latestTimestamp).getTime();
-    if (Number.isNaN(observedMs)) return true;
-    return weatherQuery.data?.latest?.stale === true || Date.now() - observedMs >= 30 * 60 * 1000;
-  })();
+  const weatherStationStatus = getWeatherStationStatus(weatherQuery.data, weatherQuery.isError);
+  const latestWeatherIsStale = weatherStationStatus.hasError;
 
   // Server-side freshness dot (Redis snapshot age)
   // Freshness UI handled by FreshnessStatus
@@ -485,6 +503,9 @@ const HomePage = () => {
   useEffect(() => {
     if (irrigationDepthQuery.isError) showSnackbar('Fehler beim Laden der Bewässerungsmenge', 'error');
   }, [irrigationDepthQuery.isError, showSnackbar]);
+  useEffect(() => {
+    if (soilBucketQuery.isError) showSnackbar('Fehler beim Laden der Wasserreserve', 'error');
+  }, [soilBucketQuery.isError, showSnackbar]);
 
   const { reconnect: reconnectSSE } = useEventSource({
     url: apiPath('/mqtt'),
@@ -529,6 +550,7 @@ const HomePage = () => {
           // Scheduled irrigation just started → refresh soil bucket and last irrigation snapshot
           void queryClient.invalidateQueries({ queryKey: ['schedule', 'next'] });
           void queryClient.invalidateQueries({ queryKey: ['irrigation', 'depth-calibration'] });
+          void queryClient.invalidateQueries({ queryKey: ['soil-bucket'] });
           setTimeout(() => {
             void queryClient.invalidateQueries({ queryKey: ['irrigation', 'last'] });
           }, 500);
@@ -552,6 +574,7 @@ const HomePage = () => {
       refetchRadiation();
       refetchLastIrrigation();
       refetchIrrigationDepth();
+      refetchSoilBucket();
       reconnectSSE();
     };
     const onVisibility = () => {
@@ -563,7 +586,7 @@ const HomePage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchRadiation, refetchLastIrrigation, refetchIrrigationDepth, reconnectSSE]);
+  }, [refetchWeather, refetchSchedule, refetchEt0Yesterday, refetchRadiation, refetchLastIrrigation, refetchIrrigationDepth, refetchSoilBucket, reconnectSSE]);
 
   const irrigationDepthData = irrigationDepthQuery.data;
   const scheduledRuns = irrigationDepthData?.scheduled.runs ?? [];
@@ -652,6 +675,9 @@ const HomePage = () => {
                       const rain24Active = decision.rainToday >= 3;
                       const rateActive = decision.rainRate > 0;
                       const drynessActive = typeof decision.depletionMm === 'number' && typeof decision.triggerMm === 'number' && decision.depletionMm < decision.triggerMm;
+                      if (weatherStationStatus.hasError) items.push(
+                        <DotLabel key="b-station" color={theme.palette.error.main} label="Wetterstation gestört" />
+                      );
                       if (tempActive) items.push(
                         <DotLabel key="b-temp" color={theme.palette.error.main} label="Ø-Temp. 7 Tage ≤ 10 °C" />
                       );
@@ -691,13 +717,13 @@ const HomePage = () => {
               minHeight: { xs: 150, md: 160 },
               position: 'relative'
             }}>
-              {decisionLoading && (
+              {(decisionLoading || soilBucketQuery.isFetching) && (
                 <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, borderTopLeftRadius: 8, borderTopRightRadius: 8, opacity: 0.8 }} />
               )}
               <CardContent sx={{ height: '100%', textAlign: 'center', display: 'grid', gridTemplateRows: { xs: '58px auto auto auto', md: '66px auto auto auto' }, justifyItems: 'center', rowGap: 0.5, px: { xs: 1, md: 1.5 }, py: { xs: 1, md: 1.25 } }}>
                 {(() => {
-                  const storageMm = decision?.soilStorageMm;
-                  const capacityMm = decision?.tawMm;
+                  const storageMm = soilBucketQuery.data?.soilStorageMm ?? decision?.soilStorageMm;
+                  const capacityMm = soilBucketQuery.data?.tawMm ?? decision?.tawMm;
                   const hasStorage = typeof storageMm === 'number' && typeof capacityMm === 'number' && capacityMm > 0;
                   const storagePct = hasStorage ? clampPercent((storageMm / capacityMm) * 100) : null;
                   const statusColor = getWaterReserveColor(storagePct);
@@ -756,7 +782,7 @@ const HomePage = () => {
                         </Typography>
                       </Box>
                       <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.2 }} aria-live="polite">
-                        {formatSoilUpdatedAt(decision?.soilUpdatedAt ?? null)}
+                        {formatSoilUpdatedAt(soilBucketQuery.data?.updatedAt ?? decision?.soilUpdatedAt ?? null)}
                       </Typography>
                     </>
                   );
@@ -846,6 +872,11 @@ const HomePage = () => {
                     })()}
                   </Typography>
                 </Box>
+                {latestWeatherIsStale && (
+                  <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 600, lineHeight: 1.2 }} aria-live="polite">
+                    Wetterstation gestört
+                  </Typography>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -871,7 +902,7 @@ const HomePage = () => {
                   const data = scheduleQuery.data;
                   const isLoading = scheduleQuery.isLoading && !data;
                   const nextIrrigation = data?.nextIrrigation ?? getLegacyNextIrrigation(data, isLoading);
-                  const statusColor = isLoading ? 'text.disabled' : getNextIrrigationColor(nextIrrigation.status);
+                  const statusColor = isLoading ? 'text.disabled' : getNextIrrigationColor(nextIrrigation.status, nextIrrigation.reasonKey);
                   let primaryLabel = 'Keine geplant';
                   let secondaryLabel: string | null = getNextIrrigationReasonLabel(nextIrrigation.reasonKey) || null;
                   if (isLoading) {
@@ -991,7 +1022,7 @@ const HomePage = () => {
                   latestTimestamp={latestTimestamp}
                   aggregatesTimestamp={aggregatesTimestamp}
                   meansTimestamp={meansTimestamp}
-                  soilUpdatedAt={decision?.soilUpdatedAt ?? null}
+                  soilUpdatedAt={soilBucketQuery.data?.updatedAt ?? decision?.soilUpdatedAt ?? null}
                   hideSoilFreshness
                   clientIsFetching={weatherQuery.isFetching}
                   clientIsError={weatherQuery.isError as boolean}

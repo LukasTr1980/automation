@@ -14,11 +14,13 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 ---
 
 ## Quick Start (agents)
-- Backend run: `cd nodebackend && npm ci && npm run build && node build/index.js` (or `npm test` to build+run)
+- Backend run: `cd nodebackend && npm ci && npm run build && node build/index.js`
+  - Direct local runs require reachable Redis/MQTT/QuestDB/Vault services and an ignored `nodebackend/.env` with `VAULT_ROLE_ID`/`VAULT_SECRET_ID`.
 - Backend watch: `cd nodebackend && npm run watch`
 - Client dev: `cd viteclientts && npm ci && npm run dev`
 - Client build/preview: `cd viteclientts && npm run build && npm run preview`
-- Docker: `docker build -t automation . && docker run -p 8523:8523 automation`
+- Docker build: `docker build -t automation .`
+  - Running the final image requires Docker secrets `automation_vault_role_id` and `automation_vault_secret_id`; Swarm service deployment is the expected production-style runtime.
 
 ---
 
@@ -41,12 +43,12 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 - Don’t: Reintroduce i18n or locale switching.
 - Don’t: Call WeatherLink live from backend APIs; use Redis caches only.
 - Don’t: Embed secrets in client; only expose `VITE_*` env vars.
-- Don’t: Bypass RBAC or safety interlocks on commands.
+- Don’t: Bypass server-side authorization checks where present, or any safety interlocks on commands.
 
 ---
 
 ## Coding Standards
-- Language: TypeScript (strict), target ES2022, ESM modules.
+- Language: TypeScript (strict), ESM modules. Backend target is ES2022; client target is ES2020.
 - Linting: ESLint with `@typescript-eslint` (client enforces React Hooks).
   - Client lint: `cd viteclientts && npm run lint`
   - Backend lint: `cd nodebackend && npx eslint .`
@@ -62,19 +64,19 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 
 ---
 
-## Frontend Design System & Accessibility (MUI v6+)
+## Frontend Design System & Accessibility (MUI v7)
 
 ### Visual & Layout
 - Overall: Simple, flat surfaces. No gradients. Neutral background.
 - Cards: `Card` with `variant="outlined"` and `sx={{ borderRadius: 2 }}`.
 - Color: Use theme solids for emphasis on icons/avatars (`primary.main`, `secondary.main`, `info.main`); avoid over‑coloring content.
-- Card headers: Use slots (MUI v6) `slotProps={{ title: { sx: { fontWeight: 600 } } }}`. Do not use `titleTypographyProps`.
+- Card headers: Use slots (`slotProps={{ title: { sx: { fontWeight: 600 } } }}`). Do not use `titleTypographyProps`.
 - Status indicators: Prefer small colored dot + short label over large badges.
 - Dialogs/Modals: Render inside `#root` (`container={document.getElementById('root')}`), set `aria-labelledby`, move focus on open.
 
 ### Navigation
 - Top app bar: flat with bottom border (`borderBottom: 1px solid`, color `divider`); no elevation/shadows.
-- Gutters aligned: `maxWidth: 1200`, `px: { xs: 2, md: 3 }`, `mx: 'auto'`.
+- Gutters aligned with `CONTENT_MAX_WIDTH` (`900px`) and `Layout` container padding (`px: { xs: 1, md: 3 }`, `mx: 'auto'`).
 - Active state: small primary‑colored dot before label; no raised/filled tabs.
 - Mobile: hamburger button opening `Menu`, ARIA label “Menü öffnen”.
 - Labels: German only; brand text minimal, neutral.
@@ -106,25 +108,22 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 
 ## Architecture (Vite + React + TS)
 
-### Folder Strategy (feature‑first)
+### Current Folder Strategy
 `viteclientts/src/`
   components/        # Reusable UI (cross‑feature)
-  features/
-    irrigation/      # Domain module: components, hooks, services
-    schedule/        # …
   pages/             # Route‑level views (if using routing)
-  hooks/             # Shared hooks (auth, theme, etc.)
-  context/           # Shared providers (AuthProvider, ThemeProvider)
-  services/          # apiClient, WebSocketClient, storage, formatters
+  hooks/             # Shared hooks (SSE, countdowns, weather status, etc.)
+  utils/             # Shared helpers, messages, snackbar/store utilities
   types/             # Global shared types if needed
+  assets/, images/   # Static assets
 
 Co‑locate component code (`Component.tsx`, `Component.test.tsx`, styles) in the same folder.
-Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json` + `vite.config.ts`.
+No path aliases are currently configured; imports are relative. If adding aliases, configure both `tsconfig.json` and `vite.config.ts` in the same change.
 
 ### Component Guidelines
 - Small, pure, testable components.
-- API/WS logic in custom hooks/services; keep views declarative.
-- Prefer controlled components for forms; centralize formatters in `services/` or `utils/`.
+- API/WS logic belongs in custom hooks or small utilities; keep views declarative.
+- Prefer controlled components for forms; centralize formatters in `utils/`.
 
 ---
 
@@ -134,9 +133,8 @@ Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json`
 - Simple local UI state: use `useState`
 - App‑wide static config (theme, auth user): React Context (split by domain)
 - Medium global UI state: Zustand store (selectors to avoid rerenders)
-- Complex global state: Redux Toolkit (RTK) with slices + thunks/sagas
 - Server‑derived data: React Query (TanStack) queries & mutations
-- Fine‑grained atomized UI config: Jotai (optional; sparingly)
+- Do not add Redux Toolkit or Jotai unless explicitly requested and justified by new complexity.
 
 ### Principles
 - Server state ≠ client state. Keep server data in React Query; derive UI state separately.
@@ -149,8 +147,9 @@ Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json`
 ## Command Execution (Irrigation Control)
 
 ### Pattern
-- Create `useIrrigationController()` exposing: `startZone(zoneId)`, `stopZone(zoneId)`, `stopAll()`, `setSchedule(id, payload)`, …
-- Route commands via authenticated HTTP POST (REST/GraphQL) or WebSocket messages.
+- Current manual irrigation commands use authenticated/proxied HTTP POSTs such as `/api/simpleapi`; schedule/countdown commands use their existing REST routes.
+- If adding a broader command layer, create `useIrrigationController()` exposing: `startZone(zoneId)`, `stopZone(zoneId)`, `stopAll()`, `setSchedule(id, payload)`, …
+- Route new commands via authenticated HTTP POST or WebSocket/Socket.IO messages. Do not introduce GraphQL unless explicitly requested.
 - Apply optimistic UI, emit toast/snackbar, handle retries/errors.
 
 ### Reliability
@@ -172,27 +171,26 @@ Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json`
 - Use SSE only for one‑way streams (status only); WS is preferred elsewhere.
 
 ### Client Behavior
-- Auth handshake on connect (JWT/cookie session).
+- Auth handshake on connect when implementing new authenticated WSS/Socket.IO flows. Current access is primarily enforced by Traefik ForwardAuth.
 - Auto‑reconnect with backoff and “Reconnecting…” UI hint.
 - Heartbeat/keepalive; detect stale socket.
-- Event routing: a single WS client dispatches device updates to stores (Zustand/Redux) or invalidates React Query caches.
+- Event routing: a single WS client dispatches device updates to Zustand stores or invalidates React Query caches.
 
 ### Sync Model
 - Devices → backend → push status deltas: `{ zoneId, status, at }`.
 - UI applies deltas immediately; keep optimistic → confirmed path tight.
-- If using GraphQL, use subscriptions for the same effect.
 
 ---
 
 ## Security & Privacy (IoT‑grade)
 
 ### Authentication & Authorization
-- Never hardcode credentials. Use OAuth2/JWT with rotation where applicable.
-- RBAC: roles (homeowner, engineer, admin) guard commands/settings server‑side.
+- Never hardcode credentials. Use Traefik ForwardAuth and/or OAuth2/JWT with rotation where applicable.
+- RBAC: roles (homeowner, engineer, admin) should guard commands/settings server-side when an app-level auth model is present. Until then, do not rely on client-only checks.
 - Per‑resource checks: server verifies device ownership before executing commands.
 
 ### Transport & Protocol
-- HTTPS for REST/GraphQL; WSS for WebSockets; TLS for MQTT.
+- HTTPS for REST; WSS for WebSockets; TLS for MQTT.
 - No plaintext; pin to secure origins only.
 
 ### Input Validation & Abuse Controls
@@ -218,11 +216,11 @@ Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json`
 ## Vite Tooling & Performance
 
 ### Recommended Plugins & Settings
-- `@vitejs/plugin-react-swc` for fast dev/HMR and builds.
-- `vite-plugin-svgr` to import SVGs as React components.
+- Current React plugin: `@vitejs/plugin-react`.
+- `vite-plugin-svgr` is not currently installed; add it only when SVG-as-React-component imports are needed.
 - PWA: currently disabled to avoid ForwardAuth issues.
   - If re‑introducing: use `vite-plugin-pwa` with update on reload and exclude HTML from caching to prevent stale auth redirects.
-- Bundle analysis: `rollup-plugin-visualizer`; maintain performance budgets (e.g., initial chunk < 300 KB gzip).
+- Bundle analysis: add `rollup-plugin-visualizer` only when needed; maintain performance budgets (e.g., initial chunk < 300 KB gzip).
 
 ### SVG Icons
 - Location: put external/custom SVGs under `viteclientts/src/assets/icons/`.
@@ -248,7 +246,8 @@ Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json`
 - Cover components, hooks, controller services (mock HTTP/WS).
 
 ### Backend Tests
-- Jest or Vitest for `nodebackend`; colocate `*.test.ts` with code.
+- Backend tests are lightweight TypeScript scripts using `node:assert`, compiled by `npm run build` and run from `build/tests/*`.
+- Existing scripts include `test:weather-staleness`, `test:blocker-reason`, `test:tuya-bridge`, and `test:suntimes`.
 
 ### End‑to‑End (Client)
 - Playwright configured in `viteclientts/`.
@@ -265,7 +264,7 @@ Use path aliases (`@components/*`, `@features/irrigation/*`) via `tsconfig.json`
 - Constrain headings by level/name where helpful.
 
 ### Accessibility Testing
-- Include `@testing-library/jest-dom` a11y assertions.
+- Use React Testing Library/Vitest assertions for component accessibility where practical; add `@testing-library/jest-dom` only if the assertion set is needed.
 - Periodically verify with NVDA/VoiceOver and keyboard‑only runs.
 
 ### Until coverage improves
@@ -298,16 +297,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tooltip shows exact local range (e.g., UI string “Zeitraum: 12.08.–18.08. (lokal)”) for averages (temperature, humidity). Do not display 7‑day rain sums or weekly ET₀.
 
 ### Blocker Headers
-- Small info icon with tooltip listing possible blockers (temperature, humidity, 24h rain, rain rate, soil bucket: depletion < start threshold).
+- Small info icon with tooltip listing possible blockers (temperature, humidity, 24h rain, rain rate, soil bucket: depletion < start threshold). Treat weather station freshness as a separate station/data fault, not as a normal weather blocker.
 
 ### Dashboard Integration
 - `VillaAnnaHomePage`: real‑time status cards replacing mocks.
-- Cards: Blocker (via SSE), Temperatur, Nächster Zeitplan.
-- Data flow: Hooks fetch on mount with loading/error states; Blocker subscribes to `/api/mqtt` SSE and renders rule chips.
+- Cards: Blocker (via SSE), Wasserreserve, Bewässerungsmenge, Verdunstung/Temperatur, Nächste Bewässerung, Regenprognose, Sonnenstrahlung.
+- Data flow: Hooks fetch on mount with loading/error states; Blocker subscribes to `/api/mqtt` SSE and renders rule chips; water reserve reads `/api/soil-bucket` so freshness remains visible even when decision checks are disabled.
 - Responsive: Cards adapt to screen sizes; consistent heights; good text wrapping.
 - Zone names: Human‑readable always (Stefan Nord, Stefan Ost, Lukas Süd, Lukas West, Alle).
-- Freshness indicator: Warn if `/api/weather/latest.latest.timestamp` older than 10 min; tooltip shows both snapshot and aggregated timestamps; “Aggregiert” shows `meansTimestamp` when present else `aggregates.timestamp`.
-- Labels: Temperature card label “Temperatur (aktuell)”. 7‑day averages labeled “(7 Tage bis gestern)” with range tooltip.
+- Weather station freshness has exactly one hard threshold: 30 minutes. Missing, invalid, backend-marked stale, query-failed, or older-than-30-minute current weather data is an error.
+- Global weather fault: render a top banner on all pages when the weather station freshness state is error. Use a German error label such as “Wetterstation gestört: Automatische Bewässerung blockiert.” and include timestamp details in an info tooltip.
+- Freshness indicator: show weather station age from `latest.observedAt ?? latest.timestamp`; no 10-minute warning state. Tooltip shows both snapshot and aggregated timestamps; “Aggregiert” shows `meansTimestamp` when present else `aggregates.timestamp`.
+- Labels: Temperature card label is “Temperatur (aktuell)” only when the station is fresh; in the fault state use “Temperatur (letzter Wert)” and show a visible station fault label. 7‑day averages are labeled “(7 Tage bis gestern)” with range tooltip.
 
 ---
 
@@ -322,7 +323,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Weather Latest Cache (Redis)
 - Scheduler: every 5 min + 30 s (`30 */5 * * * *`).
 - Keys:
-  - `weather:latest` → `{ temperatureC, humidity, rainRateMmPerHour, timestamp }`
+  - `weather:latest` → `{ temperatureC, humidity, rainRateMmPerHour, timestamp, observedAt?, cachedAt?, stale? }`
   - Individual convenience keys: `weather:latest:*`
 - Consumption: APIs and decision logic prefer cached values.
 
@@ -331,12 +332,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rolling rain (24h, 7d) every 5 min.
   - 7‑day means (temp, humidity, wind, pressure, mean diurnal range) daily after midnight.
 - Key: `weather:agg:latest` → `{ rain24hMm, rain7dMm, temp7dAvgC, humidity7dAvgPct, wind7dAvgMS, pressure7dAvgHPa, temp7dRangeAvgC, timestamp, meansTimestamp? }`
-- Consumption: Decision uses these first; if missing, falls back to live (backend path only).
+- Consumption: Decision and HTTP APIs use cached aggregates only; do not call WeatherLink live from request/decision paths.
 
 ### Weather Cache API
 - `GET /api/weather/latest` → `{ latest, aggregates }`
-  - `latest`: `{ temperatureC, humidity, rainRateMmPerHour, timestamp }`
+  - `latest`: `{ temperatureC, humidity, rainRateMmPerHour, timestamp, observedAt?, cachedAt?, stale? }`
   - `aggregates`: as above
+
+### Soil Bucket API
+- `GET /api/soil-bucket` → current Redis soil bucket for the default decision zone (`lukasSued`).
+- Response: `{ zone, soilStorageMm, tawMm, depletionMm, updatedAt }`.
+- This endpoint is read-only and does not initialize or mutate the bucket. The frontend uses it for water reserve freshness/display independently of `/api/mqtt` decision snapshots and independently of the `skipDecisionCheck` flag.
 
 ### Next Schedule API
 - `GET /api/schedule/next` – next scheduled irrigation from Redis.
@@ -344,6 +350,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Filter enabled (`state === true`)
   - Parse `recurrenceRule` JSON → hour/minute
   - Map topics → readable zone names (shared constants)
+- Response includes `nextIrrigation` with `status`, `reasonKey`, `blockerCount`, `nextTimestamp`, and `zone`.
+- Weather station freshness failures map to `reasonKey: 'weather_station_error'` and must render as a station/data fault (for example “Wetterstation gestört”), not as the generic weather-blocker label.
 - Constants: `nodebackend/src/utils/constants.ts`
   - `irrigationSwitchTopics`, `irrigationSwitchSetTopics`, `irrigationSwitchDescriptions`
 - Frontend mirrors values.
@@ -354,7 +362,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Method & Ops
 - Formula: FAO‑56 Penman–Monteith (daily, G≈0). Daily values are stored and used for the soil‑bucket balance.
-- Radiation: Angström–Prescott with cloud-cover daily means from QuestDB (defaults `a_s=0.25`, `b_s=0.50`).
+- Radiation: measured global radiation from QuestDB table `weather_radiation_observations`; days without enough measured radiation are stored as `null` instead of falling back to cloud-cover estimates.
 - Humidity: `ea = es * RHmean/100`, `es = (svp(Tmax)+svp(Tmin))/2`.
 - Wind: convert sensor height to 2 m using FAO log law.
 - Longwave: standard emissivity/cloud correction with clamps (avoid unrealistic `Rnl`).
@@ -362,14 +370,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Inputs (priority)
 - Redis `weather:daily:last7`: last 7 full local days → `tMinC`, `tMaxC`, `tAvgC`, `rhMeanPct`, `windMeanMS`, `pressureMeanHPa`.
 - Redis `weather:agg:latest`: 7‑day means fallback (Tavg, RH, wind, pressure, mean diurnal range).
-- QuestDB (cloud cover): daily means for the same 7-day window.
+- QuestDB measured global radiation observations for the same 7-day window.
 
 ### Storage
 - Daily ET₀ values: `et0:daily:last7` (mm).
 
 ### Consumption & Debug
 - Decision uses daily ET₀ via the soil‑bucket balance (see `dailySoilBalance`). Weekly ET₀ is not used for decisions and is not shown in the UI.
-- Inspect Redis: `GET weather:daily:last7` (daily ET₀ values).
+- Inspect Redis inputs with `GET weather:daily:last7`; inspect computed ET₀ with `GET et0:daily:last7`.
 
 ---
 
@@ -378,7 +386,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Returns: structured metrics (temps, humidity, rainfall, forecast, blockers) for UI. No LLM text.
 - Frontend: displays metrics inline under decision switch on Bewässerung page.
 - Skip flag: `GET/POST /api/decisionCheck` toggles bypass via Redis `skipDecisionCheck`.
-- Behavior: hard blockers (temperature, humidity, rainfall, rain rate, soil bucket: depletion < start threshold). If none apply → allow irrigation.
+- Behavior: hard blockers (weather station data missing/stale, temperature, humidity, rainfall, rain rate, soil bucket: depletion < start threshold). If none apply → allow irrigation.
+- Weather station data missing/stale is a system/data fault and must be surfaced separately from normal weather-condition blockers in UI labels and schedule summaries.
 - Inputs: reads exclusively from Redis caches (`weather:latest`, `weather:agg:latest`); never calls WeatherLink directly.
 - OpenAI: not used; `openai` dep removed.
 
@@ -404,12 +413,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Checklists (agent‑friendly)
 
 ### Before touching UI
-- Labels in German; follow MUI v6 patterns (slots, outlined cards, flat app bar).
+- Labels in German; follow MUI v7 patterns (slots, outlined cards, flat app bar).
 - Add ARIA names; verify roles/landmarks; ensure focus visibility and dialog focus trap.
 - Use status chips (small dot + label) for state.
 
 ### Adding an API endpoint (backend)
-- Validate and sanitize inputs; enforce RBAC.
+- Validate and sanitize inputs.
+- Enforce server-side authorization where the current auth/role model supports it; never rely on client-side checks for safety-sensitive commands.
 - Use Redis caches; never hit WeatherLink directly from HTTP endpoints.
 - Rate limit commands; return clear machine keys that map to German via `messages.ts`.
 
@@ -431,7 +441,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Typography: h1/h2 600, h3/h4 600, subheads 500; avoid body < 14px on mobile.
 - Spacing: base unit 8px; consistent grid.
 - Radius: 8px (MUI 2); Elevation: none (use borders/dividers).
-- Semantic colors: `success` → irrigation OK (green dot + label), `warning` → attention (e.g., stale data), `error` → faults/failures, `info` → neutral notices.
+- Semantic colors: `success` → irrigation OK (green dot + label), `warning` → attention/non-fault staleness, `error` → faults/failures such as weather station freshness errors, `info` → neutral notices.
 
 ### Status Chip Pattern
 - Small dot + short label (German), e.g., `● Läuft`, `● Gestoppt`, `● Verbindungsproblem`.

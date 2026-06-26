@@ -15,6 +15,7 @@ import currentWeatherRouter from './currentWeatherRoute.js';
 import nextScheduleRouter from './nextScheduleRoute.js';
 import irrigationRouter from './irrigationRoute.js';
 import radiationRouter from './radiationRoute.js';
+import soilBucketRouter from './soilBucketRoute.js';
 
 const router = express.Router();
 
@@ -32,5 +33,6 @@ router.use('/weather', apiLimiter, currentWeatherRouter);
 router.use('/schedule', apiLimiter, nextScheduleRouter);
 router.use('/irrigation', apiLimiter, irrigationRouter);
 router.use('/radiation', apiLimiter, radiationRouter);
+router.use('/soil-bucket', apiLimiter, soilBucketRouter);
 
 export default router;

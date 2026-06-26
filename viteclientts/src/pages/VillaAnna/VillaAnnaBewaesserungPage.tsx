@@ -25,6 +25,7 @@ import ThermostatAutoIcon from '@mui/icons-material/ThermostatAuto';
 import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import SpeedIcon from '@mui/icons-material/Speed';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 // WaterIcon removed; irrigation weekly sum no longer shown
 import WavesIcon from '@mui/icons-material/Waves';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
@@ -39,6 +40,7 @@ import { messages } from '../../utils/messages';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import FreshnessStatus from '../../components/FreshnessStatus';
 import { useEventSource } from '../../hooks/useEventSource';
+import { getWeatherStationStatus, type WeatherLatestResponse } from '../../hooks/useWeatherStationStatus';
 // Dialog removed: details shown inline
 
 // Timing intervals
@@ -68,7 +70,7 @@ const BewaesserungPage = () => {
   const [, setirrigationNeededSwitch] = useState(false);
   const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
   const [orderedTasks, setOrderedTasks] = useState<GroupedTasks>({});
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL || '/api';
   const currentMonth = new Date().getMonth();
   interface DecisionMetrics {
     outTemp: number;
@@ -97,10 +99,6 @@ const BewaesserungPage = () => {
   // Dialog state removed
 
   // React Query: Weather latest (+aggregates) for freshness display
-  type WeatherLatestResponse = {
-    latest?: { timestamp?: string; observedAt?: string; cachedAt?: string; stale?: boolean };
-    aggregates?: { timestamp?: string; meansTimestamp?: string };
-  };
   const weatherQuery = useQuery<WeatherLatestResponse>({
     queryKey: ['weather', 'latest'],
     queryFn: async () => {
@@ -118,7 +116,29 @@ const BewaesserungPage = () => {
   const latestTimestamp = weatherQuery.data?.latest?.observedAt ?? weatherQuery.data?.latest?.timestamp ?? null;
   const aggregatesTimestamp = weatherQuery.data?.aggregates?.timestamp ?? null;
   const meansTimestamp = weatherQuery.data?.aggregates?.meansTimestamp ?? null;
+  const weatherStationStatus = getWeatherStationStatus(weatherQuery.data, weatherQuery.isError);
   // Freshness UI handled by FreshnessStatus
+
+  type SoilBucketResponse = {
+    soilStorageMm: number;
+    tawMm: number;
+    depletionMm: number;
+    updatedAt: string;
+  };
+  const soilBucketQuery = useQuery<SoilBucketResponse>({
+    queryKey: ['soil-bucket'],
+    queryFn: async () => {
+      const r = await fetch(`${apiUrl}/soil-bucket`);
+      if (!r.ok) throw new Error('soil_bucket');
+      return r.json();
+    },
+    staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
+  });
+  const { refetch: refetchSoilBucket } = soilBucketQuery;
 
   // React Query: ET0 daily (yesterday)
   const et0YesterdayQuery = useQuery<{ date: string; et0mm: number | null; unit?: string }>({
@@ -135,6 +155,9 @@ const BewaesserungPage = () => {
   useEffect(() => {
     if (et0YesterdayQuery.isError) showSnackbar('Fehler beim Laden der ET₀-Daten', 'error');
   }, [et0YesterdayQuery.isError, showSnackbar]);
+  useEffect(() => {
+    if (soilBucketQuery.isError) showSnackbar('Fehler beim Laden der Wasserreserve', 'error');
+  }, [soilBucketQuery.isError, showSnackbar]);
 
   // Helper: label for last 7 full local days (yesterday back 7 days)
   const sevenDayFullRangeLabel = (() => {
@@ -304,6 +327,7 @@ const BewaesserungPage = () => {
       refetchDecisionCheck();
       refetchScheduledTasks();
       refetchWeather();
+      refetchSoilBucket();
       // Re-subscribe to SSE to force fresh Prüfpunkte snapshot
       reconnectSSE();
     };
@@ -314,7 +338,7 @@ const BewaesserungPage = () => {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [refetchDecisionCheck, refetchScheduledTasks, refetchWeather, reconnectSSE]);
+  }, [refetchDecisionCheck, refetchScheduledTasks, refetchWeather, refetchSoilBucket, reconnectSSE]);
 
   // Determine whether we are currently outside any configured irrigation months
   // A task with an empty month array is treated as "all months".
@@ -441,7 +465,7 @@ const BewaesserungPage = () => {
                 latestTimestamp={latestTimestamp}
                 aggregatesTimestamp={aggregatesTimestamp}
                 meansTimestamp={meansTimestamp}
-                soilUpdatedAt={response?.soilUpdatedAt ?? null}
+                soilUpdatedAt={soilBucketQuery.data?.updatedAt ?? response?.soilUpdatedAt ?? null}
                 clientIsFetching={weatherQuery.isFetching}
                 clientIsError={weatherQuery.isError as boolean}
                 clientUpdatedAt={weatherQuery.dataUpdatedAt}
@@ -621,6 +645,10 @@ const BewaesserungPage = () => {
                                 const rain24Active = response.rainToday >= 3;
                                 const rateActive = response.rainRate > 0;
                                 const drynessActive = typeof response.depletionMm === 'number' && typeof response.triggerMm === 'number' && response.depletionMm < response.triggerMm;
+                                const stationActive = weatherStationStatus.hasError || response.blockers.some((blocker) => blocker.includes('Wetterstation'));
+                                if (stationActive) chips.push(
+                                  <Chip key="b-station" color="error" variant="filled" icon={<ErrorOutlineIcon />} label="Wetterstation gestört" />
+                                );
                                 if (tempActive) chips.push(
                                   <Chip key="b-temp" color="error" variant="filled" icon={<ThermostatAutoIcon />} label="Ø-Temperatur ≤ 10 °C" />
                                 );

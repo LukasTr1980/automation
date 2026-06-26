@@ -3,6 +3,7 @@ import { getScheduledTasks } from '../scheduler.js';
 import logger from '../logger.js';
 import { irrigationSwitchTopics, irrigationSwitchSetTopics, irrigationSwitchDescriptions } from '../utils/constants.js';
 import { createIrrigationDecision } from '../irrigationDecision.js';
+import { reasonFromIrrigationBlockers, type IrrigationBlockerReason } from '../utils/irrigationBlockerReason.js';
 
 const router = express.Router();
 
@@ -29,12 +30,7 @@ type NextIrrigationReason =
   | 'no_schedules'
   | 'no_active_schedules'
   | 'out_of_season'
-  | 'soil_wet'
-  | 'current_rain'
-  | 'rain_24h'
-  | 'humidity_high'
-  | 'temperature_low'
-  | 'weather_blocker'
+  | IrrigationBlockerReason
   | 'decision_unavailable'
   | 'schedule_error';
 
@@ -54,15 +50,6 @@ function createNextIrrigationSummary(
   blockerCount = 0
 ): NextIrrigationSummary {
   return { status, reasonKey, blockerCount, nextTimestamp, zone };
-}
-
-function reasonFromBlockers(blockers: string[]): NextIrrigationReason {
-  if (blockers.some((blocker) => blocker.includes('Boden nicht trocken genug'))) return 'soil_wet';
-  if (blockers.some((blocker) => blocker.includes('Rain rate'))) return 'current_rain';
-  if (blockers.some((blocker) => blocker.includes('Rain (24h)'))) return 'rain_24h';
-  if (blockers.some((blocker) => blocker.includes('humidity'))) return 'humidity_high';
-  if (blockers.some((blocker) => blocker.includes('temperature'))) return 'temperature_low';
-  return 'weather_blocker';
 }
 
 function toIntegerArray(value: unknown): number[] {
@@ -244,7 +231,7 @@ router.get('/next', async (req, res) => {
         if (blockers.length > 0) {
           nextIrrigation = createNextIrrigationSummary(
             'blocked',
-            reasonFromBlockers(blockers),
+            reasonFromIrrigationBlockers(blockers),
             nextTimestamp,
             zoneName,
             blockers.length

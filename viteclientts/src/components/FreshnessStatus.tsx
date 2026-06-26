@@ -14,7 +14,6 @@ type Props = {
   clientUpdatedAt?: number;
 };
 
-const STALE_WARN_MIN = 10;
 const STALE_ERROR_MIN = 30;
 const HEARTBEAT_MS = 1000; // tick every second for client seconds display
 
@@ -65,9 +64,10 @@ export default function FreshnessStatus({
 
   const serverStatusColor: string = (() => {
     if (!latestTimestamp) return 'error.main';
-    const ageMin = (Date.now() - new Date(latestTimestamp).getTime()) / 60000;
+    const timestampMs = new Date(latestTimestamp).getTime();
+    if (Number.isNaN(timestampMs)) return 'error.main';
+    const ageMin = (Date.now() - timestampMs) / 60000;
     if (ageMin >= STALE_ERROR_MIN) return 'error.main';
-    if (ageMin >= STALE_WARN_MIN) return 'warning.main';
     return 'success.main';
   })();
 

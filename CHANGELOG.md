@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.28] - 2026-06-26
+
+### Added
+- Backend/Frontend (Villa Anna): Added a global weather-station fault banner and a Redis-backed soil bucket endpoint for water reserve freshness independent of decision checks.
+- Backend/Tests: Added coverage for mapping stale weather station data to a dedicated irrigation pause reason.
+
+### Fixed
+- Backend/Frontend (Villa Anna): Distinguish stale or missing weather station data from normal weather blockers in the next-irrigation status.
+- Frontend (Villa Anna): Keep water reserve freshness visible when decision checks are disabled.
+
 ## [v19.27.27] - 2026-06-06
 
 ### Changed
