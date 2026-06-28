@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.29] - 2026-06-28
+
+### Changed
+- Frontend (Tooling): Updated Vite to 8.1.0 and the React plugin to 6.0.3.
+
 ### Fixed
 - Frontend (Villa Anna): Prevent the global weather-station fault banner from briefly flashing when returning to a tab while an expired client cache is being refreshed.
 

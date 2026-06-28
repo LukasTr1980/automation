@@ -14,14 +14,12 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Layout from '../../Layout';
 import { Link as RouterLink } from 'react-router-dom';
-import { 
-  WaterDrop, 
-  Schedule, 
-  Block,
-  Grass,
-  Waves as WavesIcon,
-  WbSunny
-} from '@mui/icons-material';
+import Block from '@mui/icons-material/Block';
+import Grass from '@mui/icons-material/Grass';
+import Schedule from '@mui/icons-material/Schedule';
+import WaterDrop from '@mui/icons-material/WaterDrop';
+import WavesIcon from '@mui/icons-material/Waves';
+import WbSunny from '@mui/icons-material/WbSunny';
 // Info icon rendered via InfoPopover component
 import InfoPopover from '../../components/InfoPopover';
 import FreshnessStatus from '../../components/FreshnessStatus';

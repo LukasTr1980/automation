@@ -35,14 +35,14 @@
     "@types/ua-parser-js": "^0.7.39",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
-    "@vitejs/plugin-react": "^5.0.2",
+    "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^9",
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-refresh": "^0.4.7",
     "jsdom": "^29.1.1",
     "playwright": "^1.54.2",
     "typescript": "^5.5.2",
-    "vite": "^7",
+    "vite": "^8.1.0",
     "vitest": "^4.1.5"
   }
 }
