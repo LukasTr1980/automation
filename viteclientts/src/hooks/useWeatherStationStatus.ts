@@ -26,6 +26,12 @@ export type WeatherStationStatus = {
   errorReason: 'missing' | 'invalid' | 'stale' | 'query' | null;
 };
 
+export type WeatherStationStatusOptions = {
+  isPending?: boolean;
+  isFetching?: boolean;
+  dataUpdatedAt?: number;
+};
+
 function joinApiUrl(baseUrl: string, path: string): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   if (!baseUrl || baseUrl === '/') return normalizedPath;
@@ -58,13 +64,21 @@ export function getWeatherStationStatus(
   data: WeatherLatestResponse | undefined,
   isError = false,
   nowMs = Date.now(),
+  options: WeatherStationStatusOptions = {},
 ): WeatherStationStatus {
   if (isError) {
     return { hasError: true, observedAt: null, ageMinutes: null, errorReason: 'query' };
   }
 
+  if (!data && (options.isPending || options.isFetching)) {
+    return { hasError: false, observedAt: null, ageMinutes: null, errorReason: null };
+  }
+
   const observedAt = data?.latest?.observedAt ?? data?.latest?.timestamp ?? null;
   if (!observedAt) {
+    if (options.isFetching) {
+      return { hasError: false, observedAt: null, ageMinutes: null, errorReason: null };
+    }
     return { hasError: true, observedAt: null, ageMinutes: null, errorReason: 'missing' };
   }
 
@@ -74,7 +88,11 @@ export function getWeatherStationStatus(
   }
 
   const ageMinutes = Math.max(0, Math.floor((nowMs - observedMs) / 60000));
-  const isStale = data?.latest?.stale === true || ageMinutes >= WEATHER_STATION_ERROR_MINUTES;
+  const isServerStale = data?.latest?.stale === true;
+  const isClientStale = ageMinutes >= WEATHER_STATION_ERROR_MINUTES;
+  const dataAgeMs = options.dataUpdatedAt ? nowMs - options.dataUpdatedAt : 0;
+  const isVerifyingExpiredCache = options.isFetching === true && dataAgeMs >= WEATHER_STATION_REFETCH_MS;
+  const isStale = isServerStale || (isClientStale && !isVerifyingExpiredCache);
 
   return {
     hasError: isStale,
@@ -96,12 +114,17 @@ export function useWeatherStationStatus() {
     staleTime: WEATHER_STATION_REFETCH_MS,
     refetchInterval: WEATHER_STATION_REFETCH_MS,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: 'always',
+    refetchOnReconnect: 'always',
     placeholderData: (previous) => previous,
   });
 
   return {
     query,
-    status: getWeatherStationStatus(query.data, query.isError),
+    status: getWeatherStationStatus(query.data, query.isError, Date.now(), {
+      isPending: query.isPending,
+      isFetching: query.isFetching,
+      dataUpdatedAt: query.dataUpdatedAt,
+    }),
   };
 }

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Frontend (Villa Anna): Prevent the global weather-station fault banner from briefly flashing when returning to a tab while an expired client cache is being refreshed.
+
 ## [v19.27.28] - 2026-06-26
 
 ### Added
