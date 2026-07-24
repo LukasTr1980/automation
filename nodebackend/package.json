@@ -13,6 +13,7 @@
     "test:suntimes": "npm run build && node build/tests/evapotranspiration.test.js",
     "test:weather-staleness": "npm run build && node build/tests/weatherStaleness.test.js",
     "test:blocker-reason": "npm run build && node build/tests/irrigationBlockerReason.test.js",
+    "test:next-irrigation-status": "npm run build && node build/tests/nextIrrigationStatus.test.js",
     "test:tuya-bridge": "npm run build && node build/tests/tuyaBridgeConfig.test.js"
   },
   "keywords": [],

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.30] - 2026-07-24
+
+### Changed
+
+- Backend (Dependencies): Updated npm dependencies within their existing version ranges and refreshed the lockfile.
+
+### Fixed
+
+- Backend/Frontend (Irrigation): Keep next-schedule status and global UI warnings consistent with the disabled decision-check override, while showing bypassed weather and soil conditions as informational.
+
 ## [v19.27.29] - 2026-06-28
 
 ### Changed

@@ -41,6 +41,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import FreshnessStatus from '../../components/FreshnessStatus';
 import { useEventSource } from '../../hooks/useEventSource';
 import { getWeatherStationStatus, type WeatherLatestResponse } from '../../hooks/useWeatherStationStatus';
+import { useDecisionCheckStatus } from '../../hooks/useDecisionCheckStatus';
 // Dialog removed: details shown inline
 
 // Timing intervals
@@ -50,18 +51,23 @@ function formatEvaporationInfoDE(dateLabel: string): string {
   return `Verdunstung ist der geschätzte Wasserverlust des Rasens durch Sonne, Wind und Luft. Der Wert von gestern (${dateLabel}) fließt in die Wasserreserve ein.`;
 }
 
-function formatTemperatureAverageInfoDE(rangeLabel: string): string {
+function formatTemperatureAverageInfoDE(rangeLabel: string, ignored = false): string {
+  if (ignored) {
+    return `Zeigt die durchschnittliche Temperatur der letzten 7 abgeschlossenen Tage (${rangeLabel}). Die Temperaturgrenze wird wegen der deaktivierten Entscheidungsprüfung derzeit ignoriert.`;
+  }
   return `Zeigt die durchschnittliche Temperatur der letzten 7 abgeschlossenen Tage (${rangeLabel}). Wenn es im Schnitt zu kalt war, startet die Bewässerung nicht automatisch.`;
 }
 
-function formatHumidityAverageInfoDE(rangeLabel: string): string {
+function formatHumidityAverageInfoDE(rangeLabel: string, ignored = false): string {
+  if (ignored) {
+    return `Zeigt die durchschnittliche Luftfeuchte der letzten 7 abgeschlossenen Tage (${rangeLabel}). Die Feuchtegrenze wird wegen der deaktivierten Entscheidungsprüfung derzeit ignoriert.`;
+  }
   return `Zeigt die durchschnittliche Luftfeuchte der letzten 7 abgeschlossenen Tage (${rangeLabel}). Wenn die Luft im Schnitt sehr feucht war, startet die Bewässerung nicht automatisch.`;
 }
 
 const BewaesserungPage = () => {
   const queryClient = useQueryClient();
   const [decisionLoading, setDecisionLoading] = useState(true);
-  const [skipDecision, setSkipDecision] = useState(false);
   const [selectedTasksTopic, setSelectedTasksTopic] = useState<string | null>(null);
   const [switchesLoading, setSwitchesLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(true);
@@ -96,6 +102,13 @@ const BewaesserungPage = () => {
   const [response, setResponse] = useState<DecisionMetrics | null>(null);
   const [copiedTask, setCopiedTask] = useState<ScheduledTask | null>(null);
   const { showSnackbar } = useSnackbar();
+  const {
+    query: decisionCheckQuery,
+    skipDecision: skipDecisionState,
+    setSkipDecision: persistSkipDecision,
+    isUpdating: decisionCheckUpdating,
+  } = useDecisionCheckStatus();
+  const skipDecision = skipDecisionState === true;
   // Dialog state removed
 
   // React Query: Weather latest (+aggregates) for freshness display
@@ -186,12 +199,7 @@ const BewaesserungPage = () => {
     }
   })();
 
-  const mqttSseUrl = (() => {
-    const params = new URLSearchParams();
-    if (skipDecision) params.set('checkIrrigation', 'false');
-    const query = params.toString();
-    return `${apiUrl}/mqtt${query ? `?${query}` : ''}`;
-  })();
+  const mqttSseUrl = `${apiUrl}/mqtt`;
 
   const { reconnect: reconnectSSE } = useEventSource({
     url: mqttSseUrl,
@@ -222,25 +230,7 @@ const BewaesserungPage = () => {
     },
   });
 
-  // Load initial decision-skip state from backend
-  // React Query: decisionCheck (initial state)
-  const decisionCheckQuery = useQuery<{ skip?: boolean }>({
-    queryKey: ['decisionCheck'],
-    queryFn: async () => {
-      const r = await fetch(`${apiUrl}/decisionCheck`);
-      if (!r.ok) throw new Error('decisionCheck');
-      return r.json();
-    },
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
-    placeholderData: (prev) => prev,
-  });
   const { refetch: refetchDecisionCheck } = decisionCheckQuery;
-  useEffect(() => {
-    if (typeof decisionCheckQuery.data?.skip !== 'undefined') {
-      setSkipDecision(!!decisionCheckQuery.data.skip);
-    }
-  }, [decisionCheckQuery.data]);
 
   // React Query: scheduledTasks
   const scheduledTasksQuery = useQuery<APIResponse>({
@@ -470,37 +460,29 @@ const BewaesserungPage = () => {
                 clientIsError={weatherQuery.isError as boolean}
                 clientUpdatedAt={weatherQuery.dataUpdatedAt}
               />
-              {skipDecision ? (
-                <Grid container spacing={2} justifyContent="space-between">
+              <Grid container spacing={2} justifyContent="space-between">
+                {skipDecision && (
                   <Grid size={12}>
-                    <Typography>Entscheidungsprüfung deaktiviert</Typography>
-                  </Grid>
-                  <Grid size={12}>
-                    <Button
-                      variant='outlined'
-                      onClick={async () => {
-                        const newVal = false;
-                        try {
-                          await fetch(`${apiUrl}/decisionCheck`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skip: newVal }) });
-                          setSkipDecision(newVal);
-                          setDecisionLoading(true);
-                          setResponse(null);
-                          showSnackbar('Entscheidungsprüfung aktiviert');
-                          queryClient.invalidateQueries({ queryKey: ['decisionCheck'] });
-                        } catch (err) {
-                          console.error(err);
-                          showSnackbar('Fehler');
-                        }
+                    <Box
+                      sx={{
+                        mt: 1,
+                        p: 1.5,
+                        borderRadius: 2,
+                        border: '1px solid',
+                        borderColor: 'warning.main',
+                        bgcolor: 'warning.light',
+                        color: 'warning.contrastText',
                       }}
-                      fullWidth
-                      color='primary'
                     >
-                      Entscheidungsprüfung aktivieren
-                    </Button>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        Entscheidungsprüfung deaktiviert
+                      </Typography>
+                      <Typography variant="body2">
+                        Die folgenden Prüfpunkte werden angezeigt, verhindern geplante Bewässerungen derzeit aber nicht.
+                      </Typography>
+                    </Box>
                   </Grid>
-                </Grid>
-              ) : (
-                <Grid container spacing={2} justifyContent="space-between">
+                )}
                   {decisionLoading ? (
                     <Grid size={12}>
                       <Box sx={{ minHeight: 180 }} />
@@ -525,7 +507,7 @@ const BewaesserungPage = () => {
                                 {sevenDayFullRangeLabel && (
                                   <InfoPopover
                                     ariaLabel="Hinweis zur Durchschnittstemperatur"
-                                    content={formatTemperatureAverageInfoDE(`${sevenDayFullRangeLabel} lokal`)}
+                                    content={formatTemperatureAverageInfoDE(`${sevenDayFullRangeLabel} lokal`, skipDecision)}
                                     iconSize={16}
                                   />
                                 )}
@@ -543,7 +525,7 @@ const BewaesserungPage = () => {
                                 {sevenDayFullRangeLabel && (
                                   <InfoPopover
                                     ariaLabel="Hinweis zur durchschnittlichen Luftfeuchte"
-                                    content={formatHumidityAverageInfoDE(`${sevenDayFullRangeLabel} lokal`)}
+                                    content={formatHumidityAverageInfoDE(`${sevenDayFullRangeLabel} lokal`, skipDecision)}
                                     iconSize={16}
                                   />
                                 )}
@@ -619,7 +601,9 @@ const BewaesserungPage = () => {
                                     />
                                     <InfoPopover
                                       ariaLabel="Hinweis zur Trockenheit"
-                                      content="Zeigt, wie viel Wasser dem Rasen bis zum automatischen Start fehlt. Wenn die Trockenheit den Startpunkt erreicht und kein Wetter-Blocker aktiv ist, kann Bewässerung starten."
+                                      content={skipDecision
+                                        ? 'Zeigt die aktuelle Trockenheit und den normalen Startpunkt. Diese Grenze wird wegen der deaktivierten Entscheidungsprüfung derzeit ignoriert.'
+                                        : 'Zeigt, wie viel Wasser dem Rasen bis zum automatischen Start fehlt. Wenn die Trockenheit den Startpunkt erreicht und kein Wetter-Blocker aktiv ist, kann Bewässerung starten.'}
                                       iconSize={16}
                                     />
                                   </Box>
@@ -630,10 +614,12 @@ const BewaesserungPage = () => {
                           {/* Blockers section */}
                           <Box mt={2}>
                             <Typography variant="subtitle1" gutterBottom align="center" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                              Blocker Aktiv
+                              {skipDecision ? 'Ignorierte Bedingungen' : 'Blocker aktiv'}
                               <InfoPopover
                                 ariaLabel="Mögliche Blocker"
-                                content="Bewässerung startet nur, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Blocker sind Kälte, hohe Luftfeuchte, Regen in den letzten 24 Stunden oder aktueller Regen."
+                                content={skipDecision
+                                  ? 'Diese Bedingungen würden bei aktiver Entscheidungsprüfung eine Bewässerung verhindern, werden derzeit aber ignoriert.'
+                                  : 'Bewässerung startet nur, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Blocker sind Kälte, hohe Luftfeuchte, Regen in den letzten 24 Stunden oder aktueller Regen.'}
                                 iconSize={18}
                               />
                             </Typography>
@@ -646,26 +632,33 @@ const BewaesserungPage = () => {
                                 const rateActive = response.rainRate > 0;
                                 const drynessActive = typeof response.depletionMm === 'number' && typeof response.triggerMm === 'number' && response.depletionMm < response.triggerMm;
                                 const stationActive = weatherStationStatus.hasError || response.blockers.some((blocker) => blocker.includes('Wetterstation'));
+                                const conditionColor = skipDecision ? 'warning' : 'error';
+                                const conditionVariant = skipDecision ? 'outlined' : 'filled';
                                 if (stationActive) chips.push(
-                                  <Chip key="b-station" color="error" variant="filled" icon={<ErrorOutlineIcon />} label="Wetterstation gestört" />
+                                  <Chip key="b-station" color={conditionColor} variant={conditionVariant} icon={<ErrorOutlineIcon />} label="Wetterstation gestört" />
                                 );
                                 if (tempActive) chips.push(
-                                  <Chip key="b-temp" color="error" variant="filled" icon={<ThermostatAutoIcon />} label="Ø-Temperatur ≤ 10 °C" />
+                                  <Chip key="b-temp" color={conditionColor} variant={conditionVariant} icon={<ThermostatAutoIcon />} label="Ø-Temperatur ≤ 10 °C" />
                                 );
                                 if (humActive) chips.push(
-                                  <Chip key="b-hum" color="error" variant="filled" icon={<OpacityOutlinedIcon />} label="Ø-Luftfeuchte ≥ 80 %" />
+                                  <Chip key="b-hum" color={conditionColor} variant={conditionVariant} icon={<OpacityOutlinedIcon />} label="Ø-Luftfeuchte ≥ 80 %" />
                                 );
                                 if (rain24Active) chips.push(
-                                  <Chip key="b-r24" color="error" variant="filled" icon={<WaterDropIcon />} label="Regen (24h) ≥ 3 mm" />
+                                  <Chip key="b-r24" color={conditionColor} variant={conditionVariant} icon={<WaterDropIcon />} label="Regen (24h) ≥ 3 mm" />
                                 );
                                 if (rateActive) chips.push(
-                                  <Chip key="b-rate" color="error" variant="filled" icon={<SpeedIcon />} label="Regenrate > 0" />
+                                  <Chip key="b-rate" color={conditionColor} variant={conditionVariant} icon={<SpeedIcon />} label="Regenrate > 0" />
                                 );
                                 if (drynessActive) chips.push(
-                                  <Chip key="b-dry" color="error" variant="filled" icon={<Inventory2OutlinedIcon />} label="Noch genug Wasser" />
+                                  <Chip key="b-dry" color={conditionColor} variant={conditionVariant} icon={<Inventory2OutlinedIcon />} label="Noch genug Wasser" />
                                 );
                                 return chips.length ? chips : [
-                                  <Chip key="b-none" color="success" variant="outlined" label="Keine Blocker aktiv" />
+                                  <Chip
+                                    key="b-none"
+                                    color="success"
+                                    variant="outlined"
+                                    label={skipDecision ? 'Keine Bedingungen aktiv' : 'Keine Blocker aktiv'}
+                                  />
                                 ];
                               })()}
                             </Box>
@@ -678,26 +671,24 @@ const BewaesserungPage = () => {
                 <Grid size={12}>
                   <Button
                     variant='outlined'
+                    disabled={decisionCheckUpdating || skipDecisionState === null}
                     onClick={async () => {
                       const newVal = !skipDecision;
                       try {
-                        await fetch(`${apiUrl}/decisionCheck`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skip: newVal }) });
-                        setSkipDecision(newVal);
+                        await persistSkipDecision(newVal);
                         showSnackbar(newVal ? 'Entscheidungsprüfung deaktiviert' : 'Entscheidungsprüfung aktiviert');
-                        queryClient.invalidateQueries({ queryKey: ['decisionCheck'] });
                       } catch (err) {
                         console.error(err);
                         showSnackbar('Fehler');
                       }
                     }}
                     fullWidth
-                    color='error'
+                    color={skipDecision ? 'primary' : 'error'}
                   >
-                    Entscheidungsprüfung deaktivieren
+                    {skipDecision ? 'Entscheidungsprüfung aktivieren' : 'Entscheidungsprüfung deaktivieren'}
                   </Button>
                 </Grid>
               </Grid>
-            )}
             </CardContent>
           </Card>
         </Grid>

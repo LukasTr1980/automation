@@ -3,7 +3,12 @@ import { getScheduledTasks } from '../scheduler.js';
 import logger from '../logger.js';
 import { irrigationSwitchTopics, irrigationSwitchSetTopics, irrigationSwitchDescriptions } from '../utils/constants.js';
 import { createIrrigationDecision } from '../irrigationDecision.js';
-import { reasonFromIrrigationBlockers, type IrrigationBlockerReason } from '../utils/irrigationBlockerReason.js';
+import { reasonFromIrrigationBlockers } from '../utils/irrigationBlockerReason.js';
+import { readDecisionCheckSkipped } from '../utils/decisionCheckState.js';
+import {
+  createDecisionAwareIrrigationSummary,
+  createNextIrrigationSummary,
+} from '../utils/nextIrrigationStatus.js';
 
 const router = express.Router();
 
@@ -22,34 +27,6 @@ interface TaskDetail {
 
 interface TaskWithTopic extends TaskDetail {
   topic: string;
-}
-
-type NextIrrigationStatus = 'planned' | 'blocked' | 'out_of_season' | 'inactive' | 'unknown';
-type NextIrrigationReason =
-  | 'none'
-  | 'no_schedules'
-  | 'no_active_schedules'
-  | 'out_of_season'
-  | IrrigationBlockerReason
-  | 'decision_unavailable'
-  | 'schedule_error';
-
-interface NextIrrigationSummary {
-  status: NextIrrigationStatus;
-  reasonKey: NextIrrigationReason;
-  blockerCount: number;
-  nextTimestamp: string | null;
-  zone: string | null;
-}
-
-function createNextIrrigationSummary(
-  status: NextIrrigationStatus,
-  reasonKey: NextIrrigationReason,
-  nextTimestamp: string | null,
-  zone: string | null,
-  blockerCount = 0
-): NextIrrigationSummary {
-  return { status, reasonKey, blockerCount, nextTimestamp, zone };
 }
 
 function toIntegerArray(value: unknown): number[] {
@@ -96,6 +73,7 @@ function nextOccurrence(rule: RecurrenceRule, from = new Date()): Date | null {
 
 router.get('/next', async (req, res) => {
   try {
+    const decisionCheckSkipped = await readDecisionCheckSkipped();
     const allTasks = await getScheduledTasks();
     
     if (!allTasks || Object.keys(allTasks).length === 0) {
@@ -104,7 +82,14 @@ router.get('/next', async (req, res) => {
         nextTask: null,
         nextScheduled: 'No schedules',
         zone: null,
-        nextIrrigation: createNextIrrigationSummary('inactive', 'no_schedules', null, null),
+        nextIrrigation: createNextIrrigationSummary(
+          'inactive',
+          'no_schedules',
+          null,
+          null,
+          0,
+          decisionCheckSkipped,
+        ),
       });
     }
 
@@ -124,7 +109,14 @@ router.get('/next', async (req, res) => {
         nextTask: null,
         nextScheduled: 'No active schedules',
         zone: null,
-        nextIrrigation: createNextIrrigationSummary('inactive', 'no_active_schedules', null, null),
+        nextIrrigation: createNextIrrigationSummary(
+          'inactive',
+          'no_active_schedules',
+          null,
+          null,
+          0,
+          decisionCheckSkipped,
+        ),
       });
     }
 
@@ -148,7 +140,14 @@ router.get('/next', async (req, res) => {
         nextTask: null,
         nextScheduled: 'No active schedules',
         zone: null,
-        nextIrrigation: createNextIrrigationSummary('inactive', 'no_active_schedules', null, null),
+        nextIrrigation: createNextIrrigationSummary(
+          'inactive',
+          'no_active_schedules',
+          null,
+          null,
+          0,
+          decisionCheckSkipped,
+        ),
       });
     }
 
@@ -221,30 +220,33 @@ router.get('/next', async (req, res) => {
       return r.month.includes(currentMonth);
     });
 
-    let nextIrrigation = createNextIrrigationSummary('planned', 'none', nextTimestamp, zoneName);
-    if (!inSeason) {
-      nextIrrigation = createNextIrrigationSummary('out_of_season', 'out_of_season', nextTimestamp, zoneName);
-    } else {
+    let decisionAvailable = true;
+    let blockerCount = 0;
+    let blockerReason = null;
+    if (inSeason) {
       try {
         const decision = await createIrrigationDecision();
         const blockers = decision.response.blockers ?? [];
-        if (blockers.length > 0) {
-          nextIrrigation = createNextIrrigationSummary(
-            'blocked',
-            reasonFromIrrigationBlockers(blockers),
-            nextTimestamp,
-            zoneName,
-            blockers.length
-          );
-        }
+        blockerCount = blockers.length;
+        blockerReason = blockers.length > 0 ? reasonFromIrrigationBlockers(blockers) : null;
       } catch (error) {
+        decisionAvailable = false;
         logger.warn('Failed to derive next irrigation decision status', {
           label: 'NextScheduleRoute',
           error: error instanceof Error ? error.message : String(error),
+          decisionCheckSkipped,
         });
-        nextIrrigation = createNextIrrigationSummary('unknown', 'decision_unavailable', nextTimestamp, zoneName);
       }
     }
+    const nextIrrigation = createDecisionAwareIrrigationSummary({
+      inSeason,
+      decisionCheckSkipped,
+      decisionAvailable,
+      blockerReason,
+      blockerCount,
+      nextTimestamp,
+      zone: zoneName,
+    });
 
     logger.info(`Next irrigation scheduled: ${timeDisplay} for ${zoneName}`, { label: 'NextScheduleRoute' });
     

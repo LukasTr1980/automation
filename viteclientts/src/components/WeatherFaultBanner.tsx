@@ -6,16 +6,23 @@ import {
   formatWeatherDateTimeDE,
   useWeatherStationStatus,
 } from '../hooks/useWeatherStationStatus';
+import { useDecisionCheckStatus } from '../hooks/useDecisionCheckStatus';
+import { getWeatherFaultImpactCopy } from '../utils/weatherFaultCopy';
 
 export default function WeatherFaultBanner() {
   const { status } = useWeatherStationStatus();
+  const { query: decisionCheckQuery, skipDecision } = useDecisionCheckStatus();
 
   if (!status.hasError) return null;
 
   const ageLabel = formatRelativeWeatherAge(status.ageMinutes);
+  const { effect, headline } = getWeatherFaultImpactCopy(
+    skipDecision,
+    decisionCheckQuery.isError,
+  );
   const detail = status.observedAt
-    ? `Letzter Messwert: ${formatWeatherDateTimeDE(status.observedAt)} (${ageLabel}). Die automatische Bewässerung bleibt blockiert, bis aktuelle Wetterstationsdaten vorliegen.`
-    : 'Es liegt kein gültiger Zeitstempel der Wetterstation vor. Die automatische Bewässerung bleibt blockiert, bis aktuelle Wetterstationsdaten vorliegen.';
+    ? `Letzter Messwert: ${formatWeatherDateTimeDE(status.observedAt)} (${ageLabel}). ${effect}`
+    : `Es liegt kein gültiger Zeitstempel der Wetterstation vor. ${effect}`;
 
   return (
     <Alert
@@ -32,7 +39,7 @@ export default function WeatherFaultBanner() {
     >
       <Box sx={{ display: 'grid', gap: 0.25 }}>
         <Typography component="p" variant="body2" sx={{ fontWeight: 700 }}>
-          Wetterstation gestört: Automatische Bewässerung blockiert.
+          {headline}
         </Typography>
         <Typography component="p" variant="body2">
           {status.observedAt ? `Letzter Messwert ${ageLabel}.` : 'Keine aktuellen Wetterdaten verfügbar.'}

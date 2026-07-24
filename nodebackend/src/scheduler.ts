@@ -3,7 +3,8 @@ import { connectToRedis } from './clients/redisClient.js';
 import { createIrrigationDecision } from './irrigationDecision.js';
 import getTaskEnabler from './utils/getTaskEnabler.js';
 import generateUniqueId from './utils/generateUniqueId.js';
-import { topicToTaskEnablerKey, skipDecisionCheckRedisKey, irrigationSwitchTopics, irrigationSwitchDescriptions } from './utils/constants.js';
+import { topicToTaskEnablerKey, irrigationSwitchTopics, irrigationSwitchDescriptions } from './utils/constants.js';
+import { readDecisionCheckSkipped } from './utils/decisionCheckState.js';
 import MqttPublisher from './utils/mqttPublisher.js';
 import { computeWeeklyET0 } from './utils/evapotranspiration.js';
 import { recordCurrentGlobalRadiation } from './utils/radiationRecorder.js';
@@ -264,8 +265,7 @@ async function createTask(topic: string, state: boolean, recurrenceRule: Recurre
         });
       } else {
         // If decision check is skipped, execute scheduled irrigation directly.
-        const client = await connectToRedis();
-        const skipDecision = (await client.get(skipDecisionCheckRedisKey)) === 'true';
+        const skipDecision = await readDecisionCheckSkipped();
         if (skipDecision) {
           publisher.publish(topic, state.toString(), async (err: Error | null) => {
             if (err) {

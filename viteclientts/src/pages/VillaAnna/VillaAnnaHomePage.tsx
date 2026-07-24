@@ -31,6 +31,7 @@ import ForecastCard from '../../components/ForecastCard';
 import { useEventSource } from '../../hooks/useEventSource';
 import { useCountdowns } from '../../hooks/useCountdowns';
 import { getWeatherStationStatus, type WeatherLatestResponse } from '../../hooks/useWeatherStationStatus';
+import { useDecisionCheckStatus } from '../../hooks/useDecisionCheckStatus';
 
 // Timing thresholds / intervals
 const WEATHER_REFETCH_MS = 2 * 60 * 1000; // 2 minutes
@@ -138,6 +139,7 @@ type NextIrrigationReason =
   | 'temperature_low'
   | 'weather_station_error'
   | 'weather_blocker'
+  | 'decision_check_disabled'
   | 'decision_unavailable'
   | 'schedule_error';
 
@@ -147,6 +149,7 @@ type NextIrrigationSummary = {
   blockerCount: number;
   nextTimestamp: string | null;
   zone: string | null;
+  decisionCheckSkipped?: boolean;
 };
 
 type ScheduleResponse = {
@@ -235,6 +238,8 @@ function getNextIrrigationReasonLabel(reasonKey: NextIrrigationReason): string {
       return 'Wetterstation gestört';
     case 'weather_blocker':
       return 'Wetter-Blocker aktiv';
+    case 'decision_check_disabled':
+      return 'Ohne Prüfung geplant';
     case 'decision_unavailable':
       return 'Entscheidung nicht verfügbar';
     case 'schedule_error':
@@ -245,7 +250,12 @@ function getNextIrrigationReasonLabel(reasonKey: NextIrrigationReason): string {
   }
 }
 
-function getNextIrrigationColor(status: NextIrrigationStatus, reasonKey?: NextIrrigationReason): string {
+function getNextIrrigationColor(
+  status: NextIrrigationStatus,
+  reasonKey?: NextIrrigationReason,
+  decisionCheckSkipped = false,
+): string {
+  if (decisionCheckSkipped && status === 'planned') return 'warning.main';
   if (reasonKey === 'weather_station_error') return 'error.main';
   switch (status) {
     case 'planned':
@@ -281,6 +291,7 @@ function getLegacyNextIrrigation(data: ScheduleResponse | undefined, isLoading: 
 const HomePage = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const { skipDecision } = useDecisionCheckStatus();
 
   // Lightweight status chip with small colored dot + short label
   const DotLabel = ({ color, label }: { color: string; label: string }) => (
@@ -649,14 +660,16 @@ const HomePage = () => {
                   py: { xs: 1, md: 1.25 },
                 }}
               >
-                <Avatar sx={{ bgcolor: 'error.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
+                <Avatar sx={{ bgcolor: skipDecision ? 'warning.main' : 'error.main', color: 'common.white', width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, alignSelf: 'center' }}>
                   <Block sx={{ fontSize: { xs: 24, md: 28 } }} />
                 </Avatar>
                 <Typography variant="body2" sx={{ opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                  Blocker
+                  {skipDecision ? 'Ignorierte Bedingungen' : 'Blocker'}
                   <InfoPopover
                     ariaLabel="Mögliche Blocker"
-                    content="Bewässerung startet nur, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Blocker sind Kälte über den 7-Tage-Durchschnitt, hohe Luftfeuchte, Regen in den letzten 24 Stunden oder aktueller Regen."
+                    content={skipDecision
+                      ? 'Die Entscheidungsprüfung ist deaktiviert. Diese Bedingungen verhindern geplante Bewässerungen derzeit nicht.'
+                      : 'Bewässerung startet nur, wenn der Rasen zu wenig Wasser hat und kein Wetter-Blocker aktiv ist. Blocker sind Kälte über den 7-Tage-Durchschnitt, hohe Luftfeuchte, Regen in den letzten 24 Stunden oder aktueller Regen.'}
                     iconSize={16}
                   />
                 </Typography>
@@ -668,31 +681,36 @@ const HomePage = () => {
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center', minHeight: { xs: 28, md: 32 } }}>
                     {(() => {
                       const items: ReactNode[] = [];
+                      const conditionColor = skipDecision ? theme.palette.warning.main : theme.palette.error.main;
                       const tempActive = decision.outTemp <= 10;
                       const humActive = decision.humidity >= 80;
                       const rain24Active = decision.rainToday >= 3;
                       const rateActive = decision.rainRate > 0;
                       const drynessActive = typeof decision.depletionMm === 'number' && typeof decision.triggerMm === 'number' && decision.depletionMm < decision.triggerMm;
                       if (weatherStationStatus.hasError) items.push(
-                        <DotLabel key="b-station" color={theme.palette.error.main} label="Wetterstation gestört" />
+                        <DotLabel key="b-station" color={conditionColor} label="Wetterstation gestört" />
                       );
                       if (tempActive) items.push(
-                        <DotLabel key="b-temp" color={theme.palette.error.main} label="Ø-Temp. 7 Tage ≤ 10 °C" />
+                        <DotLabel key="b-temp" color={conditionColor} label="Ø-Temp. 7 Tage ≤ 10 °C" />
                       );
                       if (humActive) items.push(
-                        <DotLabel key="b-hum" color={theme.palette.error.main} label="Feuchte ≥ 80 %" />
+                        <DotLabel key="b-hum" color={conditionColor} label="Feuchte ≥ 80 %" />
                       );
                       if (rain24Active) items.push(
-                        <DotLabel key="b-r24" color={theme.palette.error.main} label="Regen 24h ≥ 3 mm" />
+                        <DotLabel key="b-r24" color={conditionColor} label="Regen 24h ≥ 3 mm" />
                       );
                       if (rateActive) items.push(
-                        <DotLabel key="b-rate" color={theme.palette.error.main} label="Regenrate > 0" />
+                        <DotLabel key="b-rate" color={conditionColor} label="Regenrate > 0" />
                       );
                       if (drynessActive) items.push(
-                        <DotLabel key="b-dry" color={theme.palette.error.main} label="Noch genug Wasser" />
+                        <DotLabel key="b-dry" color={conditionColor} label="Noch genug Wasser" />
                       );
                       return items.length ? items : [
-                        <DotLabel key="b-none" color={theme.palette.success.main} label="Keine Blocker" />
+                        <DotLabel
+                          key="b-none"
+                          color={theme.palette.success.main}
+                          label={skipDecision ? 'Keine Bedingungen aktiv' : 'Keine Blocker'}
+                        />
                       ];
                     })()}
                   </Box>
@@ -900,7 +918,14 @@ const HomePage = () => {
                   const data = scheduleQuery.data;
                   const isLoading = scheduleQuery.isLoading && !data;
                   const nextIrrigation = data?.nextIrrigation ?? getLegacyNextIrrigation(data, isLoading);
-                  const statusColor = isLoading ? 'text.disabled' : getNextIrrigationColor(nextIrrigation.status, nextIrrigation.reasonKey);
+                  const decisionCheckSkipped = nextIrrigation.decisionCheckSkipped === true || skipDecision === true;
+                  const statusColor = isLoading
+                    ? 'text.disabled'
+                    : getNextIrrigationColor(
+                        nextIrrigation.status,
+                        nextIrrigation.reasonKey,
+                        decisionCheckSkipped,
+                      );
                   let primaryLabel = 'Keine geplant';
                   let secondaryLabel: string | null = getNextIrrigationReasonLabel(nextIrrigation.reasonKey) || null;
                   if (isLoading) {
@@ -908,7 +933,10 @@ const HomePage = () => {
                     secondaryLabel = null;
                   } else if (nextIrrigation.status === 'planned') {
                     primaryLabel = formatNextIrrigationTimestamp(nextIrrigation.nextTimestamp) ?? data?.nextScheduled ?? 'Geplant';
-                    secondaryLabel = nextIrrigation.zone ?? data?.zone ?? null;
+                    const zoneLabel = nextIrrigation.zone ?? data?.zone ?? null;
+                    secondaryLabel = decisionCheckSkipped
+                      ? `${zoneLabel ?? 'Zeitplan'} · ohne Prüfung`
+                      : zoneLabel;
                   } else if (nextIrrigation.status === 'blocked') {
                     primaryLabel = 'Pausiert';
                     secondaryLabel = getNextIrrigationReasonLabel(nextIrrigation.reasonKey) || 'Blocker aktiv';

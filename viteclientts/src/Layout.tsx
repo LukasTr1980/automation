@@ -12,6 +12,7 @@ import logo from './images/logo-512x512.webp';
 import { LayoutProps, CopyrightProps } from './types/types';
 import { useUserStore } from './utils/store';
 import { CONTENT_MAX_WIDTH } from './utils/layout';
+import DecisionCheckBanner from './components/DecisionCheckBanner';
 import WeatherFaultBanner from './components/WeatherFaultBanner';
 const appVersion = import.meta.env.VITE_APP_VERSION;
 
@@ -68,6 +69,7 @@ const Layout: React.FC<LayoutProps> = ({
       >
         <Grid container paddingTop={isSmallScreen ? 3 : 6}>
           <Grid component="div" size={12}>
+            <DecisionCheckBanner />
             <WeatherFaultBanner />
           </Grid>
           {showLogo && (
