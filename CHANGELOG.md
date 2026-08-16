@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.31] - 2026-08-16
+
+### Changed
+
+- Backend/Frontend (Dependencies): Refreshed npm dependency lockfiles within their existing version ranges, including Axios, TypeScript ESLint, Vite, Playwright, React Router, and related transitive packages.
+
 ## [v19.27.30] - 2026-07-24
 
 ### Changed
