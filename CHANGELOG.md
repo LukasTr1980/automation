@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.32] - 2026-08-16
+
+### Changed
+
+- Backend (Dependencies): Updated `@lukastr1980/davis` from 1.0.5 to 1.0.6 in the lockfile.
+
 ## [v19.27.31] - 2026-08-16
 
 ### Changed
