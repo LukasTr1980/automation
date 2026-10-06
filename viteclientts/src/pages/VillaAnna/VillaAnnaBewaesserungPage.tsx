@@ -25,7 +25,7 @@ import ThermostatAutoIcon from '@mui/icons-material/ThermostatAuto';
 import OpacityOutlinedIcon from '@mui/icons-material/OpacityOutlined';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import SpeedIcon from '@mui/icons-material/Speed';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 // WaterIcon removed; irrigation weekly sum no longer shown
 import WavesIcon from '@mui/icons-material/Waves';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
@@ -460,7 +460,7 @@ const BewaesserungPage = () => {
                 clientIsError={weatherQuery.isError as boolean}
                 clientUpdatedAt={weatherQuery.dataUpdatedAt}
               />
-              <Grid container spacing={2} justifyContent="space-between">
+              <Grid container spacing={2} sx={{ justifyContent: 'space-between' }}>
                 {skipDecision && (
                   <Grid size={12}>
                     <Box
@@ -491,7 +491,7 @@ const BewaesserungPage = () => {
                     <>
                       {response && (
                         <Grid size={12}>
-                          <Box mt={1} sx={{ backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 1, p: 1.5, border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                          <Box sx={{ mt: 1, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 1, p: 1.5, border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                             <Typography variant="h6" gutterBottom align="center">
                               Prüfpunkte
                             </Typography>
@@ -612,7 +612,7 @@ const BewaesserungPage = () => {
                             )}
                           </List>
                           {/* Blockers section */}
-                          <Box mt={2}>
+                          <Box sx={{ mt: 2 }}>
                             <Typography variant="subtitle1" gutterBottom align="center" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
                               {skipDecision ? 'Ignorierte Bedingungen' : 'Blocker aktiv'}
                               <InfoPopover

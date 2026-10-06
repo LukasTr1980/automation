@@ -30,7 +30,13 @@ jobs:
       with:
         context: .
         push: true
-        tags: mustaman/automation:${{ github.ref_name }}
+        tags: |
+          mustaman/automation:${{ github.ref_name }}
+          mustaman/automation:${{ github.sha }}
+        labels: |
+          org.opencontainers.image.source=https://github.com/LukasTr1980/automation
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.version=${{ github.ref_name }}
         platforms: linux/amd64
         provenance: false
         sbom: false

@@ -620,7 +620,7 @@ export async function getOutdoorTempAverageRange(options: OutdoorTempAverageOpti
   const chunks = res.value.chunks;
   if (!chunks.length) return { ok: false, avg: 0, chunks: [], combineMode };
 
-  let avg = 0;
+  let avg: number;
   if (combineMode === 'sampleWeighted') {
     let totalSum = 0;
     let totalCount = 0;
@@ -864,7 +864,7 @@ export async function getOutdoorHumidityAverageRange(options: OutdoorHumidityAve
   const chunks = res.value.chunks;
   if (!chunks.length) return { ok: false, avg: 0, chunks: [], combineMode };
 
-  let avg = 0;
+  let avg: number;
   if (combineMode === 'sampleWeighted') {
     let totalSum = 0;
     let totalCount = 0;
@@ -994,7 +994,7 @@ export async function getOutdoorWindSpeedAverageRange(options: OutdoorWindAverag
   const chunks = res.value.chunks;
   if (!chunks.length) return { ok: false, avg: 0, chunks: [], combineMode };
 
-  let avg = 0;
+  let avg: number;
   if (combineMode === 'sampleWeighted') {
     let totalSum = 0;
     let totalCount = 0;
@@ -1123,7 +1123,7 @@ export async function getOutdoorPressureAverageRange(options: OutdoorPressureAve
   const chunks = res.value.chunks;
   if (!chunks.length) return { ok: false, avg: 0, chunks: [], combineMode, units };
 
-  let avg = 0;
+  let avg: number;
   if (combineMode === 'sampleWeighted') {
     let totalSum = 0;
     let totalCount = 0;

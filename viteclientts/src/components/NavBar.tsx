@@ -6,7 +6,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router';
 import { CONTENT_MAX_WIDTH } from '../utils/layout';
 
 const NavBar: React.FC = () => {
@@ -139,7 +139,7 @@ const NavBar: React.FC = () => {
                 >
                   {/* Always render placeholder dot to keep alignment stable */}
                   <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: active ? 'primary.main' : 'transparent', mr: 1 }} />
-                  <Typography textAlign="center">{page.label}</Typography>
+                  <Typography sx={{ textAlign: 'center' }}>{page.label}</Typography>
                 </MenuItem>
               );
             })}

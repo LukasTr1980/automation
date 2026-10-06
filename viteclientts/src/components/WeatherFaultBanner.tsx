@@ -1,5 +1,5 @@
 import { Alert, Box, Typography } from '@mui/material';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import InfoPopover from './InfoPopover';
 import {
   formatRelativeWeatherAge,

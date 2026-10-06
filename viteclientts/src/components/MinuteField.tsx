@@ -49,7 +49,7 @@ const MinuteField: React.FC<MinuteFieldProps> = ({ selectedMinute, setSelectedMi
       value={selectedMinute}
       onChange={handleChange}
       onBlur={handleBlur}
-      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', 'aria-label': 'Minute' }}
+      slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', 'aria-label': 'Minute' } }}
       variant="outlined"
       fullWidth
       error={showError}

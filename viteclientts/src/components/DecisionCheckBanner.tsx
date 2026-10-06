@@ -1,7 +1,7 @@
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import { Alert, Box, Button, Typography } from '@mui/material';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router';
 import { useDecisionCheckStatus } from '../hooks/useDecisionCheckStatus';
 
 export default function DecisionCheckBanner() {

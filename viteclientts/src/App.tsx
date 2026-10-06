@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import VillaAnnaHomePage from './pages/VillaAnna/VillaAnnaHomePage';
 import BewaesserungsPage from './pages/VillaAnna/VillaAnnaBewaesserungPage';
 import CountdownPage from './pages/VillaAnna/VillaAnnaCountdownPage';

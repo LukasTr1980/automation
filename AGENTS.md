@@ -14,6 +14,7 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 ---
 
 ## Quick Start (agents)
+- Frontend tooling requires Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`; keep the local runtime within this supported range.
 - Backend run: `cd nodebackend && npm ci && npm run build && node build/index.js`
   - Direct local runs require reachable Redis/MQTT/QuestDB/Vault services and an ignored `nodebackend/.env` with `VAULT_ROLE_ID`/`VAULT_SECRET_ID`.
 - Backend watch: `cd nodebackend && npm run watch`
@@ -64,7 +65,7 @@ Follow these rules. Prefer the patterns and decisions stated here over guesses. 
 
 ---
 
-## Frontend Design System & Accessibility (MUI v7)
+## Frontend Design System & Accessibility (MUI v9)
 
 ### Visual & Layout
 - Overall: Simple, flat surfaces. No gradients. Neutral background.
@@ -413,7 +414,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Checklists (agent‑friendly)
 
 ### Before touching UI
-- Labels in German; follow MUI v7 patterns (slots, outlined cards, flat app bar).
+- Labels in German; follow MUI v9 patterns (slots, outlined cards, flat app bar).
 - Add ARIA names; verify roles/landmarks; ensure focus visibility and dialog focus trap.
 - Use status chips (small dot + label) for state.
 

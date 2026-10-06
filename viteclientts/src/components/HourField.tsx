@@ -50,7 +50,7 @@ const HourField: React.FC<HourFieldProps> = ({ selectedHour, setSelectedHour, er
       value={selectedHour}
       onChange={handleChange}
       onBlur={handleBlur}
-      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', 'aria-label': 'Stunde' }}
+      slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', 'aria-label': 'Stunde' } }}
       variant="outlined"
       fullWidth
       error={showError}

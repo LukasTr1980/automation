@@ -173,8 +173,7 @@ export default function ScheduledTaskCard({ zoneName, tasks, customLabels, onDel
                 <Stack
                   direction="row"
                   spacing={0}
-                  alignItems="center"
-                  sx={{ ml: 'auto', flexShrink: 0, order: { xs: 2, sm: 3 } }}
+                  sx={{ alignItems: 'center', ml: 'auto', flexShrink: 0, order: { xs: 2, sm: 3 } }}
                 >
                   {isActive && (
                     <Chip size="small" color="success" label="Aktiv" sx={{ mr: 0.5 }} />

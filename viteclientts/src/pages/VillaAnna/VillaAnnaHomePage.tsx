@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Layout from '../../Layout';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 import Block from '@mui/icons-material/Block';
 import Grass from '@mui/icons-material/Grass';
 import Schedule from '@mui/icons-material/Schedule';
@@ -1176,8 +1176,7 @@ const HomePage = () => {
           container
           rowSpacing={{ xs: 1.5, md: 3 }}
           columnSpacing={{ xs: 1, md: 9.5 }}
-          justifyContent="center"
-          sx={{ maxWidth: { md: 852 }, mx: 'auto' }}
+          sx={{ justifyContent: 'center', maxWidth: { md: 852 }, mx: 'auto' }}
         >
           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
             <RouterLink to="/bewaesserung" style={{ textDecoration: 'none' }}>

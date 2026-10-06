@@ -30,6 +30,7 @@ async function connectToRedis() {
 
   if (!client) {
     client = new Redis({
+      protocol: 2,
       host: envSwitcher.redisHost,
       port: 6379,
       password: redisPassword,
@@ -74,6 +75,7 @@ async function subscribeToRedisKey(io: Server) {
     try {
 
       subscriptionClient = new Redis({
+        protocol: 2,
         host: envSwitcher.redisHost,
         port: 6379,
         password: redisPassword,

@@ -106,7 +106,7 @@ export function parseTuyaZoneMappings(rawJson: string): Record<string, TuyaZoneM
   try {
     parsed = JSON.parse(rawJson);
   } catch (error) {
-    throw new Error(`Invalid TUYA_DEVICE_MAPPINGS_JSON: ${(error as Error).message}`);
+    throw new Error(`Invalid TUYA_DEVICE_MAPPINGS_JSON: ${(error as Error).message}`, { cause: error });
   }
 
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {

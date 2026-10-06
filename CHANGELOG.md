@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v19.27.33] - 2026-10-06
+
+### Changed
+
+- Backend (Dependencies): Updated direct dependencies to their latest releases, including ESLint 10, dotenv 18, ioredis 6, and UUID 14. Upgraded TypeScript to 6.0.3, the latest version supported by TypeScript ESLint; TypeScript 7 remains excluded until tooling support is available.
+- Backend (Compatibility): Retained RESP2 for Redis connections and subscriptions, declared the ESLint globals dependency explicitly, and adapted existing code to the ESLint 10 recommended rules.
+- Frontend (Dependencies): Updated direct dependencies to their latest releases, including Material UI 9, React Router 8, ESLint 10, Vitest 5, and jsdom 30. Upgraded TypeScript to 6.0.3, the latest version supported by TypeScript ESLint.
+- Frontend (Compatibility): Migrated React Router imports away from the removed DOM package and adapted icons, styling props, and numeric input slots for Material UI 9. Declared ESLint dependencies explicitly and documented the supported Node.js versions (`^22.22.2 || ^24.15.0 || >=26.0.0`).
+- Release (Images): Publish full source-commit tags and OCI revision/version labels alongside version tags so Hetzner infrastructure can promote verified images by immutable digest.
+
 ## [v19.27.32] - 2026-08-16
 
 ### Changed

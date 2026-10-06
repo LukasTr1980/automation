@@ -104,11 +104,11 @@ test('home refreshes schedule and last irrigation without reload', async ({ page
   await expect(
     main.getByRole('heading', { name: 'Villa Anna Bewässerungssystem' })
   ).toBeVisible();
-  await expect(main.getByText('27.04., 06:30')).toBeVisible();
+  await expect(main.getByText('Morgen, 06:30 Uhr', { exact: true })).toBeVisible();
   await expect(main.getByText(/25\.04\.2026, 08:00.*Stefan Nord/)).toBeVisible();
 
   await page.clock.fastForward(61_000);
 
-  await expect(main.getByText('28.04., 07:45')).toBeVisible();
+  await expect(main.getByText(/^Di\.?, 07:45 Uhr$/)).toBeVisible();
   await expect(main.getByText(/26\.04\.2026, 08:30.*Lukas West/)).toBeVisible();
 });

@@ -67,7 +67,7 @@ const Layout: React.FC<LayoutProps> = ({
           px: { xs: 1, md: 3 }
         }}
       >
-        <Grid container paddingTop={isSmallScreen ? 3 : 6}>
+        <Grid container sx={{ paddingTop: isSmallScreen ? 3 : 6 }}>
           <Grid component="div" size={12}>
             <DecisionCheckBanner />
             <WeatherFaultBanner />
